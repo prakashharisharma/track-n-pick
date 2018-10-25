@@ -1,0 +1,51 @@
+# Operating System Files
+
+*.DS_Store
+Thumbs.db
+
+# Gradle Files
+gradlew
+gradlew.bat
+settings.gradle
+.gradle
+gradle
+
+# Maven Files
+.mvn
+mvnw
+mvnw.cmd
+
+# Build Files #
+bin
+target
+build/
+data
+
+
+# IntelliJ IDEA Files #
+
+*.iml
+*.ipr
+*.iws
+*.idea
+
+### Eclipse STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# Spring Bootstrap artifacts
+
+dependency-reduced-pom.xml
+out
+README.html
+
+# sonarlint Files #
+.sonarlint
+
+/.metadata/
+/.recommenders/
