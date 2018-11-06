@@ -19,20 +19,26 @@ function loadTable(){
 		"columns" : [ {
 			"data" : "symbol"
 		}, {
-			"data" : "company"
-		}, {
-			"data" : "ltp"
+			"data" : "qunatity"
+		},{
+			"data" : "averagePrice"
+		},{
+			"data" : "currentPrice"
+		},{
+			"data" : "yearLow"
+		},{
+			"data" : "yearHigh"
+		},{
+			"data" : "profitPer"
 		} ],
 		rowCallback : function(row, data, index) {
-			if (data.ltp > 20.0) {
-				$(row).find('td:eq(2)').css('color', 'green');
+			if (data.profitPer > 0.0) {
+				$(row).find('td:eq(6)').css('color', 'green');
 			}
-			if (data.ltp <= 20.0) {
-				$(row).find('td:eq(2)').css('color', 'red');
+			if (data.profitPer < 0.0) {
+				$(row).find('td:eq(6)').css('color', 'red');
 			}
-			if (data.symbol.toUpperCase() == 'ABC') {
-				$(row).find('td:eq(0)').css('color', 'blue');
-			}
+			
 		}
 	});
 }

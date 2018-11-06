@@ -1,49 +1,51 @@
 package com.example;
 
+import java.text.DecimalFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Locale;
 
 public class DateExample {
 
 	public static void main(String[] args) {
+
+		LocalDate localDate = LocalDate.now();
+
+		DayOfWeek dayOfWeek = localDate.getDayOfWeek();
 		
-		LocalDate ld = LocalDate.now();
-		
-		
-		System.out.println(ld);
-		
-		//Date
-		System.out.println(ld.getDayOfMonth());
-		
-		DayOfWeek dayOfWeek = ld.getDayOfWeek();
-		
-		int day;
+		int date;
 		
 		if(DayOfWeek.MONDAY == dayOfWeek) {
-			day = ld.getDayOfMonth() - 3;
+			date = localDate.getDayOfMonth() - 3;
 		}else if(DayOfWeek.SUNDAY == dayOfWeek) {
-			day = ld.getDayOfMonth() - 2;
+			date = localDate.getDayOfMonth() - 2;
 		}else {
-			day = ld.getDayOfMonth() - 1;
+			date = localDate.getDayOfMonth() - 1;
 		}
 		
-		System.out.println(day);
-		//Year
-		System.out.println(ld.getYear());
-		
-		
+		int year = localDate.getYear();
 
-		String output = ld.getMonth().getDisplayName( TextStyle.SHORT , Locale.US ) ;
+		String month = localDate.getMonth().getDisplayName( TextStyle.SHORT , Locale.US ).toUpperCase() ;
 		
-		System.out.println(output.toUpperCase());
-		
-		//Day
-		System.out.println(ld.getDayOfWeek().name());
-		
-		
+		if(date <= 0) {
+			
+			 localDate = LocalDate.now().minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
+			 
+			 if (localDate.getDayOfWeek().getValue() > 5) {
+			        localDate = localDate.minusDays(localDate.getDayOfWeek().getValue() - 5);
+			 }
+			 
+			 date = localDate.getDayOfMonth();
+			 
+			 month = localDate.getMonth().getDisplayName( TextStyle.SHORT , Locale.US ).toUpperCase() ;
+			 
+			 year = localDate.getYear();
+		}
 
+		
+		System.out.println(date+month+year);
 		
 		
 	}

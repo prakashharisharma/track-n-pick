@@ -17,7 +17,7 @@ public class StockPrice implements Serializable{
 
 	@JsonProperty("symbol")
 	@DataField(pos = 1)
-    private String symbol;
+    private String nseSymbol;
 	
 	@DataField(pos = 2)
     private String series;
@@ -60,12 +60,12 @@ public class StockPrice implements Serializable{
     private String dummy;
 
     
-	public String getSymbol() {
-		return symbol;
+	public String getNseSymbol() {
+		return nseSymbol;
 	}
 
-	public void setSymbol(String symbol) {
-		this.symbol = symbol;
+	public void setNseSymbol(String nseSymbol) {
+		this.nseSymbol = nseSymbol;
 	}
 
 	public String getSeries() {
@@ -179,14 +179,14 @@ public class StockPrice implements Serializable{
 
 	@Override
 	public String toString() {
-		return "StockPrice [symbol=" + symbol + ", close=" + close + "]";
+		return "StockPrice [symbol=" + nseSymbol + ", close=" + close + "]";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((symbol == null) ? 0 : symbol.hashCode());
+		result = prime * result + ((nseSymbol == null) ? 0 : nseSymbol.hashCode());
 		return result;
 	}
 
@@ -199,10 +199,10 @@ public class StockPrice implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		StockPrice other = (StockPrice) obj;
-		if (symbol == null) {
-			if (other.symbol != null)
+		if (nseSymbol == null) {
+			if (other.nseSymbol != null)
 				return false;
-		} else if (!symbol.equals(other.symbol))
+		} else if (!nseSymbol.equals(other.nseSymbol))
 			return false;
 		return true;
 	}

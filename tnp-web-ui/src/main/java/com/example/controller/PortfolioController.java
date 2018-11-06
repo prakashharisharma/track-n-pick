@@ -3,6 +3,7 @@ package com.example.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,11 +15,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.controller.model.Person;
 import com.example.model.master.Stock;
+import com.example.model.stocks.UserPortfolio;
+import com.example.model.um.User;
+import com.example.service.PortfolioService;
+import com.example.service.UserService;
+import com.example.ui.model.PortfolioStock;
+import com.example.ui.service.UiRenderUtil;
 
 @RestController
 @RequestMapping("/portfolio")
 public class PortfolioController {
 
+	@Autowired
+	private PortfolioService portfolioService;
+
+	@Autowired
+	private UserService userService;
+	
+	@Autowired
+	private UiRenderUtil uiRenderUtil;
+	
 	private static List<Stock> stockList = new ArrayList<>();
 	
 	static {
@@ -38,9 +54,13 @@ public class PortfolioController {
 	
 	
 	@GetMapping(value="/", produces = MediaType.APPLICATION_JSON_VALUE )
-	public ResponseEntity<List<Stock>> getStudentDetails() {
+	public ResponseEntity<List<PortfolioStock>> getPortfolioStocks() {
 
-		return ResponseEntity.ok(stockList);
+		User user = userService.getUserById(1);
+		
+		List<UserPortfolio> userPortfolioList = portfolioService.userPortfolio(user);
+		
+		return ResponseEntity.ok(uiRenderUtil.renderPortfolio(userPortfolioList));
 	}
 	
 	@PostMapping(value = "/saveContact", consumes = MediaType.APPLICATION_JSON_VALUE)

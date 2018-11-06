@@ -9,10 +9,9 @@ import org.springframework.stereotype.Repository;
 
 import com.example.model.master.Stock;
 
-
 @Transactional
 @Repository
-public interface StockRepository extends JpaRepository<Stock, String> {
+public interface StockRepository extends JpaRepository<Stock, Long> {
 
 	Stock findByIsinCode(String isinCode);
 	
@@ -23,6 +22,8 @@ public interface StockRepository extends JpaRepository<Stock, String> {
 	List<Stock> findByNseSymbolContainingIgnoreCase(String nseSymbol);
 	
 	List<Stock> findBySector(String sector);
+	
+	List<Stock> findByActive(boolean isActive);
 	
 	public List<Stock> findAll();
 	

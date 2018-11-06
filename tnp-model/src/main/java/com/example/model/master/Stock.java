@@ -1,5 +1,8 @@
 package com.example.model.master;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -7,11 +10,13 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
+import com.example.model.stocks.UserPortfolio;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
@@ -49,6 +54,9 @@ public class Stock {
 	
 	@OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
 	private StockFactor stockFactor;
+	
+	@OneToMany(mappedBy = "portfolioId.stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private Set<UserPortfolio> userPortfolio = new HashSet<>();
 	
 	public Stock() {
 		super();

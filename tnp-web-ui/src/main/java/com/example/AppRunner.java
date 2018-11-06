@@ -1,41 +1,58 @@
 package com.example;
 
+import java.util.List;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+
+import com.example.model.master.Stock;
+import com.example.model.stocks.UserPortfolio;
+import com.example.model.um.User;
+import com.example.service.PortfolioService;
+import com.example.service.StockService;
+import com.example.service.UserService;
+import com.example.util.Rules;
 
 @Component
 public class AppRunner implements CommandLineRunner {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AppRunner.class);
 
-	
-	private static int times[] = {1000,2000,1500,2500,1200,1800,500,2100,3000,3500,3300,1750,5000,4700,4250,2900,6500,7000};
-	
-	
-	@Override
-	public void run(String... arg0) throws InterruptedException {}
 
-	private static long getInterval() {
+	@Autowired
+	private UserService userService;
+
+	@Autowired
+	private PortfolioService portfolioService;
+
+	@Autowired
+	private StockService stockService;
+
+	@Override
+	public void run(String... arg0) throws InterruptedException {
+
+		LOGGER.info("YEAR LOW STOCKS");
+
+		User userP = userService.getUserById(1);
 		
-		int no = getRandomNumberInRange(1, 20);
+		User userR = userService.getUserById(2);
 		
-		if(no > 17) {
-			
-			no = no%17;
-			
-			return times[no];
-			
-		}else {
-			
-			return times[no];
-			
-		}
-	}
+		LOGGER.info("PORTFOLOIO P");
+
+		List<UserPortfolio> portfolio = portfolioService.userPortfolio(userP);
+
+		portfolio.forEach(System.out::println);
 	
-	private static int getRandomNumberInRange(int min, int max) {
-		return (int)(Math.random() * ((max - min) + 1)) + min;
+		LOGGER.info("PORTFOLOIO R");
+		
+		portfolio = portfolioService.userPortfolio(userR);
+
+		portfolio.forEach(System.out::println);
+		
 	}
-	
+
 }

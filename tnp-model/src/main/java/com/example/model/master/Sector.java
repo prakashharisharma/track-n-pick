@@ -19,10 +19,48 @@ public class Sector {
 	@Column(name = "SECTOR_NAME")
 	String sectorName;
 
+	@Column(name = "SECTOR_PE")
+	double sectorPe;
+
+	@Column(name = "SECTOR_PB")
+	double sectorPb;
+
+	public long getSectorId() {
+		return sectorId;
+	}
+
+	public void setSectorId(long sectorId) {
+		this.sectorId = sectorId;
+	}
+
+	public String getSectorName() {
+		return sectorName;
+	}
+
+	public void setSectorName(String sectorName) {
+		this.sectorName = sectorName;
+	}
+
+	public double getSectorPe() {
+		return sectorPe;
+	}
+
+	public void setSectorPe(double sectorPe) {
+		this.sectorPe = sectorPe;
+	}
+
+	public double getSectorPb() {
+		return sectorPb;
+	}
+
+	public void setSectorPb(double sectorPb) {
+		this.sectorPb = sectorPb;
+	}
+
 	@Override
 	public String toString() {
-		return "Sector [sectorId=" + sectorId + ", sectorName=" + sectorName + "]";
+		return "Sector [sectorId=" + sectorId + ", sectorName=" + sectorName + ", sectorPe=" + sectorPe + ", sectorPb="
+				+ sectorPb + "]";
 	}
-	
-	
+
 }

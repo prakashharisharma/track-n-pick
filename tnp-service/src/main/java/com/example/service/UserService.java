@@ -19,6 +19,11 @@ public class UserService {
 	@Autowired
 	private UserRepository userRepository;
 	
+	
+	public List<User> activeUsers(){
+		return userRepository.findAll();
+	}
+	
 	public User save(User user) {
 		return userRepository.save(user);
 	}
@@ -38,4 +43,13 @@ public class UserService {
 		return user;
 	}
 	
+	public void removeFromtoWatchList(User user, List<Stock> stocksList) {
+		
+		Set<Stock> watchList = user.getWatchList();
+		
+		watchList.removeAll(stocksList);
+		
+		user = userRepository.save(user);
+		
+	}
 }

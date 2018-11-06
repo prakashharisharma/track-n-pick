@@ -1,7 +1,15 @@
 package com.example.service;
 
+import static java.time.temporal.ChronoUnit.DAYS;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -16,10 +24,6 @@ import com.example.model.stocks.StockPrice;
 import com.example.model.um.User;
 import com.example.repo.StockFactorRepository;
 import com.example.repo.StockPriceRepository;
-import static java.time.temporal.ChronoUnit.DAYS;
-
-import java.io.IOException;
-import java.net.MalformedURLException;;
 
 @Transactional
 @Service
@@ -37,7 +41,13 @@ public class WatchListService {
 	@Autowired
 	private StockFactorRepository stockFactorRepository;
 	
-	public void updateDailyWatchListPrice(User user) {
+	@Autowired
+	private YearLowStocksService yearLowStocksService;
+	
+	@Autowired
+	private UserService userService;
+	
+	private void updateDailyWatchListPrice(User user) {
 		
 		Set<Stock> watchList = user.getWatchList();
 		
@@ -49,7 +59,7 @@ public class WatchListService {
 				
 				stockPriceRepository.save(stockPrice);
 			}
-			if(DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > 120) {
+			if(DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > 60) {
 				
 				try {
 					
@@ -68,6 +78,66 @@ public class WatchListService {
 			}
 		}
 		
+	}
+	
+	public void updateDailyWatchListAddStocks(User user) {
+		
+		List<Stock> stockLiost = yearLowStocksService.yearLowStocks();
+		
+		user = userService.addtoWatchList(user, stockLiost);
+		
+		updateDailyWatchListPrice(user);
+	}
+	
+	public void updateMonthlyWatchListRemoveStocks(User user) {
+		
+		Set<Stock> stockList = user.getWatchList();
+		
+		List<Stock> tobeRemovedfromWatchList = new ArrayList<>();
+		
+		for(Stock stock : stockList) {
+			
+			StockPrice stockPrice = stock.getStockPrice();
+			
+			double currentPrice = stockPrice.getCurrentPrice();
+			
+			double yearHigh = stockPrice.getYearHigh();
+			
+			double per_10 = stockPrice.getYearHigh() * 0.10;
+			
+			if(isBetween((yearHigh - per_10), (yearHigh + per_10), currentPrice)) {
+				tobeRemovedfromWatchList.add(stock);
+			}
+			
+		}
+		userService.removeFromtoWatchList(user, tobeRemovedfromWatchList);
+	}
+
+	// Return true if c is between a and b.
+	public static boolean isBetween(double a, double b, double c) {
+	    return b > a ? c > a && c < b : c > b && c < a;
+	}
+	
+	public List<Stock> userWatchList(User user){
+		
+		Set<Stock> watchList = user.getWatchList();
+		
+		List<Stock> sortedWatchList = watchList.stream().sorted(byRoeComparator().thenComparing(byDebtEquityComparator())).collect(Collectors.toList());
+		
+		return sortedWatchList;
+		
+	}
+
+	private Comparator<Stock> byRoeComparator(){
+		return Comparator.comparing(
+			    stock -> stock.getStockFactor().getReturnOnEquity(), Comparator.reverseOrder()
+			    );
+	}
+	
+	private Comparator<Stock> byDebtEquityComparator(){
+		return Comparator.comparing(
+				stock ->  stock.getStockFactor().getDebtEquity()
+		);
 	}
 	
 }
