@@ -19,5 +19,9 @@ public class IndexController {
 		return "index1";
 	 }
 	
+	@GetMapping(value = "/view_portfolio")
+	 public String portfolioView(Model model) {
+		return "portfolio";
+	 }
 	
 }

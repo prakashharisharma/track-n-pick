@@ -23,6 +23,10 @@ public class Rules {
 	
 	private double averagingPer;
 
+	private int watchlistSize;
+	
+	private int averagingSize;
+	
 	public double getPrice() {
 		return price;
 	}
@@ -102,6 +106,21 @@ public class Rules {
 	public void setAveragingPer(double averagingPer) {
 		this.averagingPer = averagingPer;
 	}
-	
+
+	public int getWatchlistSize() {
+		return watchlistSize;
+	}
+
+	public void setWatchlistSize(int watchlistSize) {
+		this.watchlistSize = watchlistSize;
+	}
+
+	public int getAveragingSize() {
+		return averagingSize;
+	}
+
+	public void setAveragingSize(int averagingSize) {
+		this.averagingSize = averagingSize;
+	}
 
 }

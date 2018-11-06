@@ -5,10 +5,7 @@ import javax.persistence.AssociationOverrides;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -31,6 +28,12 @@ public class UserPortfolio {
 	@Column(name = "QUANTITY")
 	long quantity;
 
+	/*@Column(name = "TARGET_PER")
+	double targetPer = 30.0;
+	
+	@Column(name = "AVERAGING_PER")
+	double averagingPer = 20.0;*/
+	
 	public UserPortfolio() {
 		super();
 	}
@@ -77,13 +80,32 @@ public class UserPortfolio {
 		this.quantity = quantity;
 	}
 
+	/*public double getTargetPer() {
+		return targetPer;
+	}
+
+	public void setTargetPer(double targetPer) {
+		this.targetPer = targetPer;
+	}
+
+	public double getAveragingPer() {
+		return averagingPer;
+	}
+
+	public void setAveragingPer(double averagingPer) {
+		this.averagingPer = averagingPer;
+	}*/
+
 	@Override
 	public String toString() {
 		return "UserPortfolio [portfolioId=" + portfolioId + ", averagePrice=" + averagePrice + ", quantity=" + quantity
 				+ "]";
 	}
+	/*
+	@Override
+	public String toString() {
+		return "UserPortfolio [portfolioId=" + portfolioId + ", averagePrice=" + averagePrice+ ", targetPer=" + targetPer+ ", averagingPer=" + averagingPer + ", quantity=" + quantity
+				+ "]";
+	}*/
 
-	
-	
-	
 }

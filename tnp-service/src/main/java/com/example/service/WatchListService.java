@@ -24,6 +24,7 @@ import com.example.model.stocks.StockPrice;
 import com.example.model.um.User;
 import com.example.repo.StockFactorRepository;
 import com.example.repo.StockPriceRepository;
+import com.example.util.Rules;
 
 @Transactional
 @Service
@@ -46,6 +47,9 @@ public class WatchListService {
 	
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private Rules rules;
 	
 	private void updateDailyWatchListPrice(User user) {
 		
@@ -122,7 +126,7 @@ public class WatchListService {
 		
 		Set<Stock> watchList = user.getWatchList();
 		
-		List<Stock> sortedWatchList = watchList.stream().sorted(byRoeComparator().thenComparing(byDebtEquityComparator())).collect(Collectors.toList());
+		List<Stock> sortedWatchList = watchList.stream().sorted(byRoeComparator().thenComparing(byDebtEquityComparator())).limit(rules.getWatchlistSize()).collect(Collectors.toList());
 		
 		return sortedWatchList;
 		

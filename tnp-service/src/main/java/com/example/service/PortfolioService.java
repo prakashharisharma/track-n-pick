@@ -156,7 +156,7 @@ public class PortfolioService {
 			}
 		}
 
-		List<UserPortfolio> sortedConsiderAveragingList = considerAveragingList.stream().sorted(byRoeComparator().thenComparing(portfolioByDebtEquityComparator())).limit(5).collect(Collectors.toList());
+		List<UserPortfolio> sortedConsiderAveragingList = considerAveragingList.stream().sorted(byRoeComparator().thenComparing(portfolioByDebtEquityComparator())).limit(rules.getAveragingSize()).collect(Collectors.toList());
 		
 		return sortedConsiderAveragingList;
 	}
