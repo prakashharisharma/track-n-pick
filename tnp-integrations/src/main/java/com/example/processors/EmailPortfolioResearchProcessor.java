@@ -8,7 +8,6 @@ import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
 import com.example.model.um.User;
 import com.example.service.PortfolioService;
@@ -44,17 +43,17 @@ public class EmailPortfolioResearchProcessor implements Processor {
 
 		for(User user: userList) {
 			
-			prepareReportAndSendMail(user);
+			preparePortfolioReportAndSendMail(user);
 			
 			Thread.sleep(miscUtil.getInterval());
-			
+
 		}
 		
 		System.out.println("EmailPortfolioResearchProcessor END");
 
 	}
 
-	private void prepareReportAndSendMail(User user) throws Exception {
+	private void preparePortfolioReportAndSendMail(User user) throws Exception {
 		
 		System.out.println("prepareReportAndSendMail START " + user.getFirstName());
 		

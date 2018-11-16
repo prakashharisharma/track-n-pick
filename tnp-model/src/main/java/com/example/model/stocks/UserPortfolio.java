@@ -28,11 +28,11 @@ public class UserPortfolio {
 	@Column(name = "QUANTITY")
 	long quantity;
 
-	/*@Column(name = "TARGET_PER")
+	@Column(name = "TARGET_PER")
 	double targetPer = 30.0;
 	
 	@Column(name = "AVERAGING_PER")
-	double averagingPer = 20.0;*/
+	double averagingPer = 20.0;
 	
 	public UserPortfolio() {
 		super();
@@ -80,7 +80,7 @@ public class UserPortfolio {
 		this.quantity = quantity;
 	}
 
-	/*public double getTargetPer() {
+	public double getTargetPer() {
 		return targetPer;
 	}
 
@@ -94,18 +94,18 @@ public class UserPortfolio {
 
 	public void setAveragingPer(double averagingPer) {
 		this.averagingPer = averagingPer;
-	}*/
+	}
 
-	@Override
+/*	@Override
 	public String toString() {
 		return "UserPortfolio [portfolioId=" + portfolioId + ", averagePrice=" + averagePrice + ", quantity=" + quantity
 				+ "]";
-	}
-	/*
+	}*/
+	
 	@Override
 	public String toString() {
 		return "UserPortfolio [portfolioId=" + portfolioId + ", averagePrice=" + averagePrice+ ", targetPer=" + targetPer+ ", averagingPer=" + averagingPer + ", quantity=" + quantity
 				+ "]";
-	}*/
+	}
 
 }

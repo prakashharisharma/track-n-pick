@@ -18,11 +18,14 @@ public class EmailService {
 	@Value("${spring.mail.username}")
 	private String from;
 	
+	@Value("${spring.mail.displayname}")
+	private String displayName;
+	
 	public void sendEmail(String emailTo, String emailBody, String emailSubject) throws Exception {
 
 		MimeMessage message = mailSender.createMimeMessage();
 
-		message.setFrom(new InternetAddress(from));
+		message.setFrom(new InternetAddress(from, displayName));
 
 		message.setRecipients(Message.RecipientType.TO,InternetAddress.parse(emailTo));
 

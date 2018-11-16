@@ -19,8 +19,11 @@ public class UserService {
 	@Autowired
 	private UserRepository userRepository;
 	
-	
 	public List<User> activeUsers(){
+		return userRepository.findByActive(true);
+	}
+	
+	public List<User> allUsers(){
 		return userRepository.findAll();
 	}
 	

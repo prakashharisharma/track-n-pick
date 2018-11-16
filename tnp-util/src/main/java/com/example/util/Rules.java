@@ -27,6 +27,12 @@ public class Rules {
 	
 	private int averagingSize;
 	
+	private double lowThreshold;
+	
+	private double highThreshold;
+	
+	private double targetPer;
+	
 	public double getPrice() {
 		return price;
 	}
@@ -121,6 +127,30 @@ public class Rules {
 
 	public void setAveragingSize(int averagingSize) {
 		this.averagingSize = averagingSize;
+	}
+
+	public double getLowThreshold() {
+		return lowThreshold;
+	}
+
+	public void setLowThreshold(double lowThreshold) {
+		this.lowThreshold = lowThreshold;
+	}
+
+	public double getHighThreshold() {
+		return highThreshold;
+	}
+
+	public void setHighThreshold(double highThreshold) {
+		this.highThreshold = highThreshold;
+	}
+
+	public double getTargetPer() {
+		return targetPer;
+	}
+
+	public void setTargetPer(double targetPer) {
+		this.targetPer = targetPer;
 	}
 
 }

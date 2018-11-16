@@ -34,6 +34,9 @@ public class PortfolioService {
 	@Autowired
 	private Rules rules;
 	
+	@Autowired
+	private RuleService ruleService;
+	
 	public void addStock(User user, Stock stock, double price, long quantity) {
 
 		Optional<UserPortfolio> portfolioStockOpt = user.getUserPortfolio().stream()
@@ -156,7 +159,9 @@ public class PortfolioService {
 			}
 		}
 
-		List<UserPortfolio> sortedConsiderAveragingList = considerAveragingList.stream().sorted(byRoeComparator().thenComparing(portfolioByDebtEquityComparator())).limit(rules.getAveragingSize()).collect(Collectors.toList());
+		List<UserPortfolio> filteredPortfolioList =  ruleService.applyAveragingFilterRule(considerAveragingList);
+		
+		List<UserPortfolio> sortedConsiderAveragingList = filteredPortfolioList.stream().sorted(byRoeComparator().thenComparing(portfolioByDebtEquityComparator())).limit(rules.getAveragingSize()).collect(Collectors.toList());
 		
 		return sortedConsiderAveragingList;
 	}

@@ -43,6 +43,9 @@ public class YearLowStocksService {
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private RuleService ruleService;
+	
 	public List<Stock> yearLowStocks() {
 
 		List<Stock> masterStocksList = stockService.getActiveStocks();
@@ -58,7 +61,8 @@ public class YearLowStocksService {
 			todaysYearLowStocksFinalList.add(stockService.getStockByNseSymbol(stock.getNseSymbol()));
 		}
 
-		return applyFilterRuleYearLow(todaysYearLowStocksFinalList);
+		return ruleService.applyFilterRuleYearLow(todaysYearLowStocksFinalList);
+		//return applyFilterRuleYearLow(todaysYearLowStocksFinalList);
 	}
 
 	private List<Stock> applyFilterRuleYearLow(List<Stock> inputStockList) {

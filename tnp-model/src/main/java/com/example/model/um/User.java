@@ -37,6 +37,9 @@ public class User {
 	@Column(name = "LAST_NAME")
 	String lastName;
 	
+	@Column(name = "IS_ACTIVE")
+	boolean active;
+	
 	@ManyToMany(fetch = FetchType.LAZY,
             cascade = {
                 CascadeType.PERSIST,
@@ -49,6 +52,17 @@ public class User {
 
 	@OneToMany(mappedBy = "portfolioId.user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<UserPortfolio> userPortfolio = new HashSet<>();
+
+	public User() {
+		super();
+	}
+
+	public User(String userEmail, String firstName, String lastName) {
+		super();
+		this.userEmail = userEmail;
+		this.firstName = firstName;
+		this.lastName = lastName;
+	}
 
 	public long getUserId() {
 		return userId;
@@ -80,6 +94,14 @@ public class User {
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 
 	public Set<Stock> getWatchList() {

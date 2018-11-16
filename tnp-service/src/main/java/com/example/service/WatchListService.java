@@ -18,12 +18,14 @@ import org.springframework.stereotype.Service;
 
 import com.example.chyl.service.CylhService;
 import com.example.factor.FactorRediff;
+import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
 import com.example.model.um.User;
 import com.example.repo.StockFactorRepository;
 import com.example.repo.StockPriceRepository;
+import com.example.util.MiscUtil;
 import com.example.util.Rules;
 
 @Transactional
@@ -32,116 +34,163 @@ public class WatchListService {
 
 	@Autowired
 	private CylhService cylhService;
-	
+
 	@Autowired
 	private FactorRediff factorRediff;
-	
+
 	@Autowired
 	private StockPriceRepository stockPriceRepository;
-	
+
 	@Autowired
 	private StockFactorRepository stockFactorRepository;
-	
+
 	@Autowired
 	private YearLowStocksService yearLowStocksService;
-	
+
 	@Autowired
 	private UserService userService;
-	
+
 	@Autowired
 	private Rules rules;
+
+	@Autowired
+	private RuleService ruleService;
+
+	@Autowired
+	private MiscUtil miscUtil;
 	
+	@Autowired
+	private ResearchLedgerService researchLedgerService;
+
 	private void updateDailyWatchListPrice(User user) {
-		
+
 		Set<Stock> watchList = user.getWatchList();
-		
-		for(Stock stock : watchList) {
-			
-			if(stock.getStockPrice().getLastModified().isBefore(LocalDate.now())) {
-				
+
+		for (Stock stock : watchList) {
+
+			if (stock.getStockPrice().getLastModified().isBefore(LocalDate.now())) {
+
 				StockPrice stockPrice = cylhService.getChylPrice(stock);
-				
+
 				stockPriceRepository.save(stockPrice);
 			}
-			if(DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > 60) {
-				
+			if (miscUtil.isResultMonth(stock.getStockFactor().getLastModified())
+					|| DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > 45) {
+
 				try {
-					
-					StockFactor  stockFactor = factorRediff.getFactor(stock);
-					
+
+					StockFactor stockFactor = factorRediff.getFactor(stock);
+
 					stockFactorRepository.save(stockFactor);
-					
+
 				} catch (MalformedURLException e) {
-					
+
 					e.printStackTrace();
 				} catch (IOException e) {
-				
+
 					e.printStackTrace();
 				}
-				
+
 			}
 		}
-		
+
 	}
-	
+
 	public void updateDailyWatchListAddStocks(User user) {
-		
+
 		List<Stock> stockLiost = yearLowStocksService.yearLowStocks();
-		
+
 		user = userService.addtoWatchList(user, stockLiost);
-		
+
 		updateDailyWatchListPrice(user);
 	}
-	
+
 	public void updateMonthlyWatchListRemoveStocks(User user) {
-		
+
 		Set<Stock> stockList = user.getWatchList();
-		
+
 		List<Stock> tobeRemovedfromWatchList = new ArrayList<>();
-		
-		for(Stock stock : stockList) {
-			
+
+		for (Stock stock : stockList) {
+
 			StockPrice stockPrice = stock.getStockPrice();
-			
+
 			double currentPrice = stockPrice.getCurrentPrice();
-			
+
 			double yearHigh = stockPrice.getYearHigh();
-			
+
 			double per_10 = stockPrice.getYearHigh() * 0.10;
-			
-			if(isBetween((yearHigh - per_10), (yearHigh + per_10), currentPrice)) {
+
+			if (isBetween((yearHigh - per_10), (yearHigh + per_10), currentPrice)) {
 				tobeRemovedfromWatchList.add(stock);
 			}
-			
+
 		}
+		
 		userService.removeFromtoWatchList(user, tobeRemovedfromWatchList);
+	}
+	
+	public List<ResearchLedger> updateDailyResearchListTargetAchived(User user) {
+		
+		Set<Stock> stockList = user.getWatchList();
+
+		List<ResearchLedger> researchPickTargetAchived = new ArrayList<>();
+		
+		for (Stock stock : stockList) {
+
+			if(researchLedgerService.isActive(stock)) {
+				
+				ResearchLedger researchLedger = researchLedgerService.ledgerDetails(stock);
+				
+				if(researchLedger.getTargetPrice() < stock.getStockPrice().getCurrentPrice()) {
+					researchPickTargetAchived.add(researchLedger);
+					researchLedgerService.targetAchived(stock);
+				}
+			}
+		}
+		
+		return researchPickTargetAchived;
 	}
 
 	// Return true if c is between a and b.
 	public static boolean isBetween(double a, double b, double c) {
-	    return b > a ? c > a && c < b : c > b && c < a;
-	}
-	
-	public List<Stock> userWatchList(User user){
-		
-		Set<Stock> watchList = user.getWatchList();
-		
-		List<Stock> sortedWatchList = watchList.stream().sorted(byRoeComparator().thenComparing(byDebtEquityComparator())).limit(rules.getWatchlistSize()).collect(Collectors.toList());
-		
-		return sortedWatchList;
-		
+		return b > a ? c > a && c < b : c > b && c < a;
 	}
 
-	private Comparator<Stock> byRoeComparator(){
-		return Comparator.comparing(
-			    stock -> stock.getStockFactor().getReturnOnEquity(), Comparator.reverseOrder()
-			    );
+	public List<Stock> userNotificationWatchList(User user) {
+
+		Set<Stock> watchList = user.getWatchList();
+
+		List<Stock> filteredWatchList = ruleService.applyWatchListFilterRule(watchList);
+
+		List<Stock> sortedWatchList = filteredWatchList.stream()
+				.sorted(byRoeComparator().thenComparing(byDebtEquityComparator())).limit(rules.getWatchlistSize())
+				.collect(Collectors.toList());
+
+		return sortedWatchList;
+
 	}
-	
-	private Comparator<Stock> byDebtEquityComparator(){
-		return Comparator.comparing(
-				stock ->  stock.getStockFactor().getDebtEquity()
-		);
+
+	public List<Stock> userWatchList(User user) {
+
+		Set<Stock> watchList = user.getWatchList();
+
+		//List<Stock> filteredWatchList = ruleService.applyWatchListFilterRule(watchList);
+
+		List<Stock> sortedWatchList = watchList.stream()
+				.sorted(byRoeComparator().thenComparing(byDebtEquityComparator()))
+				.collect(Collectors.toList());
+
+		return sortedWatchList;
+
 	}
-	
+
+	private Comparator<Stock> byRoeComparator() {
+		return Comparator.comparing(stock -> stock.getStockFactor().getReturnOnEquity(), Comparator.reverseOrder());
+	}
+
+	private Comparator<Stock> byDebtEquityComparator() {
+		return Comparator.comparing(stock -> stock.getStockFactor().getDebtEquity());
+	}
+
 }

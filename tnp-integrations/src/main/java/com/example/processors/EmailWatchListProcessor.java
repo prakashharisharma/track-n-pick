@@ -2,19 +2,21 @@ package com.example.processors;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
-import com.example.model.stocks.UserPortfolio;
 import com.example.model.um.User;
-import com.example.service.PortfolioService;
+import com.example.service.ResearchLedgerService;
 import com.example.service.UserService;
 import com.example.service.WatchListService;
 import com.example.util.EmailService;
+import com.example.util.MiscUtil;
 import com.example.util.PrettyPrintService;
 
 @Service
@@ -22,9 +24,6 @@ public class EmailWatchListProcessor implements Processor {
 
 	@Autowired
 	private WatchListService watchListService;
-
-	@Autowired
-	private PortfolioService portfolioService;
 	
 	@Autowired
 	private UserService userService;
@@ -35,6 +34,12 @@ public class EmailWatchListProcessor implements Processor {
 	@Autowired
 	private PrettyPrintService prettyPrintService;
 	
+	@Autowired
+	private MiscUtil miscUtil;
+	
+	@Autowired
+	private ResearchLedgerService researchLedgerService;
+	
 	@Override
 	public void process(Exchange arg0) throws Exception {
 
@@ -42,28 +47,55 @@ public class EmailWatchListProcessor implements Processor {
 		
 		User user = userService.getUserById(1);
 
-		List<Stock> watchList = watchListService.userWatchList(user);
+		List<Stock> watchList = watchListService.userNotificationWatchList(user);
 		
-		String formatedWatchList = prettyPrintService.formatWatchListHTML(watchList);
+		watchList.stream().forEach(s ->
 		
-/*		List<Stock> considerAveragingList = portfolioService.considerAveraging(user);
+		{
+			
+			if(!researchLedgerService.isActive(s)) {
+				researchLedgerService.addStock(s);
+			}
+		}
 		
-		String formatedConsiderAveragingList = prettyPrintService.formatAveragingHTML(considerAveragingList);
-
-		List<UserPortfolio> bookProfitList = portfolioService.targetAchived(user);
+		);
 		
-		String formatedBookProfitList = prettyPrintService.formatBookProfitHTML(bookProfitList);*/
-
-		String emailSubject = "Stocks Research Report - " + LocalDate.now() + "!";
-
-		String emailBody = prettyPrintService.formatEmailBody(user.getFirstName(), formatedWatchList);
 		
-		emailService.sendEmail(user.getUserEmail(), emailBody, emailSubject);
-
+		List<Stock> filteredWatchList = watchList.stream().filter(s -> researchLedgerService.includeInMail(s)).collect(Collectors.toList());
+		
+		if(!filteredWatchList.isEmpty()) {
+		
+			String formatedWatchList = prettyPrintService.formatWatchListHTML(filteredWatchList);
+	
+			String emailSubject = "Stocks Research Report - " + LocalDate.now() + "!";
+			
+			List<User> allActiveUsers = userService.allUsers();
+			
+			for(User mailToUser : allActiveUsers) {
+	
+				prepareWatchListReportAndSendMail(mailToUser, formatedWatchList, emailSubject);
+				
+				Thread.sleep(miscUtil.getInterval());
+				
+			}
+		}else {
+			System.out.println("No Stock in Mailer List END");
+		}
+		
 		System.out.println("EmailWatchListProcessor END");
 		
 	}
 
-
+	private void prepareWatchListReportAndSendMail(User user, String formatedWatchList, String emailSubject) throws Exception {
+		
+		System.out.println("Emailing START" + user.getFirstName() +" : " + user.getUserEmail());
+		
+		String emailBody = prettyPrintService.formatEmailBody(user.getFirstName(), formatedWatchList);
+	
+		emailService.sendEmail(user.getUserEmail(), emailBody, emailSubject);
+		
+		System.out.println("Emailing END" + user.getFirstName() +" : " + user.getUserEmail());
+		
+	}
 
 }
