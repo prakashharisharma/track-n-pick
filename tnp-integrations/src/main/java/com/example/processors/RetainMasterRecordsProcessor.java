@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,12 +19,16 @@ import com.example.service.StockService;
 @Service
 public class RetainMasterRecordsProcessor implements Processor {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(RetainMasterRecordsProcessor.class);
+	
 	@Autowired
 	private StockService stockService;
 
 	@Override
 	public void process(Exchange exchange) throws Exception {
 
+		LOGGER.info("FILTERING MASTER RECORD FROM BHAV FILE START");
+		
 		@SuppressWarnings("unchecked")
 		List<StockPrice> dailyStockPriceList = (List<StockPrice>) exchange.getIn().getBody();
 		
@@ -38,6 +44,6 @@ public class RetainMasterRecordsProcessor implements Processor {
 			            .collect(Collectors.toSet());
 		
 		exchange.getOut().setBody(listOutput);
-
+		LOGGER.info("FILTERING MASTER RECORD FROM BHAV FILE END");
 	}
 }

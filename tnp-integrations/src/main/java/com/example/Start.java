@@ -8,7 +8,7 @@ import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 
 import com.example.routes.BhavUpdateRoute;
-import com.example.routes.QuartzRoute;
+import com.example.routes.QuartzRouteDaily;
 
 public class Start {
 
@@ -22,7 +22,7 @@ public class Start {
 		
 		context.addComponent("jms",JmsComponent.jmsComponentAutoAcknowledge(connectionFactory));
 		
-		context.addRoutes(new QuartzRoute());
+		context.addRoutes(new QuartzRouteDaily());
 		
 		//context.addRoutes(new UnzipRoute());
 		

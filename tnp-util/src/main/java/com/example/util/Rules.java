@@ -33,6 +33,8 @@ public class Rules {
 	
 	private double targetPer;
 	
+	private int factorIntervalDays;
+	
 	public double getPrice() {
 		return price;
 	}
@@ -151,6 +153,14 @@ public class Rules {
 
 	public void setTargetPer(double targetPer) {
 		this.targetPer = targetPer;
+	}
+
+	public int getFactorIntervalDays() {
+		return factorIntervalDays;
+	}
+
+	public void setFactorIntervalDays(int factorIntervalDays) {
+		this.factorIntervalDays = factorIntervalDays;
 	}
 
 }

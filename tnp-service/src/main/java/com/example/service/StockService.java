@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,8 @@ import com.example.repo.StockRepository;
 @Service
 public class StockService {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(StockService.class);
+	
 	@Autowired
 	private StockRepository stockRepository;
 	
@@ -58,6 +62,8 @@ public class StockService {
 		stock.setStockPrice(stockPrice);
 		
 		stockRepository.save(stock);
+		
+		LOGGER.info("CURRENT PRICE UPDATED :" + stock.getNseSymbol() +" : " + currentPrice);
 	}
 	
 	public void updateCylhPrice(Stock stock) {

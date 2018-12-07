@@ -9,9 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
 import com.example.model.um.User;
+import com.example.repo.ResearchLedgerHistoryRepository;
+import com.example.repo.ResearchLedgerRepository;
 import com.example.service.PortfolioService;
 import com.example.service.StockService;
 import com.example.service.UserService;
@@ -40,6 +43,9 @@ public class AppRunner implements CommandLineRunner {
 	@Autowired
 	private WatchListService watchListService;
 	
+	@Autowired
+	private ResearchLedgerRepository rlp; 
+	
 	@Override
 	public void run(String... arg0) throws InterruptedException {
 
@@ -61,13 +67,20 @@ public class AppRunner implements CommandLineRunner {
 		
 		System.out.println(userCA);
 		
-		/*Stock nbcc = stockService.getStockByNseSymbol("NBCC");
+		/*Stock endind = stockService.getStockByNseSymbol("ENGINERSIN");
 		
-		Stock bel = stockService.getStockByNseSymbol("BEL");
+		Stock nmdc = stockService.getStockByNseSymbol("NMDC");
 		
-		portfolioService.addStock(userP, bel, 94.37, 55);
+		Stock nbcc = stockService.getStockByNseSymbol("NBCC");
 		
-		portfolioService.addStock(userP, nbcc, 65.98, 72);*/
+		Stock ntpc = stockService.getStockByNseSymbol("NTPC");
+		
+		Stock bhel = stockService.getStockByNseSymbol("BHEL");
+		
+		Stock ih = stockService.getStockByNseSymbol("INDHOTEL");
+		
+		portfolioService.addStock(userP, ntpc, 140.15, 20);*/
+	
 		
 		LOGGER.info("PORTFOLOIO P");
 		
@@ -92,6 +105,14 @@ public class AppRunner implements CommandLineRunner {
 		LOGGER.info("WATCHLIST");
 		
 		System.out.println(portFolioStr);
+		
+		List<User> userList = userService.activeUsers();
+		
+		userList.forEach(System.out::println);
+		
+		List<ResearchLedger> rlpList = rlp.findAll();
+		
+		rlpList.forEach(System.out::println);
 		
 	}
 

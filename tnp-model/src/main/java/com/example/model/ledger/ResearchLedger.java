@@ -40,7 +40,10 @@ public class ResearchLedger {
 	LocalDate targetDate;
 	
 	@Column(name = "IS_ACTIVE")
-	boolean active;
+	boolean active = true;
+	
+	@Column(name = "IS_NOTIFIED")
+	boolean notified = false;
 
 	public long getSrlId() {
 		return srlId;
@@ -96,6 +99,14 @@ public class ResearchLedger {
 
 	public void setTargetDate(LocalDate targetDate) {
 		this.targetDate = targetDate;
+	}
+
+	public boolean isNotified() {
+		return notified;
+	}
+
+	public void setNotified(boolean notified) {
+		this.notified = notified;
 	}
 
 	@Override

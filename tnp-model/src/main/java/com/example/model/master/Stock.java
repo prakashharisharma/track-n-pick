@@ -1,5 +1,8 @@
 package com.example.model.master;
 
+import static java.time.temporal.ChronoUnit.DAYS;
+
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -126,6 +129,7 @@ public class Stock {
 	}
 
 	public StockFactor getStockFactor() {
+		
 		return stockFactor;
 	}
 

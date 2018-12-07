@@ -2,8 +2,6 @@ package com.example.service;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,24 +11,26 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.chyl.service.CylhService;
 import com.example.factor.FactorRediff;
-import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
 import com.example.model.um.User;
 import com.example.repo.StockFactorRepository;
 import com.example.repo.StockPriceRepository;
-import com.example.util.MiscUtil;
 import com.example.util.Rules;
 
 @Transactional
 @Service
 public class WatchListService {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(WatchListService.class);
 
 	@Autowired
 	private CylhService cylhService;
@@ -53,54 +53,42 @@ public class WatchListService {
 	@Autowired
 	private Rules rules;
 
-	@Autowired
-	private RuleService ruleService;
-
-	@Autowired
-	private MiscUtil miscUtil;
-	
-	@Autowired
-	private ResearchLedgerService researchLedgerService;
-
 	private void updateDailyWatchListPrice(User user) {
 
 		Set<Stock> watchList = user.getWatchList();
-
+		LOGGER.info("updateDailyWatchListPrice START");
 		for (Stock stock : watchList) {
 
 			if (stock.getStockPrice().getLastModified().isBefore(LocalDate.now())) {
-
+				LOGGER.info("Updating Price for : " + stock.getNseSymbol());
 				StockPrice stockPrice = cylhService.getChylPrice(stock);
 
 				stockPriceRepository.save(stockPrice);
 			}
-			if (miscUtil.isResultMonth(stock.getStockFactor().getLastModified())
-					|| DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > 45) {
 
-				try {
+			if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > rules
+					.getFactorIntervalDays()) {
 
-					StockFactor stockFactor = factorRediff.getFactor(stock);
+				LOGGER.info("Updating Factor for : " + stock.getNseSymbol());
 
-					stockFactorRepository.save(stockFactor);
+				StockFactor stockFactor = factorRediff.getFactor(stock);
 
-				} catch (MalformedURLException e) {
-
-					e.printStackTrace();
-				} catch (IOException e) {
-
-					e.printStackTrace();
-				}
+				stockFactorRepository.save(stockFactor);
 
 			}
 		}
-
+		LOGGER.info("updateDailyWatchListPrice END");
 	}
 
 	public void updateDailyWatchListAddStocks(User user) {
 
 		List<Stock> stockLiost = yearLowStocksService.yearLowStocks();
 
-		user = userService.addtoWatchList(user, stockLiost);
+		if (!stockLiost.isEmpty()) {
+			user = userService.addtoWatchList(user, stockLiost);
+		} else {
+			LOGGER.info("NO QUALITY STOCK TO ADD ..");
+		}
 
 		updateDailyWatchListPrice(user);
 	}
@@ -126,30 +114,8 @@ public class WatchListService {
 			}
 
 		}
-		
+
 		userService.removeFromtoWatchList(user, tobeRemovedfromWatchList);
-	}
-	
-	public List<ResearchLedger> updateDailyResearchListTargetAchived(User user) {
-		
-		Set<Stock> stockList = user.getWatchList();
-
-		List<ResearchLedger> researchPickTargetAchived = new ArrayList<>();
-		
-		for (Stock stock : stockList) {
-
-			if(researchLedgerService.isActive(stock)) {
-				
-				ResearchLedger researchLedger = researchLedgerService.ledgerDetails(stock);
-				
-				if(researchLedger.getTargetPrice() < stock.getStockPrice().getCurrentPrice()) {
-					researchPickTargetAchived.add(researchLedger);
-					researchLedgerService.targetAchived(stock);
-				}
-			}
-		}
-		
-		return researchPickTargetAchived;
 	}
 
 	// Return true if c is between a and b.
@@ -157,31 +123,14 @@ public class WatchListService {
 		return b > a ? c > a && c < b : c > b && c < a;
 	}
 
-	public List<Stock> userNotificationWatchList(User user) {
-
-		Set<Stock> watchList = user.getWatchList();
-
-		List<Stock> filteredWatchList = ruleService.applyWatchListFilterRule(watchList);
-
-		List<Stock> sortedWatchList = filteredWatchList.stream()
-				.sorted(byRoeComparator().thenComparing(byDebtEquityComparator())).limit(rules.getWatchlistSize())
-				.collect(Collectors.toList());
-
-		return sortedWatchList;
-
-	}
 
 	public List<Stock> userWatchList(User user) {
 
 		Set<Stock> watchList = user.getWatchList();
 
-		//List<Stock> filteredWatchList = ruleService.applyWatchListFilterRule(watchList);
-
-		List<Stock> sortedWatchList = watchList.stream()
-				.sorted(byRoeComparator().thenComparing(byDebtEquityComparator()))
-				.collect(Collectors.toList());
-
-		return sortedWatchList;
+		
+		return  watchList.stream()
+				.sorted(byRoeComparator().thenComparing(byDebtEquityComparator())).collect(Collectors.toList());
 
 	}
 

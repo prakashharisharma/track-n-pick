@@ -1,5 +1,8 @@
 package com.example.service;
 
+import static java.time.temporal.ChronoUnit.DAYS;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -14,10 +17,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.chyl.service.CylhService;
+import com.example.factor.FactorRediff;
 import com.example.model.master.Stock;
+import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.UserPortfolio;
 import com.example.model.um.User;
+import com.example.repo.StockFactorRepository;
+import com.example.repo.StockPriceRepository;
 import com.example.util.MiscUtil;
 import com.example.util.Rules;
 
@@ -45,6 +52,13 @@ public class RuleService {
 	@Autowired
 	private MiscUtil miscUtil;
 	
+	@Autowired
+	private FactorRediff factorRediff;
+
+
+	@Autowired
+	private StockFactorRepository stockFactorRepository;
+	
 	public List<Stock> applyFilterRuleYearLow(List<Stock> inputStockList) {
 
 		User user = userService.getUserById(1);
@@ -53,13 +67,7 @@ public class RuleService {
 
 		inputStockList.removeAll(watchList);
 
-		List<Stock> afterRuleList = inputStockList.stream()
-				.filter((s) -> s.getStockFactor().getMarketCap() > rules.getMcap()
-						&& s.getStockFactor().getDebtEquity() < rules.getDebtEquity()
-						&& s.getStockFactor().getDividend() > rules.getDividend()
-						&& s.getStockFactor().getReturnOnEquity() > rules.getRoe()
-						&& s.getStockFactor().getReturnOnCapital() > rules.getRoce())
-				.collect(Collectors.toList());
+		List<Stock> afterRuleList = filterFundamentalStocks(inputStockList);
 
 		List<Stock> resultStocks = new ArrayList<>();
 
@@ -73,9 +81,20 @@ public class RuleService {
 
 				double currentPrice = stockPrice.getCurrentPrice();
 
-				double bookValue = stock.getStockFactor().getBookValue();
+				StockFactor stockFactor = null;
+				
+				if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > rules.getFactorIntervalDays()) {
+					
+					stockFactor = factorRediff.getFactor(stock);
+					//stockFactorRepository.save(stockFactor);
+					
+				}else {
+					stockFactor = stock.getStockFactor();
+				}
+				
+				double bookValue = stockFactor.getBookValue();
 
-				double eps = stock.getStockFactor().getEps();
+				double eps = stockFactor.getEps();
 
 				double pe = currentPrice / eps;
 				LOGGER.info(stock.getNseSymbol() + " - PE : " + pe);
@@ -126,13 +145,7 @@ public class RuleService {
 	
 	public List<Stock> applyWatchListFilterRule(Collection<Stock> inputStockList) {
 
-		List<Stock> afterRuleList = inputStockList.stream()
-				.filter((s) -> s.getStockFactor().getMarketCap() > rules.getMcap()
-						&& s.getStockFactor().getDebtEquity() < rules.getDebtEquity()
-						&& s.getStockFactor().getDividend() > rules.getDividend()
-						&& s.getStockFactor().getReturnOnEquity() > rules.getRoe()
-						&& s.getStockFactor().getReturnOnCapital() > rules.getRoce())
-				.collect(Collectors.toList());
+		List<Stock> afterRuleList = filterFundamentalStocks(inputStockList);
 
 		List<Stock> resultStocks = new ArrayList<>();
 
@@ -203,13 +216,7 @@ public class RuleService {
 	
 	public List<UserPortfolio> applyAveragingFilterRule(Collection<UserPortfolio> inputStockList){
 
-		List<UserPortfolio> afterRuleList = inputStockList.stream()
-				.filter((s) -> s.getStock().getStockFactor().getMarketCap() > rules.getMcap()
-						&& s.getStock().getStockFactor().getDebtEquity() < rules.getDebtEquity()
-						&& s.getStock().getStockFactor().getDividend() > rules.getDividend()
-						&& s.getStock().getStockFactor().getReturnOnEquity() > rules.getRoe()
-						&& s.getStock().getStockFactor().getReturnOnCapital() > rules.getRoce())
-				.collect(Collectors.toList());
+		List<UserPortfolio> afterRuleList = filterPortfolioFundamentalStocks(inputStockList);
 
 		List<UserPortfolio> resultStocks = new ArrayList<>();
 
@@ -271,4 +278,31 @@ public class RuleService {
 
 		return resultStocks;
 	}
+	
+	public List<Stock> filterFundamentalStocks(Collection<Stock> inputStockList){
+		
+		return inputStockList.stream()
+				.filter((s) -> s.getStockFactor().getMarketCap() > rules.getMcap()
+						&& s.getStockFactor().getDebtEquity() < rules.getDebtEquity()
+						&& s.getStockFactor().getDividend() > rules.getDividend()
+						&& s.getStockFactor().getReturnOnEquity() > rules.getRoe()
+						&& s.getStockFactor().getReturnOnCapital() > rules.getRoce())
+				.collect(Collectors.toList());
+		
+		//return afterRuleList;
+	}
+	
+public List<UserPortfolio> filterPortfolioFundamentalStocks(Collection<UserPortfolio> inputStockList){
+		
+	return inputStockList.stream()
+				.filter((s) -> s.getStock().getStockFactor().getMarketCap() > rules.getMcap()
+						&& s.getStock().getStockFactor().getDebtEquity() < rules.getDebtEquity()
+						&& s.getStock().getStockFactor().getDividend() > rules.getDividend()
+						&& s.getStock().getStockFactor().getReturnOnEquity() > rules.getRoe()
+						&& s.getStock().getStockFactor().getReturnOnCapital() > rules.getRoce())
+				.collect(Collectors.toList());
+		
+		//return afterRuleList;
+	}
+	
 }

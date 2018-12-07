@@ -5,6 +5,8 @@ import java.util.Set;
 
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,8 @@ import com.example.repo.UserRepository;
 @Service
 public class UserService {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
+	
 	@Autowired
 	private UserRepository userRepository;
 	
@@ -36,7 +40,7 @@ public class UserService {
 	}
 	
 	public User addtoWatchList(User user, List<Stock> stocksList) {
-		
+		LOGGER.info("ADDING TO WATCHLIST...");
 		Set<Stock> watchList = user.getWatchList();
 		
 		watchList.addAll(stocksList);

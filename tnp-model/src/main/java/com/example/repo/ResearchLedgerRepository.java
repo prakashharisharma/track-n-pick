@@ -9,14 +9,15 @@ import org.springframework.stereotype.Repository;
 
 import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
-import com.example.model.um.UserPortfolioKey;
 
 @Transactional
 @Repository
-public interface ResearchLedgerRepository extends JpaRepository<ResearchLedger, UserPortfolioKey> {
+public interface ResearchLedgerRepository extends JpaRepository<ResearchLedger, Long> {
 
 	ResearchLedger findByStockAndActive(Stock stock, boolean isActive);
 	
 	List<ResearchLedger> findAll();
+	
+	List<ResearchLedger> findByNotified(boolean isNotified);
 	
 }

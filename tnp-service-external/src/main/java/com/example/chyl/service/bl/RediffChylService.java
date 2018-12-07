@@ -69,6 +69,8 @@ class RediffChylService implements CylhBaseService {
 
 			RediffResult rediffResult = mapper.readValue(rediffResponse, RediffResult.class);
 
+			
+			if(rediffResult != null) {
 			double currentPrice = Double.parseDouble(rediffResult.getLastTradedPrice().replace(",", ""));
 
 			stockPrice.setCurrentPrice(currentPrice);
@@ -86,6 +88,9 @@ class RediffChylService implements CylhBaseService {
 			stockPrice.setYearLow(yearLow);
 
 			LOGGER.debug("Year Low : " + yearLow);
+			}else {
+				return stockPrice;
+			}
 
 		} catch (JsonParseException e) {
 

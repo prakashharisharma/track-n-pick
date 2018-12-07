@@ -339,7 +339,7 @@ public class FactorRediff implements FactorBaseService {
 	}
 
 	@Override
-	public StockFactor getFactor(Stock stock) throws MalformedURLException, IOException {
+	public StockFactor getFactor(Stock stock){
 
 		StockFactor stockFactor =null;
 		
@@ -354,9 +354,15 @@ public class FactorRediff implements FactorBaseService {
 			stockFactor.setLastModified(LocalDate.now());
 		}
 		
-		stockFactor = this.getMcapFaceValue(stock, stockFactor);
+		try {
+			stockFactor = this.getMcapFaceValue(stock, stockFactor);
+			stockFactor = this.getRatios(stock, stockFactor);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		stockFactor = this.getRatios(stock, stockFactor);
+		
 		
 		return stockFactor;
 	}

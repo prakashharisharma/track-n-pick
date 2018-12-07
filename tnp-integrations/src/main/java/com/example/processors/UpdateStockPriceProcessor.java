@@ -11,7 +11,9 @@ import com.example.service.StockService;
 
 @Service
 public class UpdateStockPriceProcessor implements Processor {
-
+	
+	//private static final Logger LOGGER = LoggerFactory.getLogger(UpdateStockPriceProcessor.class);
+	
 	@Autowired
 	private StockService stockService;
 	
@@ -26,7 +28,6 @@ public class UpdateStockPriceProcessor implements Processor {
 		
 		stockService.updateCurrentPrice(stock, Double.parseDouble(stockPrice.getClose()));
 		
-		System.out.println("PRICE UPDATED " + stockPrice);
 	}
 
 }
