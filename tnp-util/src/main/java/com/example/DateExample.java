@@ -13,6 +13,8 @@ public class DateExample {
 
 		LocalDate localDate = LocalDate.now();
 
+		System.out.println(localDate.toString());
+		
 		DayOfWeek dayOfWeek = localDate.getDayOfWeek();
 		
 		int date;

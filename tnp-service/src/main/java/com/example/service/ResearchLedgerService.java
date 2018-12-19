@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
 import com.example.model.um.User;
-import com.example.repo.ResearchLedgerRepository;
+import com.example.repo.ledger.ResearchLedgerRepository;
 import com.example.util.Rules;
 
 @Transactional
@@ -25,22 +25,22 @@ import com.example.util.Rules;
 public class ResearchLedgerService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResearchLedgerService.class);
-	
+
 	@Autowired
 	private ResearchLedgerRepository researchLedgerRepository;
 
 	@Autowired
 	private ResearchLedgerHistoryService researchLedgerHistoryService;
-	
+
 	@Autowired
 	private Rules rules;
 
 	@Autowired
 	private UserService userService;
-	
+
 	@Autowired
 	private RuleService ruleService;
-	
+
 	public void addStock(Stock stock) {
 
 		ResearchLedger ledgerStock = researchLedgerRepository.findByStockAndActive(stock, true);
@@ -48,7 +48,7 @@ public class ResearchLedgerService {
 		if (ledgerStock != null) {
 
 			researchLedgerRepository.save(ledgerStock);
-			
+
 		} else {
 			ledgerStock = new ResearchLedger();
 			ledgerStock.setActive(true);
@@ -66,6 +66,29 @@ public class ResearchLedgerService {
 			researchLedgerRepository.save(ledgerStock);
 		}
 
+	}
+
+	public void markNotified(List<Stock> stockList) {
+
+		ResearchLedger ledgerStock = null;
+		
+		for (Stock stock : stockList) {
+			
+			ledgerStock = researchLedgerRepository.findByStockAndActive(stock, true);
+
+			if (ledgerStock != null) {
+
+				ledgerStock.setNotified(true);
+
+				researchLedgerRepository.save(ledgerStock);
+			}
+		}
+
+	}
+
+	public List<ResearchLedger> researchStocks(){
+		
+		return researchLedgerRepository.findAll();
 	}
 	
 	public ResearchLedger ledgerDetails(Stock stock) {
@@ -86,93 +109,96 @@ public class ResearchLedgerService {
 	}
 
 	public List<ResearchLedger> activeResearchStocks() {
-		
-		List<ResearchLedger> activeResearchList= researchLedgerRepository.findAll();
-		
+
+		List<ResearchLedger> activeResearchList = researchLedgerRepository.findAll();
+
 		return activeResearchList;
 	}
-	
+
 	public List<ResearchLedger> updateDailyResearchListTargetAchived() {
 
 		List<ResearchLedger> researchPickTargetAchived = new ArrayList<>();
-		
+
 		List<ResearchLedger> researchList = activeResearchStocks();
-		
+
 		LOGGER.info("START..");
-		
+
 		for (ResearchLedger researchLedger : researchList) {
-		
-			LOGGER.info("Checking.." + researchLedger.getStock().getNseSymbol() +" Research Price :  " + researchLedger.getResearchPrice() +" Target Price :"+researchLedger.getTargetPrice());
-			
-			if(researchLedger.getTargetPrice() < researchLedger.getStock().getStockPrice().getCurrentPrice()) {
+
+			LOGGER.info("Checking.." + researchLedger.getStock().getNseSymbol() + " Research Price :  "
+					+ researchLedger.getResearchPrice() + " Target Price :" + researchLedger.getTargetPrice());
+
+			if (researchLedger.getTargetPrice() < researchLedger.getStock().getStockPrice().getCurrentPrice()) {
 				LOGGER.info("TARGET ACHIVED.." + researchLedger.getStock().getNseSymbol());
 				researchPickTargetAchived.add(researchLedger);
 				targetAchived(researchLedger);
-			}else {
-				LOGGER.info("NO TARGET ACHIVED.." + researchLedger.getStock().getNseSymbol() +" Current Price : "+researchLedger.getStock().getStockPrice().getCurrentPrice());
+			} else {
+				LOGGER.info("NO TARGET ACHIVED.." + researchLedger.getStock().getNseSymbol() + " Current Price : "
+						+ researchLedger.getStock().getStockPrice().getCurrentPrice());
 			}
-			
+
 		}
-		
+
 		LOGGER.info("END..");
-		
+
 		return researchPickTargetAchived;
 	}
-	
+
 	public void targetAchived(ResearchLedger researchLedger) {
 
-		if(researchLedger!=null) {
-		
+		if (researchLedger != null) {
+
 			researchLedger.setActive(false);
 			researchLedger.setTargetDate(LocalDate.now());
 		}
-		
+
 		researchLedgerHistoryService.addStock(researchLedger);
-		
+
 		researchLedgerRepository.delete(researchLedger);
-		
+
 	}
-	
-	public List<Stock> researchNnotificationStocks(){
-		
+
+	public List<Stock> researchNnotificationStocks() {
+
 		List<ResearchLedger> researchLedgerList = researchLedgerRepository.findByNotified(false);
-		
-		return researchLedgerList.stream().map( (rl) -> rl.getStock() ).collect(Collectors.toList());
+
+		return researchLedgerList.stream().map((rl) -> rl.getStock()).collect(Collectors.toList());
 	}
-	
+
 	public void researchValueStocks() {
 
 		User user = userService.getUserById(1);
-		
+
 		Set<Stock> userWatchList = user.getWatchList();
 
 		List<Stock> filtereduserWatchList = ruleService.applyWatchListFilterRule(userWatchList);
 
-		//List<Stock> filteredWatchList = new ArrayList<>(); 
-		
-		filtereduserWatchList.stream().forEach(s ->
-		{
-			LOGGER.info(" Research on  " + s.getNseSymbol() +" .. ");
-			
-			if(!isActive(s)) {
+		// List<Stock> filteredWatchList = new ArrayList<>();
+
+		filtereduserWatchList.stream().forEach(s -> {
+			LOGGER.info(" Research on  " + s.getNseSymbol() + " .. ");
+
+			if (!isActive(s)) {
 				addStock(s);
-				//filteredWatchList.add(s);
-				LOGGER.info(" Added to Research " + s.getNseSymbol() +" .. ");
-				
-			}else {
-				LOGGER.info(" Already in Research List  " + s.getNseSymbol() +" .. ");
-				
+				// filteredWatchList.add(s);
+				LOGGER.info(" Added to Research " + s.getNseSymbol() + " .. ");
+
+			} else {
+				LOGGER.info(" Already in Research List  " + s.getNseSymbol() + " .. ");
+
 			}
 		}
-		
+
 		);
 
-		/*return filteredWatchList.stream()
-				.sorted(byRoeComparator().thenComparing(byDebtEquityComparator())).limit(rules.getWatchlistSize())
-				.collect(Collectors.toList());*/
+		/*
+		 * return filteredWatchList.stream()
+		 * .sorted(byRoeComparator().thenComparing(byDebtEquityComparator())).limit(
+		 * rules.getWatchlistSize()) .collect(Collectors.toList());
+		 */
 
 	}
-	
+
 	private Comparator<Stock> byRoeComparator() {
 		return Comparator.comparing(stock -> stock.getStockFactor().getReturnOnEquity(), Comparator.reverseOrder());
 	}

@@ -7,15 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.example.model.StockPrice;
-import com.example.processors.UpdateStockPriceProcessor;
 import com.example.processors.RetainMasterRecordsProcessor;
+import com.example.processors.UpdateStockPriceProcessor;
 
 @Component
 public class BhavUpdateRoute extends RouteBuilder{
 
 	@Autowired
 	private RetainMasterRecordsProcessor retainMasterRecordsProcessor;
-	
+
 	@Autowired
 	private UpdateStockPriceProcessor updateStockPriceProcessor;
 	
@@ -23,6 +23,8 @@ public class BhavUpdateRoute extends RouteBuilder{
 	public void configure() throws Exception {
 
 		final DataFormat bindy = new BindyCsvDataFormat(StockPrice.class);
+		
+		
 		
 		//parse the csv file and push list to jmsqueue
 		from("file:data/bhav/nse/csv?noop=false")
@@ -41,6 +43,7 @@ public class BhavUpdateRoute extends RouteBuilder{
 		
 		//operation on individual record
 		from("jms:queue.bhav.csv.stock").process(updateStockPriceProcessor).log("${body}");
+
 		
 	}
 }

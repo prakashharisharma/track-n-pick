@@ -1,13 +1,14 @@
 package com.example.factor;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.time.LocalDate;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.example.common.FactorProvider;
@@ -17,6 +18,8 @@ import com.example.model.stocks.StockFactor;
 @Service
 public class FactorRediff implements FactorBaseService {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(FactorRediff.class);
+	
 	private static String BASE_URL_REDIFF = "https://money.rediff.com/companies/";
 
 	private String ratioURL;
@@ -45,7 +48,7 @@ public class FactorRediff implements FactorBaseService {
 		
 		String mcapFaceValueURL = url.replace("/bse/day/chart", "");
 
-		System.out.println(mcapFaceValueURL);
+		LOGGER.info(mcapFaceValueURL);
 
 		this.setRatioURL(mcapFaceValueURL + "/ratio");
 
@@ -86,8 +89,6 @@ public class FactorRediff implements FactorBaseService {
 	private StockFactor getRatios(Stock stock, StockFactor stockFactor) throws IOException {
 
 		String ratioUrl = this.getRatioURL();
-		
-		
 		
 		if(ratioUrl == null || ratioUrl.isEmpty()) {
 			return stockFactor;
@@ -172,7 +173,7 @@ public class FactorRediff implements FactorBaseService {
 								bookValue = Double.parseDouble(td.text().replace(",", "").trim());
 							}
 							stockFactor.setBookValue(bookValue);
-							//System.out.println("Book Value : "+ td.text());
+						
 						}
 					}
 
@@ -194,7 +195,6 @@ public class FactorRediff implements FactorBaseService {
 							}
 							stockFactor.setReturnOnEquity(roe);
 							
-							//System.out.println("ROE : " + td.text());
 						}
 					}
 
@@ -215,7 +215,6 @@ public class FactorRediff implements FactorBaseService {
 							}
 							stockFactor.setReturnOnCapital(roce);
 							
-							//System.out.println("ROCE : " + td.text());
 						}
 					}
 
@@ -237,7 +236,6 @@ public class FactorRediff implements FactorBaseService {
 							
 							stockFactor.setDebtEquity(debtEquity);
 							
-							//System.out.println("Debt/Equity : "+td.text());
 						}
 					}
 
@@ -250,67 +248,6 @@ public class FactorRediff implements FactorBaseService {
 		}
 		return stockFactor;
 	}
-
-	public static void main(String[] args) throws IOException {
-
-		FactorRediff fbs = new FactorRediff();
-
-		Stock stock = new Stock("ABB India Ltd.", "ABB", "321654");
-
-		StockFactor sf = new StockFactor();
-
-		fbs.getMcapFaceValue(stock, sf);
-		
-		fbs.getRatios(stock, sf);
-
-		/*
-		 * 
-		 * Document doc =
-		 * Jsoup.connect("https://money.rediff.com/companies/ambuja-cements-ltd").get();
-		 * 
-		 * Element body = doc.body();
-		 * 
-		 * Element allElement = body.getElementsByClass("zoom-container").first();
-		 * 
-		 * String url = allElement.select("a").first().absUrl("href");
-		 * 
-		 * System.out.println(url);
-		 * 
-		 * System.out.println("*********************");
-		 * 
-		 * String mcapFaceValueURL = url.replace("/bse/day/chart", "");
-		 * 
-		 * System.out.println( "mcapFaceValueURL " + mcapFaceValueURL);
-		 * 
-		 * String ratioURL = mcapFaceValueURL + "/ratio";
-		 * 
-		 * System.out.println("ratioURL " + ratioURL);
-		 * 
-		 * Document doc1 = Jsoup.connect(ratioURL).get(); Element body1 = doc1.body();
-		 * Elements allElements = body1.getAllElements();
-		 * 
-		 * Elements sections = allElements.first().getElementsByTag("table");
-		 * 
-		 * System.out.println("*******************************");
-		 * 
-		 * int i = 0;
-		 * 
-		 * for (Element element : sections) { i++;
-		 * 
-		 * if (i == 2) {
-		 * 
-		 * System.out.println("**********CHILDS*********************" + i);
-		 * 
-		 * Elements chilrd = element.getElementsByTag("tr");
-		 * 
-		 * for (Element childElement : chilrd) {
-		 * System.out.println(childElement.text());
-		 * 
-		 * } } else { continue; } System.out.println("*******************************");
-		 * 
-		 * }
-		 * 
-		 */}
 
 	private String buildURL(Stock stock) {
 

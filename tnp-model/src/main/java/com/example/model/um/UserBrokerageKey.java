@@ -2,26 +2,46 @@ package com.example.model.um;
 
 import java.io.Serializable;
 
-import javax.persistence.Column;
+import javax.persistence.CascadeType;
 import javax.persistence.Embeddable;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
+
+import com.example.model.master.Broker;
 
 @Embeddable
 public class UserBrokerageKey implements Serializable{
 
 	private static final long serialVersionUID = -2018505779781526348L;
 
-	@Column(name = "USER_ID", nullable = false)
-    private long userId;
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	User user;
 
-    @Column(name = "BROKER_ID", nullable = false)
-    private long brokerId;
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	Broker broker;
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public Broker getBroker() {
+		return broker;
+	}
+
+	public void setBroker(Broker broker) {
+		this.broker = broker;
+	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + (int) (brokerId ^ (brokerId >>> 32));
-		result = prime * result + (int) (userId ^ (userId >>> 32));
+		result = prime * result + ((broker == null) ? 0 : broker.hashCode());
+		result = prime * result + ((user == null) ? 0 : user.hashCode());
 		return result;
 	}
 
@@ -34,13 +54,22 @@ public class UserBrokerageKey implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		UserBrokerageKey other = (UserBrokerageKey) obj;
-		if (brokerId != other.brokerId)
+		if (broker == null) {
+			if (other.broker != null)
+				return false;
+		} else if (!broker.equals(other.broker))
 			return false;
-		if (userId != other.userId)
+		if (user == null) {
+			if (other.user != null)
+				return false;
+		} else if (!user.equals(other.user))
 			return false;
 		return true;
 	}
-    
-    
+
+	@Override
+	public String toString() {
+		return "UserBrokerageKey [user=" + user + ", broker=" + broker + "]";
+	}
     
 }

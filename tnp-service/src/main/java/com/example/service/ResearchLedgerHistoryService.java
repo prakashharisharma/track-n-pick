@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.model.ledger.ResearchLedger;
 import com.example.model.ledger.ResearchLedgerHistory;
-import com.example.repo.ResearchLedgerHistoryRepository;
+import com.example.repo.ledger.ResearchLedgerHistoryRepository;
 
 @Transactional
 @Service

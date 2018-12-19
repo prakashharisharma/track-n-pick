@@ -56,11 +56,10 @@ class RediffChylService implements CylhBaseService {
 		// Send request with GET method and default Headers.
 		String rediffResponse = restTemplate.getForObject(this.getServiceUrl(stock), String.class);
 
-		if(rediffResponse == null || rediffResponse.isEmpty()) {
+		if (rediffResponse == null || rediffResponse.isEmpty()) {
 			return stockPrice;
 		}
-		
-		
+
 		// Object mapper instance
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -69,26 +68,21 @@ class RediffChylService implements CylhBaseService {
 
 			RediffResult rediffResult = mapper.readValue(rediffResponse, RediffResult.class);
 
-			
-			if(rediffResult != null) {
-			double currentPrice = Double.parseDouble(rediffResult.getLastTradedPrice().replace(",", ""));
+			if (rediffResult != null) {
+				double currentPrice = Double.parseDouble(rediffResult.getLastTradedPrice().replace(",", ""));
 
-			stockPrice.setCurrentPrice(currentPrice);
+				stockPrice.setCurrentPrice(currentPrice);
 
-			LOGGER.debug("Current Price : " + currentPrice);
+				double yearHigh = Double.parseDouble(rediffResult.getFiftyTwoWeekHigh().replace(",", ""));
 
-			double yearHigh = Double.parseDouble(rediffResult.getFiftyTwoWeekHigh().replace(",", ""));
+				stockPrice.setYearHigh(yearHigh);
 
-			stockPrice.setYearHigh(yearHigh);
+				double yearLow = Double.parseDouble(rediffResult.getFiftyTwoWeekLow().replace(",", ""));
 
-			LOGGER.debug("Year High : " + yearHigh);
+				stockPrice.setYearLow(yearLow);
 
-			double yearLow = Double.parseDouble(rediffResult.getFiftyTwoWeekLow().replace(",", ""));
-
-			stockPrice.setYearLow(yearLow);
-
-			LOGGER.debug("Year Low : " + yearLow);
-			}else {
+			} else {
+				
 				return stockPrice;
 			}
 
@@ -102,6 +96,9 @@ class RediffChylService implements CylhBaseService {
 
 			e.printStackTrace();
 		}
+		
+		LOGGER.debug("Current Price : " + stockPrice.getCurrentPrice() + "Year Low : " + stockPrice.getYearLow() + "Year High : " + stockPrice.getYearHigh());
+		
 		return stockPrice;
 	}
 
@@ -109,49 +106,6 @@ class RediffChylService implements CylhBaseService {
 	public String getServiceUrl(Stock stock) {
 
 		return BASE_URL_REDIFF + stock.getNseSymbol();
-	}
-
-	public static void main(String[] args) {
-
-		String REDIFF_YEAR_LOW_HIGH_URL_WITH_SYMBOL = BASE_URL_REDIFF + "HDIL";
-
-		RestTemplate restTemplate = new RestTemplate();
-
-		// Send request with GET method and default Headers.
-		String stockPrice = restTemplate.getForObject(REDIFF_YEAR_LOW_HIGH_URL_WITH_SYMBOL, String.class);
-
-		// {"LastTradedPrice":"3,159.35","Volume":"7,021","PercentageDiff":"-1.05","FiftyTwoWeekHigh":"4,824.00","FiftyTwoWeekLow":"3,150.00","LastTradedTime":"14
-		// Sep,15:59:33","ChangePercent":"-1.05","Change":"-33.40","MarketCap":"223.87","High":"3,239.05","Low":"3,150.00","PrevClose":"3,192.75","BonusSplitStatus":"0","BonusSplitRatio":"0-0"}
-
-		System.out.println(stockPrice);
-
-		// Object mapper instance
-		ObjectMapper mapper = new ObjectMapper();
-
-		// Convert JSON to POJO
-		try {
-
-			RediffResult sp = mapper.readValue(stockPrice, RediffResult.class);
-
-			System.out.println(sp);
-
-			System.out.println(sp.getLastTradedPrice());
-
-			System.out.println(sp.getFiftyTwoWeekHigh());
-
-			System.out.println(sp.getFiftyTwoWeekLow());
-
-		} catch (JsonParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
 	}
 
 }

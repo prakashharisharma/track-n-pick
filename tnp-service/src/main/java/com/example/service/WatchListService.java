@@ -22,8 +22,8 @@ import com.example.model.master.Stock;
 import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
 import com.example.model.um.User;
-import com.example.repo.StockFactorRepository;
-import com.example.repo.StockPriceRepository;
+import com.example.repo.stocks.StockFactorRepository;
+import com.example.repo.stocks.StockPriceRepository;
 import com.example.util.Rules;
 
 @Transactional
@@ -53,7 +53,7 @@ public class WatchListService {
 	@Autowired
 	private Rules rules;
 
-	private void updateDailyWatchListPrice(User user) {
+	private void updateWatchListPrice(User user) {
 
 		Set<Stock> watchList = user.getWatchList();
 		LOGGER.info("updateDailyWatchListPrice START");
@@ -80,7 +80,7 @@ public class WatchListService {
 		LOGGER.info("updateDailyWatchListPrice END");
 	}
 
-	public void updateDailyWatchListAddStocks(User user) {
+	public void updateWatchList(User user) {
 
 		List<Stock> stockLiost = yearLowStocksService.yearLowStocks();
 
@@ -90,7 +90,7 @@ public class WatchListService {
 			LOGGER.info("NO QUALITY STOCK TO ADD ..");
 		}
 
-		updateDailyWatchListPrice(user);
+		updateWatchListPrice(user);
 	}
 
 	public void updateMonthlyWatchListRemoveStocks(User user) {

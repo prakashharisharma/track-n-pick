@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<div th:replace="fragments/header :: header-css" />
+<link rel="stylesheet" th:href="@{/css/login.css}"/>
+</head>
+<body>
+
+	<div th:fragment="header">
+		<nav class="navbar navbar-inverse">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse"
+						data-target="#myNavbar">
+						<span class="icon-bar"></span> <span class="icon-bar"></span> <span
+							class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="/">WebSiteName</a>
+				</div>
+				<div class="collapse navbar-collapse" id="myNavbar">
+					<ul class="nav navbar-nav">
+
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="#"><span class="glyphicon glyphicon-log-out"></span>
+								Signin</a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+	</div>
+
+	<div class="container">
+
+		<div class="login-form">
+			<div class="main-div">
+				<div th:if="${param.error}">
+					<div class="alert alert-danger">Invalid username and password.</div>
+				 </div>
+				 <div th:if="${param.logout}">
+					 <div class="alert alert-info">You have been logged out.</div>
+				 </div>
+				<div class="panel">
+					<h2>Login</h2>
+					<p>Please enter your email and password</p>
+					
+				</div>
+				<form id="login-form" th:action="@{/login}" method="post">
+					<div class="form-group">
+						<input type="email" class="form-control" id="inputEmail" placeholder="Email Address"/>
+					</div>
+					<div class="form-group">
+						<input type="password" class="form-control" id="inputPassword" placeholder="Password"/>
+					</div>
+					<div class="forgot">
+						<a href="reset.html">Forgot password?</a> <a href="reset.html">Register</a>
+					</div>
+					<button type="submit" class="btn btn-primary">Login</button>
+					
+				</form>
+    		</div>
+		</div>
+
+	</div>
+
+	<div th:replace="fragments/footer :: footer">&copy; 2016 The
+		Static Templates</div>
+</body>
+</html>

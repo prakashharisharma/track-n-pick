@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.model.master.Sector;
-import com.example.repo.SectorRepository;
+import com.example.repo.master.SectorRepository;
 
 @Transactional
 @Service

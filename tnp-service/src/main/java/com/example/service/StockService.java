@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 import com.example.chyl.service.CylhService;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockPrice;
-import com.example.repo.StockPriceRepository;
-import com.example.repo.StockRepository;
+import com.example.repo.stocks.StockPriceRepository;
+import com.example.repo.master.StockRepository;
 
 @Transactional
 @Service
@@ -30,6 +30,8 @@ public class StockService {
 	@Autowired
 	private CylhService cylhService;
 	
+	private static List<Stock> allstocks = null;
+	
 	
 	public Stock getStockByIsinCode(String isinCode) {
 		return stockRepository.findByIsinCode(isinCode);
@@ -38,6 +40,11 @@ public class StockService {
 	public Stock getStockByNseSymbol(String nseSymbol) {
 		return stockRepository.findByNseSymbol(nseSymbol);
 	}
+	
+	public Stock getStockById(long stockId) {
+		return stockRepository.findByStockId(stockId);
+	}
+	
 	
 	public List<Stock> getActiveStocks(){
 		return stockRepository.findByActive(true);
@@ -71,5 +78,14 @@ public class StockService {
 		StockPrice stockPrice = cylhService.getChylPrice(stock);
 		
 		stockPriceRepository.save(stockPrice);
+	}
+	
+	public List<Stock> activeStocks(){
+		
+		if(allstocks == null) {
+			allstocks =  stockRepository.findByActive(true);
+		}
+		
+		return allstocks;
 	}
 }

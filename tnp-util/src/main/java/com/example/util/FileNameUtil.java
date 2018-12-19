@@ -18,6 +18,8 @@ public class FileNameUtil {
 
 	// ./src/data/inbox/zip/cm19SEP2018bhav.zip
 	private static String base_nse_bhav_downloaded_filename = "./data/bhav/nse/zip/";
+	
+	private static String base_nse_master500_downloaded_filename = "./data/master/nse/csv/nifty500Stockslist.csv";
 
 	public static String getNSEBhavFileName() {
 		String file_name = null;
@@ -124,6 +126,11 @@ public class FileNameUtil {
 		return complete_uri;
 	}
 
+	public static String getNSEIndex500StocksURI() {
+		return "https://www.nseindia.com/content/indices/ind_nifty500list.csv";
+	}
 	
-	
+	public static String getNSEIndex500StocksFileName() {
+		return base_nse_master500_downloaded_filename;
+	}
 }

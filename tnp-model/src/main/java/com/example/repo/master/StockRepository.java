@@ -1,4 +1,4 @@
-package com.example.repo;
+package com.example.repo.master;
 
 import java.util.List;
 
@@ -14,6 +14,8 @@ import com.example.model.master.Stock;
 public interface StockRepository extends JpaRepository<Stock, Long> {
 
 	Stock findByIsinCode(String isinCode);
+	
+	Stock findByStockId(long stockId);
 	
 	Stock findByNseSymbol(String nseSymbol);
 	

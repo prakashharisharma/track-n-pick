@@ -11,7 +11,6 @@ import javax.persistence.Transient;
 
 import com.example.model.master.Stock;
 import com.example.model.um.User;
-import com.example.model.um.UserPortfolioKey;
 
 @Entity
 @Table(name = "USER_PORTFOLIO")

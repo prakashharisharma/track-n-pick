@@ -72,6 +72,15 @@ public class Stock {
 		this.bseCode = bseCode;
 	}
 
+	
+	public long getStockId() {
+		return stockId;
+	}
+
+	public void setStockId(long stockId) {
+		this.stockId = stockId;
+	}
+
 	public String getCompanyName() {
 		return companyName;
 	}

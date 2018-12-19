@@ -47,7 +47,7 @@ public class EmailResearchProcessor implements Processor {
 	
 			String emailSubject = "Stocks Research Report - " + LocalDate.now() + "!";
 			
-			List<User> allActiveUsers = userService.allUsers();
+			List<User> allActiveUsers = userService.activeUsers();
 			
 			for(User mailToUser : allActiveUsers) {
 	
@@ -56,6 +56,8 @@ public class EmailResearchProcessor implements Processor {
 				Thread.sleep(miscUtil.getInterval());
 				
 			}
+			
+			researchLedgerService.markNotified(watchList);
 			
 		}else {
 			System.out.println("No Stock in Mailer List END");

@@ -46,7 +46,7 @@ public class EmailRearchTargetAchievedProcessor implements Processor{
 			
 			String emailSubject = "Stocks Research Report - " + LocalDate.now() + "!";
 			
-			List<User> allActiveUsers = userService.allUsers();
+			List<User> allActiveUsers = userService.activeUsers();
 			
 			for(User mailToUser : allActiveUsers) {
 				

@@ -1,5 +1,6 @@
 package com.example;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -11,12 +12,18 @@ import org.springframework.stereotype.Component;
 
 import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
+import com.example.model.master.TaxMaster;
 import com.example.model.stocks.UserPortfolio;
 import com.example.model.um.User;
-import com.example.repo.ResearchLedgerHistoryRepository;
-import com.example.repo.ResearchLedgerRepository;
+import com.example.repo.ledger.ResearchLedgerHistoryRepository;
+import com.example.repo.ledger.ResearchLedgerRepository;
+import com.example.repo.master.TaxMasterRepository;
+import com.example.service.BrokerageService;
+import com.example.service.DividendLedgerService;
+import com.example.service.FundsLedgerService;
 import com.example.service.PortfolioService;
 import com.example.service.StockService;
+import com.example.service.TaxMasterService;
 import com.example.service.UserService;
 import com.example.service.WatchListService;
 import com.example.util.PrettyPrintService;
@@ -27,7 +34,6 @@ public class AppRunner implements CommandLineRunner {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AppRunner.class);
 
-
 	@Autowired
 	private UserService userService;
 
@@ -36,15 +42,12 @@ public class AppRunner implements CommandLineRunner {
 
 	@Autowired
 	private StockService stockService;
-
-	@Autowired
-	private PrettyPrintService prettyPrintService;
 	
 	@Autowired
-	private WatchListService watchListService;
+	private DividendLedgerService dividendLedgerService;
 	
 	@Autowired
-	private ResearchLedgerRepository rlp; 
+	private FundsLedgerService fundsLedgerService;
 	
 	@Override
 	public void run(String... arg0) throws InterruptedException {
@@ -54,19 +57,16 @@ public class AppRunner implements CommandLineRunner {
 		User userP = userService.getUserById(1);
 		
 		User userR = userService.getUserById(2);
-		
-		User userRK = userService.getUserById(3);
 
-		User userRD = userService.getUserById(4);
+	//	fundsLedgerService.addFund(userR, 15000, LocalDate.now());
+		//fundsLedgerService.withdrawFund(userR, 10000, LocalDate.now());
 		
-		User userCA = userService.getUserById(5);
+		/*Stock ioc = stockService.getStockByNseSymbol("IOC");
 		
-		System.out.println(userRK);
+		dividendLedgerService.addDividend(userP, ioc, 6.75, LocalDate.now().plusDays(2), LocalDate.now().plusDays(6), LocalDate.now().plusDays(7));
 		
-		System.out.println(userRD);
-		
-		System.out.println(userCA);
-		
+		dividendLedgerService.addDividend(userR, ioc, 6.75, LocalDate.now().plusDays(2), LocalDate.now().plusDays(6), LocalDate.now().plusDays(7));
+		*/
 		/*Stock endind = stockService.getStockByNseSymbol("ENGINERSIN");
 		
 		Stock nmdc = stockService.getStockByNseSymbol("NMDC");
@@ -81,7 +81,7 @@ public class AppRunner implements CommandLineRunner {
 		
 		portfolioService.addStock(userP, ntpc, 140.15, 20);*/
 	
-		
+		/*
 		LOGGER.info("PORTFOLOIO P");
 		
 		List<UserPortfolio> portfolio = portfolioService.userPortfolio(userP);
@@ -96,23 +96,8 @@ public class AppRunner implements CommandLineRunner {
 
 		portFolioStr = prettyPrintService.printPortFolio(portfolio);
 		
-		System.out.println(portFolioStr);
-		
-		List<Stock> watchList = watchListService.userWatchList(userP);
-		
-		portFolioStr = prettyPrintService.printWatchList(watchList);
-		
-		LOGGER.info("WATCHLIST");
-		
-		System.out.println(portFolioStr);
-		
-		List<User> userList = userService.activeUsers();
-		
-		userList.forEach(System.out::println);
-		
-		List<ResearchLedger> rlpList = rlp.findAll();
-		
-		rlpList.forEach(System.out::println);
+		System.out.println(portFolioStr);*/
+
 		
 	}
 

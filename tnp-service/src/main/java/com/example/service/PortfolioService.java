@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
 import com.example.model.um.User;
-import com.example.repo.PortfolioRepository;
+import com.example.repo.stocks.PortfolioRepository;
 import com.example.util.Rules;
 
 @Transactional
@@ -36,6 +36,9 @@ public class PortfolioService {
 	
 	@Autowired
 	private RuleService ruleService;
+	
+	@Autowired
+	private TradeLedgerService tradeLedgerService;
 	
 	public void addStock(User user, Stock stock, double price, long quantity) {
 
@@ -74,6 +77,8 @@ public class PortfolioService {
 
 		user.addStockToPortfoliop(portfolioStock);
 
+		tradeLedgerService.executeBuy(user, stock, price, quantity);
+		
 		userService.save(user);
 	}
 
@@ -100,7 +105,7 @@ public class PortfolioService {
 			}else {
 				portfolioRepository.delete(portfolioStock);
 			}
-			
+			tradeLedgerService.executeSell(user, stock, price, quantity);
 		}
 	}
 

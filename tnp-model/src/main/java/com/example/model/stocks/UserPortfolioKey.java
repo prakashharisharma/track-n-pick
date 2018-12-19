@@ -1,4 +1,4 @@
-package com.example.model.um;
+package com.example.model.stocks;
 
 import java.io.Serializable;
 
@@ -8,6 +8,7 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
 import com.example.model.master.Stock;
+import com.example.model.um.User;
 
 @Embeddable
 public class UserPortfolioKey implements Serializable {

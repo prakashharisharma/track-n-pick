@@ -37,7 +37,7 @@ class NdtvChylService implements CylhBaseService {
 	@Override
 	public StockPrice getChylPrice(Stock stock) throws IOException {
 
-		LOGGER.debug("Inside " + getServiceProvider().toString());
+		LOGGER.debug("Inside " + getServiceProvider().toString()+":"+stock.getNseSymbol());
 
 		StockPrice stockPrice = stock.getStockPrice();
 
@@ -73,8 +73,6 @@ class NdtvChylService implements CylhBaseService {
 
 					stockPrice.setCurrentPrice(Double.parseDouble(childElement.text()));
 
-					LOGGER.debug("Current Price : " + childElement.text());
-
 				}
 			}
 		}
@@ -101,19 +99,18 @@ class NdtvChylService implements CylhBaseService {
 
 					stockPrice.setYearHigh(Double.parseDouble(childElement.text()));
 
-					LOGGER.debug("Year High : " + childElement.text());
-
 				}
 				if (i == 3) {
 					stockPrice.setYearLow(Double.parseDouble(childElement.text()));
 
-					LOGGER.debug("Year Low : " + childElement.text());
 				}
 
 			}
 
 		}
 
+		LOGGER.debug("Current Price : " + stockPrice.getCurrentPrice() + "Year Low : " + stockPrice.getYearLow() + "Year High : " + stockPrice.getYearHigh());
+		
 		return stockPrice;
 	}
 
@@ -127,65 +124,6 @@ class NdtvChylService implements CylhBaseService {
 		String companyNameWithNseSymbol = companyNameWithUnderScore + stock.getNseSymbol();
 
 		return BASE_URL_NDTV + companyNameWithNseSymbol.toLowerCase();
-	}
-
-	public static void main(String[] args) throws IOException {
-
-		Document doc = Jsoup.connect("https://www.ndtv.com/business/stock/8k-miles-software-services-ltd_8kmilesoft")
-				.get();
-
-		Elements allElements = doc.select("div#nsesensex");
-
-		int loopcounter = 0;
-
-		for (Element element : allElements) {
-
-			Elements chilrd = element.getElementsByTag("span");
-
-			int i = 0;
-
-			for (Element childElement : chilrd) {
-
-				i++;
-
-				if (i == 1) {
-					loopcounter++;
-					System.out.println("Current Price" + " : " + childElement.text());
-
-				}
-			}
-		}
-
-		if (loopcounter == 0) {
-
-			throw new MalformedURLException("MALFUNCTION URL");
-		}
-
-		doc = Jsoup.connect("https://www.ndtv.com/business/stock/the-new-india-assurance-company-ltd_niacl").get();
-
-		allElements = doc.select("div#nse52SliderDiv");
-
-		for (Element element : allElements) {
-
-			Elements chilrd = element.getElementsByTag("span");
-
-			int i = 0;
-
-			for (Element childElement : chilrd) {
-
-				i++;
-				if (i == 4) {
-
-					System.out.println("Year High " + " : " + childElement.text());
-				}
-				if (i == 3) {
-
-					System.out.println("Year Low " + " : " + childElement.text());
-				}
-
-			}
-
-		}
 	}
 
 }

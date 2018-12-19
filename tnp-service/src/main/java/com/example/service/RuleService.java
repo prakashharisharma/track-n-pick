@@ -23,8 +23,8 @@ import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.UserPortfolio;
 import com.example.model.um.User;
-import com.example.repo.StockFactorRepository;
-import com.example.repo.StockPriceRepository;
+import com.example.repo.stocks.StockFactorRepository;
+import com.example.repo.stocks.StockPriceRepository;
 import com.example.util.MiscUtil;
 import com.example.util.Rules;
 
@@ -77,8 +77,6 @@ public class RuleService {
 
 			if (stockPrice != null && stockPrice.getCurrentPrice() < rules.getPrice()) {
 
-				LOGGER.info(stock.getNseSymbol() + " : " + stockPrice);
-
 				double currentPrice = stockPrice.getCurrentPrice();
 
 				StockFactor stockFactor = null;
@@ -86,7 +84,6 @@ public class RuleService {
 				if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > rules.getFactorIntervalDays()) {
 					
 					stockFactor = factorRediff.getFactor(stock);
-					//stockFactorRepository.save(stockFactor);
 					
 				}else {
 					stockFactor = stock.getStockFactor();
@@ -97,10 +94,10 @@ public class RuleService {
 				double eps = stockFactor.getEps();
 
 				double pe = currentPrice / eps;
-				LOGGER.info(stock.getNseSymbol() + " - PE : " + pe);
+				
 				double pb = currentPrice / bookValue;
 
-				LOGGER.info(stock.getNseSymbol() + " - PB : " + pb);
+				LOGGER.info(stock.getNseSymbol() + " : " + stockPrice + " PE : " + pe + " PB : " + pb);
 
 				if (pb <= sectorService.getSectorByName(stock.getSector()).getSectorPb()
 						&& pe <= sectorService.getSectorByName(stock.getSector()).getSectorPe()) {
@@ -155,8 +152,6 @@ public class RuleService {
 
 			if (stockPrice != null && stockPrice.getCurrentPrice() < rules.getPrice()) {
 
-				LOGGER.info(stock.getNseSymbol() + " : " + stockPrice);
-
 				double currentPrice = stockPrice.getCurrentPrice();
 				
 				double yearLow = stockPrice.getYearLow();
@@ -176,14 +171,12 @@ public class RuleService {
 				double eps = stock.getStockFactor().getEps();
 
 				double pe = currentPrice / eps;
-				LOGGER.info(stock.getNseSymbol() + " - PE : " + pe);
+				
 				double pb = currentPrice / bookValue;
 
-				LOGGER.info(stock.getNseSymbol() + " - PB : " + pb);
+				LOGGER.info(stock.getNseSymbol() + " : " + stockPrice + " PE : " + pe + " PB : " + pb);
 				
-				LOGGER.info(stock.getNseSymbol() + " - yearLowThreasHold : " + yearLowThreasHold);
-				LOGGER.info(stock.getNseSymbol() + " - yearHighThreasHold : " + yearHighThreasHold);
-				LOGGER.info(stock.getNseSymbol() + " - currentPrice : " + currentPrice);
+				LOGGER.info(stock.getNseSymbol() + " yearLowThreasHold : " + yearLowThreasHold+ " yearHighThreasHold : " + yearHighThreasHold+ " currentPrice : " + currentPrice);
 
 				if(miscUtil.isBetween(yearLowThreasHold,yearHighThreasHold,currentPrice)) {
 				
@@ -226,8 +219,6 @@ public class RuleService {
 
 			if (stockPrice != null && stockPrice.getCurrentPrice() < rules.getPrice()) {
 
-				LOGGER.info(stock.getStock().getNseSymbol() + " : " + stockPrice);
-
 				double currentPrice = stockPrice.getCurrentPrice();
 				
 				double yearLow = stockPrice.getYearLow();
@@ -247,12 +238,12 @@ public class RuleService {
 				double eps = stock.getStock().getStockFactor().getEps();
 
 				double pe = currentPrice / eps;
-				LOGGER.info(stock.getStock().getNseSymbol() + " - PE : " + pe);
+				
 				double pb = currentPrice / bookValue;
 
-				LOGGER.info(stock.getStock().getNseSymbol() + " - PB : " + pb);
+				LOGGER.info(stock.getStock().getNseSymbol() + " : Current :" + stockPrice.getCurrentPrice() + " PE : " + pe + " PB : " + pb);
 
-				if(miscUtil.isBetween(yearLowThreasHold,yearHighThreasHold,currentPrice)) {
+				//if(miscUtil.isBetween(yearLowThreasHold,yearHighThreasHold,currentPrice)) {
 				
 					if (pb <= sectorService.getSectorByName(stock.getStock().getSector()).getSectorPb()
 							&& pe <= sectorService.getSectorByName(stock.getStock().getSector()).getSectorPe()) {
@@ -271,8 +262,10 @@ public class RuleService {
 						LOGGER.info(" RULE 2");
 						resultStocks.add(stock);
 	
+					}else {
+						LOGGER.info(" RULE CRITERIA NOT MATCH");
 					}
-				}
+				//}
 			}
 		}
 
@@ -289,7 +282,7 @@ public class RuleService {
 						&& s.getStockFactor().getReturnOnCapital() > rules.getRoce())
 				.collect(Collectors.toList());
 		
-		//return afterRuleList;
+		
 	}
 	
 public List<UserPortfolio> filterPortfolioFundamentalStocks(Collection<UserPortfolio> inputStockList){
@@ -302,7 +295,7 @@ public List<UserPortfolio> filterPortfolioFundamentalStocks(Collection<UserPortf
 						&& s.getStock().getStockFactor().getReturnOnCapital() > rules.getRoce())
 				.collect(Collectors.toList());
 		
-		//return afterRuleList;
+		
 	}
 	
 }

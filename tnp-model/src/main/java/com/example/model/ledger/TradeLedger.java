@@ -72,5 +72,147 @@ public class TradeLedger {
 	
 	@Column(name = "GST")
 	double gst;
+
+	public TradeLedger() {
+		super();
+	}
+
+	
+	
+	public TradeLedger(User userId, Stock stockId, double price, long quantity, StockTransactionType transactionType,
+			Exchange exchange, LocalDate transactionDate) {
+		super();
+		this.userId = userId;
+		this.stockId = stockId;
+		this.price = price;
+		this.quantity = quantity;
+		this.transactionType = transactionType;
+		this.exchange = exchange;
+		this.transactionDate = transactionDate;
+	}
+
+
+
+	public long getTradeId() {
+		return tradeId;
+	}
+
+	public void setTradeId(long tradeId) {
+		this.tradeId = tradeId;
+	}
+
+	public User getUserId() {
+		return userId;
+	}
+
+	public void setUserId(User userId) {
+		this.userId = userId;
+	}
+
+	public Stock getStockId() {
+		return stockId;
+	}
+
+	public void setStockId(Stock stockId) {
+		this.stockId = stockId;
+	}
+
+	public double getPrice() {
+		return price;
+	}
+
+	public void setPrice(double price) {
+		this.price = price;
+	}
+
+	public long getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(long quantity) {
+		this.quantity = quantity;
+	}
+
+	public StockTransactionType getTransactionType() {
+		return transactionType;
+	}
+
+	public void setTransactionType(StockTransactionType transactionType) {
+		this.transactionType = transactionType;
+	}
+
+	public Exchange getExchange() {
+		return exchange;
+	}
+
+	public void setExchange(Exchange exchange) {
+		this.exchange = exchange;
+	}
+
+	public LocalDate getTransactionDate() {
+		return transactionDate;
+	}
+
+	public void setTransactionDate(LocalDate transactionDate) {
+		this.transactionDate = transactionDate;
+	}
+
+	public double getBrokerage() {
+		return brokerage;
+	}
+
+	public void setBrokerage(double brokerage) {
+		this.brokerage = brokerage;
+	}
+
+	public double getSecurityTxnTax() {
+		return securityTxnTax;
+	}
+
+	public void setSecurityTxnTax(double securityTxnTax) {
+		this.securityTxnTax = securityTxnTax;
+	}
+
+	public double getStampDuty() {
+		return stampDuty;
+	}
+
+	public void setStampDuty(double stampDuty) {
+		this.stampDuty = stampDuty;
+	}
+
+	public double getNseTransactionCharge() {
+		return nseTransactionCharge;
+	}
+
+	public void setNseTransactionCharge(double nseTransactionCharge) {
+		this.nseTransactionCharge = nseTransactionCharge;
+	}
+
+	public double getBseTransactionCharge() {
+		return bseTransactionCharge;
+	}
+
+	public void setBseTransactionCharge(double bseTransactionCharge) {
+		this.bseTransactionCharge = bseTransactionCharge;
+	}
+
+	public double getSebiTurnoverFee() {
+		return sebiTurnoverFee;
+	}
+
+	public void setSebiTurnoverFee(double sebiTurnoverFee) {
+		this.sebiTurnoverFee = sebiTurnoverFee;
+	}
+
+	public double getGst() {
+		return gst;
+	}
+
+	public void setGst(double gst) {
+		this.gst = gst;
+	}
+	
+	
 	
 }

@@ -13,7 +13,7 @@ $(document).ready(function(){
 function loadTable(){
 	$('#example').DataTable({
 		"ajax" : {
-			"url" : "/portfolio/",
+			"url" : "/api/portfolio/",
 			"dataSrc" : ""
 		},
 		"columns" : [ {

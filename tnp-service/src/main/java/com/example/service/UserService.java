@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.model.master.Stock;
 import com.example.model.um.User;
-import com.example.repo.UserRepository;
+import com.example.repo.um.UserRepository;
 
 @Transactional
 @Service

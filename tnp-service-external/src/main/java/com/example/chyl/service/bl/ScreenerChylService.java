@@ -37,7 +37,7 @@ class ScreenerChylService implements CylhBaseService {
 	@Override
 	public StockPrice getChylPrice(Stock stock) throws IOException {
 
-		LOGGER.debug("Inside " + getServiceProvider().toString() + " : " + stock);
+		LOGGER.debug("Inside " + getServiceProvider().toString() + " : " + stock.getNseSymbol());
 
 		StockPrice stockPrice = stock.getStockPrice();
 
@@ -74,7 +74,7 @@ class ScreenerChylService implements CylhBaseService {
 					continue;
 				}
 
-				LOGGER.debug("Current Price : " + elemtsTxt[1].trim());
+				
 
 				stockPrice.setCurrentPrice(Double.parseDouble(elemtsTxt[1].trim().replace(",", "")));
 			}
@@ -91,16 +91,12 @@ class ScreenerChylService implements CylhBaseService {
 
 				stockPrice.setYearHigh(yearHigh);
 
-				LOGGER.debug("Year High : " + yearHigh);
-
 				stockPrice.setYearLow(yearLow);
-
-				LOGGER.debug("Year High : " + yearLow);
 
 			}
 
 		}
-
+		LOGGER.debug("Current Price : " + stockPrice.getCurrentPrice() + "Year Low : " + stockPrice.getYearLow() + "Year High : " + stockPrice.getYearHigh());
 		return stockPrice;
 	}
 
@@ -108,59 +104,6 @@ class ScreenerChylService implements CylhBaseService {
 	public String getServiceUrl(Stock stock) {
 
 		return BASE_URL_SCREENER + stock.getNseSymbol() + "/";
-	}
-
-	public static void main(String[] args) throws IOException {
-
-		Document doc = Jsoup.connect("https://www.screener.in/company/HDIL/").get();
-
-		Element body = doc.body();
-
-		Elements allElements = body.getAllElements();
-
-		Elements sections = allElements.first().getElementsByTag("section");
-
-		Element data = sections.first();
-
-		Elements chilrd = data.getElementsByTag("li");
-
-		System.out.println("*******************************");
-
-		for (Element element : chilrd) {
-
-			String elementsTxt = element.text();
-
-			if (elementsTxt.startsWith("Current Price")) {
-
-				String elemtsTxt[] = element.text().split(":");
-
-				if (elemtsTxt.length == 1) {
-					continue;
-				}
-
-				System.out.println(elemtsTxt[0] + " : " + elemtsTxt[1].trim());
-			}
-
-			if (elementsTxt.startsWith("52 weeks")) {
-
-				String yesrHighLow = elementsTxt.substring(20);
-
-				String yesrHighLows[] = yesrHighLow.split("/");
-
-				double yearHigh = Double.parseDouble(yesrHighLows[0]);
-
-				double yearLow = Double.parseDouble(yesrHighLows[1]);
-
-				System.out.println("Year High : " + yearHigh);
-
-				System.out.println("Year Low : " + yearLow);
-
-			}
-
-		}
-
-		System.out.println("*******************************");
-
 	}
 
 }

@@ -5,12 +5,12 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.JoinColumn;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
@@ -53,6 +53,7 @@ public class User {
 	@OneToMany(mappedBy = "portfolioId.user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<UserPortfolio> userPortfolio = new HashSet<>();
 
+	
 	public User() {
 		super();
 	}
@@ -123,7 +124,8 @@ public class User {
 	public void addStockToPortfoliop(UserPortfolio userPortfolio) {
         this.userPortfolio.add(userPortfolio);
     }
-	
+
+
 	@Override
 	public String toString() {
 		return "User [userId=" + userId + ",name="+firstName+ ", userEmail=" + userEmail  + "]";

@@ -1,4 +1,4 @@
-package com.example.repo;
+package com.example.repo.stocks;
 
 import java.util.List;
 
@@ -9,8 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
+import com.example.model.stocks.UserPortfolioKey;
 import com.example.model.um.User;
-import com.example.model.um.UserPortfolioKey;
 
 @Transactional
 @Repository

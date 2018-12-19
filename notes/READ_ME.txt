@@ -20,38 +20,11 @@ https://money.rediff.com/companies/V-Guard-Industries-Ltd/13150060/results-annua
 References - 
 
 https://investinganswers.com/education/ratio-analysis/15-financial-ratios-every-investor-should-use-3011
+
 http://www.smartpaisa.in/charges-other-than-brokerage-stock-exchange-share-future-options-transactions-stt-transaction-charges-sebi-turnover-charges-stamp-duty/
 
+http://www.mkyong.com/spring-boot/spring-boot-spring-security-thymeleaf-example/
 
-Targeted Sell Price - (0.70 + Buy Price) + ((0.70 + Buy Price) X .20) - 
+https://www.thymeleaf.org/doc/articles/springsecurity.html
 
-Job to find the year low and add into watchlist if not added
-
-Job to filter watchList and make suggestions
-
-Portfolio 
-symbol, company, mcap, total,  Average Price, LTP, yearLow, yearHigh
-
-Actions :- 
-1. Scan WL - Daily - DONE
-2. Add to WL - Daily - DONE
-3. Scan PortFolio - Daily - 
-3. Clean WL - Weekly / Monday
-4. MasterUpdate - Yearly
-
-
-
-MCAP > 2K
-DEBT/EQUITY < 0.50
-DIVIDEND > 0.00 
-PB < 5
-PE < 20
-ROE > 10
-ROCE > 15
-
-
-DY = DIVIDEND / CP
-
-PE = CP / EPS
-
-PB = CP / BV
+https://javatutorials13.wordpress.com/2014/04/03/jquerys-autocomplete-functionality-in-a-spring-mvc-application/

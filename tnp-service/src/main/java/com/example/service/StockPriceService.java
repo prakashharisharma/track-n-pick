@@ -5,7 +5,7 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.repo.StockPriceRepository;
+import com.example.repo.stocks.StockPriceRepository;
 
 @Transactional
 @Service

@@ -38,7 +38,7 @@ class NseChylService implements CylhBaseService{
 	@Override
 	public StockPrice getChylPrice(Stock stock) throws IOException {
 		
-		LOGGER.debug("Inside " + getServiceProvider().toString() + " :" + stock);
+		LOGGER.debug("Inside " + getServiceProvider().toString() + " :" + stock.getNseSymbol());
 		
 		StockPrice stockPrice = stock.getStockPrice();
 		
@@ -73,16 +73,12 @@ class NseChylService implements CylhBaseService{
 
 			stockPrice.setCurrentPrice(Double.parseDouble(nseResult.getData().get(0).getLastPrice().replace(",", "")));
 			
-			LOGGER.debug("Current Price : " + Double.parseDouble(nseResult.getData().get(0).getLastPrice().replace(",", "")));
-			
 			stockPrice.setYearHigh(Double.parseDouble(nseResult.getData().get(0).getHigh52().replace(",", "")));
-			
-			LOGGER.debug("Year High : " + Double.parseDouble(nseResult.getData().get(0).getHigh52().replace(",", "")));
 			
 			stockPrice.setYearLow(Double.parseDouble(nseResult.getData().get(0).getLow52().replace(",", "")));
 
-			LOGGER.debug("Year Low : " + Double.parseDouble(nseResult.getData().get(0).getLow52().replace(",", "")));
-
+			LOGGER.debug("Current Price : " + stockPrice.getCurrentPrice() + "Year Low : " + stockPrice.getYearLow() + "Year High : " + stockPrice.getYearHigh());
+			
 		} catch (JsonParseException e) {
 			
 			e.printStackTrace();
@@ -102,47 +98,5 @@ class NseChylService implements CylhBaseService{
 		
 		return BASE_URL_NSE + stock.getNseSymbol();
 	}
-	
-	public static void main(String[] args) throws IOException {
-		
-		Document doc = Jsoup.connect("https://www.nse-india.com/live_market/dynaContent/live_watch/get_quote/GetQuote.jsp?symbol=8KMILES").get();
 
-		
-		Element body = doc.body();
-				
-		Element allElement = body.getElementById("responseDiv");
-
-		String response = allElement.text();
-		
-		System.out.println(response);
-	
-		// Object mapper instance
-		ObjectMapper mapper = new ObjectMapper();
-
-		// Convert JSON to POJO
-		try {
-			
-			NSEResult nseResult = mapper.readValue(response, NSEResult.class);
-
-			double curr = Double.parseDouble(nseResult.getData().get(0).getLastPrice());
-			System.out.println(curr);
-			double yearHigh = Double.parseDouble(nseResult.getData().get(0).getHigh52().replace(",", ""));
-			System.out.println(yearHigh);
-			double yearLow = Double.parseDouble(nseResult.getData().get(0).getHigh52());
-
-
-		} catch (JsonParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-	}
-
-	
 }

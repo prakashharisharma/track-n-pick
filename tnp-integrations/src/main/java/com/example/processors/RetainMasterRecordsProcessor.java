@@ -38,7 +38,6 @@ public class RetainMasterRecordsProcessor implements Processor {
 
 		Set<String> stockMasterNseSymbols = masterList.stream().map(Stock::getNseSymbol).collect(Collectors.toSet());
 
-		
 		Set<StockPrice> listOutput = dailyStockPriceSet.stream()
 			            .filter(sp -> stockMasterNseSymbols.contains(sp.getNseSymbol()))
 			            .collect(Collectors.toSet());

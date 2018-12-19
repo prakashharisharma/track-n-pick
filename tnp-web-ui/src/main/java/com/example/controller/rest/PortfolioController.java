@@ -2,6 +2,7 @@ package com.example.controller.rest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,63 +12,96 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.controller.model.Person;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
 import com.example.model.um.User;
 import com.example.service.PortfolioService;
+import com.example.service.StockService;
 import com.example.service.UserService;
-import com.example.ui.model.PortfolioStock;
-import com.example.ui.service.UiRenderUtil;
+import com.example.ui.model.StockSearch;
+import com.example.ui.model.UIRenderStock;
 
 @RestController
-@RequestMapping("/portfolio")
+@RequestMapping("/api/portfolio")
 public class PortfolioController {
 
 	@Autowired
 	private PortfolioService portfolioService;
-
+	
+	@Autowired
+	private StockService stockService;
+	
 	@Autowired
 	private UserService userService;
 	
-	@Autowired
-	private UiRenderUtil uiRenderUtil;
-	
-	private static List<Stock> stockList = new ArrayList<>();
-	
-	static {
-		stockList.add(new Stock("ABC", "ABC", "25.23"));
-		stockList.add(new Stock("XYZ", "XYZ", "19.23"));
-		stockList.add(new Stock("DEF", "DEF", "25.23"));
-		stockList.add(new Stock("ABC1", "ABC", "20.23"));
-		stockList.add(new Stock("XYZ1", "XYZ", "15.23"));
-		stockList.add(new Stock("DEF1", "DEF", "13.23"));
-		stockList.add(new Stock("ABC2", "ABC", "25.23"));
-		stockList.add(new Stock("XYZ2", "XYZ", "10.23"));
-		stockList.add(new Stock("DEF2", "DEF", "15.23"));
-		stockList.add(new Stock("ABC3", "ABC", "25.23"));
-		stockList.add(new Stock("XYZ3", "XYZ", "35.23"));
-		stockList.add(new Stock("DEF3", "DEF", "25.23"));
-	}
-	
-	
-	@GetMapping(value="/", produces = MediaType.APPLICATION_JSON_VALUE )
-	public ResponseEntity<List<PortfolioStock>> getPortfolioStocks() {
+	@PostMapping(value = "/addstock", consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> addStock(@RequestBody UIRenderStock stock) {
 
+		System.out.println(stock);
+		
+		User user = userService.getUserById(1);
+		
+		if(stock.getStockid() > 0) {
+		
+			Stock addStock =  stockService.getStockById(stock.getStockid());
+			portfolioService.addStock(user, addStock, stock.getBuySellPrice(), stock.getQunatity());
+			
+		}
+		
+
+		return ResponseEntity.status(HttpStatus.OK).build();
+	}
+
+	@PostMapping(value = "/sellstock", consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> sellStock(@RequestBody UIRenderStock stock) {
+
+		User user = userService.getUserById(1);
+		
+		if(stock.getStockid() > 0) {
+		
+			Stock sellStock =  stockService.getStockById(stock.getStockid());
+			portfolioService.sellStock(user, sellStock, stock.getBuySellPrice(), stock.getQunatity());
+			
+		}
+
+		return ResponseEntity.status(HttpStatus.OK).build();
+	}
+
+	@GetMapping(value = "/searchstock", produces = {MediaType.APPLICATION_ATOM_XML_VALUE,  MediaType.APPLICATION_JSON_VALUE})
+	public ResponseEntity<List<StockSearch>> searchStock1(@RequestParam String query) {
+
+		List<StockSearch> stocksList = new ArrayList<>();
+		
 		User user = userService.getUserById(1);
 		
 		List<UserPortfolio> userPortfolioList = portfolioService.userPortfolio(user);
 		
-		return ResponseEntity.ok(uiRenderUtil.renderPortfolio(userPortfolioList));
+		userPortfolioList.forEach(u -> {
+			stocksList.add(new StockSearch(u.getStock().getStockId(), u.getStock().getCompanyName() + " - ["+u.getStock().getNseSymbol() +"]"));
+		} );
+		
+		System.out.println("searchStock" + query);
+
+		System.out.println(stocksList);
+
+		List<StockSearch> searchResult = stocksList.stream().filter(s -> s.getCompanyNameAndSymbol().contains(query)).collect(Collectors.toList());
+		
+		System.out.println(searchResult);
+		
+		if(searchResult.isEmpty()) {
+			System.out.println("DEFAULT");
+			
+			List<StockSearch> noSearchResult = new ArrayList<>();
+			
+			noSearchResult.add(new StockSearch(1,"No Result Found"));
+			System.out.println(noSearchResult);	
+			return ResponseEntity.ok(noSearchResult);
+		}
+		
+		
+		return ResponseEntity.ok(searchResult);
 	}
-	
-	@PostMapping(value = "/saveContact", consumes = MediaType.APPLICATION_JSON_VALUE)
-	 public ResponseEntity<?> saveContact(@RequestBody Person person) {
-		
-		System.out.println(person);
-		
-		return ResponseEntity.status(HttpStatus.OK).build();
-	 }
 }

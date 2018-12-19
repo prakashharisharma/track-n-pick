@@ -1,4 +1,4 @@
-package com.example.repo;
+package com.example.repo.master;
 
 import java.util.List;
 
