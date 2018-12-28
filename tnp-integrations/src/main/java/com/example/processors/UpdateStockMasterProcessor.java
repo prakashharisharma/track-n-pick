@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.model.StockMaster;
-import com.example.model.StockPrice;
 import com.example.model.master.Stock;
 import com.example.service.StockService;
 
@@ -48,6 +47,8 @@ public class UpdateStockMasterProcessor implements Processor{
 		
 		discontinueList.forEach(System.out::println);
 		
+		this.discontinue(discontinueList);
+		
 		List<StockMaster> newAdditionList = nseMasterList.stream()
 	            .filter(sm -> !nseSymbols.contains(sm.getNseSymbol()))
 	            .collect(Collectors.toList());
@@ -55,6 +56,18 @@ public class UpdateStockMasterProcessor implements Processor{
 		LOGGER.info("NEW");
 		
 		newAdditionList.forEach(System.out::println);
+		
+		this.addToMaster(newAdditionList);
 	}
 
+	private void discontinue(List<Stock> discontinueList) {
+		stockService.setInactive(discontinueList);
+	}
+	
+	private void addToMaster(List<StockMaster> newAdditionList) {
+		for (StockMaster stockMaster :newAdditionList ) {
+			Stock stock = stockService.add(stockMaster.getIsin(), stockMaster.getCompanyName(), stockMaster.getNseSymbol(), stockMaster.getSector());
+			LOGGER.info("ADDED " + stock);
+		}
+	}
 }

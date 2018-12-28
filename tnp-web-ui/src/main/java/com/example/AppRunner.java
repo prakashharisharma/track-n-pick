@@ -11,15 +11,19 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import com.example.model.ledger.ResearchLedger;
+import com.example.model.master.HolidayCalendar;
 import com.example.model.master.Stock;
 import com.example.model.master.TaxMaster;
 import com.example.model.stocks.UserPortfolio;
 import com.example.model.um.User;
 import com.example.repo.ledger.ResearchLedgerHistoryRepository;
 import com.example.repo.ledger.ResearchLedgerRepository;
+import com.example.repo.master.HolidayCalendarRepository;
 import com.example.repo.master.TaxMasterRepository;
 import com.example.service.BrokerageService;
+import com.example.service.CalendarService;
 import com.example.service.DividendLedgerService;
+import com.example.service.FileNameService;
 import com.example.service.FundsLedgerService;
 import com.example.service.PortfolioService;
 import com.example.service.StockService;
@@ -48,6 +52,10 @@ public class AppRunner implements CommandLineRunner {
 	
 	@Autowired
 	private FundsLedgerService fundsLedgerService;
+	@Autowired
+	private HolidayCalendarRepository holidayCalendarRepository;
+	@Autowired
+	private CalendarService calendarService;
 	
 	@Override
 	public void run(String... arg0) throws InterruptedException {
@@ -57,9 +65,16 @@ public class AppRunner implements CommandLineRunner {
 		User userP = userService.getUserById(1);
 		
 		User userR = userService.getUserById(2);
+		
+		
+		System.out.println(portfolioService.currentValue(userR));
+		
+		//calendarService.holidays().forEach(System.out::println);
 
-	//	fundsLedgerService.addFund(userR, 15000, LocalDate.now());
-		//fundsLedgerService.withdrawFund(userR, 10000, LocalDate.now());
+		
+		
+		System.out.println(fundsLedgerService.currentYearInvestment(userP));
+		System.out.println(fundsLedgerService.currentFinYearInvestment(userP));
 		
 		/*Stock ioc = stockService.getStockByNseSymbol("IOC");
 		

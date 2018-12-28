@@ -25,6 +25,18 @@ public class Sector {
 	@Column(name = "SECTOR_PB")
 	double sectorPb;
 
+	public Sector() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public Sector(String sectorName, double sectorPe, double sectorPb) {
+		super();
+		this.sectorName = sectorName;
+		this.sectorPe = sectorPe;
+		this.sectorPb = sectorPb;
+	}
+
 	public long getSectorId() {
 		return sectorId;
 	}

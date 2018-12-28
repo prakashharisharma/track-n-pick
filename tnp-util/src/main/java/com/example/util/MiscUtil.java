@@ -2,7 +2,9 @@ package com.example.util;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.format.TextStyle;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -45,12 +47,11 @@ public class MiscUtil {
 
 	// Return true if c is between a and b.
 	public boolean isBetween(double a, double b, double c) {
-		
-		if(c < a || c > b ) {
+
+		if (c < a || c > b) {
 			return false;
 		}
-		
-		
+
 		return b > a ? c > a && c < b : c > b && c < a;
 	}
 
@@ -66,16 +67,79 @@ public class MiscUtil {
 		LocalDate localDate = LocalDate.now();
 
 		String existingMonth = modifiedDate.getMonth().getDisplayName(TextStyle.SHORT, Locale.US).toUpperCase();
-		
+
 		String month = localDate.getMonth().getDisplayName(TextStyle.SHORT, Locale.US).toUpperCase();
 
-		if(resultsMonths.contains(existingMonth)) {
+		if (resultsMonths.contains(existingMonth)) {
 			return false;
-		}else if (resultsMonths.contains(month)) {
+		} else if (resultsMonths.contains(month)) {
 			return true;
 		}
 
 		return false;
 	}
+
+	public LocalDate currentDate() {
+		return LocalDate.now();
+	}
+
+	public LocalDate currentYearFirstDay() {
+
+		LocalDate yearFirstdate = LocalDate.now().with(TemporalAdjusters.firstDayOfYear());
+
+		return yearFirstdate;
+	}
+
+	public LocalDate currentYearLastDay() {
+
+		LocalDate yearLasttdate = LocalDate.now().with(TemporalAdjusters.lastDayOfYear());
+
+		return yearLasttdate;
+	}
+
+	public LocalDate currentMonthFirstDay() {
+
+		LocalDate monthFirstDate = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
+
+		return monthFirstDate;
+	}
+
+	public LocalDate currentMonthLastDay() {
+
+		LocalDate monthLastDate = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
+
+		return monthLastDate;
+	}
 	
+	public LocalDate currentFinYearFirstDay() {
+
+		LocalDate FinYearFirstdate;
+
+		if (this.currentDate().getMonthValue() < 4) {
+			FinYearFirstdate = LocalDate.of(this.currentDate().getYear() - 1, Month.APRIL, 01);
+		} else {
+			FinYearFirstdate = LocalDate.of(this.currentDate().getYear(), Month.APRIL, 01);
+		}
+
+		return FinYearFirstdate;
+	}
+
+	public LocalDate currentFinYearLastDay() {
+		LocalDate FinYearLasttdate;
+
+		if (this.currentDate().getMonthValue() < 4) {
+			FinYearLasttdate = LocalDate.of(this.currentDate().getYear(), Month.MARCH, 31);
+		} else {
+			FinYearLasttdate = LocalDate.of(this.currentDate().getYear() + 1, Month.MARCH, 31);
+		}
+
+		return FinYearLasttdate;
+	}
+
+	public double calculatePer(double firstNum, double secondNum) {
+
+		double per = (secondNum / firstNum) * 100;
+
+		return per;
+	}
 }

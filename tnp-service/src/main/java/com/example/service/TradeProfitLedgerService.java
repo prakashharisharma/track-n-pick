@@ -1,0 +1,53 @@
+package com.example.service;
+
+import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.model.ledger.TradeProfitLedger;
+import com.example.model.master.Stock;
+import com.example.model.um.User;
+import com.example.repo.ledger.TradeProfitLedgerRepository;
+import com.example.util.MiscUtil;
+
+@Transactional
+@Service
+public class TradeProfitLedgerService {
+
+	@Autowired
+	private TradeProfitLedgerRepository tradeProfitLedgerRepository;
+	
+	@Autowired
+	private MiscUtil miscUtil;
+	
+	public void addProfitEntry(User user, Stock stock, long quantity, double netProfit) {
+		TradeProfitLedger tradeProfitLedger = new TradeProfitLedger(user, stock, quantity, netProfit);
+		tradeProfitLedgerRepository.save(tradeProfitLedger);
+		
+	}
+	
+	public double currentYearProfit(User user) {
+		
+		Double totalProfit = tradeProfitLedgerRepository.getTotalProfitBetweenTwoDates(user, miscUtil.currentYearFirstDay(), miscUtil.currentDate());
+		
+		if(totalProfit == null){
+			totalProfit = 0.00;
+		}
+		
+		return totalProfit;
+	}
+	
+	public double currentFinYearProfit(User user) {
+		
+		Double totalProfit = tradeProfitLedgerRepository.getTotalProfitBetweenTwoDates(user, miscUtil.currentFinYearFirstDay(), miscUtil.currentDate());
+		
+		if(totalProfit == null){
+			totalProfit = 0.00;
+		}
+		
+		
+		return totalProfit;
+	}
+	
+}

@@ -32,6 +32,18 @@ public class IndexController {
 		return "signup";
 	 }
 	
+	@GetMapping(value = "/research")
+	 public String research(Model model) {
+		
+		return "research";
+	 }
+	
+	@GetMapping(value = "/funds")
+	 public String funds(Model model) {
+		model.addAttribute("user", new SignupUser());
+		return "funds";
+	 }
+	
 	@GetMapping(value = "/home")
 	 public String home(Model model) {
 		return "home";
@@ -46,6 +58,11 @@ public class IndexController {
 	 public String portfolioView(Model model) {
 		return "portfolio";
 	 }
+	@GetMapping(value = "/dividends")
+	 public String dividends(Model model) {
+		return "dividends";
+	 }
+	
 	@GetMapping(value = "/watchlist")
 	 public String watchListView(Model model) {
 		return "watchList";

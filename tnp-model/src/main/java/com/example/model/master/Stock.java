@@ -73,6 +73,15 @@ public class Stock {
 	}
 
 	
+	public Stock(String isinCode, String companyName, String nseSymbol, String sector) {
+		super();
+		this.isinCode = isinCode;
+		this.companyName = companyName;
+		this.nseSymbol = nseSymbol;
+		this.sector = sector;
+		this.active = true;
+	}
+
 	public long getStockId() {
 		return stockId;
 	}

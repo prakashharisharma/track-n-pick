@@ -31,10 +31,76 @@ public class TradeProfitLedger{
 	@JoinColumn(name = "stockId")
 	Stock stockId;
 	
+	@Column(name = "QUANTITY")
+	long quantity;
+	
 	@Column(name = "NET_PROFIT")
 	double netProfit;
 	
 	@Column(name = "TXN_DATE")
 	LocalDate transactionDate;
+
+	public TradeProfitLedger() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public TradeProfitLedger(User userId, Stock stockId, long quantity, double netProfit) {
+		super();
+		this.userId = userId;
+		this.stockId = stockId;
+		this.quantity = quantity;
+		this.netProfit = netProfit;
+		this.transactionDate = LocalDate.now();
+	}
+
+	public long getTradeProfitLedgerId() {
+		return tradeProfitLedgerId;
+	}
+
+	public void setTradeProfitLedgerId(long tradeProfitLedgerId) {
+		this.tradeProfitLedgerId = tradeProfitLedgerId;
+	}
+
+	public User getUserId() {
+		return userId;
+	}
+
+	public void setUserId(User userId) {
+		this.userId = userId;
+	}
+
+	public Stock getStockId() {
+		return stockId;
+	}
+
+	public void setStockId(Stock stockId) {
+		this.stockId = stockId;
+	}
+
+	public long getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(long quantity) {
+		this.quantity = quantity;
+	}
+
+	public double getNetProfit() {
+		return netProfit;
+	}
+
+	public void setNetProfit(double netProfit) {
+		this.netProfit = netProfit;
+	}
+
+	public LocalDate getTransactionDate() {
+		return transactionDate;
+	}
+
+	public void setTransactionDate(LocalDate transactionDate) {
+		this.transactionDate = transactionDate;
+	}
+	
 	
 }

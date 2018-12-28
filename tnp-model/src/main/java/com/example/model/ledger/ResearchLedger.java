@@ -28,7 +28,7 @@ public class ResearchLedger {
 	Stock stock;
 	
 	@Column(name = "RESEARCH_DATE")
-	LocalDate researchDate;
+	LocalDate researchDate = LocalDate.now();
 	
 	@Column(name = "RESEARCH_PRICE")
 	double researchPrice;
@@ -37,7 +37,7 @@ public class ResearchLedger {
 	double targetPrice;
 	
 	@Column(name = "TARGET_DATE")
-	LocalDate targetDate;
+	LocalDate targetDate = LocalDate.now();
 	
 	@Column(name = "IS_ACTIVE")
 	boolean active = true;

@@ -88,4 +88,18 @@ public class StockService {
 		
 		return allstocks;
 	}
+	
+	public void setInactive(List<Stock> discontinueList) {
+		
+		for(Stock stock : discontinueList) {
+			stock.setActive(false);
+			stockRepository.save(stock);
+		}
+	}
+	
+	public Stock add(String isinCode, String companyName, String nseSymbol, String sector) {
+		Stock stock = new Stock(isinCode, companyName, nseSymbol, sector);
+		stockRepository.save(stock);
+		return stock;
+	}
 }

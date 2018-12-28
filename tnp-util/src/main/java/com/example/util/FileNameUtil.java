@@ -4,13 +4,12 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 import org.springframework.stereotype.Service;
 
 @Service
+@Deprecated
 public class FileNameUtil {
 
 	// https://www.nseindia.com/content/historical/EQUITIES/2018/OCT/cm01OCT2018bhav.csv.zip
@@ -19,8 +18,8 @@ public class FileNameUtil {
 	// ./src/data/inbox/zip/cm19SEP2018bhav.zip
 	private static String base_nse_bhav_downloaded_filename = "./data/bhav/nse/zip/";
 	
-	private static String base_nse_master500_downloaded_filename = "./data/master/nse/csv/nifty500Stockslist.csv";
-
+	private static String base_nse_master500_downloaded_filename = "./data/master/stocks/csv/nifty500Stockslist.csv";
+	
 	public static String getNSEBhavFileName() {
 		String file_name = null;
 

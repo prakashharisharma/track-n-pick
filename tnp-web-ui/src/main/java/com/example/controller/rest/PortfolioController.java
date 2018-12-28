@@ -23,6 +23,7 @@ import com.example.service.StockService;
 import com.example.service.UserService;
 import com.example.ui.model.StockSearch;
 import com.example.ui.model.UIRenderStock;
+import com.example.ui.service.UiRenderUtil;
 
 @RestController
 @RequestMapping("/api/portfolio")
@@ -104,4 +105,7 @@ public class PortfolioController {
 		
 		return ResponseEntity.ok(searchResult);
 	}
+	
+	
+	
 }

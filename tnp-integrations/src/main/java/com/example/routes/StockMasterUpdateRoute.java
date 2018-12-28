@@ -21,7 +21,7 @@ public class StockMasterUpdateRoute extends RouteBuilder{
 		final DataFormat stockMasterBindy = new BindyCsvDataFormat(StockMaster.class);
 
 		//parse the csv file and push list to jmsqueue
-		from("file:data/master/nse/csv?noop=false")
+		from("file:data/master/stocks/csv?noop=false")
 			.unmarshal(stockMasterBindy)
 		.to("jms:queue.master.csv.stocks");
 		
