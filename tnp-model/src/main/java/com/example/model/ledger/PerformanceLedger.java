@@ -11,7 +11,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 
 @Entity
 @Table(name = "PERFORMANCE_LEDGER")
@@ -24,12 +24,12 @@ public class PerformanceLedger {
 	
 	@ManyToOne
 	@JoinColumn(name = "userId")
-	User userId;
+	UserProfile userId;
 	
-	@Column(name = "INVESTMENT_VALUE")
+	@Column(name = "INVESTMENT_VALUE", columnDefinition="Decimal(10,2) default '0.00'")
 	double investmentValue;
 	
-	@Column(name = "PORTFOLIO_VALUE")
+	@Column(name = "PORTFOLIO_VALUE", columnDefinition="Decimal(10,2) default '0.00'")
 	double portfolioValue;
 	
 	@Column(name = "PERFORMANCE_DATE")
@@ -40,7 +40,7 @@ public class PerformanceLedger {
 		
 	}
 
-	public PerformanceLedger(User userId, double investmentValue, double portfolioValue,
+	public PerformanceLedger(UserProfile userId, double investmentValue, double portfolioValue,
 			LocalDate performanceDate) {
 		super();
 		this.userId = userId;
@@ -57,11 +57,11 @@ public class PerformanceLedger {
 		this.performanceLedgerId = performanceLedgerId;
 	}
 
-	public User getUserId() {
+	public UserProfile getUserId() {
 		return userId;
 	}
 
-	public void setUserId(User userId) {
+	public void setUserId(UserProfile userId) {
 		this.userId = userId;
 	}
 

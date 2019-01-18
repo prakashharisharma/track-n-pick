@@ -1,125 +1,61 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
-<title>Home Example</title>
-
 <div th:replace="fragments/header :: header-css" />
-
-<!-- <script th:src="@{js/index.js}"></script> -->
-<script th:src="@{js/index.js}"></script>
-<script th:src="@{js/jquery.canvasjs.min.js}"></script>
-
 </head>
-
 <body>
 
-	<div th:replace="fragments/header :: header" />
+	<div th:fragment="header">
+		<nav class="navbar navbar-inverse">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse"
+						data-target="#myNavbar">
+						<span class="icon-bar"></span> <span class="icon-bar"></span> <span
+							class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="/">WebSiteName</a>
+				</div>
+				<div class="collapse navbar-collapse" id="myNavbar">
+					<ul class="nav navbar-nav">
+
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="/validate/login.html"><span class="glyphicon glyphicon-log-out"></span>
+								Signin</a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+	</div>
 
 	<div class="container">
 		<div class="panel-group">
-
 			<div class="panel panel-default">
-				<div class="panel-heading">Research Panel</div>
+				<div class="panel-heading">Panel with panel-default class</div>
 
 				<div class="panel-body">
-					<div  class="row">
-						<div class="col-sm-6">
-							<div class="panel panel-info">
-								<div class="panel-heading">YTD</div>
-								<div class="panel-body">
-									<div class="form-group">
-										<label for="name">Total Investment : <span
-											class="badge" id="ytdInvestmentValue"></span>
-										</label>
-									</div>
-									<div class="form-group">
-										<label for="name">Current Value : <span class="badge"
-											id="currentValue"></span>
-										</label>
-									</div>
-									<div class="form-group">
-										<label for="name" class="text-success"
-											id="ytdRealizedGainPerTxt">Realized Gain : <span
-											class="badge" id="ytdRealizedGainPer"></span>
-										</label>
-									</div>
-									<div class="form-group">
-										<label for="name" class="text-success"
-											id="ytdUnrealizedGainPerTxt">Unrealized Gain : <span
-											class="badge" id="ytdUnrealizedGainPer"></span>
-										</label>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="col-sm-6">
-							<div class="panel panel-warning">
-								<div class="panel-heading">FYTD</div>
-								<div class="panel-body">
+					<h3>Collapsible Navbar</h3>
+					<button type="button" class="btn btn-primary">Sign in</button>
+					<p>Only when the button is clicked, the navigation bar will be
+						displayed.</p>
+					<p>In this example, the navigation bar is hidden on small
+						screens and replaced by a button in the top right corner (try to
+						re-size this window).</p>
 
-									<div class="form-group">
-										<label for="name">Total Investment : <span
-											class="badge" id="fyInvestmentValue"></span>
-										</label>
-									</div>
-									<div class="form-group">
-										<label for="name">Current Value : <span class="badge"
-											id="fyCurrentValue"></span>
-										</label>
-									</div>
-									<div class="form-group">
-										<label for="name" class="text-success"
-											id="fyRealizedGainPerTxt">Realized Gain : <span
-											class="badge" id="fyRealizedGainPer"></span>
-										</label>
-									</div>
-									<div class="form-group">
-										<label for="name" class="text-success"
-											id="fyUnrealizedGainPerTxt">Unrealized Gain : <span
-											class="badge" id="fyUnrealizedGainPer"></span>
-										</label>
-									</div>
+					<h3>Collapsible Navbar</h3>
+					<p>Only when the button is clicked, the navigation bar will be
+						displayed.</p>
+					<button type="button" class="btn btn-success">Sign up</button>
 
-								</div>
-							</div>
-						</div>
-					</div>
-					
-					<div class="row">
-						<div>
-						<p>&nbsp;</p>
-						</div>
-					</div>
-					
-					<div  class="row">
-						<div class="col-sm-6">
-							<div class="panel panel-danger">
-								<div class="panel-heading">Performace</div>
-								<div class="panel-body">
-									<div id="chartContainer" style="height: 300px; width: 100%;"></div>
-								</div>
-							</div>
-						</div>
-						<div class="col-sm-6">
-							<div class="panel panel-success">
-								<div class="panel-heading">Sectoral Allocation</div>
-								<div class="panel-body">
 
-									<div id="sectorChartContainer" style="height: 300px; width: 100%;"></div>
-
-								</div>
-							</div>
-						</div>
-					</div>
-					
-					
-					
 				</div>
 			</div>
 		</div>
 
 	</div>
 
-	<div th:replace="fragments/footer :: footer" />
+	<div th:replace="fragments/footer :: footer">&copy; 2016 The
+		Static Templates</div>
 </body>
 </html>

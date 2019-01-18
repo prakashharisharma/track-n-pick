@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.example.model.master.Broker;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.model.um.UserBrokerage;
 import com.example.model.um.UserBrokerageKey;
 
@@ -16,10 +16,10 @@ import com.example.model.um.UserBrokerageKey;
 @Repository
 public interface UserBrokerageRepository extends JpaRepository<UserBrokerage, UserBrokerageKey>{
 	
-	List<UserBrokerage>  findByBrokerageIdUser(User user);
+	List<UserBrokerage>  findByBrokerageIdUser(UserProfile user);
 	
-	UserBrokerage  findByBrokerageIdUserAndBrokerageIdBroker(User user, Broker broker);
+	UserBrokerage  findByBrokerageIdUserAndBrokerageIdBroker(UserProfile user, Broker broker);
 	
-	UserBrokerage  findByBrokerageIdUserAndActive(User user, boolean isActive);
+	UserBrokerage  findByBrokerageIdUserAndActive(UserProfile user, boolean isActive);
 	
 }

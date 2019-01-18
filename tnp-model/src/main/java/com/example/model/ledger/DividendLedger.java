@@ -1,5 +1,6 @@
 package com.example.model.ledger;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 import javax.persistence.Column;
@@ -11,12 +12,17 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.model.master.Stock;
 
 @Entity
 @Table(name = "DIVIDEND_LEDGER")
-public class DividendLedger {
+public class DividendLedger implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6400370693147894820L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -25,13 +31,13 @@ public class DividendLedger {
 	
 	@ManyToOne
 	@JoinColumn(name = "userId")
-	User userId;
+	UserProfile userId;
 	
 	@ManyToOne
 	@JoinColumn(name = "stockId")
 	Stock stockId;
 	
-	@Column(name = "PER_SHARE_AMOUNT")
+	@Column(name = "PER_SHARE_AMOUNT", columnDefinition="Decimal(10,2) default '0.00'")
 	double perShareAmount;
 	
 	@Column(name = "QUANTITY")
@@ -51,7 +57,7 @@ public class DividendLedger {
 		// TODO Auto-generated constructor stub
 	}
 
-	public DividendLedger(User userId, Stock stockId, double perShareAmount, long quantity, LocalDate exDate,
+	public DividendLedger(UserProfile userId, Stock stockId, double perShareAmount, long quantity, LocalDate exDate,
 			LocalDate recordDate, LocalDate transactionDate) {
 		super();
 		this.userId = userId;
@@ -71,11 +77,11 @@ public class DividendLedger {
 		this.dividendId = dividendId;
 	}
 
-	public User getUserId() {
+	public UserProfile getUserId() {
 		return userId;
 	}
 
-	public void setUserId(User userId) {
+	public void setUserId(UserProfile userId) {
 		this.userId = userId;
 	}
 

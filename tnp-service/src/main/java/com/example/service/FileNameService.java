@@ -1,6 +1,7 @@
 package com.example.service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 
 import java.util.Locale;
@@ -21,6 +22,8 @@ public class FileNameService {
 	private static String base_nse_bhav_downloaded_filename = "./data/bhav/nse/zip/";
 	
 	private static String base_nse_master500_downloaded_filename = "./data/master/stocks/csv/nifty500Stockslist.csv";
+	
+	private static String base_nse_nifty50_downloaded_filename = "./data/nifty50/stocks/csv/nifty50Stockslist.csv";
 
 	
 	public String getNSEBhavFileName() {
@@ -49,6 +52,19 @@ public class FileNameService {
 		return file_name;
 	}
 
+	public String getNSEBhavReferrerURI() {
+		String urlpre= "https://www.nseindia.com/ArchieveSearch?h_filetype=eqbhav&date=";
+		String urlpost = "&section=EQ";
+		
+		LocalDate date = calendarService.previousWorkingDay();
+	    
+    	DateTimeFormatter formatters = DateTimeFormatter.ofPattern("dd-MM-uuuu");
+    	
+    	String dateText = date.format(formatters);
+    
+		return urlpre + dateText + urlpost;
+	}
+	
 	public String getNSEBhavDownloadURI() {
 
 		String complete_uri = null;
@@ -81,5 +97,13 @@ public class FileNameService {
 	
 	public static String getNSEIndex500StocksFileName() {
 		return base_nse_master500_downloaded_filename;
+	}
+	
+	public static String getNSENifty50StocksURI() {
+		return "https://www.nseindia.com/content/indices/ind_nifty50list.csv";
+	}
+	
+	public static String getNSENifty50StocksFileName() {
+		return base_nse_nifty50_downloaded_filename;
 	}
 }

@@ -11,7 +11,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.model.master.Stock;
 
 @Entity
@@ -25,7 +25,7 @@ public class TradeProfitLedger{
 	
 	@ManyToOne
 	@JoinColumn(name = "userId")
-	User userId;
+	UserProfile userId;
 	
 	@ManyToOne
 	@JoinColumn(name = "stockId")
@@ -34,7 +34,7 @@ public class TradeProfitLedger{
 	@Column(name = "QUANTITY")
 	long quantity;
 	
-	@Column(name = "NET_PROFIT")
+	@Column(name = "NET_PROFIT", columnDefinition="Decimal(10,2) default '0.00'")
 	double netProfit;
 	
 	@Column(name = "TXN_DATE")
@@ -45,7 +45,7 @@ public class TradeProfitLedger{
 		// TODO Auto-generated constructor stub
 	}
 
-	public TradeProfitLedger(User userId, Stock stockId, long quantity, double netProfit) {
+	public TradeProfitLedger(UserProfile userId, Stock stockId, long quantity, double netProfit) {
 		super();
 		this.userId = userId;
 		this.stockId = stockId;
@@ -62,11 +62,11 @@ public class TradeProfitLedger{
 		this.tradeProfitLedgerId = tradeProfitLedgerId;
 	}
 
-	public User getUserId() {
+	public UserProfile getUserId() {
 		return userId;
 	}
 
-	public void setUserId(User userId) {
+	public void setUserId(UserProfile userId) {
 		this.userId = userId;
 	}
 

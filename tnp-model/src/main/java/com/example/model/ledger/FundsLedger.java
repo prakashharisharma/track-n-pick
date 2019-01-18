@@ -15,7 +15,7 @@ import javax.persistence.Table;
 
 import com.example.model.master.Broker;
 import com.example.model.type.FundTransactionType;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 
 @Entity
 @Table(name = "FUNDS_LEDGER")
@@ -28,13 +28,13 @@ public class FundsLedger {
 	
 	@ManyToOne
 	@JoinColumn(name = "userId")
-	User userId;
+	UserProfile userId;
 
 	@ManyToOne
 	@JoinColumn(name = "brokerId")
 	Broker brokerId;
 	
-	@Column(name = "AMOUNT")
+	@Column(name = "AMOUNT", columnDefinition="Decimal(10,2) default '0.00'")
 	double amount;
 	
 	@Column(name = "TXN_DATE")
@@ -49,7 +49,7 @@ public class FundsLedger {
 		// TODO Auto-generated constructor stub
 	}
 
-	public FundsLedger(User userId, Broker brokerId, double amount, LocalDate transactionDate,
+	public FundsLedger(UserProfile userId, Broker brokerId, double amount, LocalDate transactionDate,
 			FundTransactionType transactionType) {
 		super();
 		this.userId = userId;
@@ -67,11 +67,11 @@ public class FundsLedger {
 		this.fundLedgerId = fundLedgerId;
 	}
 
-	public User getUserId() {
+	public UserProfile getUserId() {
 		return userId;
 	}
 
-	public void setUserId(User userId) {
+	public void setUserId(UserProfile userId) {
 		this.userId = userId;
 	}
 

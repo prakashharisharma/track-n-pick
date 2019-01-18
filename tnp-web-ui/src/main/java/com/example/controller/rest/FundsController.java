@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.model.ledger.FundsLedger;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
+import com.example.security.LoginService;
 import com.example.service.FundsLedgerService;
 import com.example.service.UserService;
 import com.example.ui.model.UIFund;
@@ -29,16 +30,16 @@ public class FundsController {
 	private FundsLedgerService fundsLedgerService;
 	
 	@Autowired
-	private UserService userService;
+	private LoginService loginService;
 	
-	@GetMapping(value = "/recenthistory/", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(value = "/recenthistory", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<UIFund>> recentHistory() {
 
 		List<UIFund> fundList = new ArrayList<>();
 		
-		User user = userService.getUserById(1);
+
 		
-		List<FundsLedger> fundLedgerList = fundsLedgerService.recentHistory(user);
+		List<FundsLedger> fundLedgerList = fundsLedgerService.recentHistory(loginService.getLoginUserProfile());
 		
 		fundLedgerList.forEach(fl -> {
 			fundList.add(new UIFund(fl.getAmount(), fl.getTransactionType().toString(), fl.getTransactionDate()));
@@ -51,7 +52,6 @@ public class FundsController {
 	@PostMapping(value = "/managefunds", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> addStock(@RequestBody UIFund fund) {
 
-		User user = userService.getUserById(1);
 		
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -60,9 +60,9 @@ public class FundsController {
         LocalDate transactionDate = LocalDate.parse(txnDate, formatter);
 
         if(fund.getTxnType().equalsIgnoreCase("ADD")) {
-        	fundsLedgerService.addFund(user, fund.getAmount(), transactionDate);
+        	fundsLedgerService.addFund(loginService.getLoginUserProfile(), fund.getAmount(), transactionDate);
         }else if (fund.getTxnType().equalsIgnoreCase("WITHDRAW")) {
-        	fundsLedgerService.withdrawFund(user, fund.getAmount(), transactionDate);
+        	fundsLedgerService.withdrawFund(loginService.getLoginUserProfile(), fund.getAmount(), transactionDate);
         }
 
 		return ResponseEntity.status(HttpStatus.OK).build();

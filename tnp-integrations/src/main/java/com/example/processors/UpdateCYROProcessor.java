@@ -7,7 +7,7 @@ import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.service.FundsLedgerService;
 import com.example.service.UserService;
 
@@ -21,9 +21,9 @@ public class UpdateCYROProcessor implements Processor {
 
 	@Override
 	public void process(Exchange arg0) throws Exception {
-		List<User> activeUsers = userService.activeUsers();
+		List<UserProfile> activeUsers = userService.activeUsers();
 
-		for (User user : activeUsers) {
+		for (UserProfile user : activeUsers) {
 			fundsLedgerService.addCYROFund(user);
 		}
 

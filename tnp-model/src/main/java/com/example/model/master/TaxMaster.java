@@ -18,22 +18,22 @@ public class TaxMaster {
 	@Column(name = "TAX_MASTER_ID")
 	long taxMasterId;
 	
-	@Column(name = "SECURITY_TXN_TAX")
+	@Column(name = "SECURITY_TXN_TAX", columnDefinition="Decimal(10,4) default '0.00'")
 	double securityTxnTax;
 	
-	@Column(name = "STAMP_DUTY")
+	@Column(name = "STAMP_DUTY", columnDefinition="Decimal(10,4) default '0.00'")
 	double stampDuty;
 	
-	@Column(name = "NSE_TXN_CHARGE")
+	@Column(name = "NSE_TXN_CHARGE", columnDefinition="Decimal(10,4) default '0.00'")
 	double nseTransactionCharge;
 	
-	@Column(name = "BSE_TXN_CHARGE")
+	@Column(name = "BSE_TXN_CHARGE", columnDefinition="Decimal(10,4) default '0.00'")
 	double bseTransactionCharge;
 	
-	@Column(name = "SEBI_TURNOVER_FEE")
+	@Column(name = "SEBI_TURNOVER_FEE", columnDefinition="Decimal(10,4) default '0.00'")
 	double sebiTurnoverFee;
 	
-	@Column(name = "GST")
+	@Column(name = "GST", columnDefinition="Decimal(10,4) default '0.00'")
 	double gst;
 	
 	@Column(name = "EFFECTIVE_DATE")

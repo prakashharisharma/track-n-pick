@@ -17,7 +17,7 @@ public class UserBrokerage {
 	@EmbeddedId
 	UserBrokerageKey brokerageId = new UserBrokerageKey();
 
-	@Column(name = "DELIVERY_CHARGE")
+	@Column(name = "DELIVERY_CHARGE", columnDefinition="Decimal(10,4) default '0.00'")
 	double deliveryCharge;
 
 	@Column(name = "DP_ID")

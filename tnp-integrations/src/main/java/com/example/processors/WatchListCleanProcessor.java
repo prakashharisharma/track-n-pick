@@ -5,7 +5,7 @@ import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.service.UserService;
 import com.example.service.WatchListService;
 
@@ -21,7 +21,7 @@ public class WatchListCleanProcessor implements Processor {
 	@Override
 	public void process(Exchange arg0) throws Exception {
 		
-		User user = userService.getUserById(1);
+		UserProfile user = userService.getUserById(1);
 		
 		watchListService.updateMonthlyWatchListRemoveStocks(user);
 

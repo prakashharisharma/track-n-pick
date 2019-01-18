@@ -12,7 +12,7 @@ $(document).ready(function(){
 function loadTable(){
 	$('#example').DataTable({
 		"ajax" : {
-			"url" : "/api/watchlist/",
+			"url" : "/api/watchlist/current",
 			"dataSrc" : ""
 		},
 		"columns" : [ {

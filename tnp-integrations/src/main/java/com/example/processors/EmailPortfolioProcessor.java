@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.model.stocks.UserPortfolio;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.service.PortfolioService;
 import com.example.service.UserService;
 import com.example.util.EmailService;
@@ -45,9 +45,9 @@ public class EmailPortfolioProcessor implements Processor {
 		
 		LOGGER.info("EmailPortfolioResearchProcessor START");
 
-		List<User> userList = userService.activeUsers();
+		List<UserProfile> userList = userService.activeUsers();
 
-		for(User user: userList) {
+		for(UserProfile user: userList) {
 			
 			preparePortfolioReportAndSendMail(user);
 			
@@ -59,7 +59,7 @@ public class EmailPortfolioProcessor implements Processor {
 
 	}
 
-	private void preparePortfolioReportAndSendMail(User user) throws Exception {
+	private void preparePortfolioReportAndSendMail(UserProfile user) throws Exception {
 		
 		LOGGER.info("prepareReportAndSendMail START" + user.getFirstName());
 		

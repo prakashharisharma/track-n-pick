@@ -11,16 +11,14 @@ $(document).ready(function() {
 				return false;
 			});
 			
-			
-			
-			
+
 		});
 
 
 function loadTable(){
 	$('#example').DataTable({
 		"ajax" : {
-			"url" : "/api/portfolio/",
+			"url" : "/api/portfolio/current",
 			"dataSrc" : ""
 		},
 		"columns" : [ {

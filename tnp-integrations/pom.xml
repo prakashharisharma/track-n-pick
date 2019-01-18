@@ -103,6 +103,13 @@
 			<scope>compile</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>com.example</groupId>
+			<artifactId>tnp-historical</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+
 		<!-- <dependency> <groupId>org.slf4j</groupId> <artifactId>slf4j-simple</artifactId> 
 			</dependency> -->
 

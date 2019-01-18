@@ -13,7 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.model.master.Stock;
 import com.example.model.type.Exchange;
 import com.example.model.type.StockTransactionType;
@@ -29,7 +29,7 @@ public class TradeLedger {
 	
 	@ManyToOne
 	@JoinColumn(name = "userId")
-	User userId;
+	UserProfile userId;
 	
 	@ManyToOne
 	@JoinColumn(name = "stockId")
@@ -52,25 +52,25 @@ public class TradeLedger {
 	@Column(name = "TXN_DATE")
 	LocalDate transactionDate;
 
-	@Column(name = "BROKERAGE")
+	@Column(name = "BROKERAGE", columnDefinition="Decimal(10,4) default '0.00'")
 	double brokerage;
 	
-	@Column(name = "SECURITY_TXN_TAX")
+	@Column(name = "SECURITY_TXN_TAX", columnDefinition="Decimal(10,4) default '0.00'")
 	double securityTxnTax;
 	
-	@Column(name = "STAMP_DUTY")
+	@Column(name = "STAMP_DUTY", columnDefinition="Decimal(10,4) default '0.00'")
 	double stampDuty;
 	
-	@Column(name = "NSE_TXN_CHARGE")
+	@Column(name = "NSE_TXN_CHARGE", columnDefinition="Decimal(10,4) default '0.00'")
 	double nseTransactionCharge;
 	
-	@Column(name = "BSE_TXN_CHARGE")
+	@Column(name = "BSE_TXN_CHARGE", columnDefinition="Decimal(10,4) default '0.00'")
 	double bseTransactionCharge;
 	
-	@Column(name = "SEBI_TURNOVER_FEE")
+	@Column(name = "SEBI_TURNOVER_FEE", columnDefinition="Decimal(10,4) default '0.00'")
 	double sebiTurnoverFee;
 	
-	@Column(name = "GST")
+	@Column(name = "GST", columnDefinition="Decimal(10,4) default '0.00'")
 	double gst;
 
 	public TradeLedger() {
@@ -79,7 +79,7 @@ public class TradeLedger {
 
 	
 	
-	public TradeLedger(User userId, Stock stockId, double price, long quantity, StockTransactionType transactionType,
+	public TradeLedger(UserProfile userId, Stock stockId, double price, long quantity, StockTransactionType transactionType,
 			Exchange exchange, LocalDate transactionDate) {
 		super();
 		this.userId = userId;
@@ -101,11 +101,11 @@ public class TradeLedger {
 		this.tradeId = tradeId;
 	}
 
-	public User getUserId() {
+	public UserProfile getUserId() {
 		return userId;
 	}
 
-	public void setUserId(User userId) {
+	public void setUserId(UserProfile userId) {
 		this.userId = userId;
 	}
 

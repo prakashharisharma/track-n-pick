@@ -11,18 +11,18 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.model.ledger.FundsLedger;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 
 @Transactional
 @Repository
 public interface FundsLedgerRepository extends JpaRepository<FundsLedger, Long>{
 
-	List<FundsLedger> findByUserId(User userId);
+	List<FundsLedger> findByUserId(UserProfile userId);
 	
 	@Query(value = "SELECT sum(fl.amount) from FundsLedger fl where fl.transactionDate BETWEEN :dateFrom AND :dateTo AND fl.userId = :userId AND fl.transactionType in ('ADD','FYRO')")
-	Double getTotalFYFundBetweenTwoDates(@Param("userId") User userId,@Param("dateFrom") LocalDate dateFrom,@Param("dateTo") LocalDate dateTo);
+	Double getTotalFYFundBetweenTwoDates(@Param("userId") UserProfile userId,@Param("dateFrom") LocalDate dateFrom,@Param("dateTo") LocalDate dateTo);
 	
 	@Query(value = "SELECT sum(fl.amount) from FundsLedger fl where fl.transactionDate BETWEEN :dateFrom AND :dateTo AND fl.userId = :userId AND fl.transactionType in ('ADD','CYRO')")
-	Double getTotalCYFundBetweenTwoDates(@Param("userId") User userId,@Param("dateFrom") LocalDate dateFrom,@Param("dateTo") LocalDate dateTo);
+	Double getTotalCYFundBetweenTwoDates(@Param("userId") UserProfile userId,@Param("dateFrom") LocalDate dateFrom,@Param("dateTo") LocalDate dateTo);
 	
 }

@@ -22,11 +22,12 @@ import com.example.model.master.Stock;
 import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.UserPortfolio;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.repo.stocks.StockFactorRepository;
-import com.example.repo.stocks.StockPriceRepository;
 import com.example.util.MiscUtil;
-import com.example.util.Rules;
+import com.example.util.rules.RulesFundamental;
+import com.example.util.rules.RulesNotification;
+import com.example.util.rules.RulesResearch;
 
 @Transactional
 @Service
@@ -35,8 +36,14 @@ public class RuleService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RuleService.class);
 	
 	@Autowired
-	private Rules rules;
+	private RulesFundamental rules;
 
+	@Autowired
+	private RulesResearch researchRules;
+	
+	@Autowired
+	private RulesNotification notificationRules;
+	
 	@Autowired
 	private CylhService cylhService;
 
@@ -61,7 +68,7 @@ public class RuleService {
 	
 	public List<Stock> applyFilterRuleYearLow(List<Stock> inputStockList) {
 
-		User user = userService.getUserById(1);
+		UserProfile user = userService.getUserById(1);
 
 		Set<Stock> watchList = user.getWatchList();
 
@@ -81,7 +88,7 @@ public class RuleService {
 
 				StockFactor stockFactor = null;
 				
-				if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > rules.getFactorIntervalDays()) {
+				if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > notificationRules.getFactorIntervalDays()) {
 					
 					stockFactor = factorRediff.getFactor(stock);
 					
@@ -99,8 +106,7 @@ public class RuleService {
 
 				LOGGER.info(stock.getNseSymbol() + " : " + stockPrice + " PE : " + pe + " PB : " + pb);
 
-				if (pb <= sectorService.getSectorByName(stock.getSector()).getSectorPb()
-						&& pe <= sectorService.getSectorByName(stock.getSector()).getSectorPe()) {
+				if (pb <= stock.getSector().getSectorPb() && pe <= stock.getSector().getSectorPe()) {
 
 					LOGGER.info("DEFAULT RULE ");
 					
@@ -112,7 +118,7 @@ public class RuleService {
 
 					stock = stockService.save(stock);
 
-				} else if (pe <= sectorService.getSectorByName(stock.getSector()).getSectorPe() && pb <= rules.getPb()) {
+				} else if (pe <= stock.getSector().getSectorPe() && pb <= researchRules.getPb()) {
 					
 					LOGGER.info(" RULE 1");
 					
@@ -123,7 +129,7 @@ public class RuleService {
 					stock.setStockPrice(stockPrice);
 
 					stock = stockService.save(stock);
-				}else if(pb <= sectorService.getSectorByName(stock.getSector()).getSectorPb() && pe <= (sectorService.getSectorByName(stock.getSector()).getSectorPe()) + rules.getPe()) {
+				}else if(pb <= stock.getSector().getSectorPb() && pe <= (stock.getSector().getSectorPe()) + researchRules.getPe()) {
 					LOGGER.info(" RULE 2");
 					resultStocks.add(stock);
 
@@ -158,9 +164,9 @@ public class RuleService {
 				
 				double yearHigh= stockPrice.getYearHigh();
 				
-				double yearLow_per = yearLow * rules.getLowThreshold();
+				double yearLow_per = yearLow * researchRules.getLowThreshold();
 				
-				double yearHigh_per = yearLow * rules.getHighThreshold();
+				double yearHigh_per = yearLow * researchRules.getHighThreshold();
 
 				double yearLowThreasHold = yearLow + yearLow_per;
 				
@@ -180,20 +186,20 @@ public class RuleService {
 
 				if(miscUtil.isBetween(yearLowThreasHold,yearHighThreasHold,currentPrice)) {
 				
-					if (pb <= sectorService.getSectorByName(stock.getSector()).getSectorPb()
-							&& pe <= sectorService.getSectorByName(stock.getSector()).getSectorPe()) {
+					if (pb <= stock.getSector().getSectorPb()
+							&& pe <= stock.getSector().getSectorPe()) {
 	
 						LOGGER.info("DEFAULT RULE ");
 						
 						resultStocks.add(stock);
 	
-					} else if (pe <= sectorService.getSectorByName(stock.getSector()).getSectorPe() && pb <= rules.getPb()) {
+					} else if (pe <= stock.getSector().getSectorPe() && pb <= researchRules.getPb()) {
 						
 						LOGGER.info(" RULE 1");
 						
 						resultStocks.add(stock);
 	
-					}else if(pb <= sectorService.getSectorByName(stock.getSector()).getSectorPb() && pe <= (sectorService.getSectorByName(stock.getSector()).getSectorPe()) + rules.getPe()) {
+					}else if(pb <= stock.getSector().getSectorPb() && pe <= (stock.getSector().getSectorPe()) + researchRules.getPe()) {
 						LOGGER.info(" RULE 2");
 						resultStocks.add(stock);
 	
@@ -225,9 +231,9 @@ public class RuleService {
 				
 				double yearHigh= stockPrice.getYearHigh();
 				
-				double yearLow_per = yearLow * rules.getLowThreshold();
+				double yearLow_per = yearLow * researchRules.getLowThreshold();
 				
-				double yearHigh_per = yearLow * rules.getHighThreshold();
+				double yearHigh_per = yearLow * researchRules.getHighThreshold();
 
 				double yearLowThreasHold = yearLow + yearLow_per;
 				
@@ -245,20 +251,20 @@ public class RuleService {
 
 				//if(miscUtil.isBetween(yearLowThreasHold,yearHighThreasHold,currentPrice)) {
 				
-					if (pb <= sectorService.getSectorByName(stock.getStock().getSector()).getSectorPb()
-							&& pe <= sectorService.getSectorByName(stock.getStock().getSector()).getSectorPe()) {
+					if (pb <= stock.getStock().getSector().getSectorPb()
+							&& pe <= stock.getStock().getSector().getSectorPe()) {
 	
 						LOGGER.info("DEFAULT RULE ");
 						
 						resultStocks.add(stock);
 	
-					} else if (pe <= sectorService.getSectorByName(stock.getStock().getSector()).getSectorPe() && pb <= rules.getPb()) {
+					} else if (pe <= stock.getStock().getSector().getSectorPe() && pb <= researchRules.getPb()) {
 						
 						LOGGER.info(" RULE 1");
 						
 						resultStocks.add(stock);
 	
-					}else if(pb <= sectorService.getSectorByName(stock.getStock().getSector()).getSectorPb() && pe <= (sectorService.getSectorByName(stock.getStock().getSector()).getSectorPe()) + rules.getPe()) {
+					}else if(pb <= stock.getStock().getSector().getSectorPb() && pe <= (stock.getStock().getSector().getSectorPe()) + researchRules.getPe()) {
 						LOGGER.info(" RULE 2");
 						resultStocks.add(stock);
 	
@@ -274,26 +280,57 @@ public class RuleService {
 	
 	public List<Stock> filterFundamentalStocks(Collection<Stock> inputStockList){
 		
-		return inputStockList.stream()
-				.filter((s) -> s.getStockFactor().getMarketCap() > rules.getMcap()
+		List<Stock> resultList = new ArrayList<>();
+		
+		List<Stock> bankingList = inputStockList.stream()
+				.filter((s) -> s.getSector().getSectorName().equalsIgnoreCase("FINANCIAL SERVICES") && s.getStockFactor().getMarketCap() > rules.getMcap()
+						
+						&& s.getStockFactor().getDividend() >= rules.getDividend()
+						
+						
+						)
+				.collect(Collectors.toList());
+		
+		List<Stock> nonBankingList = inputStockList.stream()
+				.filter((s) -> !s.getSector().getSectorName().equalsIgnoreCase("FINANCIAL SERVICES") && s.getStockFactor().getMarketCap() > rules.getMcap()
 						&& s.getStockFactor().getDebtEquity() < rules.getDebtEquity()
-						&& s.getStockFactor().getDividend() > rules.getDividend()
+						&& s.getStockFactor().getDividend() >= rules.getDividend()
 						&& s.getStockFactor().getReturnOnEquity() > rules.getRoe()
 						&& s.getStockFactor().getReturnOnCapital() > rules.getRoce())
 				.collect(Collectors.toList());
 		
+		resultList.addAll(bankingList);
+		resultList.addAll(nonBankingList);
 		
+		 return resultList;
 	}
 	
 public List<UserPortfolio> filterPortfolioFundamentalStocks(Collection<UserPortfolio> inputStockList){
-		
-	return inputStockList.stream()
-				.filter((s) -> s.getStock().getStockFactor().getMarketCap() > rules.getMcap()
+	
+	List<UserPortfolio> resultList = new ArrayList<>();
+	
+	List<UserPortfolio> bankingList = inputStockList.stream()
+			.filter((s) -> s.getStock().getSector().getSectorName().equalsIgnoreCase("FINANCIAL SERVICES") 
+					&& s.getStock().getStockFactor().getMarketCap() > rules.getMcap()
+					
+					&& s.getStock().getStockFactor().getDividend() >= rules.getDividend()
+					
+					)
+			.collect(Collectors.toList());
+	
+	List<UserPortfolio> nonBankingList = inputStockList.stream()
+				.filter((s) -> !s.getStock().getSector().getSectorName().equalsIgnoreCase("FINANCIAL SERVICES") 
+						&& s.getStock().getStockFactor().getMarketCap() > rules.getMcap()
 						&& s.getStock().getStockFactor().getDebtEquity() < rules.getDebtEquity()
-						&& s.getStock().getStockFactor().getDividend() > rules.getDividend()
+						&& s.getStock().getStockFactor().getDividend() >= rules.getDividend()
 						&& s.getStock().getStockFactor().getReturnOnEquity() > rules.getRoe()
 						&& s.getStock().getStockFactor().getReturnOnCapital() > rules.getRoce())
 				.collect(Collectors.toList());
+	
+	resultList.addAll(bankingList);
+	resultList.addAll(nonBankingList);
+	
+	return resultList;
 		
 		
 	}

@@ -1,8 +1,6 @@
 package com.example.model.master;
 
-import static java.time.temporal.ChronoUnit.DAYS;
-
-import java.time.LocalDate;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,18 +11,26 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
+import com.example.model.stocks.StockTechnicals;
 import com.example.model.stocks.UserPortfolio;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "STOCK_MASTER")
-public class Stock {
+public class Stock implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 291996847590635596L;
 
 	//INSERT INTO STOCK_MASTER(ISIN_CODE,COMPANY_NAME,NSE_SYMBOL, BSE_CODE,SECTOR, IS_ACTIVE) VALUES ('INE470A01017','3M India Ltd.','3MINDIA','5022','SECTOR_NAME',1);
 	
@@ -46,11 +52,18 @@ public class Stock {
 	@Column(name = "BSE_CODE")
 	String bseCode;
 
-	@Column(name = "SECTOR")
-	String sector;
+	@Column(name = "SECTOR_NAME")
+	String sectorName;
 
+	@ManyToOne
+	@JoinColumn(name = "sectorId")
+	Sector sector;
+	
 	@Column(name = "IS_ACTIVE")
-	boolean active;
+	boolean active = true;
+	
+	@Column(name = "IS_NIFTY50")
+	boolean nifty50 = false;
 	
 	@OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
 	private StockPrice stockPrice;
@@ -58,11 +71,16 @@ public class Stock {
 	@OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
 	private StockFactor stockFactor;
 	
+	@OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+	private StockTechnicals technicals;
+	
 	@OneToMany(mappedBy = "portfolioId.stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<UserPortfolio> userPortfolio = new HashSet<>();
 	
 	public Stock() {
 		super();
+		this.active = true;
+		this.nifty50 = false;
 	}
 
 	public Stock(String companyName, String nseSymbol, String bseCode) {
@@ -70,16 +88,29 @@ public class Stock {
 		this.companyName = companyName;
 		this.nseSymbol = nseSymbol;
 		this.bseCode = bseCode;
+		this.active = true;
+		this.nifty50 = false;
 	}
 
+	public Stock(String isinCode, String companyName, String nseSymbol, Sector sectorName) {
+		super();
+		this.isinCode = isinCode;
+		this.companyName = companyName;
+		this.nseSymbol = nseSymbol;
+		this.sector = sectorName;
+		this.sectorName = sectorName.getSectorName();
+		this.active = true;
+		this.nifty50 = false;
+	}
 	
 	public Stock(String isinCode, String companyName, String nseSymbol, String sector) {
 		super();
 		this.isinCode = isinCode;
 		this.companyName = companyName;
 		this.nseSymbol = nseSymbol;
-		this.sector = sector;
+		this.sectorName = sector;
 		this.active = true;
+		this.nifty50 = false;
 	}
 
 	public long getStockId() {
@@ -130,14 +161,30 @@ public class Stock {
 		this.active = active;
 	}
 
-	public String getSector() {
+	public boolean isNifty50() {
+		return nifty50;
+	}
+
+	public void setNifty50(boolean nifty50) {
+		this.nifty50 = nifty50;
+	}
+
+	public String getSectorName() {
+		return sectorName;
+	}
+
+	public void setSectorName(String sector) {
+		this.sectorName = sector;
+	}
+
+	public Sector getSector() {
 		return sector;
 	}
 
-	public void setSector(String sector) {
-		this.sector = sector;
+	public void setSector(Sector sectorName) {
+		this.sector = sectorName;
 	}
-
+	
 	public StockPrice getStockPrice() {
 		return stockPrice;
 	}
@@ -155,10 +202,19 @@ public class Stock {
 		this.stockFactor = stockFactor;
 	}
 
+
+	public StockTechnicals getTechnicals() {
+		return technicals;
+	}
+
+	public void setTechnicals(StockTechnicals technicals) {
+		this.technicals = technicals;
+	}
+
 	@Override
 	public String toString() {
 		return "Stock [stockId=" + stockId + ", isinCode=" + isinCode + ", companyName=" + companyName + ", nseSymbol="
-				+ nseSymbol + ", bseCode=" + bseCode + ", sector=" + sector + ", active=" + active + ", stockPrice="
+				+ nseSymbol + ", bseCode=" + bseCode + ", sector=" + sectorName + ", active=" + active + ", nifty50=" + nifty50+ ", stockPrice="
 				+ stockPrice + ", stockFactor=" + stockFactor + "]";
 	}
 

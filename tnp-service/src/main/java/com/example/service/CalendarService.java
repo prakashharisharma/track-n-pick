@@ -47,12 +47,14 @@ public class CalendarService {
 	
 	public List<HolidayCalendar> holidays(){
 		
-		LocalDate yearLastdate = LocalDate.of(2019,Month.DECEMBER,31);
+		LocalDate fromDate = LocalDate.of(2018,Month.JANUARY,01);
 		
-		return holidayCalendarRepository.findByHolidayDateBetween(miscUtil.currentDate(), yearLastdate);
+		LocalDate yearLastdate = LocalDate.of(2019,Month.DECEMBER,31);
+		return holidayCalendarRepository.findByHolidayDateBetween(fromDate, yearLastdate);
+		//return holidayCalendarRepository.findByHolidayDateBetween(miscUtil.currentDate(), yearLastdate);
 	}
 	
-	private LocalDate previousWorkingDay(LocalDate currentDateParam) {
+	public LocalDate previousWorkingDay(LocalDate currentDateParam) {
 		
 		LocalDate currentDate = currentDateParam;
 		
@@ -74,17 +76,22 @@ public class CalendarService {
 		}
 
 		
+		//System.out.println(currentDate);
 		
-		if (date <= 0) {
+		/*if (date <= 0) {
 
-			currentDate = LocalDate.now().minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
-
+			System.out.println(date);
+			
+			currentDate = currentDate.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
+	
 			if (currentDate.getDayOfWeek().getValue() > 5) {
 				currentDate = currentDate.minusDays(currentDate.getDayOfWeek().getValue() - 5);
 			}
 			
 		
-		}
+		}*/
+		
+		//System.out.println(currentDate);
 		
 		if(this.isHoliday(currentDate)) {
 			

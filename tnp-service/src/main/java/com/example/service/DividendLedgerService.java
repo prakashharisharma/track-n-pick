@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.model.ledger.DividendLedger;
 import com.example.model.master.Stock;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.repo.ledger.DividendLedgerRepository;
 import com.example.repo.stocks.PortfolioRepository;
 import com.example.util.MiscUtil;
@@ -28,7 +28,7 @@ public class DividendLedgerService {
 	@Autowired
 	private MiscUtil miscUtil;
 
-	public void addDividend(User user, Stock stock, double perShareAmount, LocalDate exDate, LocalDate recordDate,
+	public void addDividend(UserProfile user, Stock stock, double perShareAmount, LocalDate exDate, LocalDate recordDate,
 			LocalDate transactionDate) {
 		long quantity = portfolioRepository.findByPortfolioIdUserAndPortfolioIdStock(user, stock).getQuantity();
 		DividendLedger dl = new DividendLedger(user, stock, perShareAmount, quantity, exDate, recordDate,
@@ -37,23 +37,32 @@ public class DividendLedgerService {
 		dividendLedgerRepository.save(dl);
 	}
 
-	public List<DividendLedger> recentDividends() {
-		return dividendLedgerRepository.findAll();
+	public List<DividendLedger> recentDividends(UserProfile user) {
+		return dividendLedgerRepository.findByUserId(user);
 	}
 
-	public double currentYearDividend(User user) {
+	public double currentYearDividend(UserProfile user) {
 
-		double totalDividend = dividendLedgerRepository.getTotalDividendBetweenTwoDates(user,
+		Double totalDividend = dividendLedgerRepository.getTotalDividendBetweenTwoDates(user,
 				miscUtil.currentYearFirstDay(), miscUtil.currentDate());
 
+
+		if (totalDividend == null) {
+			totalDividend = 0.00;
+		}
+		
 		return totalDividend;
 	}
 
-	public double currentFinYearDividend(User user) {
+	public double currentFinYearDividend(UserProfile user) {
 
-		double totalDividend = dividendLedgerRepository.getTotalDividendBetweenTwoDates(user,
+		Double totalDividend = dividendLedgerRepository.getTotalDividendBetweenTwoDates(user,
 				miscUtil.currentFinYearFirstDay(), miscUtil.currentDate());
 
+		if (totalDividend == null) {
+			totalDividend = 0.00;
+		}
+		
 		return totalDividend;
 	}
 }

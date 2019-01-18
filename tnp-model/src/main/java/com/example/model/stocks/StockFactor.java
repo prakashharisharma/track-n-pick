@@ -1,5 +1,6 @@
 package com.example.model.stocks;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 import javax.persistence.Column;
@@ -16,7 +17,12 @@ import com.example.model.master.Stock;
 
 @Entity
 @Table(name = "STOCK_FACTORS")
-public class StockFactor {
+public class StockFactor implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3247824333011472859L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -27,32 +33,32 @@ public class StockFactor {
 	@JoinColumn(name = "STOCK_ID", referencedColumnName ="STOCK_ID",  nullable = false)
 	Stock stock;
 	
-	@Column(name = "MARKET_CAPITAL")
+	@Column(name = "MARKET_CAPITAL", columnDefinition="Decimal(10,2) default '0.00'")
 	double marketCap;
 	
-	@Column(name = "DEBT_EQUITY")
+	@Column(name = "DEBT_EQUITY", columnDefinition="Decimal(10,2) default '0.00'")
 	double debtEquity;
 	
-	@Column(name = "DIVIDEND")
+	@Column(name = "DIVIDEND", columnDefinition="Decimal(10,2) default '0.00'")
 	double dividend;
 	
 	//Price / BookValue
-	@Column(name = "BOOK_VALUE")
+	@Column(name = "BOOK_VALUE", columnDefinition="Decimal(10,2) default '0.00'")
 	double bookValue;
 	
 	//Price arning
-	@Column(name = "EPS")
+	@Column(name = "EPS", columnDefinition="Decimal(10,2) default '0.00'")
 	double eps;
 
 	//Return On Equity / Return on Net Worth 
-	@Column(name = "ROE")
+	@Column(name = "ROE", columnDefinition="Decimal(10,2) default '0.00'")
 	double returnOnEquity;
 	
 	//Return On Capital Employed
-	@Column(name = "ROCE")
+	@Column(name = "ROCE", columnDefinition="Decimal(10,2) default '0.00'")
 	double returnOnCapital;
 
-	@Column(name = "FACE_VALUE")
+	@Column(name = "FACE_VALUE", columnDefinition="Decimal(10,2) default '0.00'")
 	double faceValue;
 
 	@Column(name = "LAST_MODIFIED")

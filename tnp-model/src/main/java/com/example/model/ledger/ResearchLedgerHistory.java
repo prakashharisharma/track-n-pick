@@ -31,10 +31,10 @@ public class ResearchLedgerHistory {
 	@Column(name = "RESEARCH_DATE")
 	LocalDate researchDate;
 	
-	@Column(name = "RESEARCH_PRICE")
+	@Column(name = "RESEARCH_PRICE", columnDefinition="Decimal(10,2) default '0.00'")
 	double researchPrice;
 	
-	@Column(name = "TARGET_PRICE")
+	@Column(name = "TARGET_PRICE", columnDefinition="Decimal(10,2) default '0.00'")
 	double targetPrice;
 	
 	@Column(name = "TARGET_DATE")

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.model.ledger.TradeProfitLedger;
 import com.example.model.master.Stock;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.repo.ledger.TradeProfitLedgerRepository;
 import com.example.util.MiscUtil;
 
@@ -21,13 +21,13 @@ public class TradeProfitLedgerService {
 	@Autowired
 	private MiscUtil miscUtil;
 	
-	public void addProfitEntry(User user, Stock stock, long quantity, double netProfit) {
+	public void addProfitEntry(UserProfile user, Stock stock, long quantity, double netProfit) {
 		TradeProfitLedger tradeProfitLedger = new TradeProfitLedger(user, stock, quantity, netProfit);
 		tradeProfitLedgerRepository.save(tradeProfitLedger);
 		
 	}
 	
-	public double currentYearProfit(User user) {
+	public double currentYearProfit(UserProfile user) {
 		
 		Double totalProfit = tradeProfitLedgerRepository.getTotalProfitBetweenTwoDates(user, miscUtil.currentYearFirstDay(), miscUtil.currentDate());
 		
@@ -38,7 +38,7 @@ public class TradeProfitLedgerService {
 		return totalProfit;
 	}
 	
-	public double currentFinYearProfit(User user) {
+	public double currentFinYearProfit(UserProfile user) {
 		
 		Double totalProfit = tradeProfitLedgerRepository.getTotalProfitBetweenTwoDates(user, miscUtil.currentFinYearFirstDay(), miscUtil.currentDate());
 		

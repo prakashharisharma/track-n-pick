@@ -1,10 +1,9 @@
 package com.example.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,13 +11,18 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
-import com.example.model.um.User;
+import com.example.model.type.SectorWiseValue;
+import com.example.model.type.SectoralAllocation;
+import com.example.model.um.UserProfile;
 import com.example.repo.stocks.PortfolioRepository;
-import com.example.util.Rules;
+import com.example.util.rules.RulesFundamental;
+import com.example.util.rules.RulesNotification;
+import com.example.util.rules.RulesResearch;
 
 @Transactional
 @Service
@@ -34,8 +38,14 @@ public class PortfolioService {
 	private StockService stockService;
 
 	@Autowired
-	private Rules rules;
+	private RulesFundamental rules;
 
+	@Autowired
+	private RulesNotification notificationRules;
+	
+	@Autowired
+	private RulesResearch researchRules;
+	
 	@Autowired
 	private RuleService ruleService;
 
@@ -45,7 +55,7 @@ public class PortfolioService {
 	@Autowired
 	private TradeProfitLedgerService tradeProfitLedgerService;
 
-	public void addStock(User user, Stock stock, double price, long quantity) {
+	public void addStock(UserProfile user, Stock stock, double price, long quantity) {
 
 		Optional<UserPortfolio> portfolioStockOpt = user.getUserPortfolio().stream()
 				.filter(up -> up.getStock().getNseSymbol().equalsIgnoreCase(stock.getNseSymbol())).findFirst();
@@ -66,6 +76,8 @@ public class PortfolioService {
 
 			portfolioStock.setAveragePrice(newAverage);
 
+			portfolioStock.setLastTxnDate(LocalDate.now());
+			
 		} else {
 
 			portfolioStock = new UserPortfolio();
@@ -73,6 +85,8 @@ public class PortfolioService {
 			portfolioStock.setQuantity(quantity);
 
 			portfolioStock.setAveragePrice(price);
+			
+			portfolioStock.setFirstTxnDate(LocalDate.now());
 
 			portfolioStock.setStock(stock);
 
@@ -87,7 +101,7 @@ public class PortfolioService {
 		userService.save(user);
 	}
 
-	public void sellStock(User user, Stock stock, double price, long quantity) {
+	public void sellStock(UserProfile user, Stock stock, double price, long quantity) {
 
 		UserPortfolio portfolioStock = portfolioRepository.findByPortfolioIdUserAndPortfolioIdStock(user, stock);
 
@@ -107,6 +121,8 @@ public class PortfolioService {
 
 			portfolioStock.setAveragePrice(newAverage);
 
+			portfolioStock.setLastTxnDate(LocalDate.now());
+			
 			if (newQuantity > 0) {
 				portfolioRepository.save(portfolioStock);
 			} else {
@@ -118,7 +134,7 @@ public class PortfolioService {
 		}
 	}
 
-	public List<UserPortfolio> targetAchived(User user) {
+	public List<UserPortfolio> targetAchived(UserProfile user) {
 
 		List<UserPortfolio> targetAchivedList = new ArrayList<>();
 
@@ -128,7 +144,7 @@ public class PortfolioService {
 
 			double averagePrice = portfolioStock.getAveragePrice();// 100
 
-			double per_30 = averagePrice * rules.getProfitPer(); // 30
+			double per_30 = averagePrice * researchRules.getProfitPer(); // 30
 
 			double profitPrice = averagePrice + per_30; // 130
 
@@ -143,17 +159,21 @@ public class PortfolioService {
 		return targetAchivedList;
 	}
 
-	public List<UserPortfolio> userPortfolio(User user) {
+	@Cacheable(value="userportfolio", key = "#userProfile.userId" )
+	public List<UserPortfolio> userPortfolio(UserProfile userProfile) {
 
-		Set<UserPortfolio> portfolioList = user.getUserPortfolio();
+		Set<UserPortfolio> portfolioList = userProfile.getUserPortfolio();
 
 		List<UserPortfolio> portfolioListSorted = portfolioList.stream().sorted(portfolioByProfit())
 				.collect(Collectors.toList());
 
-		return portfolioListSorted;
+		
+		 
+		//return portfolioListSorted;
+		return new ArrayList<UserPortfolio>(portfolioListSorted);
 	}
 
-	public List<UserPortfolio> considerAveraging(User user) {
+	public List<UserPortfolio> considerAveraging(UserProfile user) {
 
 		List<UserPortfolio> considerAveragingList = new ArrayList<>();
 
@@ -165,7 +185,7 @@ public class PortfolioService {
 
 			double averagePrice = portfolioStock.getAveragePrice(); // 100
 
-			double per_30 = averagePrice * rules.getAveragingPer(); // 30
+			double per_30 = averagePrice * researchRules.getAveragingPer(); // 30
 
 			double considerAveragePrice = averagePrice - per_30; // 70
 
@@ -178,18 +198,48 @@ public class PortfolioService {
 
 		List<UserPortfolio> sortedConsiderAveragingList = filteredPortfolioList.stream()
 				.sorted(byRoeComparator().thenComparing(portfolioByDebtEquityComparator()))
-				.limit(rules.getAveragingSize()).collect(Collectors.toList());
+				.limit(notificationRules.getAveragingSize()).collect(Collectors.toList());
 
 		return sortedConsiderAveragingList;
 	}
 
-	public double currentValue(User user) {
-		
-		Set<UserPortfolio> portfolioList = user.getUserPortfolio();
+	@Cacheable(value="currentInvestmentValue", key = "#userProfile.userId" )
+	public double currentInvestmentValue(UserProfile userProfile) {
 
-		double totalValue=0.00;
+		Double totalValue=portfolioRepository.getPortfolioInvestedValue(userProfile);
 		
-		Map<String, Double> stockMap = new HashMap<>();
+		if(totalValue == null) {
+			totalValue=0.00;
+		}
+		
+		/*Map<String, Double> stockMap = new HashMap<>();
+		
+		portfolioList.forEach( up -> {
+			
+			stockMap.put(up.getStock().getNseSymbol(), (up.getAveragePrice() * up.getQuantity()));
+			
+		});
+		
+		for (Map.Entry<String, Double> item : stockMap.entrySet()) {
+		    String key = item.getKey();
+		    Double value = item.getValue();
+		    totalValue = totalValue + value;
+		    
+		}*/
+		
+		return totalValue;
+	}
+	
+	@Cacheable(value="currentValue", key = "#userProfile.userId" )
+	public double currentValue(UserProfile userProfile) {
+
+		Double totalValue=portfolioRepository.getPortfolioCurrentValue(userProfile);
+		
+		if(totalValue == null) {
+			totalValue=0.00;
+		}
+		
+		/*Map<String, Double> stockMap = new HashMap<>();
 		
 		portfolioList.forEach( up -> {
 			
@@ -202,12 +252,12 @@ public class PortfolioService {
 		    Double value = item.getValue();
 		    totalValue = totalValue + value;
 		    
-		}
+		}*/
 		
 		return totalValue;
 	}
 
-	public void updateCylhPrice(User user) {
+	public void updateCylhPrice(UserProfile user) {
 
 		Set<UserPortfolio> portfolioList = user.getUserPortfolio();
 
@@ -252,4 +302,18 @@ public class PortfolioService {
 
 	}
 
+	@Cacheable(value="SectorWiseValue", key = "#userProfile.userId" )
+	public List<SectorWiseValue> SectorWiseValue(UserProfile userProfile){
+		
+		return portfolioRepository.findSectorWiseValue(userProfile);
+	}
+	
+
+	@Cacheable(value="sectoralAllocation", key = "#userProfile.userId" )
+	public List<SectoralAllocation> sectoralAllocation(UserProfile userProfile){
+		
+		return portfolioRepository.findSectoralAllocation(userProfile);
+	}
+	
+	
 }

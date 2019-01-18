@@ -3,7 +3,6 @@ package com.example.processors;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -13,9 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.model.SectorMaster;
-import com.example.model.StockMaster;
 import com.example.model.master.Sector;
-import com.example.model.master.Stock;
 import com.example.service.SectorService;
 
 

@@ -7,8 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.model.um.User;
-import com.example.service.UserService;
+import com.example.security.LoginService;
 import com.example.ui.model.UIOverallGainLoss;
 import com.example.ui.service.UiRenderUtil;
 
@@ -17,18 +16,15 @@ import com.example.ui.service.UiRenderUtil;
 public class DashboardController {
 
 	@Autowired
-	private UserService userService;
-	
-	@Autowired
 	private UiRenderUtil  uiRenderUtil;
 
+	@Autowired
+	private LoginService loginService;
 	
 	@GetMapping(value="/performance", produces = MediaType.APPLICATION_JSON_VALUE )
 	public ResponseEntity<UIOverallGainLoss> getPortfolioStocks() {
 
-		User user = userService.getUserById(1);
-		
-		UIOverallGainLoss uIOverallGainLoss = uiRenderUtil.renderUIPerformance(user);
+		UIOverallGainLoss uIOverallGainLoss = uiRenderUtil.renderUIPerformance(loginService.getLoginUserProfile());
 		
 		return ResponseEntity.ok(uIOverallGainLoss);
 	}

@@ -21,10 +21,15 @@ import com.example.factor.FactorRediff;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
-import com.example.model.um.User;
+import com.example.model.stocks.StockTechnicals;
+import com.example.model.um.UserProfile;
 import com.example.repo.stocks.StockFactorRepository;
 import com.example.repo.stocks.StockPriceRepository;
-import com.example.util.Rules;
+import com.example.repo.stocks.StockTechnicalsRepository;
+import com.example.ta.service.TechnicalRatioService;
+import com.example.util.MiscUtil;
+import com.example.util.rules.RulesFundamental;
+import com.example.util.rules.RulesNotification;
 
 @Transactional
 @Service
@@ -45,15 +50,27 @@ public class WatchListService {
 	private StockFactorRepository stockFactorRepository;
 
 	@Autowired
+	private StockTechnicalsRepository stockTechnicalsRepository;
+	
+	@Autowired
 	private YearLowStocksService yearLowStocksService;
 
 	@Autowired
 	private UserService userService;
 
 	@Autowired
-	private Rules rules;
+	private RulesFundamental rules;
 
-	private void updateWatchListPrice(User user) {
+	@Autowired
+	private TechnicalRatioService technicalRatioService;
+	
+	@Autowired
+	private RulesNotification notificationRules;
+	
+	@Autowired
+	private MiscUtil miscUtil;
+	
+	public void updateWatchListPriceAndFactor(UserProfile user) {
 
 		Set<Stock> watchList = user.getWatchList();
 		LOGGER.info("updateDailyWatchListPrice START");
@@ -66,7 +83,7 @@ public class WatchListService {
 				stockPriceRepository.save(stockPrice);
 			}
 
-			if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > rules
+			if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > notificationRules
 					.getFactorIntervalDays()) {
 
 				LOGGER.info("Updating Factor for : " + stock.getNseSymbol());
@@ -80,7 +97,29 @@ public class WatchListService {
 		LOGGER.info("updateDailyWatchListPrice END");
 	}
 
-	public void updateWatchList(User user) {
+	public void updateWatchListStockTechnicals(UserProfile user) {
+		
+		Set<Stock> watchList = user.getWatchList().stream().limit(10).collect(Collectors.toSet());
+		
+		for (Stock stock : watchList) {
+			
+			StockTechnicals stockTechnicals = technicalRatioService.retrieveTechnicals(stock);
+			
+			System.out.println(stockTechnicals);
+			
+			stockTechnicalsRepository.save(stockTechnicals);
+			
+			try {
+				miscUtil.delay();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
+	
+	public void updateWatchListAddStocks(UserProfile user) {
 
 		List<Stock> stockLiost = yearLowStocksService.yearLowStocks();
 
@@ -90,10 +129,9 @@ public class WatchListService {
 			LOGGER.info("NO QUALITY STOCK TO ADD ..");
 		}
 
-		updateWatchListPrice(user);
 	}
 
-	public void updateMonthlyWatchListRemoveStocks(User user) {
+	public void updateMonthlyWatchListRemoveStocks(UserProfile user) {
 
 		Set<Stock> stockList = user.getWatchList();
 
@@ -124,7 +162,7 @@ public class WatchListService {
 	}
 
 
-	public List<Stock> userWatchList(User user) {
+	public List<Stock> userWatchList(UserProfile user) {
 
 		Set<Stock> watchList = user.getWatchList();
 

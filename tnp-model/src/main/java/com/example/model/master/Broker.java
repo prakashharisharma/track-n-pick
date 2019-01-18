@@ -1,20 +1,11 @@
 package com.example.model.master;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
-import com.example.model.stocks.UserPortfolio;
-import com.example.model.um.User;
 
 @Entity
 @Table(name = "BROKER_MASTER")

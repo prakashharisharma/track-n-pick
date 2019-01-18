@@ -26,7 +26,7 @@ public class UpdateStockPriceProcessor implements Processor {
 		
 		Stock stock = stockService.getStockByNseSymbol(stockPrice.getNseSymbol());
 		
-		stockService.updateCurrentPrice(stock, Double.parseDouble(stockPrice.getClose()));
+		stockService.updateCurrentPrice(stock, stockPrice.getClose());
 		
 	}
 

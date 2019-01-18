@@ -16,9 +16,11 @@ import org.springframework.stereotype.Service;
 
 import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.repo.ledger.ResearchLedgerRepository;
-import com.example.util.Rules;
+import com.example.util.MiscUtil;
+import com.example.util.rules.RulesFundamental;
+import com.example.util.rules.RulesResearch;
 
 @Transactional
 @Service
@@ -33,14 +35,21 @@ public class ResearchLedgerService {
 	private ResearchLedgerHistoryService researchLedgerHistoryService;
 
 	@Autowired
-	private Rules rules;
+	private RulesFundamental rules;
 
+	@Autowired
+	private RulesResearch researchRules;
+	
+	
 	@Autowired
 	private UserService userService;
 
 	@Autowired
 	private RuleService ruleService;
 
+	@Autowired
+	private MiscUtil miscUtil;
+	
 	public void addStock(Stock stock) {
 
 		ResearchLedger ledgerStock = researchLedgerRepository.findByStockAndActive(stock, true);
@@ -53,13 +62,18 @@ public class ResearchLedgerService {
 			ledgerStock = new ResearchLedger();
 			ledgerStock.setActive(true);
 			ledgerStock.setNotified(false);
-			ledgerStock.setResearchDate(LocalDate.now());
+			ledgerStock.setResearchDate(miscUtil.currentDate());
+			
+			System.out.println("PRICe" +miscUtil.currentDate() );
+			
+			System.out.println("PRICe" +stock.getStockPrice().getCurrentPrice() );
+			
 			ledgerStock.setResearchPrice(stock.getStockPrice().getCurrentPrice());
 			ledgerStock.setStock(stock);
 
 			double currentPrice = stock.getStockPrice().getCurrentPrice();
 
-			double targetPrice = currentPrice + (currentPrice * rules.getTargetPer());
+			double targetPrice = currentPrice + (currentPrice * researchRules.getTargetPer());
 
 			ledgerStock.setTargetPrice(targetPrice);
 
@@ -167,7 +181,7 @@ public class ResearchLedgerService {
 
 	public void researchValueStocks() {
 
-		User user = userService.getUserById(1);
+		UserProfile user = userService.getUserById(1);
 
 		Set<Stock> userWatchList = user.getWatchList();
 

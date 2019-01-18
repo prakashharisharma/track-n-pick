@@ -14,7 +14,7 @@ $(document).ready(function() {
 function loadTable(){
 	$('#example').DataTable({
 		"ajax" : {
-			"url" :"/api/funds/recenthistory/",
+			"url" :"/api/funds/recenthistory",
 			"dataSrc" : ""
 		},
 		"columns" : [ {

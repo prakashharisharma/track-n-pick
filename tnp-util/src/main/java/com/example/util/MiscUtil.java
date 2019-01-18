@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class MiscUtil {
 
-	private static int times[] = { 1000, 2000, 1500, 2500, 1200, 1800, 500, 2100, 3000, 3500, 3300, 1750, 5000, 4700,
-			4250, 2900, 6500, 7000 };
+	private static int times[] = { 1000,1200,1500,1700,1750,1800,  2000,  2100, 2200,2400, 2500, 2900,  3000, 3500, 3300, 4250,   4700,
+			5000, 6500, 7000, };
 
 	public String formatDouble(double value) {
 
@@ -28,9 +28,9 @@ public class MiscUtil {
 
 		int no = getRandomNumberInRange(1, 20);
 
-		if (no > 17) {
+		if (no > 19) {
 
-			no = no % 17;
+			no = no % 19;
 
 			return times[no];
 
@@ -39,6 +39,13 @@ public class MiscUtil {
 			return times[no];
 
 		}
+	}
+	
+	public void delay() throws InterruptedException {
+		Thread.sleep(50000);
+	}
+	public void delay(long ms) throws InterruptedException {
+		Thread.sleep(ms);
 	}
 
 	private int getRandomNumberInRange(int min, int max) {
@@ -111,6 +118,12 @@ public class MiscUtil {
 		return monthLastDate;
 	}
 	
+	public LocalDate currentDatePrevYear() {
+		LocalDate currentDatePrevYear  = this.currentDate().minusMonths(12);
+		
+		return currentDatePrevYear;
+	}
+	
 	public LocalDate currentFinYearFirstDay() {
 
 		LocalDate FinYearFirstdate;
@@ -142,4 +155,6 @@ public class MiscUtil {
 
 		return per;
 	}
+	
+	
 }

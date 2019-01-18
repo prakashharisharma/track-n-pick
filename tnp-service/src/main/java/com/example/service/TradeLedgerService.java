@@ -11,8 +11,9 @@ import com.example.model.ledger.TradeLedger;
 import com.example.model.master.Stock;
 import com.example.model.type.Exchange;
 import com.example.model.type.StockTransactionType;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.repo.ledger.TradeLedgerRepository;
+import com.example.util.MiscUtil;
 
 @Transactional
 @Service
@@ -27,30 +28,33 @@ public class TradeLedgerService {
 	@Autowired
 	private BrokerageService brokerageService;
 
-	public void executeBuy(User user, Stock stock, double price, long quantity) {
+	@Autowired
+	private MiscUtil miscUtil;
+
+	public void executeBuy(UserProfile user, Stock stock, double price, long quantity) {
 
 		TradeLedger tradeLedger = new TradeLedger(user, stock, price, quantity, StockTransactionType.BUY, Exchange.NSE,
 				LocalDate.now());
 
 		this.calculateCharges(tradeLedger, user, price, quantity);
-		
+
 		tradeLedgerRepository.save(tradeLedger);
 
 	}
 
-	public void executeSell(User user, Stock stock, double price, long quantity) {
+	public void executeSell(UserProfile user, Stock stock, double price, long quantity) {
 
 		TradeLedger tradeLedger = new TradeLedger(user, stock, price, quantity, StockTransactionType.SELL, Exchange.NSE,
 				LocalDate.now());
 
 		this.calculateCharges(tradeLedger, user, price, quantity);
-		
+
 		tradeLedgerRepository.save(tradeLedger);
 
 	}
 
-	private void calculateCharges(TradeLedger tradeLedger, User user, double price, long quantity) {
-		
+	private void calculateCharges(TradeLedger tradeLedger, UserProfile user, double price, long quantity) {
+
 		double brokergaeTotal = (brokerageService.getBrokerage(user).getDeliveryCharge() * quantity) / 100;
 
 		tradeLedger.setBrokerage(brokergaeTotal);
@@ -71,9 +75,31 @@ public class TradeLedgerService {
 
 		tradeLedger.setStampDuty(stampDuty);
 
-		double gst = (taxMasterService.getTaxMaster().getStampDuty()* (brokergaeTotal + nseTxnCharges + sebiTurnoverFee + stampDuty)) / 100;
+		double gst = (taxMasterService.getTaxMaster().getStampDuty()
+				* (brokergaeTotal + nseTxnCharges + sebiTurnoverFee + stampDuty)) / 100;
 
 		tradeLedger.setGst(gst);
-		
+
 	}
+
+	public double getFYNetTaxPaid(UserProfile user) {
+
+		Double fyNetTaxPaid = tradeLedgerRepository.getNetTaxPaidBetweenTwoDates(user,
+				miscUtil.currentFinYearFirstDay(), miscUtil.currentDate());
+		if (fyNetTaxPaid == null) {
+			fyNetTaxPaid = 0.00;
+		}
+		return fyNetTaxPaid;
+	}
+
+	public double getFYBrokeragePaid(UserProfile user) {
+
+		Double fyBrokeragePaid = tradeLedgerRepository.getBrokeragePaidBetweenTwoDates(user,
+				miscUtil.currentFinYearFirstDay(), miscUtil.currentDate());
+		if (fyBrokeragePaid == null) {
+			fyBrokeragePaid = 0.00;
+		}
+		return fyBrokeragePaid;
+	}
+
 }

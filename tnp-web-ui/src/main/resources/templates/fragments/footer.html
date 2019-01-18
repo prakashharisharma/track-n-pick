@@ -1,23 +1,26 @@
-<html xmlns="http://www.w3.org/1999/xhtml" 
-	  xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
 <head>
+
 </head>
 <body>
-<div th:fragment="footer">
+	<div th:fragment="footer">
 
-    <div class="container">
+		<div class="container">
+			
+				<footer>
+					<!-- this is footer -->
+					© 2018 mkyong.com <span sec:authorize="isAuthenticated()">
+						//message </span>
+					<div sec:authorize="hasAuthority('ADMIN')">This content is
+						only shown to administrators.</div>
+					<div sec:authorize="hasAuthority('USER')">This content is
+						only shown to users.</div>
+				</footer>
+			
+		</div>
 
-        <footer>
-        <!-- this is footer -->
-        © 2018 mkyong.com
-            <span sec:authorize="isAuthenticated()">
-				//message
-            </span>
-
-        </footer>
-    </div>
-
-</div>
+	</div>
 </body>
 </html>

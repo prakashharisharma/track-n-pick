@@ -23,35 +23,35 @@ public class StockPrice implements Serializable{
     private String series;
 	
 	@DataField(pos = 3)
-    private String open;
+    private double open;
 	
 	@DataField(pos = 4)
-    private String high;
+    private double high;
 	
 	
 	@DataField(pos = 5)
-    private String low;
+    private double low;
 	
     @DataField(pos = 6)
-    private String close;
+    private double close;
     
     @DataField(pos = 7)
-    private String last;
+    private double last;
     
     @DataField(pos = 8)
-    private String prevClose;
+    private double prevClose;
     
     @DataField(pos = 9)
-    private String tottrdqty;
+    private long tottrdqty;
     
     @DataField(pos = 10)
-    private String tottrdval;
+    private double tottrdval;
     
     @DataField(pos = 11)
     private String timestamp;
     
     @DataField(pos = 12)
-    private String totaltrades;
+    private long totaltrades;
 
     @DataField(pos = 13)
     private String isin;
@@ -76,67 +76,67 @@ public class StockPrice implements Serializable{
 		this.series = series;
 	}
 
-	public String getOpen() {
+	public double getOpen() {
 		return open;
 	}
 
-	public void setOpen(String open) {
+	public void setOpen(double open) {
 		this.open = open;
 	}
 
-	public String getHigh() {
+	public double getHigh() {
 		return high;
 	}
 
-	public void setHigh(String high) {
+	public void setHigh(double high) {
 		this.high = high;
 	}
 
-	public String getLow() {
+	public double getLow() {
 		return low;
 	}
 
-	public void setLow(String low) {
+	public void setLow(double low) {
 		this.low = low;
 	}
 
-	public String getClose() {
+	public double getClose() {
 		return close;
 	}
 
-	public void setClose(String close) {
+	public void setClose(double close) {
 		this.close = close;
 	}
 
-	public String getLast() {
+	public double getLast() {
 		return last;
 	}
 
-	public void setLast(String last) {
+	public void setLast(double last) {
 		this.last = last;
 	}
 
-	public String getPrevClose() {
+	public double getPrevClose() {
 		return prevClose;
 	}
 
-	public void setPrevClose(String prevClose) {
+	public void setPrevClose(double prevClose) {
 		this.prevClose = prevClose;
 	}
 
-	public String getTottrdqty() {
+	public long getTottrdqty() {
 		return tottrdqty;
 	}
 
-	public void setTottrdqty(String tottrdqty) {
+	public void setTottrdqty(long tottrdqty) {
 		this.tottrdqty = tottrdqty;
 	}
 
-	public String getTottrdval() {
+	public double getTottrdval() {
 		return tottrdval;
 	}
 
-	public void setTottrdval(String tottrdval) {
+	public void setTottrdval(double tottrdval) {
 		this.tottrdval = tottrdval;
 	}
 
@@ -148,11 +148,11 @@ public class StockPrice implements Serializable{
 		this.timestamp = timestamp;
 	}
 
-	public String getTotaltrades() {
+	public long getTotaltrades() {
 		return totaltrades;
 	}
 
-	public void setTotaltrades(String totaltrades) {
+	public void setTotaltrades(long totaltrades) {
 		this.totaltrades = totaltrades;
 	}
 

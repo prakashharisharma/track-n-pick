@@ -9,13 +9,15 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.model.ledger.TradeProfitLedger;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 
 @Repository
 public interface TradeProfitLedgerRepository extends JpaRepository<TradeProfitLedger, Long> {
 
-	List<TradeProfitLedger> findByUserId(User userId);
+	List<TradeProfitLedger> findByUserId(UserProfile userId);
 	
 	@Query(value = "SELECT sum(tfl.netProfit) from TradeProfitLedger tfl where tfl.transactionDate BETWEEN :dateFrom AND :dateTo AND tfl.userId = :userId")
-	Double getTotalProfitBetweenTwoDates(@Param("userId") User userId,@Param("dateFrom") LocalDate dateFrom,@Param("dateTo") LocalDate dateTo);
+	Double getTotalProfitBetweenTwoDates(@Param("userId") UserProfile userId,@Param("dateFrom") LocalDate dateFrom,@Param("dateTo") LocalDate dateTo);
+	
+
 }

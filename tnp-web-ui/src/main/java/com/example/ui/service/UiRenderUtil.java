@@ -4,16 +4,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import com.example.model.ledger.PerformanceLedger;
 import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
-import com.example.model.um.User;
+import com.example.model.type.SectorWiseValue;
+import com.example.model.type.SectoralAllocation;
+import com.example.model.um.UserProfile;
+import com.example.repo.ledger.PerformanceLedgerRepository;
 import com.example.service.DividendLedgerService;
+import com.example.service.ExpenseService;
 import com.example.service.FundsLedgerService;
+import com.example.service.PerformanceLedgerService;
 import com.example.service.PortfolioService;
+import com.example.service.TradeLedgerService;
 import com.example.service.TradeProfitLedgerService;
+import com.example.ui.model.ChartPerformance;
+import com.example.ui.model.ChartType;
+import com.example.ui.model.RenderSectorWiseValue;
 import com.example.ui.model.UIOverallGainLoss;
 import com.example.ui.model.UIRenderStock;
 import com.example.util.MiscUtil;
@@ -36,6 +47,15 @@ public class UiRenderUtil {
 	@Autowired
 	private DividendLedgerService dividendLedgerService;
 
+	@Autowired
+	private PerformanceLedgerService  performanceLedgerService;
+	
+	@Autowired
+	private TradeLedgerService tradeLedgerService;
+	
+	@Autowired
+	private ExpenseService expenseService;
+	
 	public List<UIRenderStock> renderPortfolio(List<UserPortfolio> userPortfolioList) {
 
 		List<UIRenderStock> portfolioList = new ArrayList<>();
@@ -90,17 +110,19 @@ public class UiRenderUtil {
 		return profitPer;
 	}
 
-	public UIOverallGainLoss renderUIPerformance(User user) {
+	
+	public UIOverallGainLoss renderUIPerformance(UserProfile user) {
 		UIOverallGainLoss uIOverallGainLoss = new UIOverallGainLoss();
 		
 		this.renderYTDPerformance(user, uIOverallGainLoss);
 		this.renderFYTDPerformance(user, uIOverallGainLoss);
+		this.renderFYSummary(user, uIOverallGainLoss);
 		
 		return uIOverallGainLoss;
 	}
 	
 	
-	private UIOverallGainLoss renderYTDPerformance(User user, UIOverallGainLoss uIOverallGainLoss) {
+	private UIOverallGainLoss renderYTDPerformance(UserProfile user, UIOverallGainLoss uIOverallGainLoss) {
 		
 		double currentValue = portfolioService.currentValue(user);
 		
@@ -128,7 +150,7 @@ public class UiRenderUtil {
 		return uIOverallGainLoss;
 	}
 	
-	private UIOverallGainLoss renderFYTDPerformance(User user, UIOverallGainLoss uIOverallGainLoss) {
+	private UIOverallGainLoss renderFYTDPerformance(UserProfile user, UIOverallGainLoss uIOverallGainLoss) {
 		
 		double currentValue = portfolioService.currentValue(user);
 		
@@ -150,7 +172,74 @@ public class UiRenderUtil {
 		uIOverallGainLoss.setFyRealizedGainPer(fyRealizedGainPer);
 		uIOverallGainLoss.setFyUnrealizedGainPer(fyUnrealizedGainPer);
 		
+		uIOverallGainLoss.setFyNetDividends(fyDividend);
+		uIOverallGainLoss.setFyNetGain(fyNetProfit);
+		
 		return uIOverallGainLoss;
+	}
+	
+	private UIOverallGainLoss renderFYSummary(UserProfile user, UIOverallGainLoss uIOverallGainLoss) {
+		
+		double fyNetExpense = expenseService.currentFinYearExpenses(user);
+		
+		double fyBrokeragePaid = tradeLedgerService.getFYBrokeragePaid(user);
+		
+		uIOverallGainLoss.setFyNetExpense(fyNetExpense + fyBrokeragePaid);
+		
+		double fyNetTaxLiability = uIOverallGainLoss.getFyNetGain() - fyNetExpense ;
+		
+		if(fyNetTaxLiability < 0.00) {
+			fyNetTaxLiability = 0.00;
+		}
+		
+		uIOverallGainLoss.setFyNetTaxLiability(fyNetTaxLiability);
+		
+		double fyNetTaxPaid = tradeLedgerService.getFYNetTaxPaid(user);
+		
+		uIOverallGainLoss.setFyNetTaxPaid(fyNetTaxPaid);
+		
+		return uIOverallGainLoss;
+	}
+	
+	public List<RenderSectorWiseValue> sectoralAllocation(UserProfile user){
+		
+		double currentInvestmentValue = portfolioService.currentInvestmentValue(user);
+		
+		//List<SectorWiseValue> sectorWiseValueList = portfolioService.sectoralAllocation(user);
+		List<SectoralAllocation> sectorWiseValueList = portfolioService.sectoralAllocation(user);
+		
+		List<RenderSectorWiseValue> renderList = new ArrayList<>();
+		
+		sectorWiseValueList.forEach( sw -> {
+			
+			renderList.add(new RenderSectorWiseValue(sw.getSectorName(), miscUtil.calculatePer(currentInvestmentValue, sw.getAllocation())));
+		});
+		
+		return renderList;
+	}
+	
+	
+	public List<ChartPerformance> yearlyPerformance(UserProfile user,ChartType chartType ) {
+		
+		List<ChartPerformance> chartPerformanceList = new ArrayList<ChartPerformance>();
+		
+		
+		List<PerformanceLedger> performanceLedgerList =  performanceLedgerService.yearlyPerformance(user);
+		
+		if(chartType == ChartType.PERFORMANCE_CV) {
+		performanceLedgerList.forEach( pl -> {
+			
+			chartPerformanceList.add(new ChartPerformance(pl.getPerformanceDate().toString(), pl.getPortfolioValue()));
+		} );
+		}else if(chartType == ChartType.PERFORMANCE_IV) {
+			performanceLedgerList.forEach( pl -> {
+				
+				chartPerformanceList.add(new ChartPerformance(pl.getPerformanceDate().toString(), pl.getInvestmentValue()));
+			} );
+		}
+		
+		return chartPerformanceList;
+		
 	}
 	
 }

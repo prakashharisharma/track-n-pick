@@ -21,6 +21,16 @@ public class SectorService {
 		return sectorRepository.findBySectorNameContainingIgnoreCase(sectorName).get(0);
 	}
 	
+	public Sector getOrAddSectorByName(String sectorName) {
+		
+		if(this.isExist(sectorName)) {
+		
+		return sectorRepository.findBySectorNameContainingIgnoreCase(sectorName).get(0);
+		}else {
+			return this.add(sectorName, 5.00, 2.50);
+		}
+	}
+	
 	public List<Sector> allSectors(){
 		return sectorRepository.findAll();
 	}
@@ -31,6 +41,8 @@ public class SectorService {
 		
 		return sectorRepository.save(sector);
 	}
+	
+	
 	
 	public Sector update(String sectorName, double newSectorPe, double newSectorPb) {
 		
@@ -51,4 +63,6 @@ public class SectorService {
 			return false;
 		}
 	}
+	
+	
 }

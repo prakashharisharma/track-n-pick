@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.bhav.service.DownloadBhavService;
 import com.example.service.FileNameService;
 import com.example.util.DownloadUtil;
 
@@ -19,12 +20,17 @@ public class DownloadNSEBhavProcessor implements Processor {
 	private DownloadUtil downloadUtil;
 	
 	@Autowired
+	private DownloadBhavService downloadBhavService;
+	
+	@Autowired
 	private FileNameService fileNameService;
 	
 	@Override
 	public void process(Exchange arg0) throws Exception {
 		LOGGER.info("DOWNLOAD FILE PROCESSOR START ...");
-		downloadUtil.downloadFile(fileNameService.getNSEBhavDownloadURI(),fileNameService.getNSEBhavFileName());
+		//downloadUtil.downloadFile(fileNameService.getNSEBhavDownloadURI(),fileNameService.getNSEBhavFileName());
+		downloadBhavService.downloadFile(fileNameService.getNSEBhavReferrerURI(), fileNameService.getNSEBhavDownloadURI(),fileNameService.getNSEBhavFileName());
+		
 		LOGGER.info("DOWNLOAD FILE PROCESSOR END ...");
 	}
 

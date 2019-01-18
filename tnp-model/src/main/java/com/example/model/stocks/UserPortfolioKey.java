@@ -8,7 +8,7 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
 import com.example.model.master.Stock;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 
 @Embeddable
 public class UserPortfolioKey implements Serializable {
@@ -16,16 +16,16 @@ public class UserPortfolioKey implements Serializable {
 	private static final long serialVersionUID = -3500343089756518013L;
 
 	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	User user;
+	UserProfile user;
 
 	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	Stock stock;
 
-	public User getUser() {
+	public UserProfile getUser() {
 		return user;
 	}
 
-	public void setUser(User user) {
+	public void setUser(UserProfile user) {
 		this.user = user;
 	}
 

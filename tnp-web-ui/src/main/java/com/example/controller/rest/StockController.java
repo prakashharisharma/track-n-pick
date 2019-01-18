@@ -1,4 +1,4 @@
-package com.example.controller;
+package com.example.controller.rest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.model.master.Stock;
-import com.example.model.stocks.UserPortfolio;
-import com.example.model.um.User;
 import com.example.repo.master.StockRepository;
 import com.example.service.StockService;
 import com.example.ui.model.StockSearch;
@@ -29,7 +27,7 @@ public class StockController {
 	@Autowired
 	private StockService stockService;
 
-	@GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(value = "/active", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<Stock>> getStocksMaster() {
 
 		return ResponseEntity.ok(stockRepository.findAll());

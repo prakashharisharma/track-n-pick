@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.model.master.Stock;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.repo.um.UserRepository;
 
 @Transactional
@@ -23,23 +23,31 @@ public class UserService {
 	@Autowired
 	private UserRepository userRepository;
 	
-	public List<User> activeUsers(){
+	public List<UserProfile> activeUsers(){
 		return userRepository.findByActive(true);
 	}
 	
-	public List<User> allUsers(){
+	public List<UserProfile> allUsers(){
 		return userRepository.findAll();
 	}
 	
-	public User save(User user) {
+	public UserProfile save(UserProfile user) {
 		return userRepository.save(user);
 	}
 	
-	public User getUserById(long userId) {
+	public UserProfile getUserById(long userId) {
 		return userRepository.findByUserId(userId);
 	}
 	
-	public User addtoWatchList(User user, List<Stock> stocksList) {
+	public UserProfile getUserByEmail(String userEmail) {
+		return userRepository.findByUserEmail(userEmail);
+	}
+	public UserProfile getUserByUsername(String userName) {
+		return userRepository.findByUserName(userName);
+	}
+	
+	
+	public UserProfile addtoWatchList(UserProfile user, List<Stock> stocksList) {
 		LOGGER.info("ADDING TO WATCHLIST...");
 		Set<Stock> watchList = user.getWatchList();
 		
@@ -50,7 +58,7 @@ public class UserService {
 		return user;
 	}
 	
-	public void removeFromtoWatchList(User user, List<Stock> stocksList) {
+	public void removeFromtoWatchList(UserProfile user, List<Stock> stocksList) {
 		
 		Set<Stock> watchList = user.getWatchList();
 		

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.dylh.service.DylhService;
 import com.example.model.master.Stock;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 
 @Transactional
 @Service
@@ -64,7 +64,7 @@ public class YearLowStocksService {
 
 		List<Stock> todaysYearHighStocks = dylhService.yearHighStocks();
 
-		User user = userService.getUserById(1);
+		UserProfile user = userService.getUserById(1);
 
 		Set<Stock> watchList = user.getWatchList();
 

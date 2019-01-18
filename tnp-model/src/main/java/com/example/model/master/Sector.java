@@ -1,5 +1,7 @@
 package com.example.model.master;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,13 +11,19 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "SECTORS")
-public class Sector {
+public class Sector implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1613826068077828692L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "SECTOR_ID")
 	long sectorId;
 	
+	//@NaturalId
 	@Column(name = "SECTOR_NAME")
 	String sectorName;
 

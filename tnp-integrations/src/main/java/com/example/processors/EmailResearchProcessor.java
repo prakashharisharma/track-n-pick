@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.model.master.Stock;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.service.ResearchLedgerService;
 import com.example.service.UserService;
 import com.example.util.EmailService;
@@ -47,9 +47,9 @@ public class EmailResearchProcessor implements Processor {
 	
 			String emailSubject = "Stocks Research Report - " + LocalDate.now() + "!";
 			
-			List<User> allActiveUsers = userService.activeUsers();
+			List<UserProfile> allActiveUsers = userService.activeUsers();
 			
-			for(User mailToUser : allActiveUsers) {
+			for(UserProfile mailToUser : allActiveUsers) {
 	
 				prepareWatchListReportAndSendMail(mailToUser, formatedWatchList, emailSubject);
 				
@@ -67,7 +67,7 @@ public class EmailResearchProcessor implements Processor {
 		
 	}
 
-	private void prepareWatchListReportAndSendMail(User user, String formatedWatchList, String emailSubject) throws Exception {
+	private void prepareWatchListReportAndSendMail(UserProfile user, String formatedWatchList, String emailSubject) throws Exception {
 		
 		System.out.println("Emailing START" + user.getFirstName() +" : " + user.getUserEmail());
 		

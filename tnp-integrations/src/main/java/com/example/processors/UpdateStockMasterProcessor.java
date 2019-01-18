@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 
 import com.example.model.StockMaster;
 import com.example.model.master.Stock;
+import com.example.service.SectorService;
 import com.example.service.StockService;
+import com.example.storage.service.StorageService;
 
 @Service
 public class UpdateStockMasterProcessor implements Processor{
@@ -22,6 +24,13 @@ public class UpdateStockMasterProcessor implements Processor{
 	
 	@Autowired
 	private StockService stockService;
+	
+	@Autowired
+	private SectorService sectorService;
+	
+	@Autowired
+	private StorageService storageService;
+	
 	
 	@Override
 	public void process(Exchange exchange) throws Exception {
@@ -66,7 +75,10 @@ public class UpdateStockMasterProcessor implements Processor{
 	
 	private void addToMaster(List<StockMaster> newAdditionList) {
 		for (StockMaster stockMaster :newAdditionList ) {
-			Stock stock = stockService.add(stockMaster.getIsin(), stockMaster.getCompanyName(), stockMaster.getNseSymbol(), stockMaster.getSector());
+			Stock stock = stockService.add(stockMaster.getIsin(), stockMaster.getCompanyName(), stockMaster.getNseSymbol(), sectorService.getOrAddSectorByName(stockMaster.getSector()));
+			
+			storageService.addStock(stockMaster.getIsin(), stockMaster.getCompanyName(), stockMaster.getNseSymbol(), null ,stockMaster.getSector());
+			
 			LOGGER.info("ADDED " + stock);
 		}
 	}

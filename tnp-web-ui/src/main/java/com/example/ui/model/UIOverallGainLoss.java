@@ -17,6 +17,16 @@ public class UIOverallGainLoss {
 	double fyUnrealizedGainPer;
 	
 	
+	double fyNetGain;
+	
+	double fyNetDividends;
+	
+	double fyNetTaxPaid;
+	
+	double fyNetExpense;
+	
+	double fyNetTaxLiability;
+	
 	public UIOverallGainLoss() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -90,6 +100,56 @@ public class UIOverallGainLoss {
 
 	public void setFyUnrealizedGainPer(double fyUnrealizedGainPer) {
 		this.fyUnrealizedGainPer = fyUnrealizedGainPer;
+	}
+
+
+	public double getFyNetGain() {
+		return fyNetGain;
+	}
+
+
+	public void setFyNetGain(double fyNetGain) {
+		this.fyNetGain = fyNetGain;
+	}
+
+
+	public double getFyNetDividends() {
+		return fyNetDividends;
+	}
+
+
+	public void setFyNetDividends(double fyNetDividends) {
+		this.fyNetDividends = fyNetDividends;
+	}
+
+
+	public double getFyNetTaxPaid() {
+		return fyNetTaxPaid;
+	}
+
+
+	public void setFyNetTaxPaid(double fyNetTaxPaid) {
+		this.fyNetTaxPaid = fyNetTaxPaid;
+	}
+
+
+	public double getFyNetExpense() {
+		return fyNetExpense;
+	}
+
+
+	public void setFyNetExpense(double fyNetExpense) {
+		this.fyNetExpense = fyNetExpense;
+	}
+
+
+	public double getFyNetTaxLiability() {
+		return fyNetTaxLiability;
+	}
+
+
+	public void setFyNetTaxLiability(double fyNetTaxLiability) {
+		this.fyNetTaxLiability = fyNetTaxLiability;
 	}
 
 

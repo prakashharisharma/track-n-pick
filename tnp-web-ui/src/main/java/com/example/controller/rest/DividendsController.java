@@ -17,19 +17,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.model.ledger.DividendLedger;
 import com.example.model.master.Stock;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
+import com.example.security.LoginService;
 import com.example.service.DividendLedgerService;
 import com.example.service.StockService;
 import com.example.service.UserService;
 import com.example.ui.model.UIDividend;
-import com.example.ui.model.UIFund;
 
 @RestController
 @RequestMapping("/api/dividends")
 public class DividendsController {
-
+	
 	@Autowired
-	private UserService userService;
+	private LoginService loginService;
 	
 	@Autowired
 	private DividendLedgerService dividendLedgerService;
@@ -37,14 +37,12 @@ public class DividendsController {
 	@Autowired
 	private StockService stockService;
 	
-	@GetMapping(value = "/recent/", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(value = "/recent", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<UIDividend>> recentHistory() {
 
 		List<UIDividend> fundList = new ArrayList<>();
-		
-		User user = userService.getUserById(1);
-		
-		List<DividendLedger> fundLedgerList = dividendLedgerService.recentDividends();
+
+		List<DividendLedger> fundLedgerList = dividendLedgerService.recentDividends(loginService.getLoginUserProfile());
 		
 		fundLedgerList.forEach(dl -> {
 			
@@ -58,7 +56,7 @@ public class DividendsController {
 	@PostMapping(value = "/adddividend", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> addStock(@RequestBody UIDividend dividend) {
 
-		User user = userService.getUserById(1);
+
 		
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -68,7 +66,7 @@ public class DividendsController {
 
         Stock dividendStock =  stockService.getStockById(dividend.getStockid());
         
-        dividendLedgerService.addDividend(user, dividendStock, dividend.getPerShareAmount(), exDate, recordDate, transactionDate);
+        dividendLedgerService.addDividend(loginService.getLoginUserProfile(), dividendStock, dividend.getPerShareAmount(), exDate, recordDate, transactionDate);
         
 		return ResponseEntity.status(HttpStatus.OK).build();
 	}

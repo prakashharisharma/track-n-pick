@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import com.example.model.ledger.FundsLedger;
 import com.example.model.master.Broker;
 import com.example.model.type.FundTransactionType;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.repo.ledger.FundsLedgerRepository;
 import com.example.repo.um.UserBrokerageRepository;
 import com.example.util.MiscUtil;
@@ -32,7 +32,7 @@ public class FundsLedgerService {
 	@Autowired
 	private MiscUtil miscUtil;
 
-	public void addFYROFund(User user) {
+	public void addFYROFund(UserProfile user) {
 
 		Broker broker = userBrokerageRepository.findByBrokerageIdUserAndActive(user, true).getBrokerageId().getBroker();
 
@@ -43,7 +43,7 @@ public class FundsLedgerService {
 		fundsLedgerRepository.save(fundLedger);
 	}
 
-	public void addCYROFund(User user) {
+	public void addCYROFund(UserProfile user) {
 
 		Broker broker = userBrokerageRepository.findByBrokerageIdUserAndActive(user, true).getBrokerageId().getBroker();
 
@@ -54,7 +54,7 @@ public class FundsLedgerService {
 		fundsLedgerRepository.save(fundLedger);
 	}
 
-	public void addFund(User user, double amount, LocalDate transactionDate) {
+	public void addFund(UserProfile user, double amount, LocalDate transactionDate) {
 
 		Broker broker = userBrokerageRepository.findByBrokerageIdUserAndActive(user, true).getBrokerageId().getBroker();
 
@@ -62,18 +62,18 @@ public class FundsLedgerService {
 		fundsLedgerRepository.save(fundLedger);
 	}
 
-	public void withdrawFund(User user, double amount, LocalDate transactionDate) {
+	public void withdrawFund(UserProfile user, double amount, LocalDate transactionDate) {
 		Broker broker = userBrokerageRepository.findByBrokerageIdUserAndActive(user, true).getBrokerageId().getBroker();
 
 		FundsLedger fundLedger = new FundsLedger(user, broker, amount, transactionDate, FundTransactionType.WITHDRAW);
 		fundsLedgerRepository.save(fundLedger);
 	}
 
-	public List<FundsLedger> recentHistory(User user) {
+	public List<FundsLedger> recentHistory(UserProfile user) {
 		return fundsLedgerRepository.findAll();
 	}
 
-	public double currentYearInvestment(User user) {
+	public double currentYearInvestment(UserProfile user) {
 
 		Double totalInvestment = fundsLedgerRepository.getTotalCYFundBetweenTwoDates(user,
 				miscUtil.currentYearFirstDay(), miscUtil.currentDate());
@@ -85,7 +85,7 @@ public class FundsLedgerService {
 		return totalInvestment;
 	}
 
-	public double currentFinYearInvestment(User user) {
+	public double currentFinYearInvestment(UserProfile user) {
 
 		Double totalInvestment = fundsLedgerRepository.getTotalFYFundBetweenTwoDates(user,
 				miscUtil.currentFinYearFirstDay(), miscUtil.currentDate());

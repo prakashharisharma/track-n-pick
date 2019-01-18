@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
 import com.example.service.UserService;
 import com.example.service.WatchListService;
 
@@ -27,9 +27,9 @@ public class WatchListUpdateProcessor implements Processor {
 		
 		LOGGER.info("UPDATE WATCHLIST START");
 		
-		User user = userService.getUserById(1);
+		UserProfile user = userService.getUserById(1);
 		
-		watchListService.updateWatchList(user);
+		watchListService.updateWatchListAddStocks(user);
 		
 		LOGGER.info("UPDATE WATCHLIST END");
 	}

@@ -1,5 +1,6 @@
 package com.example.model.um;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,6 +15,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.example.model.master.Stock;
@@ -21,12 +23,20 @@ import com.example.model.stocks.UserPortfolio;
 
 @Entity
 @Table(name = "USERS")
-public class User {
+public class UserProfile implements Serializable{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8670137481092592835L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "USER_ID")
 	long userId;
+	
+	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+	private UserDetails userDetails;
 	
 	@Column(name = "USER_EMAIL", unique=true)
 	String userEmail;
@@ -53,12 +63,14 @@ public class User {
 	@OneToMany(mappedBy = "portfolioId.user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<UserPortfolio> userPortfolio = new HashSet<>();
 
-	
-	public User() {
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+	private Set<Role> roles = new HashSet<Role>(0);
+
+	public UserProfile() {
 		super();
 	}
 
-	public User(String userEmail, String firstName, String lastName) {
+	public UserProfile(String userEmail, String firstName, String lastName) {
 		super();
 		this.userEmail = userEmail;
 		this.firstName = firstName;
@@ -125,6 +137,21 @@ public class User {
         this.userPortfolio.add(userPortfolio);
     }
 
+	public UserDetails getUserDetails() {
+		return userDetails;
+	}
+
+	public void setUserDetails(UserDetails userDetails) {
+		this.userDetails = userDetails;
+	}
+
+	public Set<Role> getRoles() {
+		return roles;
+	}
+
+	public void setRoles(Set<Role> roles) {
+		this.roles = roles;
+	}
 
 	@Override
 	public String toString() {

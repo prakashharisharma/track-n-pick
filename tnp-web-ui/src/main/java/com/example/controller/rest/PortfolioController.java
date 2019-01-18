@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
-import com.example.model.um.User;
+import com.example.model.um.UserProfile;
+import com.example.security.LoginService;
 import com.example.service.PortfolioService;
 import com.example.service.StockService;
 import com.example.service.UserService;
@@ -35,20 +36,33 @@ public class PortfolioController {
 	@Autowired
 	private StockService stockService;
 	
+	
 	@Autowired
-	private UserService userService;
+	private LoginService loginService;
+	
+	@Autowired
+	private UiRenderUtil uiRenderUtil;
+	
+	@GetMapping(value="/current", produces = MediaType.APPLICATION_JSON_VALUE )
+	public ResponseEntity<List<UIRenderStock>> getPortfolioStocks() {
+
+		
+		List<UserPortfolio> userPortfolioList = portfolioService.userPortfolio(loginService.getLoginUserProfile());
+		
+		return ResponseEntity.ok(uiRenderUtil.renderPortfolio(userPortfolioList));
+	}
+	
 	
 	@PostMapping(value = "/addstock", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> addStock(@RequestBody UIRenderStock stock) {
 
 		System.out.println(stock);
 		
-		User user = userService.getUserById(1);
-		
+
 		if(stock.getStockid() > 0) {
 		
 			Stock addStock =  stockService.getStockById(stock.getStockid());
-			portfolioService.addStock(user, addStock, stock.getBuySellPrice(), stock.getQunatity());
+			portfolioService.addStock(loginService.getLoginUserProfile(), addStock, stock.getBuySellPrice(), stock.getQunatity());
 			
 		}
 		
@@ -59,12 +73,11 @@ public class PortfolioController {
 	@PostMapping(value = "/sellstock", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> sellStock(@RequestBody UIRenderStock stock) {
 
-		User user = userService.getUserById(1);
 		
 		if(stock.getStockid() > 0) {
 		
 			Stock sellStock =  stockService.getStockById(stock.getStockid());
-			portfolioService.sellStock(user, sellStock, stock.getBuySellPrice(), stock.getQunatity());
+			portfolioService.sellStock(loginService.getLoginUserProfile(), sellStock, stock.getBuySellPrice(), stock.getQunatity());
 			
 		}
 
@@ -75,10 +88,9 @@ public class PortfolioController {
 	public ResponseEntity<List<StockSearch>> searchStock1(@RequestParam String query) {
 
 		List<StockSearch> stocksList = new ArrayList<>();
+
 		
-		User user = userService.getUserById(1);
-		
-		List<UserPortfolio> userPortfolioList = portfolioService.userPortfolio(user);
+		List<UserPortfolio> userPortfolioList = portfolioService.userPortfolio(loginService.getLoginUserProfile());
 		
 		userPortfolioList.forEach(u -> {
 			stocksList.add(new StockSearch(u.getStock().getStockId(), u.getStock().getCompanyName() + " - ["+u.getStock().getNseSymbol() +"]"));

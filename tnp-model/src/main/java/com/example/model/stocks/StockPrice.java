@@ -1,5 +1,6 @@
 package com.example.model.stocks;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 import javax.persistence.Column;
@@ -20,7 +21,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 value = {"Volume", "PercentageDiff", "ChangePercent"})
 @Entity
 @Table(name = "STOCK_PRICE")
-public class StockPrice {
+public class StockPrice implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1495123844495916776L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -32,20 +38,23 @@ public class StockPrice {
 	Stock stock;
 	
 	@JsonProperty("LastTradedPrice")
-	@Column(name = "CURRENT_PRICE")
+	@Column(name = "CURRENT_PRICE", columnDefinition="Decimal(10,2) default '0.00'")
 	double currentPrice;
 	
 	@JsonProperty("FiftyTwoWeekLow")
-	@Column(name = "YEAR_LOW")
+	@Column(name = "YEAR_LOW", columnDefinition="Decimal(10,2) default '0.00'")
 	double yearLow;
 	
 	@JsonProperty("FiftyTwoWeekHigh")
-	@Column(name = "YEAR_HIGH")
+	@Column(name = "YEAR_HIGH", columnDefinition="Decimal(10,2) default '0.00'")
 	double yearHigh;
 
 	@Column(name = "LAST_MODIFIED")
 	LocalDate lastModified = LocalDate.now();
 
+	@Column(name = "BHAV_DATE")
+	LocalDate bhavDate = LocalDate.now();
+	
 	public long getStockPriceId() {
 		return stockPriceId;
 	}
@@ -92,6 +101,14 @@ public class StockPrice {
 
 	public void setLastModified(LocalDate lastModified) {
 		this.lastModified = lastModified;
+	}
+	
+	public LocalDate getBhavDate() {
+		return bhavDate;
+	}
+
+	public void setBhavDate(LocalDate bhavDate) {
+		this.bhavDate = bhavDate;
 	}
 
 	@Override

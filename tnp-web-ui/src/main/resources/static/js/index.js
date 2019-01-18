@@ -40,12 +40,14 @@ $(document).ready(function() {
 
 function loadPieChart() {
 
+	var dataPoints = [];
+	
 	var options = {
 		title: {
-			text: "Desktop OS Market Share in 2017"
+			text: "Sectoral Allocation"
 		},
 		subtitles: [{
-			text: "As of November, 2017"
+			text: "As of today"
 		}],
 		animationEnabled: true,
 		data: [{
@@ -56,36 +58,45 @@ function loadPieChart() {
 			legendText: "{label}",
 			indexLabelFontSize: 16,
 			indexLabel: "{label} - {y}%",
-			dataPoints: [
-				{ y: 48.36, label: "Windows 7" },
-				{ y: 26.85, label: "Windows 10" },
-				{ y: 1.49, label: "Windows 8" },
-				{ y: 6.98, label: "Windows XP" },
-				{ y: 6.53, label: "Windows 8.1" },
-				{ y: 2.45, label: "Linux" },
-				{ y: 3.32, label: "Mac OS X 10.12" },
-				{ y: 4.03, label: "Others" }
-			]
+			dataPoints: dataPoints
 		}]
 	};
-	$("#sectorChartContainer").CanvasJSChart(options);
+	//$("#sectorChartContainer").CanvasJSChart(options);
 
+	function addData(data) {
+		for (var i = 0; i < data.length; i++) {
+			dataPoints.push({
+				y: data[i].allocation,
+				label: data[i].sector
+			});
+		}
+		$("#sectorChartContainer").CanvasJSChart(options);
+
+	}
+	
+	
+	$.getJSON("http://localhost:8081/api/chart/sector/allocation", addData);
+	
 	}
 
 
 function loadChart() {
 
+	var dataPointsCurrentValue = [];
+	
+	var dataPointsInvestmentValue = [];
+
 	var options = {
 		animationEnabled: true,
 		theme: "light2",
 		title:{
-			text: "Actual vs Projected Sales"
+			text: "12 Months Performance"
 		},
 		axisX:{
-			valueFormatString: "DD MMM"
+			valueFormatString: "MMM YY"
 		},
 		axisY: {
-			title: "Number of Sales",
+			title: "INR.",
 			suffix: "K",
 			minimum: 30
 		},
@@ -102,55 +113,23 @@ function loadChart() {
 		data: [{
 			type: "line",
 			showInLegend: true,
-			name: "Projected Sales",
+			name: "Value",
 			markerType: "square",
 			xValueFormatString: "DD MMM, YYYY",
 			color: "#F08080",
 			yValueFormatString: "#,##0K",
-			dataPoints: [
-				{ x: new Date(2017, 10, 1), y: 63 },
-				{ x: new Date(2017, 10, 2), y: 69 },
-				{ x: new Date(2017, 10, 3), y: 65 },
-				{ x: new Date(2017, 10, 4), y: 70 },
-				{ x: new Date(2017, 10, 5), y: 71 },
-				{ x: new Date(2017, 10, 6), y: 65 },
-				{ x: new Date(2017, 10, 7), y: 73 },
-				{ x: new Date(2017, 10, 8), y: 96 },
-				{ x: new Date(2017, 10, 9), y: 84 },
-				{ x: new Date(2017, 10, 10), y: 85 },
-				{ x: new Date(2017, 10, 11), y: 86 },
-				{ x: new Date(2017, 10, 12), y: 94 },
-				{ x: new Date(2017, 10, 13), y: 97 },
-				{ x: new Date(2017, 10, 14), y: 86 },
-				{ x: new Date(2017, 10, 15), y: 89 }
-			]
+			dataPoints: dataPointsCurrentValue
 		},
 		{
 			type: "line",
 			showInLegend: true,
-			name: "Actual Sales",
+			name: "Investment",
 			lineDashType: "dash",
 			yValueFormatString: "#,##0K",
-			dataPoints: [
-				{ x: new Date(2017, 10, 1), y: 60 },
-				{ x: new Date(2017, 10, 2), y: 57 },
-				{ x: new Date(2017, 10, 3), y: 51 },
-				{ x: new Date(2017, 10, 4), y: 56 },
-				{ x: new Date(2017, 10, 5), y: 54 },
-				{ x: new Date(2017, 10, 6), y: 55 },
-				{ x: new Date(2017, 10, 7), y: 54 },
-				{ x: new Date(2017, 10, 8), y: 69 },
-				{ x: new Date(2017, 10, 9), y: 65 },
-				{ x: new Date(2017, 10, 10), y: 66 },
-				{ x: new Date(2017, 10, 11), y: 63 },
-				{ x: new Date(2017, 10, 12), y: 67 },
-				{ x: new Date(2017, 10, 13), y: 66 },
-				{ x: new Date(2017, 10, 14), y: 56 },
-				{ x: new Date(2017, 10, 15), y: 64 }
-			]
+			dataPoints:dataPointsInvestmentValue
 		}]
 	};
-	$("#chartContainer").CanvasJSChart(options);
+	//$("#chartContainer").CanvasJSChart(options);
 
 	function toogleDataSeries(e){
 		if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
@@ -161,4 +140,36 @@ function loadChart() {
 		e.chart.render();
 	}
 
+	
+	function addCurrentValueData(data) {
+		for (var i = 0; i < data.length; i++) {
+			
+			dataPointsCurrentValue.push({
+				
+				x: new Date(data[i].date),
+				y: data[i].value
+			});
+		}
+		$("#chartContainer").CanvasJSChart(options);
+
+	}
+	
+	function addinvestmentvalueData(data) {
+		for (var i = 0; i < data.length; i++) {
+			
+			dataPointsInvestmentValue.push({
+				
+				x: new Date(data[i].date),
+				y: data[i].value
+			});
+		}
+		$("#chartContainer").CanvasJSChart(options);
+
+	}
+	
+	$.getJSON("http://localhost:8081/api/chart/performance/currentvalue", addCurrentValueData);
+	
+	$.getJSON("http://localhost:8081/api/chart/performance/investmentvalue", addinvestmentvalueData);
+	
+	
 	}

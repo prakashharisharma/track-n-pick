@@ -11,7 +11,7 @@ public class JavaDownloadFileFromURL {
 
     public static void main(String[] args) {
     	
-        String url = "https://www.nseindia.com/content/historical/EQUITIES/2018/OCT/cm01OCT2018bhav.csv.zip";
+        String url = "https://www.nseindia.com/content/historical/EQUITIES/2019/JAN/cm01JAN2019bhav.csv.zip";
         
         String nifty500URL = "https://www.nseindia.com/content/indices/ind_nifty500list.csv";
         
@@ -19,7 +19,7 @@ public class JavaDownloadFileFromURL {
         	
             downloadUsingNIO(url, "./src/main/resources/data/cm19SEP2018bhav.zip");
             
-            downloadUsingNIO(nifty500URL, "./src/main/resources/data/ind_nifty500list.csv");
+           // downloadUsingNIO(nifty500URL, "./src/main/resources/data/ind_nifty500list.csv");
             
           //  downloadUsingStream(url, "./src/main/resources/data/cm12SEP2018bhav.zip");
             
