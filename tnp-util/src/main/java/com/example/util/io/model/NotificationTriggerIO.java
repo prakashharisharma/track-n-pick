@@ -1,0 +1,37 @@
+package com.example.util.io.model;
+
+import java.io.Serializable;
+
+public class NotificationTriggerIO implements Serializable{
+
+	public enum TriggerType {
+		PORTFOLIO, RESEARCH
+	}
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2269885119216610117L;
+
+	private TriggerType triggerType;
+
+	public NotificationTriggerIO(TriggerType triggerType) {
+		super();
+		this.triggerType = triggerType;
+	}
+
+	public TriggerType getTriggerType() {
+		return triggerType;
+	}
+
+	public void setTriggerType(TriggerType triggerType) {
+		this.triggerType = triggerType;
+	}
+
+	@Override
+	public String toString() {
+		return "NotificationTriggerIO [triggerType=" + triggerType + "]";
+	}
+	
+	
+}

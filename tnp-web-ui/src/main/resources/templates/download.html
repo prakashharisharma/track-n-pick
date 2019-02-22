@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Portfolio Example</title>
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<div th:replace="fragments/header :: header-css" />
+
+<script type="text/javascript" src="/js/download.js"></script>
+<script type="text/javascript" src="/js/bootstrap-typeahead.min.js"></script>
+
+</head>
+
+<body>
+
+	<div th:replace="fragments/header :: header" />
+
+	<div class="container">
+		<div class="panel-group">
+			<div class="panel panel-default">
+				<div class="panel-heading">Panel with panel-default class</div>
+				<div class="panel-body">
+					<!-- Button to invoke modal form start-->
+
+				<div class="row">
+					<div class="alert alert-block alert-success"></div>
+				</div>
+
+
+					<div>
+						<button type="button" class="btn btn-success" data-toggle="modal"
+							data-target="#add-download-modal">Download Bhav</button>
+						<!-- <button type="button" class="btn btn-warning" data-toggle="modal"
+							data-target="#sell-stock-modal">Sell</button> -->
+					</div>
+
+					<!-- Button to invoke modal form end-->
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+
+	<!-- add stocks modal Form Start  here -->
+	<div id="add-download-modal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<a class="close" data-dismiss="modal">×</a>
+					<h3>Initiate Download Form</h3>
+				</div>
+
+				<div class="row">
+					<div class="alert alert-block alert-success"></div>
+				</div>
+
+				<form id="downloadForm" name="downloadForm" role="form">
+					<div class="modal-body">
+						<div class="form-group">
+							<label for="name">Download Date</label> <input type="date"
+								id="downloadDate" name="downloadDate" class="form-control required" />
+						</div>
+						<div class="form-group">
+							<label for="name">Download Type</label> <select
+								class="form-control required" id="downloadtype" name="downloadtype">
+								<option value="0">-Select-</option>
+								<option value="BHAV">BHAV</option>
+								<option value="NIFTY50">NIFTY50</option>
+								<option value="NIFTY200">NIFTY200</option>
+								<option value="NIFTY500">NIFTY500</option>
+							</select>
+
+						</div>
+
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						<input type="submit" class="btn btn-success" id="submit"></input>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<!-- modal Form End  here -->
+
+	<div th:replace="fragments/footer :: footer" />
+</body>
+</html>

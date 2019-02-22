@@ -29,6 +29,10 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 	
 	List<Stock> findByNifty50AndActive(boolean isNifty50, boolean isActive);
 	
+	List<Stock> findByNifty200AndActive(boolean isNifty200, boolean isActive);
+	
+	List<Stock> findByNifty50AndNifty200AndActive(boolean isNifty50,boolean isNifty200, boolean isActive);
+
 	public List<Stock> findAll();
 	
 }

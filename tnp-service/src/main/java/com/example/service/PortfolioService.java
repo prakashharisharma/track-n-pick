@@ -32,6 +32,9 @@ public class PortfolioService {
 	private PortfolioRepository portfolioRepository;
 
 	@Autowired
+	private UndervalueLedgerService undervalueLedgerService;
+	
+	@Autowired
 	private UserService userService;
 
 	@Autowired
@@ -134,6 +137,45 @@ public class PortfolioService {
 		}
 	}
 
+	
+	public List<UserPortfolio> underValuedStocks(UserProfile user) {
+
+		List<UserPortfolio> underValuedStocksList = new ArrayList<>();
+		
+		Set<UserPortfolio> portfolioList = user.getUserPortfolio();
+		
+		List<Stock> researchUnderValuedList = undervalueLedgerService.getCurrentUndervalueStocks();
+		
+		
+		portfolioList.forEach(up -> {
+			if(researchUnderValuedList.contains(up.getStock())) {
+				underValuedStocksList.add(up);
+			}
+			
+		});
+		
+
+		return underValuedStocksList;
+	}
+	
+	public List<UserPortfolio> overValuedStocks(UserProfile user) {
+		
+		List<UserPortfolio> overValuedStocksList = new ArrayList<>();
+		
+		Set<UserPortfolio> portfolioList = user.getUserPortfolio();
+		
+		
+		portfolioList.forEach(stock -> {
+			if(ruleService.isOvervalued(stock.getStock())) {
+				overValuedStocksList.add(stock);
+			}
+			
+		});
+		
+		return overValuedStocksList;
+		
+	}
+	
 	public List<UserPortfolio> targetAchived(UserProfile user) {
 
 		List<UserPortfolio> targetAchivedList = new ArrayList<>();

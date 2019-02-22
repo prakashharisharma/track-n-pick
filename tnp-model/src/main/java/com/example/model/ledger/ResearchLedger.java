@@ -4,15 +4,21 @@ import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.example.model.master.Stock;
+import com.example.model.type.ResearchStatus;
+import com.example.util.io.model.ResearchType;
+
 
 @Entity
 @Table(name = "STOCK_RESEARCH_LEDGER")
@@ -23,28 +29,36 @@ public class ResearchLedger {
 	@Column(name = "SRL_ID")
 	long srlId;
 	
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "STOCK_ID", referencedColumnName ="STOCK_ID",  nullable = false)
+	@ManyToOne
+	@JoinColumn(name = "stockId")
 	Stock stock;
 	
-	@Column(name = "RESEARCH_DATE")
-	LocalDate researchDate = LocalDate.now();
+	@Column(name = "ENTRY_DATE")
+	LocalDate entryhDate = LocalDate.now();
 	
-	@Column(name = "RESEARCH_PRICE", columnDefinition="Decimal(10,2) default '0.00'")
-	double researchPrice;
-	
-	@Column(name = "TARGET_PRICE", columnDefinition="Decimal(10,2) default '0.00'")
-	double targetPrice;
-	
-	@Column(name = "TARGET_DATE")
-	LocalDate targetDate = LocalDate.now();
-	
-	@Column(name = "IS_ACTIVE")
-	boolean active = true;
-	
-	@Column(name = "IS_NOTIFIED")
-	boolean notified = false;
+	@Column(name = "ENTRY_PRICE", columnDefinition="Decimal(10,2) default '0.00'")
+	double entryPrice;
 
+	@Column(name = "EXIT_DATE")
+	LocalDate exitDate = LocalDate.now();
+	
+	@Column(name = "EXIT_PRICE", columnDefinition="Decimal(10,2) default '0.00'")
+	double exitPrice;
+	
+	@Column(name = "RESEARCH_TYPE")
+	@Enumerated(EnumType.STRING)
+	ResearchType researchType;
+	
+	@Column(name = "RESEARCH_STATUS")
+	@Enumerated(EnumType.STRING)
+	ResearchStatus researchStatus;
+	
+	@Column(name = "IS_NOTIFIED_BUY")
+	boolean notifiedBuy = false;
+
+	@Column(name = "IS_NOTIFIED_SELL")
+	boolean notifiedSell = false;
+	
 	public long getSrlId() {
 		return srlId;
 	}
@@ -61,58 +75,78 @@ public class ResearchLedger {
 		this.stock = stock;
 	}
 
-	public LocalDate getResearchDate() {
-		return researchDate;
+	public LocalDate getEntryhDate() {
+		return entryhDate;
 	}
 
-	public void setResearchDate(LocalDate researchDate) {
-		this.researchDate = researchDate;
+	public void setEntryhDate(LocalDate entryhDate) {
+		this.entryhDate = entryhDate;
 	}
 
-	public double getResearchPrice() {
-		return researchPrice;
+	public double getEntryPrice() {
+		return entryPrice;
 	}
 
-	public void setResearchPrice(double researchPrice) {
-		this.researchPrice = researchPrice;
+	public void setEntryPrice(double entryPrice) {
+		this.entryPrice = entryPrice;
 	}
 
-	public double getTargetPrice() {
-		return targetPrice;
+	public LocalDate getExitDate() {
+		return exitDate;
 	}
 
-	public void setTargetPrice(double targetPrice) {
-		this.targetPrice = targetPrice;
+	public void setExitDate(LocalDate exitDate) {
+		this.exitDate = exitDate;
 	}
 
-	public boolean isActive() {
-		return active;
+	public double getExitPrice() {
+		return exitPrice;
 	}
 
-	public void setActive(boolean active) {
-		this.active = active;
+	public void setExitPrice(double exitPrice) {
+		this.exitPrice = exitPrice;
 	}
 
-	public LocalDate getTargetDate() {
-		return targetDate;
+	public ResearchType getResearchType() {
+		return researchType;
 	}
 
-	public void setTargetDate(LocalDate targetDate) {
-		this.targetDate = targetDate;
+	public void setResearchType(ResearchType researchType) {
+		this.researchType = researchType;
 	}
 
-	public boolean isNotified() {
-		return notified;
+	public ResearchStatus getResearchStatus() {
+		return researchStatus;
 	}
 
-	public void setNotified(boolean notified) {
-		this.notified = notified;
+	public void setResearchStatus(ResearchStatus researchStatus) {
+		this.researchStatus = researchStatus;
+	}
+
+
+	public boolean isNotifiedBuy() {
+		return notifiedBuy;
+	}
+
+	public void setNotifiedBuy(boolean notifiedBuy) {
+		this.notifiedBuy = notifiedBuy;
+	}
+
+	public boolean isNotifiedSell() {
+		return notifiedSell;
+	}
+
+	public void setNotifiedSell(boolean notifiedSell) {
+		this.notifiedSell = notifiedSell;
 	}
 
 	@Override
 	public String toString() {
-		return "ResearchLedger [srlId=" + srlId + ", researchDate=" + researchDate + ", researchPrice=" + researchPrice
-				+ ", targetPrice=" + targetPrice + ", active=" + active + "]";
+		return "ResearchLedger [srlId=" + srlId + ", stock=" + stock.getNseSymbol() + ", entryhDate=" + entryhDate + ", entryPrice="
+				+ entryPrice + ", exitDate=" + exitDate + ", exitPrice=" + exitPrice + ", researchType=" + researchType
+				+ ", researchStatus=" + researchStatus + ", notifiedBuy=" + notifiedBuy + ", notifiedSell="
+				+ notifiedSell + "]";
 	}
+
 	
 }

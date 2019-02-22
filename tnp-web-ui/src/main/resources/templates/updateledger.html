@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Portfolio Example</title>
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<div th:replace="fragments/header :: header-css" />
+
+<script type="text/javascript" src="/js/updateledger.js"></script>
+<script type="text/javascript" src="/js/bootstrap-typeahead.min.js"></script>
+
+</head>
+
+<body>
+
+	<div th:replace="fragments/header :: header" />
+
+	<div class="container">
+		<div class="panel-group">
+			<div class="panel panel-default">
+				<div class="panel-heading">Panel with panel-default class</div>
+				<div class="panel-body">
+					<!-- Button to invoke modal form start-->
+
+				<div class="row">
+					<div class="alert alert-block alert-success"></div>
+				</div>
+
+
+					<div>
+						<button type="button" class="btn btn-success" data-toggle="modal"
+							data-target="#add-updateledger-modal">Update Ledger</button>
+						<!-- <button type="button" class="btn btn-warning" data-toggle="modal"
+							data-target="#sell-stock-modal">Sell</button> -->
+					</div>
+
+					<!-- Button to invoke modal form end-->
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+
+	<!-- add stocks modal Form Start  here -->
+	<div id="add-updateledger-modal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<a class="close" data-dismiss="modal">×</a>
+					<h3>Initiate Update Form</h3>
+				</div>
+
+				<div class="row">
+					<div class="alert alert-block alert-success"></div>
+				</div>
+
+				<form id="updateledgerForm" name="updateledgerForm" role="form">
+					<div class="modal-body">
+						<div class="form-group">
+							<label for="name">Update Type</label> <select
+								class="form-control required" id="updateledgertype" name="updateledgertype">
+								<option value="0">-Select-</option>
+								<option value="UPDATE_CYRO">UPDATE_CYRO</option>
+								<option value="UPDATE_FYRO">UPDATE_FYRO</option>
+								<option value="UPDATE_MONTHLY_VALUE">UPDATE_MONTHLY_VALUE</option>
+								<option value="UPDATE_RESEARCH">UPDATE_RESEARCH</option>
+								<option value="RESET_MASTER">RESET_MASTER</option>
+							</select>
+
+						</div>
+
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						<input type="submit" class="btn btn-success" id="submit"></input>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<!-- modal Form End  here -->
+
+	<div th:replace="fragments/footer :: footer" />
+</body>
+</html>

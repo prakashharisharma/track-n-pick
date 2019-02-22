@@ -17,7 +17,7 @@ public class ResearchLedgerHistoryService {
 	@Autowired
 	private ResearchLedgerHistoryRepository researchLedgerHistoryRepository;
 	
-	public void addStock(ResearchLedger researchLedger) {
+	public void addStock(ResearchLedger researchLedger) {/*
 		
 		ResearchLedgerHistory rlh = new ResearchLedgerHistory();
 		
@@ -29,5 +29,5 @@ public class ResearchLedgerHistoryService {
 		
 		researchLedgerHistoryRepository.save(rlh);
 		
-	}
+	*/}
 }

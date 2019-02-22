@@ -1,20 +1,18 @@
 package com.example.storage.model;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.util.Date;
 
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-@Document
+@Document(collection = "price_history")
 public class StockPrice {
 
-/*	@Id
-    private ObjectId _id;
 
-	*/
+	@Id
+	private String id;
+
+	String nseSymbol;
+	
 	double open;
 	double high;
 	double low;
@@ -24,27 +22,21 @@ public class StockPrice {
 	long totalTradedQuantity;
 	double totalTradedValue;
 	long totalTrades;
-	
+
 	Instant bhavDate = Instant.now();
 	
 	double change;
+	double yearLow;
+	double yearHigh;
 	
 	public StockPrice() {
 		super();
-		// this._id = ObjectId.get();
 	}
 
-	public StockPrice(double close) {
+	public StockPrice(String nseSymbol, double open, double high, double low, double close, double last,
+			double prevClose, long totalTradedQuantity, double totalTradedValue, long totalTrades, Instant bhavDate) {
 		super();
-		this.close = close;
-		// this._id = ObjectId.get();
-	}
-
-
-
-	public StockPrice(double open, double high, double low, double close, double last, double prevClose,
-			long totalTradedQuantity, double totalTradedValue, long totalTrades, Instant bhavDate) {
-		super();
+		this.nseSymbol = nseSymbol;
 		this.open = open;
 		this.high = high;
 		this.low = low;
@@ -56,17 +48,23 @@ public class StockPrice {
 		this.totalTrades = totalTrades;
 		this.bhavDate = bhavDate;
 		this.change = (close - prevClose );
-		// this._id = ObjectId.get();
 	}
 
-
-	/*public ObjectId get_id() {
-		return _id;
+	public String getId() {
+		return id;
 	}
 
-	public void set_id(ObjectId _id) {
-		this._id = _id;
-	}*/
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getNseSymbol() {
+		return nseSymbol;
+	}
+
+	public void setNseSymbol(String nseSymbol) {
+		this.nseSymbol = nseSymbol;
+	}
 
 	public double getOpen() {
 		return open;
@@ -76,90 +74,61 @@ public class StockPrice {
 		this.open = open;
 	}
 
-
-
 	public double getHigh() {
 		return high;
 	}
-
-
 
 	public void setHigh(double high) {
 		this.high = high;
 	}
 
-
-
 	public double getLow() {
 		return low;
 	}
-
-
 
 	public void setLow(double low) {
 		this.low = low;
 	}
 
-
-
 	public double getClose() {
 		return close;
 	}
-
-
 
 	public void setClose(double close) {
 		this.close = close;
 	}
 
-
-
 	public double getLast() {
 		return last;
 	}
-
-
 
 	public void setLast(double last) {
 		this.last = last;
 	}
 
-
-
 	public double getPrevClose() {
 		return prevClose;
 	}
-
-
 
 	public void setPrevClose(double prevClose) {
 		this.prevClose = prevClose;
 	}
 
-
-
 	public long getTotalTradedQuantity() {
 		return totalTradedQuantity;
 	}
-
-
 
 	public void setTotalTradedQuantity(long totalTradedQuantity) {
 		this.totalTradedQuantity = totalTradedQuantity;
 	}
 
-
-
 	public double getTotalTradedValue() {
 		return totalTradedValue;
 	}
 
-
-
 	public void setTotalTradedValue(double totalTradedValue) {
 		this.totalTradedValue = totalTradedValue;
 	}
-
 
 	public long getTotalTrades() {
 		return totalTrades;
@@ -185,11 +154,30 @@ public class StockPrice {
 		this.change = change;
 	}
 
+	public double getYearLow() {
+		return yearLow;
+	}
+
+	public void setYearLow(double yearLow) {
+		this.yearLow = yearLow;
+	}
+
+	public double getYearHigh() {
+		return yearHigh;
+	}
+
+	public void setYearHigh(double yearHigh) {
+		this.yearHigh = yearHigh;
+	}
+
 	@Override
 	public String toString() {
-		return "StockPrice [open=" + open + ", high=" + high + ", low=" + low + ", close=" + close + ", last=" + last
-				+ ", prevClose=" + prevClose + ", totalTradedQuantity=" + totalTradedQuantity + ", totalTradedValue="
-				+ totalTradedValue + ", totalTrades=" + totalTrades + ", bhavDate=" + bhavDate+ ", change=" + change + "]";
+		return "StockPriceN [id=" + id + ", nseSymbol=" + nseSymbol + ", open=" + open + ", high=" + high + ", low="
+				+ low + ", close=" + close + ", last=" + last + ", prevClose=" + prevClose + ", totalTradedQuantity="
+				+ totalTradedQuantity + ", totalTradedValue=" + totalTradedValue + ", totalTrades=" + totalTrades
+				+ ", bhavDate=" + bhavDate + ", change=" + change + ", yearLow=" + yearLow + ", yearHigh=" + yearHigh
+				+ "]";
 	}
+
 	
 }

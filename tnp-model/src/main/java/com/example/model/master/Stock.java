@@ -7,6 +7,8 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -21,6 +23,7 @@ import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.StockTechnicals;
 import com.example.model.stocks.UserPortfolio;
+import com.example.util.io.model.IndiceType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
@@ -65,6 +68,13 @@ public class Stock implements Serializable{
 	@Column(name = "IS_NIFTY50")
 	boolean nifty50 = false;
 	
+	@Column(name = "IS_NIFTY200")
+	boolean nifty200 = false;
+	
+	@Column(name = "INDICE")
+	@Enumerated(EnumType.STRING)
+	private IndiceType primaryIndice;
+	
 	@OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
 	private StockPrice stockPrice;
 	
@@ -81,6 +91,7 @@ public class Stock implements Serializable{
 		super();
 		this.active = true;
 		this.nifty50 = false;
+		this.nifty200 = false;
 	}
 
 	public Stock(String companyName, String nseSymbol, String bseCode) {
@@ -90,17 +101,20 @@ public class Stock implements Serializable{
 		this.bseCode = bseCode;
 		this.active = true;
 		this.nifty50 = false;
+		this.nifty200 = false;
 	}
 
-	public Stock(String isinCode, String companyName, String nseSymbol, Sector sectorName) {
+	public Stock(String isinCode, String companyName, String nseSymbol, IndiceType primaryIndice, Sector sectorName) {
 		super();
 		this.isinCode = isinCode;
 		this.companyName = companyName;
 		this.nseSymbol = nseSymbol;
+		this.primaryIndice = primaryIndice;
 		this.sector = sectorName;
 		this.sectorName = sectorName.getSectorName();
 		this.active = true;
 		this.nifty50 = false;
+		this.nifty200 = false;
 	}
 	
 	public Stock(String isinCode, String companyName, String nseSymbol, String sector) {
@@ -111,6 +125,7 @@ public class Stock implements Serializable{
 		this.sectorName = sector;
 		this.active = true;
 		this.nifty50 = false;
+		this.nifty200 = false;
 	}
 
 	public long getStockId() {
@@ -169,6 +184,14 @@ public class Stock implements Serializable{
 		this.nifty50 = nifty50;
 	}
 
+	public boolean isNifty200() {
+		return nifty200;
+	}
+
+	public void setNifty200(boolean nifty200) {
+		this.nifty200 = nifty200;
+	}
+
 	public String getSectorName() {
 		return sectorName;
 	}
@@ -211,10 +234,18 @@ public class Stock implements Serializable{
 		this.technicals = technicals;
 	}
 
+	public IndiceType getPrimaryIndice() {
+		return primaryIndice;
+	}
+
+	public void setPrimaryIndice(IndiceType primaryIndice) {
+		this.primaryIndice = primaryIndice;
+	}
+
 	@Override
 	public String toString() {
 		return "Stock [stockId=" + stockId + ", isinCode=" + isinCode + ", companyName=" + companyName + ", nseSymbol="
-				+ nseSymbol + ", bseCode=" + bseCode + ", sector=" + sectorName + ", active=" + active + ", nifty50=" + nifty50+ ", stockPrice="
+				+ nseSymbol + ", bseCode=" + bseCode + ", sector=" + sectorName + ", active=" + active + ", nifty50=" + nifty50+ ", nifty200=" + nifty200+ ", stockPrice="
 				+ stockPrice + ", stockFactor=" + stockFactor + "]";
 	}
 

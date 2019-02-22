@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.dylh.service.DylhService;
+import com.example.external.dylh.service.DylhService;
 import com.example.model.master.Stock;
 import com.example.model.um.UserProfile;
 

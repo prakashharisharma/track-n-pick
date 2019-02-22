@@ -91,21 +91,15 @@
 
 		<dependency>
 			<groupId>com.example</groupId>
-			<artifactId>tnp-service</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.example</groupId>
 			<artifactId>tnp-util</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 
+
 		<dependency>
 			<groupId>com.example</groupId>
-			<artifactId>tnp-historical</artifactId>
+			<artifactId>tnp-mq</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>

@@ -38,7 +38,10 @@ public class StockFactor implements Serializable{
 	
 	@Column(name = "DEBT_EQUITY", columnDefinition="Decimal(10,2) default '0.00'")
 	double debtEquity;
-	
+	@Column(name = "CURRENT_RATIO", columnDefinition="Decimal(10,2) default '0.00'")
+	double currentRatio;
+	@Column(name = "QUICK_RATIO", columnDefinition="Decimal(10,2) default '0.00'")
+	double quickRatio;	
 	@Column(name = "DIVIDEND", columnDefinition="Decimal(10,2) default '0.00'")
 	double dividend;
 	
@@ -64,6 +67,8 @@ public class StockFactor implements Serializable{
 	@Column(name = "LAST_MODIFIED")
 	LocalDate lastModified = LocalDate.now();
 	
+	@Column(name = "QUARTER_ENDED")
+	LocalDate quarterEnded = LocalDate.now();
 	
 	public StockFactor() {
 		super();
@@ -104,6 +109,22 @@ public class StockFactor implements Serializable{
 
 	public void setDebtEquity(double debtEquity) {
 		this.debtEquity = debtEquity;
+	}
+
+	public double getCurrentRatio() {
+		return currentRatio;
+	}
+
+	public void setCurrentRatio(double currentRatio) {
+		this.currentRatio = currentRatio;
+	}
+
+	public double getQuickRatio() {
+		return quickRatio;
+	}
+
+	public void setQuickRatio(double quickRatio) {
+		this.quickRatio = quickRatio;
 	}
 
 	public double getDividend() {
@@ -162,12 +183,20 @@ public class StockFactor implements Serializable{
 		this.lastModified = lastModified;
 	}
 
+	public LocalDate getQuarterEnded() {
+		return quarterEnded;
+	}
+
+	public void setQuarterEnded(LocalDate quarterEnded) {
+		this.quarterEnded = quarterEnded;
+	}
+
 	@Override
 	public String toString() {
 		return "StockFactor [stockFactorId=" + stockFactorId + ",  marketCap=" + marketCap
-				+ ", debtEquity=" + debtEquity + ", dividend=" + dividend + ", bookValue=" + bookValue + ", eps=" + eps
+				+ ", debtEquity=" + debtEquity+ ", currentRatio=" + currentRatio+ ", quickRatio=" + quickRatio + ", dividend=" + dividend + ", bookValue=" + bookValue + ", eps=" + eps
 				+ ", returnOnEquity=" + returnOnEquity + ", returnOnCapital=" + returnOnCapital + ", faceValue="
-				+ faceValue + ", lastModified=" + lastModified + "]";
+				+ faceValue + ", lastModified=" + lastModified + ", quarterEnded=" + quarterEnded + "]";
 	}
 
 }

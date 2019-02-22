@@ -19,6 +19,8 @@ public class RulesResearch {
 	private double lowThreshold;
 	private double highThreshold;
 	
+	private double pbOvervalued;
+	private double peOvervalued;
 	
 	public double getPb() {
 		return pb;
@@ -61,6 +63,18 @@ public class RulesResearch {
 	}
 	public void setHighThreshold(double highThreshold) {
 		this.highThreshold = highThreshold;
+	}
+	public double getPbOvervalued() {
+		return pbOvervalued;
+	}
+	public void setPbOvervalued(double pbOvervalued) {
+		this.pbOvervalued = pbOvervalued;
+	}
+	public double getPeOvervalued() {
+		return peOvervalued;
+	}
+	public void setPeOvervalued(double peOvervalued) {
+		this.peOvervalued = peOvervalued;
 	}
 
 }

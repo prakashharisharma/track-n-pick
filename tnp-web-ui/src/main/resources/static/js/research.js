@@ -1,5 +1,6 @@
 $(document).ready(function() {
-			loadTable();
+	loadTableFundamental();
+	loadTableTechnical();
 		});
 
 $(document).ready(function(){	
@@ -10,14 +11,59 @@ $(document).ready(function(){
 });
 
 
-function loadTable(){
-	$('#example').DataTable({
+function loadTableFundamental(){
+	$('#fundamental').DataTable({
 		"ajax" : {
-			"url" : "/api/research/current",
+			"url" : "/api/research/fundamental",
 			"dataSrc" : ""
 		},
 		"columns" : [ {
 			"data" : "symbol"
+		}, {
+			"data" : "indice"
+		}
+		, {
+			"data" : "researchDate"
+		},{
+			"data" : "researchPrice"
+		},{
+			"data" : "currentPrice"
+		},{
+			"data" : "pe"
+		},{
+			"data" : "pb"
+		},{
+			"data" : "roe"
+		},{
+			"data" : "debtEquity"
+		},
+		{
+			"data" : "profitPer"
+		} ],
+		rowCallback : function(row, data, index) {
+			if (data.profitPer > 0.0) {
+				$(row).find('td:eq(9)').css('color', 'green');
+			}
+			if (data.profitPer < 0.0) {
+				$(row).find('td:eq(9)').css('color', 'red');
+			}
+			
+		}
+	});
+	
+	
+	
+}
+function loadTableTechnical(){
+	$('#technical').DataTable({
+		"ajax" : {
+			"url" : "/api/research/technical",
+			"dataSrc" : ""
+		},
+		"columns" : [ {
+			"data" : "symbol"
+		}, {
+			"data" : "indice"
 		}, {
 			"data" : "researchDate"
 		},{
@@ -25,24 +71,25 @@ function loadTable(){
 		},{
 			"data" : "currentPrice"
 		},{
-			"data" : "yearLow"
+			"data" : "sma50"
 		},{
-			"data" : "yearHigh"
+			"data" : "sma200"
+		},{
+			"data" : "rsi"
 		},{
 			"data" : "profitPer"
 		} ],
 		rowCallback : function(row, data, index) {
 			if (data.profitPer > 0.0) {
-				$(row).find('td:eq(6)').css('color', 'green');
+				$(row).find('td:eq(8)').css('color', 'green');
 			}
 			if (data.profitPer < 0.0) {
-				$(row).find('td:eq(6)').css('color', 'red');
+				$(row).find('td:eq(8)').css('color', 'red');
 			}
 			
 		}
 	});
 }
-
 
 function submitForm(){
 	

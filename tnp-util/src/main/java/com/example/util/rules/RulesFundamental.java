@@ -9,20 +9,30 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource("classpath:config/rules/fundamental_rules.properties")
 public class RulesFundamental {
 
-	private double price;
+	private double pricegt;
+	private double pricelt;
 	private double mcap;
 	private double debtEquity;
 	private double dividend;
 	private double roe;
 	private double roce;
+	private double currentRatio;
+	private double quickRatioBanks;
 
-	
-	public double getPrice() {
-		return price;
+	public double getPricegt() {
+		return pricegt;
 	}
 
-	public void setPrice(double price) {
-		this.price = price;
+	public void setPricegt(double pricegt) {
+		this.pricegt = pricegt;
+	}
+
+	public double getPricelt() {
+		return pricelt;
+	}
+
+	public void setPricelt(double pricelt) {
+		this.pricelt = pricelt;
 	}
 
 	public double getMcap() {
@@ -63,6 +73,22 @@ public class RulesFundamental {
 
 	public void setRoce(double roce) {
 		this.roce = roce;
+	}
+
+	public double getCurrentRatio() {
+		return currentRatio;
+	}
+
+	public void setCurrentRatio(double currentRatio) {
+		this.currentRatio = currentRatio;
+	}
+
+	public double getQuickRatioBanks() {
+		return quickRatioBanks;
+	}
+
+	public void setQuickRatioBanks(double quickRatioBanks) {
+		this.quickRatioBanks = quickRatioBanks;
 	}
 
 }

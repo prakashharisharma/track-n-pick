@@ -14,7 +14,7 @@ $(document).ready(function() {
 function loadTable(){
 	$('#example').DataTable({
 		"ajax" : {
-			"url" : "/api/dividends/recent/",
+			"url" : "/api/dividends/recent",
 			"dataSrc" : ""
 		},
 		"columns" : [ {
@@ -125,7 +125,7 @@ $(function() {
     });
 
     $('#stock_b').typeahead({
-        ajax: '/api/stocks/searchstock',
+        ajax: '/api/portfolio/searchstock',
         displayField: 'companyNameAndSymbol',
         valueField: 'id',
         onSelect: displayResult_b

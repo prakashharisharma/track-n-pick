@@ -13,11 +13,12 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.Locale;
 
+
 public class DateExample {
 
 	public static void main(String[] args) throws ParseException {
 
-		String dateStr_1="15-JAN-2019";
+			String dateStr_1="15-JAN-2019";
 		
 		   DateTimeFormatter formatter_1=new DateTimeFormatterBuilder().parseCaseInsensitive().appendPattern("dd-MMM-yyyy").toFormatter(Locale.ENGLISH);
 		   LocalDate localDate_1= LocalDate.parse(dateStr_1,formatter_1);

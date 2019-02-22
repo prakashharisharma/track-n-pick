@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.springframework.web.client.RestTemplate;
 
-import com.example.dylh.model.NseResponseData;
+import com.example.external.dylh.model.NseResponseData;
 import com.example.model.master.Stock;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -7,8 +7,8 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 
-import com.example.routes.BhavUpdateRoute;
-import com.example.routes.QuartzRouteDaily;
+import com.example.integration.routes.scheduler.QuartzRouteDaily;
+
 
 public class Start {
 

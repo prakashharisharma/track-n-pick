@@ -21,7 +21,7 @@ public class EmailService {
 	@Value("${spring.mail.displayname}")
 	private String displayName;
 	
-	public void sendEmail(String emailTo, String emailBody, String emailSubject) throws Exception {
+	public void sendEmail(String emailTo, String emailSubject,String emailBody) throws Exception {
 
 		MimeMessage message = mailSender.createMimeMessage();
 

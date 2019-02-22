@@ -27,6 +27,7 @@ import com.example.ui.model.ChartType;
 import com.example.ui.model.RenderSectorWiseValue;
 import com.example.ui.model.UIOverallGainLoss;
 import com.example.ui.model.UIRenderStock;
+import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 
 @Service
@@ -56,6 +57,9 @@ public class UiRenderUtil {
 	@Autowired
 	private ExpenseService expenseService;
 	
+	@Autowired
+	private FormulaService formulaService;
+	
 	public List<UIRenderStock> renderPortfolio(List<UserPortfolio> userPortfolioList) {
 
 		List<UIRenderStock> portfolioList = new ArrayList<>();
@@ -64,6 +68,7 @@ public class UiRenderUtil {
 
 			double currentPrice = userPortfolioStock.getStock().getStockPrice().getCurrentPrice();
 			double averagePrice = userPortfolioStock.getAveragePrice();
+
 
 			double profitPer = Double
 					.parseDouble(miscUtil.formatDouble(calculateProfitPer(currentPrice, averagePrice)));
@@ -92,10 +97,24 @@ public class UiRenderUtil {
 
 		for (ResearchLedger researchStock : researchList) {
 
-			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(
-					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getResearchPrice())));
+			double currentPrice = researchStock.getStock().getStockPrice().getCurrentPrice();
+			
+			double bookValue= researchStock.getStock().getStockFactor().getBookValue();
+			
+			double eps = researchStock.getStock().getStockFactor().getEps();
+			
+			double pe= formulaService.calculatePe(currentPrice, eps);
+			
+			double pb= formulaService.calculatePb(currentPrice, bookValue);
 
-			portfolioList.add(new UIRenderStock(researchStock, profitPer));
+			
+			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(
+					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getEntryPrice())));
+
+			portfolioList.add(new UIRenderStock(researchStock, profitPer,pe, pb));
+			
+			
+			
 		}
 
 		return portfolioList;

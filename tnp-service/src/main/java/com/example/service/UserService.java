@@ -23,6 +23,9 @@ public class UserService {
 	@Autowired
 	private UserRepository userRepository;
 	
+	@Autowired
+	private StockService stockService;
+	
 	public List<UserProfile> activeUsers(){
 		return userRepository.findByActive(true);
 	}
@@ -50,6 +53,10 @@ public class UserService {
 	public UserProfile addtoWatchList(UserProfile user, List<Stock> stocksList) {
 		LOGGER.info("ADDING TO WATCHLIST...");
 		Set<Stock> watchList = user.getWatchList();
+		LOGGER.info("UPDATING TECHNICALS BEFORE ADDING TO WATCHLIST...");
+		stocksList.forEach(stock -> {
+			//stockService.updateTechnicals(stock);
+		});
 		
 		watchList.addAll(stocksList);
 		
