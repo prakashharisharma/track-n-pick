@@ -25,7 +25,7 @@ public class StockTechnicals {
 	
 	public StockTechnicals() {
 		super();
-		// TODO Auto-generated constructor stub
+		
 	}
 
 	public StockTechnicals(String nseSymbol, Instant bhavDate, double avgGain, double avgLoss,

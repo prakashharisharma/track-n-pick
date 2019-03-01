@@ -26,6 +26,8 @@ public class EmailPortfolioProcessor implements Processor {
 	
 		NotificationTriggerIO notificationTriggerIO = new NotificationTriggerIO(NotificationTriggerIO.TriggerType.PORTFOLIO);
 		
+		LOGGER.debug("EmailPortfolioResearchProcessor : Queuinh to Notification ... " + notificationTriggerIO);
+		
 		queueService.send(notificationTriggerIO, QueueConstants.MTQueue.NOTIFICATION_SEND_MAIL_TRIGGER);
 		
 		LOGGER.info("EmailPortfolioResearchProcessor END");

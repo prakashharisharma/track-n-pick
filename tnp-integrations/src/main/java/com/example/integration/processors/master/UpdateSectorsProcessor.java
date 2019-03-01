@@ -27,7 +27,7 @@ public class UpdateSectorsProcessor implements Processor {
 	@Override
 	public void process(Exchange exchange) throws Exception {
 
-		LOGGER.info("SECTOR UPDATE PROCESSOR START");
+		LOGGER.info("UpdateSectorsProcessor : START");
 		@SuppressWarnings("unchecked")
 		List<SectorMasterIN> newSectorsList = (List<SectorMasterIN>) exchange.getIn().getBody();
 
@@ -37,10 +37,12 @@ public class UpdateSectorsProcessor implements Processor {
 			SectorIO sectorIO = new SectorIO(sectorMaster.getSectorName(), sectorMaster.getSectorPe(),
 					sectorMaster.getSectorPb());
 
+			LOGGER.debug("UpdateSectorsProcessor : Queuing to update master " + sectorMaster);
+			
 			queueService.send(sectorIO, QueueConstants.MTQueue.UPDATE_MASTER_SECTOR_QUEUE);
 		}
 
-		LOGGER.info("SECTOR UPDATE PROCESSOR END");
+		LOGGER.info("UpdateSectorsProcessor : END");
 	}
 
 }

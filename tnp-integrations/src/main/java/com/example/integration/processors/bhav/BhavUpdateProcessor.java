@@ -18,18 +18,17 @@ import com.example.mq.producer.QueueService;
 import com.example.util.io.model.StockPriceIO;
 
 @Service
-public class RetainMasterRecordsProcessor implements Processor {
+public class BhavUpdateProcessor implements Processor {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RetainMasterRecordsProcessor.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(BhavUpdateProcessor.class);
 
-	
 	@Autowired
 	private QueueService queueService;
 	
 	@Override
 	public void process(Exchange exchange) throws Exception {
 
-		LOGGER.info("FILTERING MASTER RECORD FROM BHAV FILE START");
+		LOGGER.info("BHAV UPDATE PROCESSOR : START");
 		
 		@SuppressWarnings("unchecked")
 		List<StockPriceIN> dailyStockPriceList = (List<StockPriceIN>) exchange.getIn().getBody();
@@ -44,12 +43,14 @@ public class RetainMasterRecordsProcessor implements Processor {
 			
 			StockPriceIO stockPriceIO = new StockPriceIO(sp.getNseSymbol(), sp.getSeries(), sp.getOpen(), sp.getHigh(), sp.getLow(), sp.getClose(), sp.getLast(), sp.getPrevClose(), sp.getTottrdqty(), sp.getTottrdval(), sp.getTimestamp(), sp.getTotaltrades(), sp.getIsin());
 			
+			LOGGER.trace("BHAV UPDATE PROCESSOR : Queuing to Update Price Queue..." + stockPriceIO);
+			
 			queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE);
 			
 		});
 		
 		
-		LOGGER.info("FILTERING MASTER RECORD FROM BHAV FILE END");
+		LOGGER.info("BHAV UPDATE PROCESSOR : END");
 		
 	}
 }

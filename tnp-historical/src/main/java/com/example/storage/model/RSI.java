@@ -12,7 +12,7 @@ public class RSI {
 
 	public RSI() {
 		super();
-		// TODO Auto-generated constructor stub
+		
 	}
 
 	public RSI(double rs, double rsi, double smoothedRs, double smoothedRsi) {

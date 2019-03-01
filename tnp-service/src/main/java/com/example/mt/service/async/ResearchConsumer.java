@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import com.example.model.ledger.UndervalueLedger;
 import com.example.model.master.Stock;
 import com.example.mq.constants.QueueConstants;
+import com.example.mq.producer.QueueService;
 import com.example.repo.ledger.UndervalueLedgerRepository;
 import com.example.service.CleanseService;
 import com.example.service.ResearchLedgerService;
@@ -25,8 +26,8 @@ import com.example.service.StockService;
 import com.example.service.TechnicalsResearchService;
 import com.example.util.FormulaService;
 import com.example.util.io.model.ResearchIO;
-import com.example.util.io.model.ResearchTrigger;
-import com.example.util.io.model.ResearchType;;
+import com.example.util.io.model.ResearchIO.ResearchTrigger;
+import com.example.util.io.model.ResearchIO.ResearchType;;
 
 @Component
 public class ResearchConsumer {
@@ -54,11 +55,14 @@ public class ResearchConsumer {
 	@Autowired
 	private ResearchLedgerService researchLedgerService;
 	
+	@Autowired
+	private QueueService queueService;
+	
 	@JmsListener(destination = QueueConstants.MTQueue.RESEARCH_QUEUE)
 	public void receiveMessage(@Payload ResearchIO researchIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
 
-		System.out.println("RESEARCH_CONSUMER START " + researchIO);
+		LOGGER.info("RESEARCH_CONSUMER START " + researchIO);
 
 		Stock stock = stockService.getStockByNseSymbol(researchIO.getNseSymbol());
 
@@ -67,7 +71,7 @@ public class ResearchConsumer {
 		} else if (researchIO.getResearchType() == ResearchType.TECHNICAL) {
 			this.researchTechnical(stock, researchIO.getResearchTrigger());
 		} else {
-			System.out.println("INVALID RESEARCH TYPE");
+			LOGGER.info("INVALID RESEARCH TYPE");
 		}
 
 	}
@@ -82,15 +86,17 @@ public class ResearchConsumer {
 				this.addToResearchLedgerFundamental(stock);
 				
 				this.researchTechnical(stock, ResearchTrigger.BUY);
+				
+				this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.BUY);
 
 			}
 		} else if (researchTrigger == ResearchTrigger.SELL) {
 			if (ruleService.isOvervalued(stock)) {
 				this.updateResearchLedgerFundamental(stock);
-
+				this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.SELL);
 			}
 		} else {
-			System.out.println("INVALID RESEARCH TYPE");
+			LOGGER.info("INVALID RESEARCH TYPE");
 		}
 
 	}
@@ -101,15 +107,19 @@ public class ResearchConsumer {
 			if (technicalsResearchService.isBullishCrossOver(stock)) {
 
 				this.addToResearchLedgerTechnical(stock);
+				
+				this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.BUY);
 
 			}
 		} else if (researchTrigger == ResearchTrigger.SELL) {
 
 			if (technicalsResearchService.isBearishCrossover(stock)) {
 				this.updateResearchLedgerTechnical(stock);
+				
+				this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.SELL);
 			}
 		} else {
-			System.out.println("INVALID RESEARCH TYPE");
+			LOGGER.info("INVALID RESEARCH TYPE");
 		}
 
 	}
@@ -160,6 +170,29 @@ public class ResearchConsumer {
 
 		
 
+	}
+	
+	private void addToResearchHistory(Stock stock, ResearchType researchType, ResearchTrigger researchTrigger ) {
+		
+		double currentPrice = stock.getStockPrice().getCurrentPrice();
+
+		double bookValue = stock.getStockFactor().getBookValue();
+
+		double eps = stock.getStockFactor().getEps();
+
+		double pe = formulaService.calculatePe(currentPrice, eps);
+
+		double pb = formulaService.calculatePb(currentPrice, bookValue);
+		
+		ResearchIO researchIO = new ResearchIO(stock.getNseSymbol(), researchType, researchTrigger, currentPrice, pe, pb);
+		
+		
+		if(!researchLedgerService.isResearchExist(stock, researchType, researchTrigger)){
+			queueService.send(researchIO, QueueConstants.HistoricalQueue.UPDATE_RESEARCH_QUEUE);
+		}else {
+			LOGGER.debug("RESEARCH ALREADY EXIST..." + stock.getNseSymbol());
+		}
+		
 	}
 
 }

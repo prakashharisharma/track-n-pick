@@ -9,7 +9,6 @@ public class YearHighLowResult {
 
 	public YearHighLowResult() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public YearHighLowResult(String _id, String nseSymbol, double resultPrice) {

@@ -16,119 +16,140 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 import com.example.external.bhav.service.DownloadBhavService;
+import com.example.model.ledger.DownloadLedger;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.service.CalendarService;
+import com.example.service.DownloadLedgerService;
 import com.example.service.FileNameService;
 import com.example.util.DownloadUtil;
 import com.example.util.io.model.DownloadTriggerIO;
-import com.example.util.io.model.DownloadType;
+import com.example.util.io.model.DownloadTriggerIO.DownloadType;
 import com.example.util.io.model.TradingSessionIO;
 
 @Component
-public class DownloadTriggerConsumer{
+public class DownloadTriggerConsumer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadTriggerConsumer.class);
-	
+
 	@Autowired
 	private FileNameService fileNameService;
-	
+
 	@Autowired
 	private DownloadBhavService downloadBhavService;
-	
+
 	@Autowired
 	private DownloadUtil downloadUtil;
-	
+
 	@Autowired
 	private CalendarService calendarService;
-	
-	
+
+	@Autowired
+	private DownloadLedgerService downloadLedgerService;
+
 	@Autowired
 	private QueueService queueService;
-	
+
 	@JmsListener(destination = QueueConstants.MTQueue.DOWNLOAD_TRIGGER_QUEUE)
-	public void receiveMessage(@Payload DownloadTriggerIO downloadTriggerIO, @Headers MessageHeaders headers, Message message,
-			Session session) throws InterruptedException {
-		
-		System.out.println("DT_CONSUMER START " + downloadTriggerIO);
-		
+	public void receiveMessage(@Payload DownloadTriggerIO downloadTriggerIO, @Headers MessageHeaders headers,
+			Message message, Session session) throws InterruptedException {
+
+		LOGGER.debug(QueueConstants.MTQueue.DOWNLOAD_TRIGGER_QUEUE.toUpperCase() +" : " + downloadTriggerIO + " : START");
+
 		DownloadType downloadType = downloadTriggerIO.getDownloadType();
-		
+
 		String referrerURI = null;
-		
+
 		String fileURI = null;
-		
+
 		String fileName = null;
-		
-		if(downloadType == DownloadType.BHAV) {
-			
+
+		if (downloadType == DownloadType.BHAV) {
+
 			referrerURI = fileNameService.getNSEBhavReferrerURI(downloadTriggerIO.getDownloadDate());
 			fileURI = fileNameService.getNSEBhavDownloadURI(downloadTriggerIO.getDownloadDate());
 			fileName = fileNameService.getNSEBhavFileName(downloadTriggerIO.getDownloadDate());
-			
 
 			try {
-				
-				if(downloadTriggerIO.getDownloadDate().getDayOfWeek() == DayOfWeek.SUNDAY || downloadTriggerIO.getDownloadDate().getDayOfWeek() == DayOfWeek.SATURDAY ) {
+				if (downloadLedgerService.isBhavDownloadExist(downloadTriggerIO.getDownloadDate())) {
+					LOGGER.info("NOT DOWNLOADING for  " + downloadTriggerIO.getDownloadDate().getDayOfWeek().name()
+							+ " BHAV ALREADY DOWNLOADED");
+				}else if (calendarService.isHoliday(downloadTriggerIO.getDownloadDate())) {
+					LOGGER.info("NOT DOWNLOADING for  " + downloadTriggerIO.getDownloadDate().getDayOfWeek().name()
+							+ " NSE Holiday");
+				}
+				else if (downloadTriggerIO.getDownloadDate().getDayOfWeek() == DayOfWeek.SUNDAY
+						|| downloadTriggerIO.getDownloadDate().getDayOfWeek() == DayOfWeek.SATURDAY) {
 					LOGGER.info("NOT DOWNLOADING for  " + downloadTriggerIO.getDownloadDate().getDayOfWeek().name());
-				}else {
-				downloadBhavService.downloadFile(referrerURI, fileURI,fileName);
-				
-				//
-				TradingSessionIO tradingSessionIO = new TradingSessionIO(calendarService.previousWorkingDay(downloadTriggerIO.getDownloadDate()));
-				
-				
-				queueService.send(tradingSessionIO, QueueConstants.HistoricalQueue.UPDATE_TRADING_SESSION_QUEUE);
+				} 
+
+				else {
+					downloadBhavService.downloadFile(referrerURI, fileURI, fileName);
+
+					this.updateDownloadLedger(downloadTriggerIO);
+					
+					//
+					TradingSessionIO tradingSessionIO = new TradingSessionIO(downloadTriggerIO.getDownloadDate());
+
+					queueService.send(tradingSessionIO, QueueConstants.HistoricalQueue.UPDATE_TRADING_SESSION_QUEUE);
 				}
 				//
 			} catch (IOException e) {
-				LOGGER.debug("EXCEPTION WHILE DOWNLOADING BHAV " + e);
-				e.printStackTrace();
+				LOGGER.error("EXCEPTION WHILE DOWNLOADING BHAV " + e);
 			}
-			
-		}else if(downloadType == DownloadType.NIFTY50){
-			
+
+		} else if (downloadType == DownloadType.NIFTY50) {
+
 			fileURI = fileNameService.getNSENifty50StocksURI();
-			
+
 			fileName = fileNameService.getNSENifty50StocksFileName();
-			
+
 			try {
-				downloadUtil.downloadFile(fileURI,fileName);
+				downloadUtil.downloadFile(fileURI, fileName);
+				
+				this.updateDownloadLedger(downloadTriggerIO);
 			} catch (IOException e) {
-				LOGGER.debug("EXCEPTION WHILE DOWNLOADING "+ downloadType +" : "  + e);
-				e.printStackTrace();
+				LOGGER.error("EXCEPTION WHILE DOWNLOADING " + downloadType + " : " + e);
+				
 			}
-			
-		}else if(downloadType == DownloadType.NIFTY200){
-			
+
+		} else if (downloadType == DownloadType.NIFTY200) {
+
 			fileURI = fileNameService.getNSENifty200StocksURI();
-			
+
 			fileName = fileNameService.getNSENifty200StocksFileName();
-			
+
 			try {
-				downloadUtil.downloadFile(fileURI,fileName);
+				downloadUtil.downloadFile(fileURI, fileName);
+				this.updateDownloadLedger(downloadTriggerIO);
 			} catch (IOException e) {
-				LOGGER.debug("EXCEPTION WHILE DOWNLOADING "+ downloadType +" : "  + e);
-				e.printStackTrace();
+				LOGGER.error("EXCEPTION WHILE DOWNLOADING " + downloadType + " : " + e);
 			}
-			
-		}else if(downloadType == DownloadType.NIFTY500){
-			
+
+		} else if (downloadType == DownloadType.NIFTY500) {
+
 			fileURI = fileNameService.getNSEIndex500StocksURI();
-			
+
 			fileName = fileNameService.getNSEIndex500StocksFileName();
-			
+
 			try {
-				downloadUtil.downloadFile(fileURI,fileName);
+				downloadUtil.downloadFile(fileURI, fileName);
+				this.updateDownloadLedger(downloadTriggerIO);
 			} catch (IOException e) {
-				LOGGER.debug("EXCEPTION WHILE DOWNLOADING "+ downloadType +" : "  + e);
-				e.printStackTrace();
+				LOGGER.error("EXCEPTION WHILE DOWNLOADING " + downloadType + " : " + e);
 			}
-			
+
+		} else {
+			LOGGER.info("NOT A VALID TYPE : " + downloadType);
 		}
-		else {
-			LOGGER.debug("NOT A VALID TYPE : " + downloadType);
-		}
+
+		LOGGER.debug(QueueConstants.MTQueue.DOWNLOAD_TRIGGER_QUEUE.toUpperCase() +" : " + downloadTriggerIO + " : END");
 		
+	}
+	
+	private void updateDownloadLedger(DownloadTriggerIO downloadTriggerIO) {
+		DownloadLedger downloadLedger = new DownloadLedger(downloadTriggerIO.getDownloadDate(), downloadTriggerIO.getDownloadType());
+		
+		downloadLedgerService.save(downloadLedger);
 	}
 }

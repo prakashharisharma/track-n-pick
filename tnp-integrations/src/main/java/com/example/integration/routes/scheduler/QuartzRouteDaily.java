@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.example.integration.processors.email.EmailPortfolioProcessor;
 import com.example.integration.processors.email.EmailResearchProcessor;
-import com.example.integration.processors.update.ResearchUpdateProcessor;
+import com.example.integration.processors.update.UpdateResearchProcessor;
 import com.example.integration.processors.download.DownloadNSEBhavProcessor;
 
 @Component
@@ -19,7 +19,7 @@ public class QuartzRouteDaily extends RouteBuilder{
 	private EmailPortfolioProcessor emailPortfolioProcessor;
 	
 	@Autowired
-	private ResearchUpdateProcessor researchUpdateProcessor;
+	private UpdateResearchProcessor researchUpdateProcessor;
 	
 	@Autowired
 	private DownloadNSEBhavProcessor downloadNSEBhavProcessor;

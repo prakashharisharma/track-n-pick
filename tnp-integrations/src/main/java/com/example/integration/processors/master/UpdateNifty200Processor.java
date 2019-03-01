@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 import com.example.integration.model.StockMasterIN;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
-import com.example.util.io.model.IndiceType;
 import com.example.util.io.model.StockIO;
+import com.example.util.io.model.StockIO.IndiceType;
 
 @Service
 public class UpdateNifty200Processor implements Processor {
@@ -25,22 +25,25 @@ public class UpdateNifty200Processor implements Processor {
 
 	@Override
 	public void process(Exchange exchange) throws Exception {
-		LOGGER.info("FILTERING NIFTY200 RECORD NSE MASTER");
+		LOGGER.info("UpdateNifty200Processor : START");
 
 		@SuppressWarnings("unchecked")
 		List<StockMasterIN> nseNifty200List = (List<StockMasterIN>) exchange.getIn().getBody();
 
 		// ADD TO NIFTY 200
 
-		LOGGER.info("NSE MASTER");
+		
 		nseNifty200List.forEach(stockIn -> {
 			StockIO stockIO = new StockIO(stockIn.getCompanyName(), stockIn.getSector(), stockIn.getNseSymbol(),
 					stockIn.getSeries(), stockIn.getIsin(), IndiceType.NIFTY200);
+			
+			LOGGER.debug("UpdateNifty200Processor : Queuing to update master " + stockIO);
+			
 			queueService.send(stockIO, QueueConstants.MTQueue.UPDATE_MASTER_STOCK_QUEUE);
 
 		});
 
-		
+		LOGGER.info("UpdateNifty200Processor : END");
 	}
 
 	

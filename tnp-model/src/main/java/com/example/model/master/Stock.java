@@ -23,7 +23,7 @@ import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.StockTechnicals;
 import com.example.model.stocks.UserPortfolio;
-import com.example.util.io.model.IndiceType;
+import com.example.util.io.model.StockIO.IndiceType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity

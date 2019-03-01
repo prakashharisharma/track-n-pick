@@ -23,9 +23,6 @@ public class UserService {
 	@Autowired
 	private UserRepository userRepository;
 	
-	@Autowired
-	private StockService stockService;
-	
 	public List<UserProfile> activeUsers(){
 		return userRepository.findByActive(true);
 	}

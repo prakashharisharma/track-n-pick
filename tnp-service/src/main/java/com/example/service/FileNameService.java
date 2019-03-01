@@ -60,7 +60,7 @@ public class FileNameService {
 		
 		String file_name = null;
 
-		LocalDate localDate = calendarService.previousWorkingDay(downloadDate);
+		LocalDate localDate = downloadDate;
 
 		int date = localDate.getDayOfMonth();
 
@@ -86,7 +86,7 @@ public class FileNameService {
 		String urlpre= "https://www.nseindia.com/ArchieveSearch?h_filetype=eqbhav&date=";
 		String urlpost = "&section=EQ";
 		
-		LocalDate date = calendarService.previousWorkingDay(downloadDate);
+		LocalDate date = downloadDate;
 	    
     	DateTimeFormatter formatters = DateTimeFormatter.ofPattern("dd-MM-uuuu");
     	
@@ -113,7 +113,7 @@ public class FileNameService {
 
 		String complete_uri = null;
 
-		LocalDate localDate = calendarService.previousWorkingDay(downloadDate);
+		LocalDate localDate = downloadDate;
 
 		int date = localDate.getDayOfMonth();
 
@@ -161,27 +161,27 @@ public class FileNameService {
 		return complete_uri;
 	}
 
-	public static String getNSEIndex500StocksURI() {
+	public String getNSEIndex500StocksURI() {
 		return "https://www.nseindia.com/content/indices/ind_nifty500list.csv";
 	}
 	
-	public static String getNSEIndex500StocksFileName() {
+	public String getNSEIndex500StocksFileName() {
 		return base_nse_master500_downloaded_filename;
 	}
 	
-	public static String getNSENifty50StocksURI() {
+	public String getNSENifty50StocksURI() {
 		return "https://www.nseindia.com/content/indices/ind_nifty50list.csv";
 	}
 	
-	public static String getNSENifty50StocksFileName() {
+	public String getNSENifty50StocksFileName() {
 		return base_nse_nifty50_downloaded_filename;
 	}
 	
-	public static String getNSENifty200StocksURI() {
+	public String getNSENifty200StocksURI() {
 		return "https://www.nseindia.com/content/indices/ind_nifty200list.csv";
 	}
 	
-	public static String getNSENifty200StocksFileName() {
+	public String getNSENifty200StocksFileName() {
 		return base_nse_nifty200_downloaded_filename;
 	}
 }

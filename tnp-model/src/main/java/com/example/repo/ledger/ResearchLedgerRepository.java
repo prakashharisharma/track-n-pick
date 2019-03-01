@@ -9,29 +9,30 @@ import org.springframework.stereotype.Repository;
 
 import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
-import com.example.model.type.ResearchStatus;
-import com.example.util.io.model.ResearchType;
+import com.example.util.io.model.ResearchIO.ResearchTrigger;
+import com.example.util.io.model.ResearchIO.ResearchType;
+
 
 
 @Transactional
 @Repository
 public interface ResearchLedgerRepository extends JpaRepository<ResearchLedger, Long> {
 
-	ResearchLedger findByStockAndResearchTypeAndResearchStatus(Stock stock,ResearchType researchType, ResearchStatus researchStatus);
+	ResearchLedger findByStockAndResearchTypeAndResearchStatus(Stock stock,ResearchType researchType, ResearchTrigger researchStatus);
 	
-	ResearchLedger findByStockAndResearchStatus(Stock stock, ResearchStatus researchStatus);
+	ResearchLedger findByStockAndResearchStatus(Stock stock, ResearchTrigger researchStatus);
 	
 	ResearchLedger findByStockAndResearchType(Stock stock, ResearchType researchType);
 	
-	List<ResearchLedger> findByResearchStatus(ResearchStatus researchStatus);
+	List<ResearchLedger> findByResearchStatus(ResearchTrigger researchStatus);
 	
 	List<ResearchLedger> findByResearchType(ResearchType researchType);
 	
-	List<ResearchLedger> findByResearchTypeAndResearchStatus(ResearchType researchType, ResearchStatus researchStatus);
+	List<ResearchLedger> findByResearchTypeAndResearchStatus(ResearchType researchType, ResearchTrigger researchStatus);
 
-	List<ResearchLedger> findByResearchStatusAndNotifiedBuy(ResearchStatus researchStatus,boolean isNotifiedBuy);
+	List<ResearchLedger> findByResearchStatusAndNotifiedBuy(ResearchTrigger researchStatus,boolean isNotifiedBuy);
 	
-	List<ResearchLedger> findByResearchStatusAndNotifiedSell(ResearchStatus researchStatus,boolean isNotifiedSell);
+	List<ResearchLedger> findByResearchStatusAndNotifiedSell(ResearchTrigger researchStatus,boolean isNotifiedSell);
 	
 	List<ResearchLedger> findByNotifiedBuy(boolean isNotifiedBuy);
 	

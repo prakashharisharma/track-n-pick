@@ -29,7 +29,7 @@ import com.example.service.UserService;
 import com.example.util.MiscUtil;
 import com.example.util.io.model.EmailIO;
 import com.example.util.io.model.NotificationTriggerIO;
-import com.example.util.io.model.ResearchType;
+import com.example.util.io.model.ResearchIO.ResearchType;
 
 @Component
 public class NotificationTriggerConsumer {
@@ -58,7 +58,7 @@ public class NotificationTriggerConsumer {
 	public void receiveMessage(@Payload NotificationTriggerIO notificationTriggerIO, @Headers MessageHeaders headers,
 			Message message, Session session) throws InterruptedException {
 
-		System.out.println("NOTIFICATION " + notificationTriggerIO);
+		LOGGER.debug(QueueConstants.MTQueue.NOTIFICATION_SEND_MAIL_TRIGGER.toUpperCase() +" : " + notificationTriggerIO + " : START");
 
 		
 		if(notificationTriggerIO.getTriggerType() == NotificationTriggerIO.TriggerType.RESEARCH ) {
@@ -67,7 +67,7 @@ public class NotificationTriggerConsumer {
 			this.processPortfolioNotification();
 		}
 		
-
+		LOGGER.debug(QueueConstants.MTQueue.NOTIFICATION_SEND_MAIL_TRIGGER.toUpperCase() +" : " + notificationTriggerIO + " : END");
 	}
 
 	private void processPortfolioNotification() throws InterruptedException {
@@ -81,8 +81,7 @@ public class NotificationTriggerConsumer {
 				this.preparePortfolioReportAndSendMail(user);
 				
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("Error while preparing email " + user);
 			}
 
 			Thread.sleep(miscUtil.getInterval());
@@ -102,7 +101,6 @@ public class NotificationTriggerConsumer {
 
 		String formatedbuyList = null;
 
-		System.out.println("TRIGGEr 1");
 		
 		if (buyResearchLedgerList != null && !buyResearchLedgerList.isEmpty()) {
 
@@ -117,11 +115,12 @@ public class NotificationTriggerConsumer {
 
 			formatedbuyList = prettyPrintService.formatBuyListHTML(buyFundamentals, buyTechnicals);
 			
-			System.out.println("TRIGGEr 11");
+			
 			buyFundamentals.forEach(stock -> {
 				researchLedgerService.updateResearchNotifiedBuy(stock, ResearchType.FUNDAMENTAL);
 			});
-			System.out.println("TRIGGEr 12");
+			
+			
 			buyTechnicals.forEach(stock -> {
 				researchLedgerService.updateResearchNotifiedBuy(stock, ResearchType.TECHNICAL);
 			});
@@ -131,7 +130,7 @@ public class NotificationTriggerConsumer {
 		}
 
 		String formatedsellList = null;
-		System.out.println("TRIGGEr 2");
+		
 		if (sellResearchLedgerList!=null && !sellResearchLedgerList.isEmpty()) {
 			
 			
@@ -145,11 +144,11 @@ public class NotificationTriggerConsumer {
 
 			formatedsellList = prettyPrintService.formatSellListHTML(sellFundamentals, sellTechnicals);
 			
-			System.out.println("TRIGGEr 21");
+			
 			sellFundamentals.forEach(stock -> {
 				researchLedgerService.updateResearchNotifiedSell(stock, ResearchType.FUNDAMENTAL);
 			});
-			System.out.println("TRIGGEr 22");
+		
 			sellTechnicals.forEach(stock -> {
 				researchLedgerService.updateResearchNotifiedSell(stock, ResearchType.TECHNICAL);
 			});
@@ -159,31 +158,29 @@ public class NotificationTriggerConsumer {
 		}
 
 		String disclaimer= prettyPrintService.getDisclaimer();
-		System.out.println("TRIGGEr 3");
+		
 		String formatedResearchList = null;
-		System.out.println("TRIGGEr 4");
+		
 		
 		if (!buyResearchLedgerList.isEmpty() && !sellResearchLedgerList.isEmpty()) {
-			System.out.println("TRIGGEr 41");
+			
 			formatedResearchList = formatedbuyList + formatedsellList+disclaimer;
 		} else if (!buyResearchLedgerList.isEmpty()) {
-			System.out.println("TRIGGEr 42");
+			
 			formatedResearchList = formatedbuyList +disclaimer;
 		} else if (!sellResearchLedgerList.isEmpty()) {
-			System.out.println("TRIGGEr 43");
+			
 			formatedResearchList = formatedsellList +disclaimer;
 		}
 
 		if (formatedResearchList !=null ) {
-			System.out.println("TRIGGEr 5");
 			for (UserProfile user : allActiveUsers) {
-				System.out.println("TRIGGEr 6" + user);
 				this.prepareWatchListReportAndSendMail(user, formatedResearchList, emailSubject);
 
 				Thread.sleep(miscUtil.getInterval());
 			}
 		}else {
-			System.out.println("NO RESEARCH");
+			LOGGER.info("NO RESEARCH");
 		}
 	}
 	
@@ -217,7 +214,7 @@ public class NotificationTriggerConsumer {
 	
 	private void prepareWatchListReportAndSendMail(UserProfile user, String formatedResearchList, String emailSubject) {
 
-		System.out.println("Emailing START" + user.getFirstName() + " : " + user.getUserEmail() + ": " + emailSubject);
+		LOGGER.info("Emailing START" + user.getFirstName() + " : " + user.getUserEmail() + ": " + emailSubject);
 
 		String emailBody = prettyPrintService.formatEmailBody(user.getFirstName(), formatedResearchList);
 
@@ -225,7 +222,7 @@ public class NotificationTriggerConsumer {
 
 		queueService.send(emailIO, QueueConstants.ExternalQueue.SEND_EMAIL_QUEUE);
 
-		System.out.println("Emailing END" + user.getFirstName() + " : " + user.getUserEmail());
+		LOGGER.info("Emailing END" + user.getFirstName() + " : " + user.getUserEmail());
 
 	}
 }

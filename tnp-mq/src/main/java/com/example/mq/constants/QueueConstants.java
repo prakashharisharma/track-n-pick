@@ -12,6 +12,8 @@ public interface QueueConstants {
 		
 		public static String UPDATE_FACTORS_QUEUE = "queue.historical.factors.update";
 		
+		public static String UPDATE_RESEARCH_QUEUE = "queue.historical.research.update";
+		
 	}
 	public interface IntegrationQueue{
 		public static String PROCESS_BHAV_QUEUE = "queue.integration.stocks.bhav";

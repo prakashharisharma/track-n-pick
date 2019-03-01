@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.util.io.model.DownloadTriggerIO;
-import com.example.util.io.model.DownloadType;
 
 @Service
 public class DownloadNSEBhavProcessor implements Processor {
@@ -30,7 +29,7 @@ public class DownloadNSEBhavProcessor implements Processor {
 		//downloadUtil.downloadFile(fileNameService.getNSEBhavDownloadURI(),fileNameService.getNSEBhavFileName());
 		//downloadBhavService.downloadFile(fileNameService.getNSEBhavReferrerURI(), fileNameService.getNSEBhavDownloadURI(),fileNameService.getNSEBhavFileName());
 		
-		DownloadTriggerIO downloadTriggerIO = new DownloadTriggerIO(LocalDate.now(), DownloadType.BHAV);
+		DownloadTriggerIO downloadTriggerIO = new DownloadTriggerIO(LocalDate.now().minusDays(1), DownloadTriggerIO.DownloadType.BHAV);
 		
 		queueService.send(downloadTriggerIO, QueueConstants.MTQueue.DOWNLOAD_TRIGGER_QUEUE);
 		

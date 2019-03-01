@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.ui.model.UIUpdateLedger;
-import com.example.util.io.model.TriggerType;
+import com.example.util.io.model.UpdateTriggerIO.TriggerType;
 import com.example.util.io.model.UpdateTriggerIO;
 
 @RestController

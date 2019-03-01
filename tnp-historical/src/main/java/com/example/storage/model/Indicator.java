@@ -7,7 +7,7 @@ public class Indicator {
 	
 	public Indicator() {
 		super();
-		// TODO Auto-generated constructor stub
+		
 	}
 
 	public Indicator(RSI rsi) {

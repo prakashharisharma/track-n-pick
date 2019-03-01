@@ -2,6 +2,8 @@ package com.example.util.io.model;
 
 import java.io.Serializable;
 
+import com.example.util.io.model.type.DirectionIO;
+
 public class StockTechnicalsIO implements Serializable{
 
 	/**

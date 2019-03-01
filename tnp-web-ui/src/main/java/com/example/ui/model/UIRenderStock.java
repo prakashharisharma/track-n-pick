@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
-import com.example.util.io.model.IndiceType;
+import com.example.util.io.model.StockIO.IndiceType;
 
 public class UIRenderStock {
 

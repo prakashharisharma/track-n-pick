@@ -20,9 +20,9 @@ import com.example.storage.service.StorageService;
 import com.example.util.io.model.StockPriceIO;
 
 @Component
-public class PriceConsumer {
+public class PriceHistoryConsumer {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(PriceConsumer.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(PriceHistoryConsumer.class);
 
 	@Autowired
 	private StorageService storageService;
@@ -38,12 +38,14 @@ public class PriceConsumer {
 	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
 
-		System.out.println("PS_CONSUMER START " + stockPriceIO);
+		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : START");
 
 		// To Be Removed In Future
 		storageService.updatePrice(stockPriceIO.getNseSymbol(), stockPriceIO.getOpen(), stockPriceIO.getHigh(), stockPriceIO.getLow(), stockPriceIO.getClose(), stockPriceIO.getLast(), stockPriceIO.getPrevClose(), stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdval(), stockPriceIO.getTotaltrades(), stockPriceIO.getBhavDate());
 		//
 		
+		
+		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : updating Price History..");
 		
 		StockPrice stockPriceN = new StockPrice(stockPriceIO.getNseSymbol(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
 				stockPriceIO.getLow(), stockPriceIO.getClose(), stockPriceIO.getLast(), stockPriceIO.getPrevClose(),
@@ -69,14 +71,18 @@ public class PriceConsumer {
 
 		priceTemplate.create(stockPriceN);
 
-		LOGGER.info("ADDED PRICE DATA :" + stockPriceIO.getNseSymbol());
-
+		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : Queuing to update Technicals..");
+		
 		Thread.sleep(50);
 		
 		queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE);
 		
+		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : Queuing to update Transactional Price.. ");
+		
 		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
 
+		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : END");
+		
 	}
 
 }

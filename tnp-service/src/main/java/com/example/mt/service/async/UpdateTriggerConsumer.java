@@ -24,9 +24,9 @@ import com.example.service.ResearchLedgerService;
 import com.example.service.StockService;
 import com.example.service.UserService;
 import com.example.util.io.model.ResearchIO;
-import com.example.util.io.model.ResearchTrigger;
-import com.example.util.io.model.ResearchType;
-import com.example.util.io.model.TriggerType;
+import com.example.util.io.model.ResearchIO.ResearchTrigger;
+import com.example.util.io.model.ResearchIO.ResearchType;
+import com.example.util.io.model.UpdateTriggerIO.TriggerType;
 import com.example.util.io.model.UpdateTriggerIO;
 
 @Component
@@ -47,12 +47,14 @@ public class UpdateTriggerConsumer {
 	private PerformanceLedgerService performanceLedgerService;
 	@Autowired
 	private StockService stockService;
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateTriggerConsumer.class);
 
 	@JmsListener(destination = QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE)
 	public void receiveMessage(@Payload UpdateTriggerIO updateTriggerIO, @Headers MessageHeaders headers,
 			Message message, Session session) throws InterruptedException {
+
+		LOGGER.info(QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE.toUpperCase() + " : " + updateTriggerIO + " : START");
 
 		if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_RESEARCH) {
 			this.updateResearch();
@@ -60,17 +62,18 @@ public class UpdateTriggerConsumer {
 			this.updateCYRO();
 		} else if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_FYRO) {
 			this.updateFYRO();
-		}else if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_MONTHLY_VALUE) {
+		} else if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_MONTHLY_VALUE) {
 			this.updateMonthlyValue();
-		}else if (updateTriggerIO.getTrigger() == TriggerType.RESET_MASTER) {
+		} else if (updateTriggerIO.getTrigger() == TriggerType.RESET_MASTER) {
 			this.resetMaster();
 		}
+		LOGGER.info(QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE.toUpperCase() + " : " + updateTriggerIO + " : END");
 	}
 
 	private void resetMaster() {
 		stockService.resetMaster();
 	}
-	
+
 	// UPDATE_CYRO, UPDATE_FYRO, UPDATE_MONTHLY_VALUE, UPDATE_RESEARCH
 	private void updateCYRO() {
 		List<UserProfile> activeUsers = userService.activeUsers();
@@ -98,19 +101,16 @@ public class UpdateTriggerConsumer {
 		}
 	}
 
-	
-	
 	private void updateResearch() {
 
 		List<ResearchLedger> researchLedgerList = researchLedgerService.allActiveResearch();
 
-		
-		//Sell Research Fundamental and Technical
+		// Sell Research Fundamental and Technical
 		researchLedgerList.forEach(researchLedger -> {
 			ResearchIO researchIO = new ResearchIO();
 
 			researchIO.setNseSymbol(researchLedger.getStock().getNseSymbol());
-			//researchIO.setResearchTrigger(ResearchTrigger.SELL);
+		
 
 			if (researchLedger.getResearchType() == ResearchType.TECHNICAL) {
 
@@ -121,32 +121,43 @@ public class UpdateTriggerConsumer {
 				researchIO.setResearchType(ResearchType.FUNDAMENTAL);
 				researchIO.setResearchTrigger(ResearchTrigger.SELL);
 				this.process(researchIO);
-			}else {
-				LOGGER.debug("INVALID RESEARCH TYPE" +researchLedger.getResearchType() + researchLedger.getStock().getNseSymbol() );
+			} else {
+				LOGGER.debug("INVALID RESEARCH TYPE" + researchLedger.getResearchType()
+						+ researchLedger.getStock().getNseSymbol());
 			}
 
-			
-
 		});
-		
-		//Buy Research Technical for fundamental
-		
+
+		// Buy Research Technical for fundamental
+
 		researchLedgerList.forEach(researchLedger -> {
 			ResearchIO researchIO = new ResearchIO();
 			researchIO.setNseSymbol(researchLedger.getStock().getNseSymbol());
-			
+
 			if (researchLedger.getResearchType() == ResearchType.FUNDAMENTAL) {
 				researchIO.setResearchType(ResearchType.TECHNICAL);
 				researchIO.setResearchTrigger(ResearchTrigger.BUY);
 				this.process(researchIO);
 			}
 
-			
-			
-			
 		});
+
+		// Sell Research Fundamental for Technicals
+
+		researchLedgerList.forEach(researchLedger -> {
+			ResearchIO researchIO = new ResearchIO();
+			researchIO.setNseSymbol(researchLedger.getStock().getNseSymbol());
+
+			if (researchLedger.getResearchType() == ResearchType.TECHNICAL) {
+				researchIO.setResearchType(ResearchType.FUNDAMENTAL);
+				researchIO.setResearchTrigger(ResearchTrigger.SELL);
+				this.process(researchIO);
+			}
+
+		});
+
 	}
-	
+
 	private void process(ResearchIO researchIO) {
 		queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
 	}

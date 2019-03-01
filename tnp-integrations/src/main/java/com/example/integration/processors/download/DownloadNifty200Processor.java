@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.util.io.model.DownloadTriggerIO;
-import com.example.util.io.model.DownloadType;
 
 @Service
 public class DownloadNifty200Processor implements Processor {
@@ -23,12 +22,15 @@ public class DownloadNifty200Processor implements Processor {
 	@Override
 	public void process(Exchange arg0) throws Exception {
 
-		LOGGER.info("DOWNLOAD NIFTY 200 FILE PROCESSOR START ...");
-		//downloadUtil.downloadFile(fileNameService.getNSENifty200StocksURI(),fileNameService.getNSENifty200StocksFileName());
-		LOGGER.info("DOWNLOAD NIFTY 200 FILE PROCESSOR END ...");
-		DownloadTriggerIO downloadTriggerIO = new DownloadTriggerIO(DownloadType.NIFTY200);
+		LOGGER.info("DOWNLOAD NIFTY 200 FILE PROCESSOR : START");
+		
+		DownloadTriggerIO downloadTriggerIO = new DownloadTriggerIO(DownloadTriggerIO.DownloadType.NIFTY200);
+		
+		LOGGER.debug("DOWNLOAD NIFTY 200 FILE PROCESSOR : Queuinh to Download ... " + downloadTriggerIO);
 		
 		queueService.send(downloadTriggerIO, QueueConstants.MTQueue.DOWNLOAD_TRIGGER_QUEUE);
+		
+		LOGGER.info("DOWNLOAD NIFTY 200 FILE PROCESSOR : END");
 	}
 
 }

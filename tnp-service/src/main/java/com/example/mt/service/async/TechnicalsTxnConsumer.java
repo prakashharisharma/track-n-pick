@@ -15,7 +15,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 import com.example.model.master.Stock;
-import com.example.model.stocks.Direction;
 import com.example.model.stocks.StockTechnicals;
 import com.example.mq.constants.QueueConstants;
 import com.example.repo.stocks.StockTechnicalsRepository;
@@ -40,7 +39,7 @@ public class TechnicalsTxnConsumer {
 	public void receiveMessage(@Payload StockTechnicalsIO stockTechnicalsIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
 		
-		System.out.println("TECHNICALSTXN_CONSUMER START " + stockTechnicalsIO);
+		LOGGER.info("TECHNICALSTXN_CONSUMER START " + stockTechnicalsIO);
 		
 		if(cleanseService.isNifty500(stockTechnicalsIO.getNseSymbol())) {
 			this.processPriceUpdate(stockTechnicalsIO);
@@ -62,9 +61,9 @@ public class TechnicalsTxnConsumer {
 			stockTechnicals.setSma200(stockTechnicalsIO.getSma200());
 			stockTechnicals.setPrevSma200(stockTechnicalsIO.getPrevSma200());
 			stockTechnicals.setRsi(stockTechnicalsIO.getRsi());
-			stockTechnicals.setCurrentTrend(this.directionAdapter(stockTechnicalsIO.getCurrentTrend()));
-			stockTechnicals.setMidTermTrend(this.directionAdapter(stockTechnicalsIO.getMidTermTrend()));
-			stockTechnicals.setLongTermTrend(this.directionAdapter(stockTechnicalsIO.getLongTermTrend()));
+			stockTechnicals.setCurrentTrend(stockTechnicalsIO.getCurrentTrend());
+			stockTechnicals.setMidTermTrend(stockTechnicalsIO.getMidTermTrend());
+			stockTechnicals.setLongTermTrend(stockTechnicalsIO.getLongTermTrend());
 			stockTechnicals.setLastModified(LocalDate.now());
 		}else {
 			stockTechnicals = new StockTechnicals();
@@ -76,22 +75,13 @@ public class TechnicalsTxnConsumer {
 			stockTechnicals.setSma200(stockTechnicalsIO.getSma200());
 			stockTechnicals.setPrevSma200(stockTechnicalsIO.getPrevSma200());
 			stockTechnicals.setRsi(stockTechnicalsIO.getRsi());
-			stockTechnicals.setCurrentTrend(this.directionAdapter(stockTechnicalsIO.getCurrentTrend()));
-			stockTechnicals.setMidTermTrend(this.directionAdapter(stockTechnicalsIO.getMidTermTrend()));
-			stockTechnicals.setLongTermTrend(this.directionAdapter(stockTechnicalsIO.getLongTermTrend()));
+			stockTechnicals.setCurrentTrend(stockTechnicalsIO.getCurrentTrend());
+			stockTechnicals.setMidTermTrend(stockTechnicalsIO.getMidTermTrend());
+			stockTechnicals.setLongTermTrend(stockTechnicalsIO.getLongTermTrend());
 			stockTechnicals.setLastModified(LocalDate.now());
 		}
 		
 		stockTechnicalsRepository.save(stockTechnicals);
-	}
-
-	private Direction directionAdapter(com.example.util.io.model.DirectionIO inputDirection) {
-		
-		if(inputDirection == com.example.util.io.model.DirectionIO.UPTREND) {
-			return Direction.UPTREND;
-		}else {
-			return Direction.DOWNTREND;
-		}
 	}
 	
 }

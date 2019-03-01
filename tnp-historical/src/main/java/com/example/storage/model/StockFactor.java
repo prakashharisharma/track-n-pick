@@ -36,7 +36,7 @@ public class StockFactor {
 
 	public StockFactor() {
 		super();
-		// TODO Auto-generated constructor stub
+		
 	}
 
 	public StockFactor(String nseSymbol, double marketCap, double debtEquity, double currentRatio, double quickRatio,

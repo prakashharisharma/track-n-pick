@@ -6,18 +6,16 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.example.model.master.Stock;
-import com.example.model.type.ResearchStatus;
-import com.example.util.io.model.ResearchType;
+import com.example.util.io.model.ResearchIO.ResearchTrigger;
+import com.example.util.io.model.ResearchIO.ResearchType;
 
 
 @Entity
@@ -51,7 +49,7 @@ public class ResearchLedger {
 	
 	@Column(name = "RESEARCH_STATUS")
 	@Enumerated(EnumType.STRING)
-	ResearchStatus researchStatus;
+	ResearchTrigger researchStatus;
 	
 	@Column(name = "IS_NOTIFIED_BUY")
 	boolean notifiedBuy = false;
@@ -115,11 +113,11 @@ public class ResearchLedger {
 		this.researchType = researchType;
 	}
 
-	public ResearchStatus getResearchStatus() {
+	public ResearchTrigger getResearchStatus() {
 		return researchStatus;
 	}
 
-	public void setResearchStatus(ResearchStatus researchStatus) {
+	public void setResearchStatus(ResearchTrigger researchStatus) {
 		this.researchStatus = researchStatus;
 	}
 

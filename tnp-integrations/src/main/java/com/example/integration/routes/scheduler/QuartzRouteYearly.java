@@ -4,7 +4,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.example.integration.processors.download.DownloadNSE500StocksMasterProcessor;
+import com.example.integration.processors.download.DownloadNSE500Processor;
 import com.example.integration.processors.download.DownloadNifty200Processor;
 import com.example.integration.processors.download.DownloadNifty50Processor;
 import com.example.integration.processors.update.UpdateCYROProcessor;
@@ -20,7 +20,7 @@ public class QuartzRouteYearly extends RouteBuilder {
 	private UpdateCYROProcessor updateCYROProcessor;
 
 	@Autowired
-	private DownloadNSE500StocksMasterProcessor downloadNSE500StocksMasterProcessor;
+	private DownloadNSE500Processor downloadNSE500StocksMasterProcessor;
 	
 	@Autowired
 	private DownloadNifty50Processor downloadNifty50Processor;

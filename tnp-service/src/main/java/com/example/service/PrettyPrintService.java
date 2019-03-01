@@ -80,10 +80,13 @@ public class PrettyPrintService {
 			double pe = formulaService.calculatePe(currentPrice, eps);
 			double pb= formulaService.calculatePb(currentPrice, bookValue);
 			
-			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" + s.getPrimaryIndice()+ "</td><td>"
-					+ s.getStockPrice().getCurrentPrice() + "</td><td>" + formatDouble(pe) + "</td><td>"
-							+ "</td><td>" + formatDouble(pb) + "</td><td>"
-					+ s.getStockFactor().getDebtEquity() + "</td><td>" + s.getStockFactor().getReturnOnEquity()
+			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" 
+					+ s.getPrimaryIndice()+ "</td><td>"
+					+ s.getStockPrice().getCurrentPrice() + "</td><td>" 
+					+ formatDouble(pe) + "</td><td>"
+					+ formatDouble(pb) + "</td><td>"
+					+ s.getStockFactor().getDebtEquity() + "</td><td>" 
+					+ s.getStockFactor().getReturnOnEquity()
 					+ "</td></tr>");
 		});
 
@@ -100,9 +103,12 @@ public class PrettyPrintService {
 
 		technicalsList.forEach((s) -> {
 
-			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" + s.getPrimaryIndice() + "</td><td>"
-					+ s.getStockPrice().getCurrentPrice() + "</td><td>" + s.getTechnicals().getSma50() + "</td><td>"
-					+ s.getTechnicals().getSma200() + "</td><td>" + s.getTechnicals().getRsi()
+			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" 
+					+ s.getPrimaryIndice() + "</td><td>"
+					+ s.getStockPrice().getCurrentPrice() + "</td><td>" 
+					+ s.getTechnicals().getSma50() + "</td><td>"
+					+ s.getTechnicals().getSma200() + "</td><td>" 
+					+ s.getTechnicals().getRsi()
 					+ "</td></tr>");
 		});
 
@@ -110,7 +116,6 @@ public class PrettyPrintService {
 
 		}
 	
-		//sb.append("<div><p><span><b><i>DISCLAIMER : </i></b></span><i>tracknpick.com is comprised of reports, if any, embodying a unique system of stock analysis. Accuracy and completeness cannot be guaranteed. Users should be aware of the risks involved in stock investments.</i></p><p><i>All investors are advised to conduct their own independent research into individual stocks before making a purchase decision.You should be aware of the risks involved in stock investing, and you use the material contained herein at your own risk. Neither tracknpick.com nor any of its suppliers guarantee its accuracy or validity, nor are they responsible for any errors or omissions which may have occurred. The analysis, ratings, and/or recommendations made by tracknpick.com, and/or any of its suppliers do not provide, imply, or otherwise constitute a guarantee of performance.</i></p></div>");
 		
 		return sb.toString();
 	
@@ -137,10 +142,13 @@ double currentPrice = s.getStockPrice().getCurrentPrice();
 			double pe = formulaService.calculatePe(currentPrice, eps);
 			double pb= formulaService.calculatePb(currentPrice, bookValue);
 			
-			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" + s.getPrimaryIndice()+ "</td><td>"
-					+ s.getStockPrice().getCurrentPrice() + "</td><td>" + formatDouble(pe) + "</td><td>"
-							+ "</td><td>" + formatDouble(pb) + "</td><td>"
-					+ s.getStockFactor().getDebtEquity() + "</td><td>" + s.getStockFactor().getReturnOnEquity()
+			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" 
+					+ s.getPrimaryIndice()+ "</td><td>"
+					+ s.getStockPrice().getCurrentPrice() + "</td><td>" 
+					+ formatDouble(pe) + "</td><td>"
+					+ formatDouble(pb) + "</td><td>"
+					+ s.getStockFactor().getDebtEquity() + "</td><td>" 
+					+ s.getStockFactor().getReturnOnEquity()
 					+ "</td></tr>");
 		});
 
@@ -156,16 +164,19 @@ double currentPrice = s.getStockPrice().getCurrentPrice();
 
 		technicalsList.forEach((s) -> {
 
-			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" + s.getPrimaryIndice() + "</td><td>"
-					+ s.getStockPrice().getCurrentPrice() + "</td><td>" + s.getTechnicals().getSma50() + "</td><td>"
-					+ s.getTechnicals().getSma200() + "</td><td>" + s.getTechnicals().getRsi()
+			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" 
+					+ s.getPrimaryIndice() + "</td><td>"
+					+ s.getStockPrice().getCurrentPrice() + "</td><td>" 
+					+ s.getTechnicals().getSma50() + "</td><td>"
+					+ s.getTechnicals().getSma200() + "</td><td>" 
+					+ s.getTechnicals().getRsi()
 					+ "</td></tr>");
 		});
 
 		sb.append("</tbody></table></div>");
 
 		}
-		//sb.append("<div><p><span><b><i>DISCLAIMER : </i></b></span><i>tracknpick.com is comprised of reports, if any, embodying a unique system of stock analysis. Accuracy and completeness cannot be guaranteed. Users should be aware of the risks involved in stock investments.</i></p><p><i>All investors are advised to conduct their own independent research into individual stocks before making a purchase decision.You should be aware of the risks involved in stock investing, and you use the material contained herein at your own risk. Neither tracknpick.com nor any of its suppliers guarantee its accuracy or validity, nor are they responsible for any errors or omissions which may have occurred. The analysis, ratings, and/or recommendations made by tracknpick.com, and/or any of its suppliers do not provide, imply, or otherwise constitute a guarantee of performance.</i></p></div>");
+		
 		
 		return sb.toString();
 	

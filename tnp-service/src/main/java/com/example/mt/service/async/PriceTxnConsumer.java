@@ -44,7 +44,7 @@ public class PriceTxnConsumer {
 	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
 
-		System.out.println("PRICETXN_CONSUMER START " + stockPriceIO);
+		LOGGER.info("PRICETXN_CONSUMER START " + stockPriceIO);
 		
 		if (cleanseService.isNifty500(stockPriceIO.getNseSymbol())) {
 

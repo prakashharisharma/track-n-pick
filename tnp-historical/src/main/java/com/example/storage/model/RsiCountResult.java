@@ -9,7 +9,7 @@ public class RsiCountResult {
 
 	public RsiCountResult() {
 		super();
-		// TODO Auto-generated constructor stub
+		
 	}
 
 	public RsiCountResult(String _id, int count) {

@@ -8,14 +8,14 @@ import org.springframework.stereotype.Component;
 
 import com.example.integration.model.StockPriceIN;
 import com.example.mq.constants.QueueConstants;
-import com.example.integration.processors.bhav.RetainMasterRecordsProcessor;
+import com.example.integration.processors.bhav.BhavUpdateProcessor;
 import com.example.util.FileLocationConstants;
 
 @Component
 public class BhavUpdateRoute extends RouteBuilder {
 
 	@Autowired
-	private RetainMasterRecordsProcessor retainMasterRecordsProcessor;
+	private BhavUpdateProcessor retainMasterRecordsProcessor;
 	
 	@Override
 	public void configure() throws Exception {

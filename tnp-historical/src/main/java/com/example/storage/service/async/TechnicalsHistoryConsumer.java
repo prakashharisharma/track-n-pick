@@ -19,19 +19,17 @@ import com.example.storage.model.MovingAverage;
 import com.example.storage.model.RSI;
 import com.example.storage.model.StockTechnicals;
 import com.example.storage.model.Trend;
-import com.example.storage.model.type.Direction;
 import com.example.storage.repo.TechnicalsTemplate;
 import com.example.storage.service.StorageService;
 import com.example.storage.service.TrendServiceImpl;
 import com.example.util.FormulaService;
-import com.example.util.io.model.DirectionIO;
 import com.example.util.io.model.StockPriceIO;
 import com.example.util.io.model.StockTechnicalsIO;
 
 @Component
-public class TechnicalsConsumer {
+public class TechnicalsHistoryConsumer {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(TechnicalsConsumer.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(TechnicalsHistoryConsumer.class);
 
 	@Autowired
 	private StorageService storageService;
@@ -51,7 +49,7 @@ public class TechnicalsConsumer {
 	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
 		
-		System.out.println("TC_CONSUMER START " + stockPriceIO);
+		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : START");
 		
 		// Get Technicals
 
@@ -71,8 +69,6 @@ public class TechnicalsConsumer {
 				double currentLoss = 0.0;
 
 				double change = stockPriceIO.getClose() - stockPriceIO.getPrevClose();
-
-				double currentPrice = stockPriceIO.getClose();
 
 				if (change > 0) {
 					currentGain = change;
@@ -94,8 +90,6 @@ public class TechnicalsConsumer {
 
 				double sma200 = storageService.getSMA(stockPriceIO.getNseSymbol(), 200);
 
-				double avgSma50 = technicalsTemplate.getPriorDaysSma50Average(stockPriceIO.getNseSymbol(), 3);
-
 				MovingAverage movingAverage = new MovingAverage(sma50, sma100, sma200);
 
 				RSI rsiObj = new RSI(rs, rsi, smoothedRs, smoothedRsi);
@@ -109,35 +103,27 @@ public class TechnicalsConsumer {
 				
 				Thread.sleep(70);
 				
-				LOGGER.info("ADDED TECHNICALs :" + stockPriceIO.getNseSymbol());
-				
 				//
 				StockTechnicalsIO stockTechnicalsIO = new StockTechnicalsIO();
 				stockTechnicalsIO.setNseSymbol(stockPriceIO.getNseSymbol());
 				stockTechnicalsIO.setSma50(sma50);
-				stockTechnicalsIO.setPrevSma50(sma100);
-				stockTechnicalsIO.setSma100(sma200);
-				stockTechnicalsIO.setSma200(technicalsTemplate.getPrevSessionSma50(stockPriceIO.getNseSymbol()));
+				stockTechnicalsIO.setSma100(sma100);
+				stockTechnicalsIO.setSma200(sma200);
+				stockTechnicalsIO.setPrevSma50(technicalsTemplate.getPrevSessionSma50(stockPriceIO.getNseSymbol()));
 				stockTechnicalsIO.setPrevSma200(technicalsTemplate.getPrevSessionSma200(stockPriceIO.getNseSymbol()));
 				stockTechnicalsIO.setRsi(smoothedRsi);
 				
 				Trend trend = trendService.getMovingAverageTrends(stockPriceIO.getNseSymbol());
 				
-				stockTechnicalsIO.setCurrentTrend(this.directionAdapter(trend.getCurrentTrend()));
-				stockTechnicalsIO.setMidTermTrend(this.directionAdapter(trend.getMidTermTrend()));
-				stockTechnicalsIO.setLongTermTrend(this.directionAdapter(trend.getLongTermTrend()));
+				stockTechnicalsIO.setCurrentTrend(trend.getCurrentTrend());
+				stockTechnicalsIO.setMidTermTrend(trend.getMidTermTrend());
+				stockTechnicalsIO.setLongTermTrend(trend.getLongTermTrend());
 				
-				
+				LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : Queuing to update Transactional Technicals.. ");
 				// Save
 				queueService.send(stockTechnicalsIO, QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE);
+				
+				LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : START");
 	}
 	
-	private DirectionIO directionAdapter(Direction inputDirection) {
-		
-		if(inputDirection == Direction.UPTREND) {
-			return DirectionIO.UPTREND;
-		}else {
-			return DirectionIO.DOWNTREND;
-		}
-	}
 }

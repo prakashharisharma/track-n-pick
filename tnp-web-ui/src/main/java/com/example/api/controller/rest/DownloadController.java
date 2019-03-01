@@ -16,7 +16,7 @@ import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.ui.model.UIDownload;
 import com.example.util.io.model.DownloadTriggerIO;
-import com.example.util.io.model.DownloadType;
+import com.example.util.io.model.DownloadTriggerIO.DownloadType;
 
 @RestController
 @RequestMapping("/api/download")

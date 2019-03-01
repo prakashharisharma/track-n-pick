@@ -1,48 +1,48 @@
 package com.example.storage.model;
 
-import com.example.storage.model.type.Direction;
+import com.example.util.io.model.type.DirectionIO;
 
 public class Trend {
 
-	private Direction longTermTrend;
+	private DirectionIO longTermTrend;
 	
-	private Direction midTermTrend;
+	private DirectionIO midTermTrend;
 	
-	private Direction currentTrend;
+	private DirectionIO currentTrend;
 
 	public Trend() {
 		super();
-		// TODO Auto-generated constructor stub
+		
 	}
 
-	public Trend(Direction longTermTrend, Direction midTermTrend, Direction currentTrend) {
+	public Trend(DirectionIO longTermTrend, DirectionIO midTermTrend, DirectionIO currentTrend) {
 		super();
 		this.longTermTrend = longTermTrend;
 		this.midTermTrend = midTermTrend;
 		this.currentTrend = currentTrend;
 	}
 
-	public Direction getLongTermTrend() {
+	public DirectionIO getLongTermTrend() {
 		return longTermTrend;
 	}
 
-	public void setLongTermTrend(Direction longTermTrend) {
+	public void setLongTermTrend(DirectionIO longTermTrend) {
 		this.longTermTrend = longTermTrend;
 	}
 
-	public Direction getMidTermTrend() {
+	public DirectionIO getMidTermTrend() {
 		return midTermTrend;
 	}
 
-	public void setMidTermTrend(Direction midTermTrend) {
+	public void setMidTermTrend(DirectionIO midTermTrend) {
 		this.midTermTrend = midTermTrend;
 	}
 
-	public Direction getCurrentTrend() {
+	public DirectionIO getCurrentTrend() {
 		return currentTrend;
 	}
 
-	public void setCurrentTrend(Direction currentTrend) {
+	public void setCurrentTrend(DirectionIO currentTrend) {
 		this.currentTrend = currentTrend;
 	}
 

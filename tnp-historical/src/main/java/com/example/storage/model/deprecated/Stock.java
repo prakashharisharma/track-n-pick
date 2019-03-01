@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Deprecated
@@ -26,7 +25,6 @@ public class Stock{
 	
 	List<StockPriceD> stockPrices;
 
-	//List<StockTechnicals> stockTechnicals;
 	
 	public Stock() {
 		super();

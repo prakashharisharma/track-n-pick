@@ -16,7 +16,7 @@ public class TradingSession {
 
 	public TradingSession() {
 		super();
-		// TODO Auto-generated constructor stub
+		
 	}
 
 	public TradingSession(Instant tradingDate) {

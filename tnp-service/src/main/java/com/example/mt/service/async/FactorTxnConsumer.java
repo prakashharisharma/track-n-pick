@@ -19,10 +19,9 @@ import com.example.mq.producer.QueueService;
 import com.example.service.RuleService;
 import com.example.service.StockService;
 import com.example.util.io.model.ResearchIO;
-import com.example.util.io.model.ResearchTrigger;
-import com.example.util.io.model.ResearchType;
+import com.example.util.io.model.ResearchIO.ResearchTrigger;
+import com.example.util.io.model.ResearchIO.ResearchType;
 import com.example.util.io.model.StockFactorIO;
-import com.example.util.rules.RulesFundamental;
 
 @Component
 public class FactorTxnConsumer {
@@ -42,7 +41,7 @@ public class FactorTxnConsumer {
 	public void receiveMessage(@Payload String nseSymbol, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
 		
-		System.out.println("FACTOR_CONSUMER START " + nseSymbol);
+		LOGGER.debug(QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE.toUpperCase() +" : " + nseSymbol + " : START");
 		
 		Stock stock = stockService.getStockByNseSymbol(nseSymbol);
 		
@@ -71,6 +70,7 @@ public class FactorTxnConsumer {
 		
 		this.processResearch(researchIO);
 		
+		LOGGER.debug(QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE.toUpperCase() +" : " + nseSymbol + " : END");
 	}
 	
 	private void processResearch(ResearchIO researchIO) {

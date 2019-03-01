@@ -16,6 +16,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.example.model.master.Stock;
+import com.example.util.io.model.type.DirectionIO;
 
 @Entity
 @Table(name = "STOCK_TECHNICALS")
@@ -57,15 +58,15 @@ public class StockTechnicals implements Serializable{
 
 	@Column(name = "LONG_TERM_TREND")
 	@Enumerated(EnumType.STRING)
-	Direction longTermTrend;
+	DirectionIO longTermTrend;
 	
 	@Column(name = "MID_TERM_TREND")
 	@Enumerated(EnumType.STRING)
-	Direction midTermTrend;
+	DirectionIO midTermTrend;
 	
 	@Column(name = "CURRENT_TREND")
 	@Enumerated(EnumType.STRING)
-	Direction currentTrend;
+	DirectionIO currentTrend;
 	
 	@Column(name = "LAST_MODIFIED")
 	LocalDate lastModified = LocalDate.now();
@@ -142,27 +143,27 @@ public class StockTechnicals implements Serializable{
 		this.sma100 = sma100;
 	}
 
-	public Direction getLongTermTrend() {
+	public DirectionIO getLongTermTrend() {
 		return longTermTrend;
 	}
 
-	public void setLongTermTrend(Direction longTermTrend) {
+	public void setLongTermTrend(DirectionIO longTermTrend) {
 		this.longTermTrend = longTermTrend;
 	}
 
-	public Direction getMidTermTrend() {
+	public DirectionIO getMidTermTrend() {
 		return midTermTrend;
 	}
 
-	public void setMidTermTrend(Direction midTermTrend) {
+	public void setMidTermTrend(DirectionIO midTermTrend) {
 		this.midTermTrend = midTermTrend;
 	}
 
-	public Direction getCurrentTrend() {
+	public DirectionIO getCurrentTrend() {
 		return currentTrend;
 	}
 
-	public void setCurrentTrend(Direction currentTrend) {
+	public void setCurrentTrend(DirectionIO currentTrend) {
 		this.currentTrend = currentTrend;
 	}
 

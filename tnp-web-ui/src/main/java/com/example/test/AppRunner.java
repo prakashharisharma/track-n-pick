@@ -1,11 +1,6 @@
-package com.example;
+package com.example.test;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +19,8 @@ import com.example.service.FundsLedgerService;
 import com.example.service.PortfolioService;
 import com.example.service.StockService;
 import com.example.service.TechnicalsResearchService;
-import com.example.service.TempFileNameService;
 import com.example.service.UserService;
 import com.example.service.WatchListService;
-import com.example.storage.model.TradingSession;
 import com.example.storage.repo.PriceTemplate;
 import com.example.storage.repo.TechnicalsTemplate;
 import com.example.storage.repo.TradingSessionTemplate;
@@ -82,9 +75,6 @@ public class AppRunner implements CommandLineRunner {
 	private DownloadBhavService downloadBhavService;
 
 	@Autowired
-	private TempFileNameService tempFileNameService;
-
-	@Autowired
 	private TechnicalsResearchService technicalsService;
 
 	@Autowired
@@ -98,18 +88,18 @@ public class AppRunner implements CommandLineRunner {
 
 		// LOGGER.info("USERS" + technicalsTemplate.getPrevTotalGain("TEST2"));
 
-		LOGGER.info("AVG" + technicalsTemplate.getPriorDaysSma50Average("TEST", 3));
-		LOGGER.info("AVG" + technicalsTemplate.getrsiCountAbove(60.00, "TEST", 50));
-		LOGGER.info("AVG1 " + technicalsTemplate.getPrevSessionSma50("JAGRAN"));
-		LOGGER.info("AVG2 " + technicalsTemplate.getPrevSessionSma200("JAGRAN"));
+		LOGGER.info("PREV50 " + technicalsTemplate.getPrevSessionSma50("INFY"));
+		LOGGER.info("PREV200 " + technicalsTemplate.getPrevSessionSma200("INFY"));
+		LOGGER.info("SMA50 " + storageService.getSMA("INFY", 50));
+		LOGGER.info("SMA200 " + storageService.getSMA("INFY", 200));
 
-		LOGGER.info("LOw " + storageService.getyearLow("ZEEL"));
+		LOGGER.info("LOw " + storageService.getyearLow("INFY"));
 
-		LOGGER.info("LOW1 " + priceTemplate.getyearLow("ZEEL"));
+		LOGGER.info("LOW1 " + priceTemplate.getyearLow("INFY"));
 
-		LOGGER.info("HIgh " + storageService.getyearHigh("ZEEL"));
+		LOGGER.info("HIgh " + storageService.getyearHigh("INFY"));
 
-		LOGGER.info("HIgh " + priceTemplate.getyearHigh("ZEEL"));
+		LOGGER.info("HIgh " + priceTemplate.getyearHigh("INFY"));
 		/*
 		 * priceTemplate.getYearLowStocks();
 		 * 
@@ -178,7 +168,7 @@ public class AppRunner implements CommandLineRunner {
 		 */
 	}
 
-	public void setUpStoragePrice() throws IOException, InterruptedException {
+	/*public void setUpStoragePrice() throws IOException, InterruptedException {
 
 		LocalDate dt = LocalDate.of(2018, Month.MAY, 2);
 
@@ -221,6 +211,6 @@ public class AppRunner implements CommandLineRunner {
 
 		}
 
-	}
+	}*/
 
 }

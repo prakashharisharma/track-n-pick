@@ -3,6 +3,8 @@ package com.example.storage.service.async;
 import javax.jms.Session;
 
 import org.apache.activemq.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.messaging.MessageHeaders;
@@ -16,8 +18,11 @@ import com.example.storage.service.TradingSessionService;
 import com.example.util.io.model.TradingSessionIO;
 
 @Component
-public class TradingSessionConsumer {
+public class TradingSessionHistoryConsumer {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(TradingSessionHistoryConsumer.class);
+
+	
 	@Autowired
 	private TradingSessionService tradingSessionService;
 	
@@ -25,12 +30,12 @@ public class TradingSessionConsumer {
 	public void receiveMessage(@Payload TradingSessionIO tradingSessionIO, @Headers MessageHeaders headers, Message message,
 			Session session) {
 
-		System.out.println("TS_CONSUMER START " + tradingSessionIO);
+		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_TRADING_SESSION_QUEUE.toUpperCase() +" : " + tradingSessionIO +" : START");
 		
 		TradingSession tradingSession = new TradingSession(tradingSessionIO.getTradingDate());
 		
 		tradingSessionService.addTradingSession(tradingSession);
 		
-		System.out.println("TS_CONSUMER END " + tradingSessionIO);
+		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_TRADING_SESSION_QUEUE.toUpperCase() +" : " + tradingSessionIO +" : END");
 	}
 }

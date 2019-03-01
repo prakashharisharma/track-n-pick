@@ -18,9 +18,9 @@ import com.example.storage.repo.FactorTemplate;
 import com.example.util.io.model.StockFactorIO;
 
 @Component
-public class FactorConsumer {
+public class FactorHistoryConsumer {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(FactorConsumer.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(FactorHistoryConsumer.class);
 
 	@Autowired
 	private FactorTemplate factorTemplate;
@@ -29,9 +29,13 @@ public class FactorConsumer {
 	public void receiveMessage(@Payload StockFactorIO stockFactorIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
 		
+		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_FACTORS_QUEUE.toUpperCase() +" : " + stockFactorIO.getNseSymbol() +" : START" );
+		
 		StockFactor stockFactor = new StockFactor(stockFactorIO.getNseSymbol(), stockFactorIO.getMarketCap(), stockFactorIO.getDebtEquity(), stockFactorIO.getCurrentRatio(), stockFactorIO.getQuickRatio(), stockFactorIO.getDividend(), stockFactorIO.getBookValue(), stockFactorIO.getEps(), stockFactorIO.getReturnOnEquity(), stockFactorIO.getReturnOnCapital(), stockFactorIO.getFaceValue(), stockFactorIO.getQuarterEndedInstant());
 		
 		factorTemplate.create(stockFactor);
+		
+		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_FACTORS_QUEUE.toUpperCase() +" : " + stockFactorIO.getNseSymbol() +" : END" );
 	}
 	
 }
