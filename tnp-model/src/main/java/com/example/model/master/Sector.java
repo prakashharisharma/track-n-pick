@@ -1,13 +1,18 @@
 package com.example.model.master;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
 
 @Entity
 @Table(name = "SECTORS")
@@ -27,22 +32,38 @@ public class Sector implements Serializable{
 	@Column(name = "SECTOR_NAME")
 	String sectorName;
 
-	@Column(name = "SECTOR_PE")
-	double sectorPe;
+	@Column(name = "SECTOR_PE",columnDefinition="Decimal(10,4) default '20.00'")
+	double sectorPe = 20.00;
 
-	@Column(name = "SECTOR_PB")
-	double sectorPb;
+	@Column(name = "SECTOR_PB",columnDefinition="Decimal(10,4) default '1.00'")
+	double sectorPb = 1.00;
 
+	@Column(name = "VARIATION_PE",columnDefinition="Decimal(10,4) default '2.00'")
+	double variationPe = 2.00;
+	
+	@Column(name = "VARIATION_PB",columnDefinition="Decimal(10,4) default '0.50'")
+	double variationPb = 0.50;
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "sector")
+	private Set<Stock> stocks = new HashSet<Stock>(0);
+	
 	public Sector() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public Sector(String sectorName, double sectorPe, double sectorPb) {
+	public Sector(String sectorName) {
+		super();
+		this.sectorName = sectorName;
+	}
+
+	public Sector(String sectorName, double sectorPe, double sectorPb,double variationPe,double variationPb) {
 		super();
 		this.sectorName = sectorName;
 		this.sectorPe = sectorPe;
 		this.sectorPb = sectorPb;
+		this.variationPe = variationPe;
+		this.variationPb = variationPb;
 	}
 
 	public long getSectorId() {
@@ -75,6 +96,30 @@ public class Sector implements Serializable{
 
 	public void setSectorPb(double sectorPb) {
 		this.sectorPb = sectorPb;
+	}
+
+	public double getVariationPe() {
+		return variationPe + sectorPe;
+	}
+
+	public void setVariationPe(double variationPe) {
+		this.variationPe = variationPe;
+	}
+
+	public double getVariationPb() {
+		return variationPb + sectorPb;
+	}
+
+	public void setVariationPb(double variationPb) {
+		this.variationPb = variationPb;
+	}
+
+	public Set<Stock> getStocks() {
+		return stocks;
+	}
+
+	public void setStocks(Set<Stock> stocks) {
+		this.stocks = stocks;
 	}
 
 	@Override

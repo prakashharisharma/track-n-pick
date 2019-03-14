@@ -16,10 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.model.ledger.FundsLedger;
-import com.example.model.um.UserProfile;
 import com.example.security.LoginService;
 import com.example.service.FundsLedgerService;
-import com.example.service.UserService;
 import com.example.ui.model.UIFund;
 
 @RestController

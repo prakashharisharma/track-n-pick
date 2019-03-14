@@ -17,11 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
-import com.example.model.um.UserProfile;
 import com.example.security.LoginService;
 import com.example.service.PortfolioService;
 import com.example.service.StockService;
-import com.example.service.UserService;
 import com.example.ui.model.StockSearch;
 import com.example.ui.model.UIRenderStock;
 import com.example.ui.service.UiRenderUtil;

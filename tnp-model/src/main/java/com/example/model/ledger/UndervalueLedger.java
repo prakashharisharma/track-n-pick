@@ -36,11 +36,20 @@ public class UndervalueLedger implements Serializable {
 	@Column(name = "RESEARCH_DATE")
 	LocalDate researchDate = LocalDate.now();
 	
+	@Column(name = "LAST_MODIFIED")
+	LocalDate lastModified = LocalDate.now();
+	
 	@Column(name = "PE" , columnDefinition="Decimal(10,2) default '0.00'")
 	double pe;
 	
 	@Column(name = "PB" , columnDefinition="Decimal(10,2) default '0.00'")
 	double pb;
+	
+	@Column(name = "NEW_PE" , columnDefinition="Decimal(10,2) default '0.00'")
+	double newPe;
+	
+	@Column(name = "NEW_PB" , columnDefinition="Decimal(10,2) default '0.00'")
+	double newPb;
 	
 	public UndervalueLedger() {
 		super();
@@ -94,6 +103,30 @@ public class UndervalueLedger implements Serializable {
 
 	public void setPb(double pb) {
 		this.pb = pb;
+	}
+
+	public LocalDate getLastModified() {
+		return lastModified;
+	}
+
+	public void setLastModified(LocalDate lastModified) {
+		this.lastModified = lastModified;
+	}
+
+	public double getNewPe() {
+		return newPe;
+	}
+
+	public void setNewPe(double newPe) {
+		this.newPe = newPe;
+	}
+
+	public double getNewPb() {
+		return newPb;
+	}
+
+	public void setNewPb(double newPb) {
+		this.newPb = newPb;
 	}
 
 	

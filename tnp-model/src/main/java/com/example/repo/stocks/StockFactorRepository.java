@@ -1,5 +1,7 @@
 package com.example.repo.stocks;
 
+import java.util.List;
+
 import javax.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,4 +13,8 @@ import com.example.model.stocks.StockFactor;
 @Repository
 public interface StockFactorRepository extends JpaRepository<StockFactor, Long> {
 
+	public List<StockFactor> findTop100AllByOrderByMarketCapDesc();
+	
+	public List<StockFactor> findTop250AllByOrderByMarketCapDesc();
+	
 }

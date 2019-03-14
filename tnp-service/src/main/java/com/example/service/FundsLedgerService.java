@@ -70,7 +70,7 @@ public class FundsLedgerService {
 	}
 
 	public List<FundsLedger> recentHistory(UserProfile user) {
-		return fundsLedgerRepository.findAll();
+		return fundsLedgerRepository.findByUserId(user);
 	}
 
 	public double currentYearInvestment(UserProfile user) {

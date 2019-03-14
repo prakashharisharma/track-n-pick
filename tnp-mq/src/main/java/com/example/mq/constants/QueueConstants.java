@@ -20,7 +20,8 @@ public interface QueueConstants {
 		public static String UPDATE_SECTORS_QUEUE = "queue.integration.update.sectors";
 		
 		public static String UPDATE_NIFTY500_QUEUE = "queue.integration.update.nifty500";
-		public static String UPDATE_NIFTY200_QUEUE = "queue.integration.update.nifty200";
+		public static String UPDATE_NIFTY250_QUEUE = "queue.integration.update.nifty250";
+		public static String UPDATE_NIFTY100_QUEUE = "queue.integration.update.nifty100";
 		public static String UPDATE_NIFTY50_QUEUE = "queue.integration.update.nifty50";
 	}
 	public interface TransactionQueue{

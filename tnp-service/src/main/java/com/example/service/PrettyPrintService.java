@@ -82,7 +82,7 @@ public class PrettyPrintService {
 			
 			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" 
 					+ s.getPrimaryIndice()+ "</td><td>"
-					+ s.getStockPrice().getCurrentPrice() + "</td><td>" 
+					+ formatDouble(s.getStockPrice().getCurrentPrice()) + "</td><td>" 
 					+ formatDouble(pe) + "</td><td>"
 					+ formatDouble(pb) + "</td><td>"
 					+ s.getStockFactor().getDebtEquity() + "</td><td>" 
@@ -105,7 +105,7 @@ public class PrettyPrintService {
 
 			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" 
 					+ s.getPrimaryIndice() + "</td><td>"
-					+ s.getStockPrice().getCurrentPrice() + "</td><td>" 
+					+ formatDouble(s.getStockPrice().getCurrentPrice()) + "</td><td>" 
 					+ s.getTechnicals().getSma50() + "</td><td>"
 					+ s.getTechnicals().getSma200() + "</td><td>" 
 					+ s.getTechnicals().getRsi()
@@ -144,7 +144,7 @@ double currentPrice = s.getStockPrice().getCurrentPrice();
 			
 			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" 
 					+ s.getPrimaryIndice()+ "</td><td>"
-					+ s.getStockPrice().getCurrentPrice() + "</td><td>" 
+					+ formatDouble(s.getStockPrice().getCurrentPrice()) + "</td><td>" 
 					+ formatDouble(pe) + "</td><td>"
 					+ formatDouble(pb) + "</td><td>"
 					+ s.getStockFactor().getDebtEquity() + "</td><td>" 
@@ -166,7 +166,7 @@ double currentPrice = s.getStockPrice().getCurrentPrice();
 
 			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" 
 					+ s.getPrimaryIndice() + "</td><td>"
-					+ s.getStockPrice().getCurrentPrice() + "</td><td>" 
+					+ formatDouble(s.getStockPrice().getCurrentPrice()) + "</td><td>" 
 					+ s.getTechnicals().getSma50() + "</td><td>"
 					+ s.getTechnicals().getSma200() + "</td><td>" 
 					+ s.getTechnicals().getRsi()
@@ -273,10 +273,13 @@ double currentPrice = s.getStockPrice().getCurrentPrice();
 			
 			double profir_per = ((currentPrice - averagePrice) * 100)/averagePrice;
 			
-			sb.append("<tr><td>" + s.getStock().getNseSymbol() + "</td><td>" + s.getAveragePrice() +"</td><td>" + s.getStock().getStockPrice().getCurrentPrice() + "</td><td>"
-					+ s.getStock().getStockPrice().getYearLow() + "</td><td>" + s.getStock().getStockPrice().getYearHigh() + "</td><td>"
-					+ formatDouble(profir_per)  
-					+ "</td></tr>");
+			sb.append("<tr><td>" + s.getStock().getNseSymbol() + "</td><td>" 
+								+ formatDouble(s.getAveragePrice()) +"</td><td>"
+								+ formatDouble(s.getStock().getStockPrice().getCurrentPrice()) + "</td><td>"
+								+ s.getStock().getStockPrice().getYearLow() + "</td><td>" 
+								+ s.getStock().getStockPrice().getYearHigh() + "</td><td>"
+								+ formatDouble(profir_per)  
+								+ "</td></tr>");
 		});
 
 		sb.append("</tbody></table></div>");
@@ -313,8 +316,10 @@ double currentPrice = s.getStockPrice().getCurrentPrice();
 
 			double pb = formulaService.calculatePb(currentPrice, bookValue);
 			
-			sb.append("<tr><td>" + s.getStock().getNseSymbol() + "</td><td>" + currentPrice +"</td><td>" + pe + "</td><td>"
-					+ pb + "</td><td>" + s.getStock().getStockFactor().getReturnOnEquity() + "</td><td>"
+			sb.append("<tr><td>" + s.getStock().getNseSymbol() + "</td><td>" 
+							+ formatDouble(currentPrice) +"</td><td>" 
+					+ formatDouble(pe) + "</td><td>"
+					+ formatDouble(pb) + "</td><td>" + s.getStock().getStockFactor().getReturnOnEquity() + "</td><td>"
 					+ s.getStock().getStockFactor().getReturnOnCapital() + "</td><td>"
 					+ s.getStock().getStockFactor().getDebtEquity() + "</td><td>"
 					+ s.getStock().getStockFactor().getCurrentRatio() + "</td><td>"
@@ -355,8 +360,10 @@ double currentPrice = s.getStockPrice().getCurrentPrice();
 
 			double pb = formulaService.calculatePb(currentPrice, bookValue);
 			
-			sb.append("<tr><td>" + s.getStock().getNseSymbol() + "</td><td>" + currentPrice +"</td><td>" + pe + "</td><td>"
-					+ pb + "</td><td>" + s.getStock().getStockFactor().getReturnOnEquity() + "</td><td>"
+			sb.append("<tr><td>" + s.getStock().getNseSymbol() + "</td><td>" 
+								+ formatDouble(currentPrice) +"</td><td>" 
+					+ formatDouble(pe) + "</td><td>"
+					+ formatDouble(pb) + "</td><td>" + s.getStock().getStockFactor().getReturnOnEquity() + "</td><td>"
 					+ s.getStock().getStockFactor().getReturnOnCapital() + "</td><td>"
 					+ s.getStock().getStockFactor().getDebtEquity() + "</td><td>"
 					+ s.getStock().getStockFactor().getCurrentRatio() + "</td><td>"

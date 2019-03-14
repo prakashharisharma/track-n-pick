@@ -22,6 +22,7 @@ import com.example.mq.producer.QueueService;
 import com.example.service.CalendarService;
 import com.example.service.DownloadLedgerService;
 import com.example.service.FileNameService;
+import com.example.service.SectorService;
 import com.example.util.DownloadUtil;
 import com.example.util.io.model.DownloadTriggerIO;
 import com.example.util.io.model.DownloadTriggerIO.DownloadType;
@@ -38,6 +39,9 @@ public class DownloadTriggerConsumer {
 	@Autowired
 	private DownloadBhavService downloadBhavService;
 
+	@Autowired
+	private SectorService sectorService;
+	
 	@Autowired
 	private DownloadUtil downloadUtil;
 
@@ -88,6 +92,8 @@ public class DownloadTriggerConsumer {
 
 					this.updateDownloadLedger(downloadTriggerIO);
 					
+					this.updateSectorPEPB();
+					
 					//
 					TradingSessionIO tradingSessionIO = new TradingSessionIO(downloadTriggerIO.getDownloadDate());
 
@@ -113,11 +119,25 @@ public class DownloadTriggerConsumer {
 				
 			}
 
-		} else if (downloadType == DownloadType.NIFTY200) {
+		}else if (downloadType == DownloadType.NIFTY100) {
 
-			fileURI = fileNameService.getNSENifty200StocksURI();
+			fileURI = fileNameService.getNSENifty100StocksURI();
 
-			fileName = fileNameService.getNSENifty200StocksFileName();
+			fileName = fileNameService.getNSENifty100StocksFileName();
+
+			try {
+				downloadUtil.downloadFile(fileURI, fileName);
+				this.updateDownloadLedger(downloadTriggerIO);
+			} catch (IOException e) {
+				LOGGER.error("EXCEPTION WHILE DOWNLOADING " + downloadType + " : " + e);
+			}
+
+		}
+		else if (downloadType == DownloadType.NIFTY250) {
+
+			fileURI = fileNameService.getNSENifty250StocksURI();
+
+			fileName = fileNameService.getNSENifty250StocksFileName();
 
 			try {
 				downloadUtil.downloadFile(fileURI, fileName);
@@ -151,5 +171,9 @@ public class DownloadTriggerConsumer {
 		DownloadLedger downloadLedger = new DownloadLedger(downloadTriggerIO.getDownloadDate(), downloadTriggerIO.getDownloadType());
 		
 		downloadLedgerService.save(downloadLedger);
+	}
+	
+	private void updateSectorPEPB() {
+		sectorService.updateSectorPEPB();
 	}
 }

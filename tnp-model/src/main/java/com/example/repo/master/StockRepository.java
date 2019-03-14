@@ -7,6 +7,7 @@ import javax.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.example.model.master.Sector;
 import com.example.model.master.Stock;
 
 @Transactional
@@ -23,15 +24,9 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 	
 	List<Stock> findByNseSymbolContainingIgnoreCase(String nseSymbol);
 	
-	List<Stock> findBySector(String sector);
+	List<Stock> findBySector(Sector sector);
 	
 	List<Stock> findByActive(boolean isActive);
-	
-	List<Stock> findByNifty50AndActive(boolean isNifty50, boolean isActive);
-	
-	List<Stock> findByNifty200AndActive(boolean isNifty200, boolean isActive);
-	
-	List<Stock> findByNifty50AndNifty200AndActive(boolean isNifty50,boolean isNifty200, boolean isActive);
 
 	public List<Stock> findAll();
 	

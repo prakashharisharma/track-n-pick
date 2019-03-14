@@ -17,11 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.model.ledger.DividendLedger;
 import com.example.model.master.Stock;
-import com.example.model.um.UserProfile;
 import com.example.security.LoginService;
 import com.example.service.DividendLedgerService;
 import com.example.service.StockService;
-import com.example.service.UserService;
 import com.example.ui.model.UIDividend;
 
 @RestController

@@ -35,7 +35,7 @@ public class UpdateSectorsProcessor implements Processor {
 
 		for (SectorMasterIN sectorMaster : newSectorsSet) {
 			SectorIO sectorIO = new SectorIO(sectorMaster.getSectorName(), sectorMaster.getSectorPe(),
-					sectorMaster.getSectorPb());
+					sectorMaster.getSectorPb(), sectorMaster.getVariationPe(), sectorMaster.getVariationPb());
 
 			LOGGER.debug("UpdateSectorsProcessor : Queuing to update master " + sectorMaster);
 			

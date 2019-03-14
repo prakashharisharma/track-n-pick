@@ -1,16 +1,16 @@
 package com.example.storage.model;
 
-public class Indicator {
+public class Momentum {
 
 	private RSI rsi;
 
 	
-	public Indicator() {
+	public Momentum() {
 		super();
 		
 	}
 
-	public Indicator(RSI rsi) {
+	public Momentum(RSI rsi) {
 		super();
 		this.rsi = rsi;
 	}

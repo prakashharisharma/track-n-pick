@@ -20,9 +20,13 @@ public interface ResearchLedgerRepository extends JpaRepository<ResearchLedger, 
 
 	ResearchLedger findByStockAndResearchTypeAndResearchStatus(Stock stock,ResearchType researchType, ResearchTrigger researchStatus);
 	
+	ResearchLedger findByStockAndResearchTypeAndResearchStatusAndNotifiedStorage(Stock stock,ResearchType researchType, ResearchTrigger researchStatus, boolean notifiedStorage);
+	
 	ResearchLedger findByStockAndResearchStatus(Stock stock, ResearchTrigger researchStatus);
 	
 	ResearchLedger findByStockAndResearchType(Stock stock, ResearchType researchType);
+	
+	ResearchLedger findByStockAndResearchTypeAndNotifiedStorage(Stock stock, ResearchType researchType, boolean notifiedStorage);
 	
 	List<ResearchLedger> findByResearchStatus(ResearchTrigger researchStatus);
 	

@@ -67,16 +67,17 @@ public class ResearchLedgerService {
 		researchLedgerRepository.save(researchLedger);
 	}
 
-	public boolean isResearchExist(Stock stock, ResearchType researchType, ResearchTrigger researchTrigger) {
-		boolean isResearchExist = false;
-		ResearchLedger researchLedger = researchLedgerRepository.findByStockAndResearchTypeAndResearchStatus(stock, researchType, researchTrigger);
+	public boolean isResearchStorageNotified(Stock stock, ResearchType researchType, ResearchTrigger researchTrigger) {
+		boolean isResearchStorageNotified = true;
+		ResearchLedger researchLedger = researchLedgerRepository.findByStockAndResearchTypeAndResearchStatusAndNotifiedStorage(stock, researchType, researchTrigger, false);
 		
 		if(researchLedger != null) {
-			isResearchExist = true;
+			isResearchStorageNotified = false;
 		}
 		
-		return isResearchExist;
+		return isResearchStorageNotified;
 	}
+
 	
 	public void updateResearchNotifiedBuy(Stock stock, ResearchType researchType) {
 		ResearchLedger researchLedger = researchLedgerRepository.findByStockAndResearchType(stock, researchType);
@@ -97,6 +98,18 @@ public class ResearchLedgerService {
 
 		}
 		researchLedgerRepository.save(researchLedger);
+
+	}
+	
+	public void updateResearchNotifiedStorage(Stock stock, ResearchType researchType) {
+
+		ResearchLedger researchLedger = researchLedgerRepository.findByStockAndResearchTypeAndNotifiedStorage(stock, researchType, false);
+		if (researchLedger != null) {
+
+			researchLedger.setNotifiedStorage(true);
+			researchLedgerRepository.save(researchLedger);
+		}
+		
 
 	}
 

@@ -19,7 +19,6 @@ import com.example.model.stocks.StockPrice;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.repo.stocks.StockPriceRepository;
-import com.example.service.CleanseService;
 import com.example.service.StockService;
 import com.example.util.io.model.StockPriceIO;
 
@@ -27,9 +26,6 @@ import com.example.util.io.model.StockPriceIO;
 public class PriceTxnConsumer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PriceTxnConsumer.class);
-
-	@Autowired
-	private CleanseService cleanseService;
 
 	@Autowired
 	private QueueService queueService;
@@ -46,7 +42,7 @@ public class PriceTxnConsumer {
 
 		LOGGER.info("PRICETXN_CONSUMER START " + stockPriceIO);
 		
-		if (cleanseService.isNifty500(stockPriceIO.getNseSymbol())) {
+		if (stockService.isActive(stockPriceIO.getNseSymbol())) {
 
 			this.processPriceUpdate(stockPriceIO);
 

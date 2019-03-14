@@ -35,12 +35,12 @@ public class UpdateSectorConsumer {
 	
 	private void process(SectorIO sectorIO) {
 		if(sectorService.isExist(sectorIO.getSectorName())) {
-			Sector sector = sectorService.update(sectorIO.getSectorName(), sectorIO.getSectorPe(), sectorIO.getSectorPb());
+			Sector sector = sectorService.update(sectorIO.getSectorName(), sectorIO.getSectorPe(), sectorIO.getSectorPb(), sectorIO.getVariationPe(), sectorIO.getVariationPb());
 			
 			LOGGER.info("UPDATED : " + sector);
 			
 		}else {
-			Sector sector = sectorService.add(sectorIO.getSectorName(), sectorIO.getSectorPe(), sectorIO.getSectorPb());
+			Sector sector = sectorService.add(sectorIO.getSectorName(), sectorIO.getSectorPe(), sectorIO.getSectorPb(), sectorIO.getVariationPe(), sectorIO.getVariationPb());
 			
 			LOGGER.info("ADDED : " + sector);
 		}

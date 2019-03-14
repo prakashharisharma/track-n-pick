@@ -4,22 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.example.model.ledger.PerformanceLedger;
 import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
-import com.example.model.type.SectorWiseValue;
 import com.example.model.type.SectoralAllocation;
 import com.example.model.um.UserProfile;
-import com.example.repo.ledger.PerformanceLedgerRepository;
 import com.example.service.DividendLedgerService;
 import com.example.service.ExpenseService;
 import com.example.service.FundsLedgerService;
 import com.example.service.PerformanceLedgerService;
 import com.example.service.PortfolioService;
+import com.example.service.RuleService;
 import com.example.service.TradeLedgerService;
 import com.example.service.TradeProfitLedgerService;
 import com.example.ui.model.ChartPerformance;
@@ -60,6 +58,9 @@ public class UiRenderUtil {
 	@Autowired
 	private FormulaService formulaService;
 	
+	@Autowired
+	private RuleService ruleService;
+	
 	public List<UIRenderStock> renderPortfolio(List<UserPortfolio> userPortfolioList) {
 
 		List<UIRenderStock> portfolioList = new ArrayList<>();
@@ -70,10 +71,11 @@ public class UiRenderUtil {
 			double averagePrice = userPortfolioStock.getAveragePrice();
 
 
-			double profitPer = Double
-					.parseDouble(miscUtil.formatDouble(calculateProfitPer(currentPrice, averagePrice)));
+			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(currentPrice, averagePrice)));
 
-			portfolioList.add(new UIRenderStock(userPortfolioStock, profitPer));
+			boolean overValued = ruleService.isOvervalued(userPortfolioStock.getStock());
+			
+			portfolioList.add(new UIRenderStock(userPortfolioStock, profitPer, overValued));
 		}
 
 		return portfolioList;
@@ -155,9 +157,9 @@ public class UiRenderUtil {
 		
 		double ytdUnrealizedGain = currentValue - ytdInvestmentValue;
 		
-		double ytdRealizedGainPer = miscUtil.calculatePer(ytdInvestmentValue, ytdRealizedGain);
+		double ytdRealizedGainPer = formulaService.calculatePercentRate(ytdInvestmentValue, ytdRealizedGain);
 		
-		double ytdUnrealizedGainPer = miscUtil.calculatePer(ytdInvestmentValue, ytdUnrealizedGain);
+		double ytdUnrealizedGainPer = formulaService.calculatePercentRate(ytdInvestmentValue, ytdUnrealizedGain);
 		
 		uIOverallGainLoss.setYtdInvestmentValue(ytdInvestmentValue);
 		
@@ -183,9 +185,9 @@ public class UiRenderUtil {
 		
 		double fyUnrealizedGain = currentValue - fyInvestmentValue;
 		
-		double fyRealizedGainPer = miscUtil.calculatePer(fyInvestmentValue, fyRealizedGain);
+		double fyRealizedGainPer = formulaService.calculatePercentRate(fyInvestmentValue, fyRealizedGain);
 		
-		double fyUnrealizedGainPer = miscUtil.calculatePer(fyInvestmentValue, fyUnrealizedGain);
+		double fyUnrealizedGainPer = formulaService.calculatePercentRate(fyInvestmentValue, fyUnrealizedGain);
 		
 		uIOverallGainLoss.setFyInvestmentValue(fyInvestmentValue);
 		uIOverallGainLoss.setFyRealizedGainPer(fyRealizedGainPer);
@@ -231,7 +233,7 @@ public class UiRenderUtil {
 		
 		sectorWiseValueList.forEach( sw -> {
 			
-			renderList.add(new RenderSectorWiseValue(sw.getSectorName(), miscUtil.calculatePer(currentInvestmentValue, sw.getAllocation())));
+			renderList.add(new RenderSectorWiseValue(sw.getSectorName(), formulaService.calculatePercentRate(currentInvestmentValue, sw.getAllocation())));
 		});
 		
 		return renderList;

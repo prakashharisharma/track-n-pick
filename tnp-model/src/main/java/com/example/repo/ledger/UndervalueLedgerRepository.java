@@ -15,7 +15,7 @@ import com.example.model.master.Stock;
 @Repository
 public interface UndervalueLedgerRepository extends JpaRepository<UndervalueLedger, Long>{
 	
-	List<UndervalueLedger> findByStockId(Stock stock);
+	UndervalueLedger findByStockId(Stock stock);
 	
 	List<UndervalueLedger> findByResearchDate(LocalDate researchDate);
 }

@@ -49,8 +49,21 @@ public class FormulaService {
 		double pb = 0.0;
 
 		pb = currentPrice / bookValue;
-		;
 
 		return pb;
+	}
+	
+	public double calculatePercentRate(double baseNumber, double percentage) {
+
+		double rate = (percentage / baseNumber) * 100;
+
+		return rate;
+	}
+	
+	public double calculatePercentage(double baseNumber, double rate) {
+		
+		double percentage = (rate / 100) * baseNumber;
+		
+		return percentage;
 	}
 }

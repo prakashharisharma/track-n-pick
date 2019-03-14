@@ -149,12 +149,6 @@ public class MiscUtil {
 		return FinYearLasttdate;
 	}
 
-	public double calculatePer(double firstNum, double secondNum) {
 
-		double per = (secondNum / firstNum) * 100;
-
-		return per;
-	}
-	
 	
 }

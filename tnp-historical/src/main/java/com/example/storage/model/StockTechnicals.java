@@ -21,7 +21,7 @@ public class StockTechnicals {
 	
 	private MovingAverage movingAverage;
 	
-	private Indicator indicator;
+	private Momentum indicator;
 	
 	public StockTechnicals() {
 		super();
@@ -29,7 +29,7 @@ public class StockTechnicals {
 	}
 
 	public StockTechnicals(String nseSymbol, Instant bhavDate, double avgGain, double avgLoss,
-			MovingAverage movingAverage, Indicator indicator) {
+			MovingAverage movingAverage, Momentum indicator) {
 		super();
 		this.nseSymbol = nseSymbol;
 		this.bhavDate = bhavDate;
@@ -88,11 +88,11 @@ public class StockTechnicals {
 		this.movingAverage = movingAverage;
 	}
 
-	public Indicator getIndicator() {
+	public Momentum getIndicator() {
 		return indicator;
 	}
 
-	public void setIndicator(Indicator indicator) {
+	public void setIndicator(Momentum indicator) {
 		this.indicator = indicator;
 	}
 

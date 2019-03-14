@@ -14,12 +14,18 @@ public class SectorIO implements Serializable{
     private double sectorPe;
 
     private double sectorPb;
+    
+    private double variationPe;
+    
+    private double variationPb;
 
-	public SectorIO(String sectorName, double sectorPe, double sectorPb) {
+	public SectorIO(String sectorName, double sectorPe, double sectorPb,double variationPe,double variationPb) {
 		super();
 		this.sectorName = sectorName;
 		this.sectorPe = sectorPe;
 		this.sectorPb = sectorPb;
+		this.variationPe = variationPe;
+		this.variationPb = variationPb;
 	}
 
 	public String getSectorName() {
@@ -44,6 +50,22 @@ public class SectorIO implements Serializable{
 
 	public void setSectorPb(double sectorPb) {
 		this.sectorPb = sectorPb;
+	}
+
+	public double getVariationPe() {
+		return variationPe;
+	}
+
+	public void setVariationPe(double variationPe) {
+		this.variationPe = variationPe;
+	}
+
+	public double getVariationPb() {
+		return variationPb;
+	}
+
+	public void setVariationPb(double variationPb) {
+		this.variationPb = variationPb;
 	}
 
 	@Override

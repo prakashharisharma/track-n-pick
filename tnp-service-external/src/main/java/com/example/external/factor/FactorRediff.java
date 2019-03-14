@@ -32,16 +32,32 @@ public class FactorRediff implements FactorBaseService {
 	static Map<String, String> resultQuarterMap = new HashMap<>();
 	
 	static {
+		dateMap.put("JAN", "31");
+		dateMap.put("FEB", "28");
 		dateMap.put("MAR", "31");
+		dateMap.put("APR", "30");
+		dateMap.put("MAY", "31");
 		dateMap.put("JUN", "30");
+		dateMap.put("JUL", "31");
+		dateMap.put("AUG", "31");
 		dateMap.put("SEP", "30");
+		dateMap.put("OCT", "31");
+		dateMap.put("NOV", "30");
 		dateMap.put("DEC", "31");
 	}
 	
 	static {
+		resultQuarterMap.put("JAN", "DEC");
+		resultQuarterMap.put("FEB", "DEC");
 		resultQuarterMap.put("MAR", "DEC");
+		resultQuarterMap.put("APR", "MAR");
+		resultQuarterMap.put("MAY", "MAR");
 		resultQuarterMap.put("JUN", "MAR");
+		resultQuarterMap.put("JUL", "JUN");
+		resultQuarterMap.put("AUG", "JUN");
 		resultQuarterMap.put("SEP", "JUN");
+		resultQuarterMap.put("OCT", "SEP");
+		resultQuarterMap.put("NOV", "SEP");
 		resultQuarterMap.put("DEC", "SEP");
 	}
 	
@@ -109,7 +125,7 @@ public class FactorRediff implements FactorBaseService {
 		return stockFactor;
 	}
 
-	private StockFactor getRatios(Stock stock, StockFactor stockFactor) throws IOException {
+	private StockFactor getRatios(Stock stock, StockFactor stockFactor) throws IOException{
 
 		String ratioUrl = this.getRatioURL();
 		

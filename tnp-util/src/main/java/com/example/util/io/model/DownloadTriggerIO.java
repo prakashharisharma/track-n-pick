@@ -6,7 +6,7 @@ import java.time.LocalDate;
 public class DownloadTriggerIO implements Serializable{
 
 	public enum DownloadType{
-		BHAV, NIFTY50, NIFTY200, NIFTY500
+		BHAV, NIFTY50, NIFTY100, NIFTY250, NIFTY500
 	}
 	
 	

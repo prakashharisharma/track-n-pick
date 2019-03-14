@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
-import com.example.storage.model.Indicator;
+import com.example.storage.model.Momentum;
 import com.example.storage.model.MovingAverage;
 import com.example.storage.model.RSI;
 import com.example.storage.model.StockTechnicals;
@@ -94,7 +94,7 @@ public class TechnicalsHistoryConsumer {
 
 				RSI rsiObj = new RSI(rs, rsi, smoothedRs, smoothedRsi);
 
-				Indicator indicator = new Indicator(rsiObj);
+				Momentum indicator = new Momentum(rsiObj);
 
 				StockTechnicals stockTechnicals = new StockTechnicals(stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate(),
 						currentAverageGain, currentAverageLoss, movingAverage, indicator);

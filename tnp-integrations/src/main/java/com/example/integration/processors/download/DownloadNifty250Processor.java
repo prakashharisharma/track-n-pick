@@ -12,9 +12,9 @@ import com.example.mq.producer.QueueService;
 import com.example.util.io.model.DownloadTriggerIO;
 
 @Service
-public class DownloadNifty200Processor implements Processor {
+public class DownloadNifty250Processor implements Processor {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadNifty200Processor.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadNifty250Processor.class);
 
 	@Autowired
 	private QueueService queueService;
@@ -24,7 +24,7 @@ public class DownloadNifty200Processor implements Processor {
 
 		LOGGER.info("DOWNLOAD NIFTY 200 FILE PROCESSOR : START");
 		
-		DownloadTriggerIO downloadTriggerIO = new DownloadTriggerIO(DownloadTriggerIO.DownloadType.NIFTY200);
+		DownloadTriggerIO downloadTriggerIO = new DownloadTriggerIO(DownloadTriggerIO.DownloadType.NIFTY250);
 		
 		LOGGER.debug("DOWNLOAD NIFTY 200 FILE PROCESSOR : Queuinh to Download ... " + downloadTriggerIO);
 		

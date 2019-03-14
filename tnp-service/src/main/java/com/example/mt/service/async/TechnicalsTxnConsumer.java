@@ -18,7 +18,6 @@ import com.example.model.master.Stock;
 import com.example.model.stocks.StockTechnicals;
 import com.example.mq.constants.QueueConstants;
 import com.example.repo.stocks.StockTechnicalsRepository;
-import com.example.service.CleanseService;
 import com.example.service.StockService;
 import com.example.util.io.model.StockTechnicalsIO;
 
@@ -26,10 +25,7 @@ import com.example.util.io.model.StockTechnicalsIO;
 public class TechnicalsTxnConsumer {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(TechnicalsTxnConsumer.class);
-	
-	@Autowired
-	private CleanseService cleanseService;
-	
+
 	@Autowired
 	private StockService stockService;
 	@Autowired
@@ -41,7 +37,7 @@ public class TechnicalsTxnConsumer {
 		
 		LOGGER.info("TECHNICALSTXN_CONSUMER START " + stockTechnicalsIO);
 		
-		if(cleanseService.isNifty500(stockTechnicalsIO.getNseSymbol())) {
+		if(stockService.isActive(stockTechnicalsIO.getNseSymbol())) {
 			this.processPriceUpdate(stockTechnicalsIO);
 		}else {
 			LOGGER.debug("NOT IN MASTER, IGNORED..." + stockTechnicalsIO.getNseSymbol());

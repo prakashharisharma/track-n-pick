@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.security.LoginService;
-import com.example.storage.service.async.FactorHistoryConsumer;
 import com.example.ui.model.UIOverallGainLoss;
 import com.example.ui.service.UiRenderUtil;
 

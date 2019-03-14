@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -42,10 +43,11 @@ public class PortfolioService {
 
 	@Autowired
 	private TradeProfitLedgerService tradeProfitLedgerService;
+	
+	@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
+	public void addStock(UserProfile userProfile, Stock stock, double price, long quantity) {
 
-	public void addStock(UserProfile user, Stock stock, double price, long quantity) {
-
-		Optional<UserPortfolio> portfolioStockOpt = user.getUserPortfolio().stream()
+		Optional<UserPortfolio> portfolioStockOpt = userProfile.getUserPortfolio().stream()
 				.filter(up -> up.getStock().getNseSymbol().equalsIgnoreCase(stock.getNseSymbol())).findFirst();
 
 		UserPortfolio portfolioStock = null;
@@ -78,17 +80,81 @@ public class PortfolioService {
 
 			portfolioStock.setStock(stock);
 
-			portfolioStock.setUser(user);
+			portfolioStock.setUser(userProfile);
 
 		}
 
-		user.addStockToPortfoliop(portfolioStock);
+		userProfile.addStockToPortfoliop(portfolioStock);
 
-		tradeLedgerService.executeBuy(user, stock, price, quantity);
+		tradeLedgerService.executeBuy(userProfile, stock, price, quantity);
 
-		userService.save(user);
+		userService.save(userProfile);
 	}
+	
+	@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
+	public void addBonus(UserProfile userProfile, Stock stock, long ratio1, long ratio2) {
+		Optional<UserPortfolio> portfolioStockOpt = userProfile.getUserPortfolio().stream()
+				.filter(up -> up.getStock().getNseSymbol().equalsIgnoreCase(stock.getNseSymbol())).findFirst();
 
+		UserPortfolio portfolioStock = null;
+
+		if (portfolioStockOpt.isPresent()) {
+
+			portfolioStock = portfolioStockOpt.get();
+			
+			long portfolioQuantity = portfolioStock.getQuantity();
+			
+			long bonusQuantity = (portfolioQuantity * ratio2) / ratio1;
+			
+			portfolioStock.setQuantity(portfolioQuantity + bonusQuantity);
+
+			double existingTotal = portfolioStock.getAveragePrice() * portfolioQuantity;
+
+			double newAverage = (existingTotal) / (portfolioQuantity + bonusQuantity);
+
+			portfolioStock.setAveragePrice(newAverage);
+
+			portfolioStock.setLastTxnDate(LocalDate.now());
+			
+			tradeLedgerService.executeBonus(userProfile, stock, bonusQuantity);
+
+			userService.save(userProfile);
+
+		}
+		
+		
+	}
+	@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
+	public void addSplit(UserProfile userProfile, Stock stock, double existingFaceValue, double newFaceValue) {
+		Optional<UserPortfolio> portfolioStockOpt = userProfile.getUserPortfolio().stream()
+				.filter(up -> up.getStock().getNseSymbol().equalsIgnoreCase(stock.getNseSymbol())).findFirst();
+
+		UserPortfolio portfolioStock = null;
+
+		if (portfolioStockOpt.isPresent()) {
+			portfolioStock = portfolioStockOpt.get();
+			
+			long portfolioQuantity = portfolioStock.getQuantity();
+			
+			long bonusQuantity = (long)(existingFaceValue / newFaceValue) * portfolioQuantity;
+			
+			portfolioStock.setQuantity(portfolioQuantity + bonusQuantity);
+
+			double existingTotal = portfolioStock.getAveragePrice() * portfolioQuantity;
+
+			double newAverage = (existingTotal) / (portfolioQuantity + bonusQuantity);
+
+			portfolioStock.setAveragePrice(newAverage);
+
+			portfolioStock.setLastTxnDate(LocalDate.now());
+			
+			tradeLedgerService.executeSplit(userProfile, stock, bonusQuantity);
+
+			userService.save(userProfile);
+		}
+	}
+	
+	@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
 	public void sellStock(UserProfile user, Stock stock, double price, long quantity) {
 
 		UserPortfolio portfolioStock = portfolioRepository.findByPortfolioIdUserAndPortfolioIdStock(user, stock);
@@ -134,8 +200,12 @@ public class PortfolioService {
 			}
 
 		});
+		
+		List<UserPortfolio> portfolioListSorted = underValuedStocksList.stream().sorted(portfolioByProfit())
+				.collect(Collectors.toList());
 
-		return underValuedStocksList;
+		return new ArrayList<UserPortfolio>(portfolioListSorted);
+		
 	}
 
 	public List<UserPortfolio> overValuedStocks(UserProfile user) {
@@ -151,8 +221,11 @@ public class PortfolioService {
 
 		});
 
-		return overValuedStocksList;
+		List<UserPortfolio> portfolioListSorted = overValuedStocksList.stream().sorted(portfolioByProfit())
+				.collect(Collectors.toList());
 
+		return new ArrayList<UserPortfolio>(portfolioListSorted);
+		
 	}
 
 	@Cacheable(value = "userportfolio", key = "#userProfile.userId")

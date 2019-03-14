@@ -1,5 +1,8 @@
 package com.example.storage.repo;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 
@@ -38,13 +41,16 @@ public class PriceTemplate {
 		mongoTemplate.insert(stockPrice);
 	}
 
-	public List<YearHighLowResult> getYearLowStocks() {
+	public List<YearHighLowResult> getYearLowStocks(LocalDate localdate) {
 
 		System.out.println("IN1");
 		
-		TradingSession ts = storageTemplate.currentTradingSession();
+		//TradingSession ts = storageTemplate.currentTradingSession();
 		
-		Criteria criteriaYearLow = new Criteria("bhavDate").is(Date.from(ts.getTradingDate()));
+		Instant bhavInstant = localdate.atStartOfDay().toInstant(ZoneOffset.UTC);
+		
+		
+		Criteria criteriaYearLow = new Criteria("bhavDate").is(Date.from(bhavInstant));
 
 		MatchOperation matchSymbol = Aggregation.match(criteriaYearLow);
 
@@ -77,13 +83,15 @@ public class PriceTemplate {
 		return yearLowResultList;
 	}
 	
-	public List<YearHighLowResult> getYearHighStocks() {
+	public List<YearHighLowResult> getYearHighStocks(LocalDate localdate) {
 
 		System.out.println("IN1");
 		
-		TradingSession ts = storageTemplate.currentTradingSession();
+		//TradingSession ts = storageTemplate.currentTradingSession();
 		
-		Criteria criteriaYearLow = new Criteria("bhavDate").is(Date.from(ts.getTradingDate()));
+		Instant bhavInstant = localdate.atStartOfDay().toInstant(ZoneOffset.UTC);
+		
+		Criteria criteriaYearLow = new Criteria("bhavDate").is(Date.from(bhavInstant));
 
 		MatchOperation matchSymbol = Aggregation.match(criteriaYearLow);
 

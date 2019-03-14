@@ -23,6 +23,7 @@ import com.example.repo.stocks.StockFactorRepository;
 import com.example.repo.stocks.StockPriceRepository;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
+import com.example.util.io.model.StockIO;
 import com.example.util.io.model.StockIO.IndiceType;
 import com.example.util.rules.RulesNotification;
 
@@ -72,21 +73,6 @@ public class StockService {
 		return stockRepository.findByActive(true);
 	}
 
-	public List<Stock> getNifty50ActiveStocks() {
-		return stockRepository.findByNifty50AndActive(true, true);
-	}
-
-	public List<Stock> getNifty200ActiveStocks() {
-		return stockRepository.findByNifty200AndActive(true, true);
-	}
-
-	public List<Stock> getNifty200ExcludeNifty50ActiveStocks() {
-		return stockRepository.findByNifty50AndNifty200AndActive(false, true, true);
-	}
-
-	public List<Stock> getNifty500ActiveStocks() {
-		return stockRepository.findByNifty50AndNifty200AndActive(false, false, true);
-	}
 
 	public Stock save(Stock stock) {
 		return stockRepository.save(stock);
@@ -139,53 +125,57 @@ public class StockService {
 		List<Stock> stocksList = stockRepository.findByActive(true);
 		for (Stock stock : stocksList) {
 			stock.setActive(false);
-			stock.setNifty50(false);
-			stock.setNifty200(false);
-			stockRepository.save(stock);
-		}
-	}
-	
-	public void setNifty50Inactive(List<Stock> discontinueList) {
-
-		for (Stock stock : discontinueList) {
-			stock.setNifty50(false);
+			stock.setPrimaryIndice(StockIO.IndiceType.NIFTY1000);
+			
 			stockRepository.save(stock);
 		}
 	}
 
-	public void setNifty200Inactive(List<Stock> discontinueList) {
+	public Stock add(String isinCode, String companyName, String nseSymbol, IndiceType primaryIndice,
+			Sector sectorName) {
 
-		for (Stock stock : discontinueList) {
-			stock.setNifty200(false);
-			stockRepository.save(stock);
-		}
-	}
+		Stock stock = new Stock(isinCode, companyName, nseSymbol, primaryIndice, sectorName);
+		stock = stockRepository.save(stock);
 
-	public void setNifty50(Stock stock) {
+		this.updatePrice(stock);
+		
+		this.updateFactor(stock);
 
-		stock.setNifty50(true);
-		stockRepository.save(stock);
-
-	}
-
-	public void setNifty200(Stock stock) {
-
-		stock.setNifty200(true);
-		stockRepository.save(stock);
-
-	}
-
-	public Stock add(String isinCode, String companyName, String nseSymbol, IndiceType primaryIndice, Sector sectorName) {
-
-		Stock stock = new Stock(isinCode, companyName, nseSymbol,primaryIndice, sectorName);
-		stockRepository.save(stock);
 		return stock;
 	}
 
-	
+	public boolean isActive(String nseSymbol) {
 
-	public StockFactor updateFactor(Stock stock) {
+		boolean isActive = false;
+
+		Stock stock = this.getStockByNseSymbol(nseSymbol);
+
+		if (stock != null && stock.isActive()) {
+			isActive = true;
+		}
+
+		return isActive;
+	}
+
+
+	
+	public StockPrice updatePrice(Stock stock) {
+		StockPrice stockPrice = stock.getStockPrice();
 		
+		if(stockPrice == null) {
+			stockPrice = new StockPrice();
+			
+			stockPrice.setStock(stock);
+			
+			stockPriceRepository.save(stockPrice);
+		}
+		
+		
+		return stockPrice;
+	}
+	
+	public StockFactor updateFactor(Stock stock) {
+
 		StockFactor stockFactor = stock.getStockFactor();
 
 		if (stock.getStockFactor() != null) {
@@ -199,7 +189,7 @@ public class StockService {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+
 				LOGGER.info("Updating Factor for : " + stock.getNseSymbol());
 
 				stockFactor = factorRediff.getFactor(stock);
@@ -208,41 +198,41 @@ public class StockService {
 
 			}
 		} else {
-			
+
 			stockFactor = factorRediff.getFactor(stock);
 
 			stockFactorRepository.save(stockFactor);
 
 		}
-		
+
 		return stockFactor;
 	}
 
 	public double getPe(Stock stock) {
-		
+
 		StockPrice stockPrice = stock.getStockPrice();
 
 		double currentPrice = stockPrice.getCurrentPrice();
 
 		double eps = stock.getStockFactor().getEps();
 
-		double pe= formulaService.calculatePe(currentPrice, eps);
-		
+		double pe = formulaService.calculatePe(currentPrice, eps);
+
 		return pe;
-		
+
 	}
-	
+
 	public double getPb(Stock stock) {
-		
+
 		StockPrice stockPrice = stock.getStockPrice();
 
 		double currentPrice = stockPrice.getCurrentPrice();
 
 		double bookValue = stock.getStockFactor().getBookValue();
 
-		double pb= formulaService.calculatePb(currentPrice, bookValue);
-		
+		double pb = formulaService.calculatePb(currentPrice, bookValue);
+
 		return pb;
 	}
-	
+
 }

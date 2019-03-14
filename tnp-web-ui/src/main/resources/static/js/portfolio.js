@@ -35,6 +35,8 @@ function loadTable(){
 			"data" : "yearHigh"
 		},{
 			"data" : "profitPer"
+		},{
+			"data" : "overValued"
 		} ],
 		rowCallback : function(row, data, index) {
 			if (data.profitPer > 0.0) {

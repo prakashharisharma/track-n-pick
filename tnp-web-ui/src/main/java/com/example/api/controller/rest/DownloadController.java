@@ -43,8 +43,10 @@ public class DownloadController {
         	downloadType = DownloadType.BHAV;
         }else if (uiDownload.getDownloadType().equalsIgnoreCase("NIFTY50")) {
         	downloadType = DownloadType.NIFTY50;
-        }else if (uiDownload.getDownloadType().equalsIgnoreCase("NIFTY200")) {
-        	downloadType = DownloadType.NIFTY200;
+        }else if (uiDownload.getDownloadType().equalsIgnoreCase("NIFTY100")) {
+        	downloadType = DownloadType.NIFTY100;
+        }else if (uiDownload.getDownloadType().equalsIgnoreCase("NIFTY250")) {
+        	downloadType = DownloadType.NIFTY250;
         }else if (uiDownload.getDownloadType().equalsIgnoreCase("NIFTY500")) {
         	downloadType = DownloadType.NIFTY500;
         }

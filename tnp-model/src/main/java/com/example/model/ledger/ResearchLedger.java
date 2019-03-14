@@ -57,6 +57,9 @@ public class ResearchLedger {
 	@Column(name = "IS_NOTIFIED_SELL")
 	boolean notifiedSell = false;
 	
+	@Column(name = "IS_NOTIFIED_STORAGE")
+	boolean notifiedStorage = false;
+	
 	public long getSrlId() {
 		return srlId;
 	}
@@ -136,6 +139,14 @@ public class ResearchLedger {
 
 	public void setNotifiedSell(boolean notifiedSell) {
 		this.notifiedSell = notifiedSell;
+	}
+
+	public boolean isNotifiedStorage() {
+		return notifiedStorage;
+	}
+
+	public void setNotifiedStorage(boolean notifiedStorage) {
+		this.notifiedStorage = notifiedStorage;
 	}
 
 	@Override

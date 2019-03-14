@@ -48,12 +48,14 @@ public class UIRenderStock {
 
 	IndiceType indice;
 	
+	boolean overValued;
+	
 	public UIRenderStock() {
 		this.researchDate = LocalDate.now();
 	}
 	
 	
-	public UIRenderStock(UserPortfolio userPortfolioStock, double profitPer) {
+	public UIRenderStock(UserPortfolio userPortfolioStock, double profitPer,boolean overValued) {
 		super();
 		this.symbol = userPortfolioStock.getStock().getNseSymbol();
 		this.qunatity = userPortfolioStock.getQuantity();
@@ -61,7 +63,7 @@ public class UIRenderStock {
 		this.currentPrice = userPortfolioStock.getStock().getStockPrice().getCurrentPrice();
 		this.yearLow = userPortfolioStock.getStock().getStockPrice().getYearLow();
 		this.yearHigh = userPortfolioStock.getStock().getStockPrice().getYearHigh();
-
+		this.overValued = overValued;
 		this.profitPer = profitPer;
 		this.researchDate = LocalDate.now();
 
@@ -273,6 +275,16 @@ public class UIRenderStock {
 
 	public void setIndice(IndiceType indice) {
 		this.indice = indice;
+	}
+
+
+	public boolean isOverValued() {
+		return overValued;
+	}
+
+
+	public void setOverValued(boolean overValued) {
+		this.overValued = overValued;
 	}
 
 

@@ -21,6 +21,12 @@ public class SectorMasterIN implements Serializable{
 	
 	@DataField(pos = 3)
     private double sectorPb;
+	
+	@DataField(pos = 4)
+    private double variationPe;
+	
+	@DataField(pos = 5)
+    private double variationPb;
 
 	public String getSectorName() {
 		return sectorName;
@@ -44,6 +50,22 @@ public class SectorMasterIN implements Serializable{
 
 	public void setSectorPb(double sectorPb) {
 		this.sectorPb = sectorPb;
+	}
+
+	public double getVariationPe() {
+		return variationPe;
+	}
+
+	public void setVariationPe(double variationPe) {
+		this.variationPe = variationPe;
+	}
+
+	public double getVariationPb() {
+		return variationPb;
+	}
+
+	public void setVariationPb(double variationPb) {
+		this.variationPb = variationPb;
 	}
 
 	@Override

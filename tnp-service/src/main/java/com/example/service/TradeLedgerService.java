@@ -41,7 +41,21 @@ public class TradeLedgerService {
 		tradeLedgerRepository.save(tradeLedger);
 
 	}
+	
+	public void executeBonus(UserProfile user, Stock stock,long quantity) {
+		TradeLedger tradeLedger = new TradeLedger(user, stock, quantity, StockTransactionType.BONUS, Exchange.NSE,
+				LocalDate.now());
+		
+		tradeLedgerRepository.save(tradeLedger);
 
+	}
+	public void executeSplit(UserProfile user, Stock stock,long quantity) {
+		TradeLedger tradeLedger = new TradeLedger(user, stock, quantity, StockTransactionType.SPLIT, Exchange.NSE,
+				LocalDate.now());
+		
+		tradeLedgerRepository.save(tradeLedger);
+	}
+	
 	public void executeSell(UserProfile user, Stock stock, double price, long quantity) {
 
 		TradeLedger tradeLedger = new TradeLedger(user, stock, price, quantity, StockTransactionType.SELL, Exchange.NSE,

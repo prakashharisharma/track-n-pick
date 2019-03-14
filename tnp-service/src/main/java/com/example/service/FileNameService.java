@@ -27,7 +27,9 @@ public class FileNameService {
 	
 	private static String base_nse_nifty50_downloaded_filename = "./"+FileLocationConstants.NIFTY_50_DOWNLOAD_LOCATION+"/nifty50Stockslist.csv";
 	
-	private static String base_nse_nifty200_downloaded_filename = "./"+FileLocationConstants.NIFTY_200_DOWNLOAD_LOCATION+"/nifty200Stockslist.csv";
+	private static String base_nse_nifty100_downloaded_filename = "./"+FileLocationConstants.NIFTY_100_DOWNLOAD_LOCATION+"/nifty100Stockslist.csv";
+	
+	private static String base_nse_nifty250_downloaded_filename = "./"+FileLocationConstants.NIFTY_250_DOWNLOAD_LOCATION+"/nifty250Stockslist.csv";
 
 	
 	public String getNSEBhavFileName() {
@@ -177,11 +179,19 @@ public class FileNameService {
 		return base_nse_nifty50_downloaded_filename;
 	}
 	
-	public String getNSENifty200StocksURI() {
-		return "https://www.nseindia.com/content/indices/ind_nifty200list.csv";
+	public String getNSENifty100StocksURI() {
+		return "https://www.nseindia.com/content/indices/ind_nifty100list.csv";
 	}
 	
-	public String getNSENifty200StocksFileName() {
-		return base_nse_nifty200_downloaded_filename;
+	public String getNSENifty100StocksFileName() {
+		return base_nse_nifty100_downloaded_filename;
+	}
+	
+	public String getNSENifty250StocksURI() {
+		return "https://www.nseindia.com/content/indices/ind_niftymidcap150list.csv";
+	}
+	
+	public String getNSENifty250StocksFileName() {
+		return base_nse_nifty250_downloaded_filename;
 	}
 }

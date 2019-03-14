@@ -10,7 +10,9 @@ public interface FileLocationConstants {
 	
 	public static String NIFTY_50_DOWNLOAD_LOCATION = "data/master/nifty50/csv";
 	
-	public static String NIFTY_200_DOWNLOAD_LOCATION = "data/master/nifty200/csv";
+	public static String NIFTY_100_DOWNLOAD_LOCATION = "data/master/nifty100/csv";
+	
+	public static String NIFTY_250_DOWNLOAD_LOCATION = "data/master/nifty250/csv";
 	
 	public static String SECTOR_CSV_LOCATION = "data/master/sectors/csv";
 	

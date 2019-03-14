@@ -15,23 +15,28 @@ https://www.nseindia.com/content/historical/EQUITIES/2018/SEP/cm10SEP2018bhav.cs
 NSE_50
 https://www.nseindia.com/content/indices/ind_nifty50list.csv
 
+NSE_100
+https://www.nseindia.com/products/content/equities/indices/nifty_100.htm
+https://www.nseindia.com/content/indices/ind_nifty100list.csv
+
+MIDCAP150
+https://www.nseindia.com/products/content/equities/indices/nifty_midcap_150.htm
+https://www.nseindia.com/content/indices/ind_niftymidcap150list.csv
+
+SMALLCAP150
+https://www.nseindia.com/products/content/equities/indices/nifty_Smallcap_250.htm
+https://www.nseindia.com/content/indices/ind_niftysmallcap250list.csv
+
 References - 
 
 https://investinganswers.com/education/ratio-analysis/15-financial-ratios-every-investor-should-use-3011
-
-https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=NSE:HDIL&outputsize=full&apikey=MCAF9B429I44328U
-https://www.alphavantage.co/query?function=SMA&symbol=NSE:HDIL&interval=weekly&time_period=10&series_type=open&apikey=MCAF9B429I44328U
-
-https://www.alphavantage.co/query?function=SMA&symbol=NSE:JAGRAN&interval=daily&time_period=50&series_type=close&apikey=MCAF9B429I44328U
-https://www.alphavantage.co/query?function=SMA&symbol=NSE:JAGRAN&interval=daily&time_period=200&series_type=close&apikey=MCAF9B429I44328U
-
-RSI - 30 OVERSOLD 70- OVERBOUGHT 50- Neutral
-https://www.alphavantage.co/query?function=RSI&symbol=NSE:JAGRAN&interval=daily&time_period=14&series_type=close&apikey=MCAF9B429I44328U
 
 -- RSI Formula
 http://cns.bu.edu/~gsc/CN710/fincast/Technical%20_indicators/Relative%20Strength%20Index%20(RSI).htm
 
 -- OBV
+https://www.investopedia.com/terms/o/onbalancevolume.asp
+https://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:on_balance_volume_obv
 -- MACD
 
 Util 
@@ -78,7 +83,103 @@ order by sf.LAST_MODIFIED desc
 SELECT sm.NSE_SYMBOL, ul.PB, ul.PE, ul.NIFTY_TYPE, ul.RESEARCH_DATE FROM UNDERVALUE_LEDGER  ul, STOCK_MASTER sm
 WHERE ul.STOCK_ID=sm.STOCK_ID
 
-SELECT sm.NSE_SYMBOL, srl.RESEARCH_TYPE, srl.ENTRY_DATE FROM STOCK_RESEARCH_LEDGER  srl, STOCK_MASTER sm
-WHERE srl.STOCK_ID=sm.STOCK_ID order by sm.NSE_SYMBOL
+SELECT sm.NSE_SYMBOL, srl.RESEARCH_TYPE, srl.ENTRY_DATE, srl.RESEARCH_STATUS, sm.INDICe FROM STOCK_RESEARCH_LEDGER  srl, STOCK_MASTER sm
+WHERE srl.STOCK_ID=sm.STOCK_ID order by srl.RESEARCH_STATUS, sm.INDICe
+
+SELECT sm.NSE_SYMBOL, srl.RESEARCH_TYPE, srl.ENTRY_DATE, srl.RESEARCH_STATUS, sm.INDICe FROM STOCK_RESEARCH_LEDGER  srl, STOCK_MASTER sm
+WHERE srl.STOCK_ID=sm.STOCK_ID order by srl.ENTRY_DATE desc
+
+SELECT sm.NSE_SYMBOL, srl.RESEARCH_TYPE, srl.ENTRY_DATE, srl.RESEARCH_STATUS, sm.INDICe FROM STOCK_RESEARCH_LEDGER  srl, STOCK_MASTER sm
+WHERE srl.STOCK_ID=sm.STOCK_ID and RESEARCH_STATUS='BUY' order by srl.ENTRY_DATE desc
+
+SELECT sm.NSE_SYMBOL, s.SECTOR_NAME, ul.RESEARCH_DATE, s.SECTOR_PE, ul.PE, ul.NEW_PE, s.SECTOR_PB, ul.PB, ul.NEW_PB FROM UNDERVALUE_LEDGER ul, STOCK_MASTER sm, SECTORS s
+WHERE ul.STOCK_ID=sm.STOCK_ID
+AND sm.SECTOR_ID=s.SECTOR_ID
+ order by ul.RESEARCH_DATE desc
+
+ SELECT sm.NSE_SYMBOL, s.SECTOR_NAME, ul.RESEARCH_DATE, s.SECTOR_PE, ul.PE, ul.NEW_PE, s.SECTOR_PB, ul.PB, ul.NEW_PB FROM UNDERVALUE_LEDGER ul, STOCK_MASTER sm, SECTORS s
+WHERE ul.STOCK_ID=sm.STOCK_ID
+AND sm.SECTOR_ID=s.SECTOR_ID
+AND ul.PE < s.SECTOR_PE
+AND ul.PB < s.SECTOR_PB
+ order by ul.RESEARCH_DATE desc
+ 
+SELECT sm.NSE_SYMBOL, srl.RESEARCH_TYPE, srl.ENTRY_DATE,srl.EXIT_DATE, srl.RESEARCH_STATUS, sm.INDICe, srl.ENTRY_PRICE, srl.EXIT_PRICE, sp.CURRENT_PRICE FROM STOCK_RESEARCH_LEDGER  srl, STOCK_MASTER sm, STOCK_PRICE sp
+WHERE srl.STOCK_ID=sm.STOCK_ID 
+AND sm.STOCK_ID=sp.STOCK_ID
+AND srl.RESEARCH_STATUS='SELL'
+order by srl.RESEARCH_STATUS, sm.INDICe
 
 https://dzone.com/articles/configuring-logback-with-spring-boot
+
+
+DCMSHRIRAM
+TECHM
+MINDAIND
+AVANTIFEED
+
+UNDERVALUE_LEDGER / CROSSOVER_LEDGER
+
+ALLOCATION
+30 40 30 
+
+SELECT * FROM STOCK_FACTORS order by MARKET_CAPITAL desc
+a. Large Cap: 1-100 - 
+SELECT top 100 * FROM STOCK_FACTORS order by MARKET_CAPITAL desc
+
+b. Mid Cap: 101-250
+
+select * from(
+SELECT top 250 * FROM STOCK_FACTORS order by MARKET_CAPITAL desc)
+as t250
+where t250.STOCK_ID not in (
+select STOCK_ID from (SELECT top 100 * FROM STOCK_FACTORS order by MARKET_CAPITAL desc
+) as t100
+)
+
+c. Small Cap: 251 - onwards
+
+select * from(
+SELECT * FROM STOCK_FACTORS order by MARKET_CAPITAL desc)
+as t
+where t.STOCK_ID not in (
+select STOCK_ID from (SELECT top 250 * FROM STOCK_FACTORS order by MARKET_CAPITAL desc
+) as t250
+)
+
+
+SUVEN		15
+GLENMARK	15
+HINDZINC	15
+NBCC		15
+CASTROLIND	15
+ORIENTBANK	15
+UNIONBANK	15
+
+
+NTPC		10
+ENGINERSIN	10
+NLCINDIA	10
+CUMMINSIND	10
+IOC			10
+RECLTD		10
+SBILIFE		10
+
+BHEL		05
+COALINDIA	05
+ADVENZYMES	05
+GPPL		05
+NH			05
+UCOBANK		05
+INOXWIND	05
+DISHTV		05
+SPTL 		05
+
+https://www.nseindia.com/companytracker/cmtracker.jsp?symbol=BEL&cName=cmtracker_nsedef.css
+
+https://www.nseindia.com/corporates/shldStructure/ShareholdingPattern/shp_table1_mkt_tracker.jsp?ndsId=132912&symbol=BEL&asOnDate=31-DEC-2018
+
+https://www.nseindia.com/marketinfo/companyTracker/resultsCompare.jsp?symbol=BEL
+https://www.nseindia.com/marketinfo/companyTracker/compInfo.jsp?symbol=BEL&series=EQ
+https://www.nseindia.com/marketinfo/companyTracker/corpAction.jsp?symbol=BEL
+https://www.nseindia.com/marketinfo/companyTracker/corpAnnounce.jsp?symbol=BEL

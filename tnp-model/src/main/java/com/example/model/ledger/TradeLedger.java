@@ -90,7 +90,16 @@ public class TradeLedger {
 		this.exchange = exchange;
 		this.transactionDate = transactionDate;
 	}
-
+	public TradeLedger(UserProfile userId, Stock stockId, long quantity, StockTransactionType transactionType,
+			Exchange exchange, LocalDate transactionDate) {
+		super();
+		this.userId = userId;
+		this.stockId = stockId;
+		this.quantity = quantity;
+		this.transactionType = transactionType;
+		this.exchange = exchange;
+		this.transactionDate = transactionDate;
+	}
 
 
 	public long getTradeId() {

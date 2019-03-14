@@ -58,18 +58,12 @@ public class Stock implements Serializable{
 	@Column(name = "SECTOR_NAME")
 	String sectorName;
 
-	@ManyToOne
-	@JoinColumn(name = "sectorId")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "sectorId", nullable = false)
 	Sector sector;
 	
 	@Column(name = "IS_ACTIVE")
 	boolean active = true;
-	
-	@Column(name = "IS_NIFTY50")
-	boolean nifty50 = false;
-	
-	@Column(name = "IS_NIFTY200")
-	boolean nifty200 = false;
 	
 	@Column(name = "INDICE")
 	@Enumerated(EnumType.STRING)
@@ -90,8 +84,6 @@ public class Stock implements Serializable{
 	public Stock() {
 		super();
 		this.active = true;
-		this.nifty50 = false;
-		this.nifty200 = false;
 	}
 
 	public Stock(String companyName, String nseSymbol, String bseCode) {
@@ -100,8 +92,6 @@ public class Stock implements Serializable{
 		this.nseSymbol = nseSymbol;
 		this.bseCode = bseCode;
 		this.active = true;
-		this.nifty50 = false;
-		this.nifty200 = false;
 	}
 
 	public Stock(String isinCode, String companyName, String nseSymbol, IndiceType primaryIndice, Sector sectorName) {
@@ -113,8 +103,6 @@ public class Stock implements Serializable{
 		this.sector = sectorName;
 		this.sectorName = sectorName.getSectorName();
 		this.active = true;
-		this.nifty50 = false;
-		this.nifty200 = false;
 	}
 	
 	public Stock(String isinCode, String companyName, String nseSymbol, String sector) {
@@ -124,8 +112,6 @@ public class Stock implements Serializable{
 		this.nseSymbol = nseSymbol;
 		this.sectorName = sector;
 		this.active = true;
-		this.nifty50 = false;
-		this.nifty200 = false;
 	}
 
 	public long getStockId() {
@@ -176,22 +162,6 @@ public class Stock implements Serializable{
 		this.active = active;
 	}
 
-	public boolean isNifty50() {
-		return nifty50;
-	}
-
-	public void setNifty50(boolean nifty50) {
-		this.nifty50 = nifty50;
-	}
-
-	public boolean isNifty200() {
-		return nifty200;
-	}
-
-	public void setNifty200(boolean nifty200) {
-		this.nifty200 = nifty200;
-	}
-
 	public String getSectorName() {
 		return sectorName;
 	}
@@ -225,7 +195,6 @@ public class Stock implements Serializable{
 		this.stockFactor = stockFactor;
 	}
 
-
 	public StockTechnicals getTechnicals() {
 		return technicals;
 	}
@@ -245,7 +214,7 @@ public class Stock implements Serializable{
 	@Override
 	public String toString() {
 		return "Stock [stockId=" + stockId + ", isinCode=" + isinCode + ", companyName=" + companyName + ", nseSymbol="
-				+ nseSymbol + ", bseCode=" + bseCode + ", sector=" + sectorName + ", active=" + active + ", nifty50=" + nifty50+ ", nifty200=" + nifty200+ ", stockPrice="
+				+ nseSymbol + ", bseCode=" + bseCode + ", sector=" + sectorName + ", active=" + active + ", IndiceType=" + primaryIndice+ ", stockPrice="
 				+ stockPrice + ", stockFactor=" + stockFactor + "]";
 	}
 
@@ -253,6 +222,7 @@ public class Stock implements Serializable{
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((isinCode == null) ? 0 : isinCode.hashCode());
 		result = prime * result + ((nseSymbol == null) ? 0 : nseSymbol.hashCode());
 		return result;
 	}
@@ -266,6 +236,11 @@ public class Stock implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		Stock other = (Stock) obj;
+		if (isinCode == null) {
+			if (other.isinCode != null)
+				return false;
+		} else if (!isinCode.equals(other.isinCode))
+			return false;
 		if (nseSymbol == null) {
 			if (other.nseSymbol != null)
 				return false;
@@ -274,4 +249,5 @@ public class Stock implements Serializable{
 		return true;
 	}
 
+	
 }

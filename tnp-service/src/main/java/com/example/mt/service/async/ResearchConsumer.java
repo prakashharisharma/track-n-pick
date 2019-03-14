@@ -1,7 +1,5 @@
 package com.example.mt.service.async;
 
-import java.time.LocalDate;
-
 import javax.jms.Session;
 
 import org.apache.activemq.Message;
@@ -14,17 +12,15 @@ import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import com.example.model.ledger.UndervalueLedger;
 import com.example.model.master.Stock;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
-import com.example.repo.ledger.UndervalueLedgerRepository;
-import com.example.service.CleanseService;
+import com.example.service.CrossOverLedgerService;
 import com.example.service.ResearchLedgerService;
 import com.example.service.RuleService;
 import com.example.service.StockService;
 import com.example.service.TechnicalsResearchService;
-import com.example.util.FormulaService;
+import com.example.service.UndervalueLedgerService;
 import com.example.util.io.model.ResearchIO;
 import com.example.util.io.model.ResearchIO.ResearchTrigger;
 import com.example.util.io.model.ResearchIO.ResearchType;;
@@ -35,29 +31,26 @@ public class ResearchConsumer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResearchConsumer.class);
 
 	@Autowired
-	private CleanseService cleanseService;
-
-	@Autowired
 	private StockService stockService;
 
 	@Autowired
 	private RuleService ruleService;
 
 	@Autowired
-	private UndervalueLedgerRepository undervalueLedgerRepository;
+	private UndervalueLedgerService undervalueLedgerService;
 
 	@Autowired
-	private FormulaService formulaService;
-
+	private CrossOverLedgerService crossOverLedgerService;
+	
 	@Autowired
 	private TechnicalsResearchService technicalsResearchService;
 
 	@Autowired
 	private ResearchLedgerService researchLedgerService;
-	
+
 	@Autowired
 	private QueueService queueService;
-	
+
 	@JmsListener(destination = QueueConstants.MTQueue.RESEARCH_QUEUE)
 	public void receiveMessage(@Payload ResearchIO researchIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
@@ -84,14 +77,15 @@ public class ResearchConsumer {
 				this.addToUnderValueLedger(stock);
 
 				this.addToResearchLedgerFundamental(stock);
-				
+
 				this.researchTechnical(stock, ResearchTrigger.BUY);
-				
+
 				this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.BUY);
 
 			}
 		} else if (researchTrigger == ResearchTrigger.SELL) {
 			if (ruleService.isOvervalued(stock)) {
+				this.removeFromUnderValueLedger(stock);
 				this.updateResearchLedgerFundamental(stock);
 				this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.SELL);
 			}
@@ -106,16 +100,21 @@ public class ResearchConsumer {
 		if (researchTrigger == ResearchTrigger.BUY) {
 			if (technicalsResearchService.isBullishCrossOver(stock)) {
 
-				this.addToResearchLedgerTechnical(stock);
+				this.addToCrossOverLedger(stock);
 				
+				this.addToResearchLedgerTechnical(stock);
+
 				this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.BUY);
 
 			}
 		} else if (researchTrigger == ResearchTrigger.SELL) {
 
 			if (technicalsResearchService.isBearishCrossover(stock)) {
-				this.updateResearchLedgerTechnical(stock);
 				
+				this.removeFromCrossOverLedger(stock);
+				
+				this.updateResearchLedgerTechnical(stock);
+
 				this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.SELL);
 			}
 		} else {
@@ -144,55 +143,58 @@ public class ResearchConsumer {
 
 		String nseSymbol = stock.getNseSymbol();
 
-		if (cleanseService.isNifty500(nseSymbol)) {
-			double currentPrice = stock.getStockPrice().getCurrentPrice();
+		if (stockService.isActive(nseSymbol)) {
 
-			double bookValue = stock.getStockFactor().getBookValue();
-
-			double eps = stock.getStockFactor().getEps();
-
-			double pe = formulaService.calculatePe(currentPrice, eps);
-
-			double pb = formulaService.calculatePb(currentPrice, bookValue);
-
-			UndervalueLedger undervalueLedger = new UndervalueLedger();
-
-			undervalueLedger.setStockId(stock);
-			undervalueLedger.setPb(pb);
-			undervalueLedger.setPe(pe);
-			undervalueLedger.setResearchDate(LocalDate.now());
-
-			undervalueLedgerRepository.save(undervalueLedger);
+			undervalueLedgerService.add(stock);
 
 		} else {
 			LOGGER.debug("NOT IN MASTER, IGNORED..." + nseSymbol);
 		}
+	}
 
-		
+	private void addToCrossOverLedger(Stock stock) {
+		String nseSymbol = stock.getNseSymbol();
+
+		if (stockService.isActive(nseSymbol)) {
+
+			crossOverLedgerService.add(stock);
+
+		} else {
+			LOGGER.debug("NOT IN MASTER, IGNORED..." + nseSymbol);
+		}
+	}
+	
+	private void removeFromUnderValueLedger(Stock stock) {
+		undervalueLedgerService.remove(stock);
+
+	}
+
+	private void removeFromCrossOverLedger(Stock stock) {
+		crossOverLedgerService.remove(stock);
 
 	}
 	
-	private void addToResearchHistory(Stock stock, ResearchType researchType, ResearchTrigger researchTrigger ) {
-		
+	private void addToResearchHistory(Stock stock, ResearchType researchType, ResearchTrigger researchTrigger) {
+
 		double currentPrice = stock.getStockPrice().getCurrentPrice();
 
-		double bookValue = stock.getStockFactor().getBookValue();
+		double pe = stockService.getPe(stock);
 
-		double eps = stock.getStockFactor().getEps();
+		double pb = stockService.getPb(stock);
 
-		double pe = formulaService.calculatePe(currentPrice, eps);
+		ResearchIO researchIO = new ResearchIO(stock.getNseSymbol(), researchType, researchTrigger, currentPrice, pe,
+				pb);
 
-		double pb = formulaService.calculatePb(currentPrice, bookValue);
-		
-		ResearchIO researchIO = new ResearchIO(stock.getNseSymbol(), researchType, researchTrigger, currentPrice, pe, pb);
-		
-		
-		if(!researchLedgerService.isResearchExist(stock, researchType, researchTrigger)){
+		if (!researchLedgerService.isResearchStorageNotified(stock, researchType, researchTrigger)) {
+
 			queueService.send(researchIO, QueueConstants.HistoricalQueue.UPDATE_RESEARCH_QUEUE);
-		}else {
+
+			researchLedgerService.updateResearchNotifiedStorage(stock, researchType);
+
+		} else {
 			LOGGER.debug("RESEARCH ALREADY EXIST..." + stock.getNseSymbol());
 		}
-		
+
 	}
 
 }

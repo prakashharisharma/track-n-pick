@@ -27,55 +27,60 @@ import com.example.util.io.model.StockFactorIO;
 public class FactorTxnConsumer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FactorTxnConsumer.class);
-	
+
 	@Autowired
 	private QueueService queueService;
-	
+
 	@Autowired
 	private StockService stockService;
-	
+
 	@Autowired
 	private RuleService ruleService;
-	
+
 	@JmsListener(destination = QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE)
 	public void receiveMessage(@Payload String nseSymbol, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
-		
-		LOGGER.debug(QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE.toUpperCase() +" : " + nseSymbol + " : START");
-		
+
+		LOGGER.debug(QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE.toUpperCase() + " : " + nseSymbol + " : START");
+
 		Stock stock = stockService.getStockByNseSymbol(nseSymbol);
-		
+
 		StockFactor prevStockFactor = null;
-		
+
 		StockFactor newStockFactor = null;
-		
-		if(ruleService.isPriceInRange(stock)) {
-			
+
+		if (ruleService.isPriceInRange(stock)) {
+
 			prevStockFactor = stock.getStockFactor();
-			
+
 			newStockFactor = stockService.updateFactor(stock);
-			
-			if(prevStockFactor !=  null) {
-			
-			if(newStockFactor.getQuarterEnded().isAfter(prevStockFactor.getQuarterEnded())) {
-				//SAVE IT TO STORAGE
-				StockFactorIO stockFactorIO = new StockFactorIO(nseSymbol, newStockFactor.getMarketCap(), newStockFactor.getDebtEquity(), newStockFactor.getCurrentRatio(), newStockFactor.getQuickRatio(), newStockFactor.getDividend(), newStockFactor.getBookValue(), newStockFactor.getEps(), newStockFactor.getReturnOnEquity(), newStockFactor.getReturnOnCapital(), newStockFactor.getFaceValue(), newStockFactor.getQuarterEnded());
-				
-				queueService.send(stockFactorIO, QueueConstants.HistoricalQueue.UPDATE_FACTORS_QUEUE);
+
+			if (prevStockFactor != null) {
+
+				if (newStockFactor.getQuarterEnded().isAfter(prevStockFactor.getQuarterEnded())) {
+					// SAVE IT TO STORAGE
+					StockFactorIO stockFactorIO = new StockFactorIO(nseSymbol, newStockFactor.getMarketCap(),
+							newStockFactor.getDebtEquity(), newStockFactor.getCurrentRatio(),
+							newStockFactor.getQuickRatio(), newStockFactor.getDividend(), newStockFactor.getBookValue(),
+							newStockFactor.getEps(), newStockFactor.getReturnOnEquity(),
+							newStockFactor.getReturnOnCapital(), newStockFactor.getFaceValue(),
+							newStockFactor.getQuarterEnded());
+
+					queueService.send(stockFactorIO, QueueConstants.HistoricalQueue.UPDATE_FACTORS_QUEUE);
+				}
 			}
-			}
+
+			ResearchIO researchIO = new ResearchIO(nseSymbol, ResearchType.FUNDAMENTAL, ResearchTrigger.BUY);
+
+			this.processResearch(researchIO);
+
 		}
-		
-		ResearchIO researchIO = new ResearchIO(nseSymbol, ResearchType.FUNDAMENTAL, ResearchTrigger.BUY);
-		
-		this.processResearch(researchIO);
-		
-		LOGGER.debug(QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE.toUpperCase() +" : " + nseSymbol + " : END");
+
+		LOGGER.debug(QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE.toUpperCase() + " : " + nseSymbol + " : END");
 	}
-	
+
 	private void processResearch(ResearchIO researchIO) {
 		queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
 	}
-	
-	
+
 }

@@ -39,17 +39,6 @@ public class RuleService {
 		return isPriceInRange;
 	}
 
-	public boolean isPriceOutRange(Stock stock) {
-		boolean isPriceOutRange = false;
-
-		if (stock.getStockPrice().getCurrentPrice() <= rules.getPricegt()
-				&& stock.getStockPrice().getCurrentPrice() >= rules.getPricelt()) {
-			isPriceOutRange = true;
-		}
-
-		return isPriceOutRange;
-	}
-
 	public boolean isUndervalued(Stock stock) {
 		boolean isUndervalued = false;
 
@@ -63,32 +52,36 @@ public class RuleService {
 
 				double pb = stockService.getPb(stock);
 
-				LOGGER.debug(stock.getNseSymbol() + " : " + stockPrice + " PE : " + pe + " PB : " + pb);
+				if (pe > 0.0) {
 
-				if (pe <= researchRules.getPe() && pb <= researchRules.getPb()) {
-					LOGGER.debug(" RULE 1 ");
+					LOGGER.debug(stock.getNseSymbol() + " : " + stockPrice + " PE : " + pe + " PB : " + pb);
 
-					isUndervalued = true;
-				} else if (pe <= stock.getSector().getSectorPe() && pb <= researchRules.getPb()) {
+					if (pe <= researchRules.getPe() && pb <= researchRules.getPb()) {
+						LOGGER.debug(" RULE 1 ");
 
-					LOGGER.debug(" RULE 2");
+						isUndervalued = true;
+					}
 
-					isUndervalued = true;
+					else if (pb <= stock.getSector().getSectorPb() && pe <= stock.getSector().getSectorPe()) {
 
-				} else if (pb <= stock.getSector().getSectorPb() && pe <= researchRules.getPe()) {
-					LOGGER.debug(" RULE 3");
-					isUndervalued = true;
+						LOGGER.debug(" RULE 4 ");
 
+						isUndervalued = true;
+
+					} else if (pe <= stock.getSector().getSectorPe() && pb <= stock.getSector().getVariationPb()) {
+
+						LOGGER.debug(" RULE 2");
+
+						isUndervalued = true;
+
+					} /*
+						 * else if (pb <= stock.getSector().getSectorPb() && pe <=
+						 * stock.getSector().getVariationPe()) { LOGGER.debug(" RULE 3"); isUndervalued
+						 * = true;
+						 * 
+						 * }
+						 */
 				}
-
-				else if (pb <= stock.getSector().getSectorPb() && pe <= stock.getSector().getSectorPe()) {
-
-					LOGGER.debug(" RULE 4 ");
-
-					isUndervalued = true;
-
-				}
-
 			}
 
 		}
@@ -96,12 +89,22 @@ public class RuleService {
 		return isUndervalued;
 	}
 
+	public boolean isOvervalued(Stock stock) {
+		boolean isOvervalued = false;
+
+		if (!isUndervalued(stock)) {
+			isOvervalued = true;
+		}
+
+		return isOvervalued;
+	}
+
 	private boolean isUndervaluedPre(Stock stock) {
 
 		boolean isUndervalued = false;
 
 		Sector sector = stock.getSector();
-		
+
 		if (stock != null) {
 			if (sector != null) {
 
@@ -137,56 +140,6 @@ public class RuleService {
 			}
 		}
 		return isUndervalued;
-	}
-
-	private boolean isOvervaluedPre(Stock stock) {
-		boolean isOvervalued = false;
-
-		if (stock.getSector().getSectorName().equalsIgnoreCase("FINANCIAL SERVICES")) {
-
-			if (stock.getStockFactor().getDividend() < rules.getDividend()
-
-					&& stock.getStockFactor().getReturnOnEquity() < rules.getRoe()
-					&& stock.getStockFactor().getReturnOnCapital() < rules.getRoce()
-					&& stock.getStockFactor().getCurrentRatio() < rules.getCurrentRatio()
-					&& stock.getStockFactor().getQuickRatio() < rules.getQuickRatioBanks()) {
-				isOvervalued = true;
-			}
-
-		} else {
-			if (stock.getStockFactor().getDebtEquity() > rules.getDebtEquity()
-					&& stock.getStockFactor().getDividend() < rules.getDividend()
-					&& stock.getStockFactor().getReturnOnEquity() < rules.getRoe()
-					&& stock.getStockFactor().getReturnOnCapital() < rules.getRoce()
-					&& stock.getStockFactor().getCurrentRatio() < rules.getCurrentRatio()
-
-			) {
-
-				isOvervalued = true;
-			}
-		}
-
-		return isOvervalued;
-	}
-
-	public boolean isOvervalued(Stock stock) {
-		boolean isOvervalued = false;
-
-		double pe = stockService.getPe(stock);
-
-		double pb = stockService.getPb(stock);
-
-		if (this.isOvervaluedPre(stock)) {
-			isOvervalued = true;
-		} else if (isPriceOutRange(stock)) {
-			isOvervalued = true;
-		} else if (pe > stock.getSector().getSectorPe() + 5) {
-			isOvervalued = true;
-		} else if (pb > stock.getSector().getSectorPb() + 3) {
-			isOvervalued = true;
-		}
-
-		return isOvervalued;
 	}
 
 }
