@@ -44,7 +44,10 @@ $(document).ready(function() {
     
     loadPieChart();
     loadChart();
+    loadIndiceChart();
 });
+
+
 
 
 function loadPieChart() {
@@ -86,6 +89,38 @@ function loadPieChart() {
 	
 	$.getJSON("/api/chart/sector/allocation", addData);
 	
+	}
+
+function loadIndiceChart() {
+	 
+	var chart = new CanvasJS.Chart("indiceChartContainer", {
+		theme: "light2", // "light1", "dark1", "dark2"
+		animationEnabled: true,
+		title: {
+			text: "Indice Allocation"
+		},
+		axisX: {
+			labelFontSize: 18
+		},
+		axisY: {
+			title: "Allocation Per",
+			suffix: "%"
+		},
+		data: [{
+			type: "column",
+			indexLabel: "{y}",
+			indexLabelFontSize: 18,
+			yValueFormatString: "#,##0.0#\"%\""
+		}]
+	});
+	 
+	function addData(data) {
+		chart.options.data[0].dataPoints = data;
+		chart.render();
+	}
+	 
+	$.getJSON("/api/chart/indice/allocation", addData);
+	 
 	}
 
 

@@ -8,16 +8,17 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>tnp-historical</name>
 	<description>tnp-historical</description>
-
+<packaging>jar</packaging>
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.13.RELEASE</version>
+		<groupId>com.example</groupId>
+		<artifactId>track-n-pick</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../</relativePath>
 	</parent>
-
+<!-- 
 	<properties>
 		<java.version>1.8</java.version>
-	</properties>
+	</properties> -->
 
 	<dependencies>
 		<dependency>
@@ -30,21 +31,21 @@
 			<groupId>com.example</groupId>
 			<artifactId>tnp-util</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-			<scope>compile</scope>
+			
 		</dependency>
 
 		<dependency>
 			<groupId>com.example</groupId>
 			<artifactId>tnp-mq</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-			<scope>compile</scope>
+			
 		</dependency>
 
-		<dependency>
+<!-- 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 		</dependency>
-
+ -->
 
 
 
@@ -53,14 +54,15 @@
 			<version>1.50.5</version> </dependency> -->
 	</dependencies>
 
+	<!--
 	<build>
 		<plugins>
-			<!-- Package as an executable jar/war -->
+			
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
-
+-->
 </project>

@@ -18,9 +18,10 @@ mvnw.cmd
 # Build Files #
 bin
 target
-build/
+build
 data
-
+RemoteSystemsTempFiles
+notes
 
 # IntelliJ IDEA Files #
 
@@ -47,7 +48,8 @@ README.html
 # sonarlint Files #
 .sonarlint
 
+
+
 /.metadata/
 /.recommenders/
-RemoteSystemsTempFiles
-notes
+

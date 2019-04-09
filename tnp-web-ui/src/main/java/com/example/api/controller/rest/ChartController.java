@@ -1,5 +1,6 @@
 package com.example.api.controller.rest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.security.LoginService;
 import com.example.ui.model.ChartPerformance;
 import com.example.ui.model.ChartType;
+import com.example.ui.model.RenderIndiceAllocation;
 import com.example.ui.model.RenderSectorWiseValue;
 import com.example.ui.service.UiRenderUtil;
 
@@ -43,6 +45,20 @@ public class ChartController {
 
 		
 		return ResponseEntity.ok(uiRenderUtil.sectoralAllocation(loginService.getLoginUserProfile()));
+	}
+	
+	@GetMapping(value="/indice/allocation", produces = MediaType.APPLICATION_JSON_VALUE )
+	public ResponseEntity<List<RenderIndiceAllocation>> getIndiceAllocation() {
+
+		
+		List<RenderIndiceAllocation> test = new ArrayList<>();
+		
+		test.add(new RenderIndiceAllocation("LARGE", 33));
+		test.add(new RenderIndiceAllocation("MID", 33));
+		test.add(new RenderIndiceAllocation("SMALL", 34));
+		
+		//return ResponseEntity.ok(uiRenderUtil.sectoralAllocation(loginService.getLoginUserProfile()));
+		return ResponseEntity.ok(test);
 	}
 	
 }

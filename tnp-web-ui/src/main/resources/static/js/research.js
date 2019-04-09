@@ -39,10 +39,10 @@ function loadTableFundamental() {
 		} ],
 		rowCallback : function(row, data, index) {
 			if (data.profitPer > 0.0) {
-				$(row).find('td:eq(10)').css('color', 'green');
+				$(row).find('td:eq(9)').css('color', 'green');
 			}
 			if (data.profitPer < 0.0) {
-				$(row).find('td:eq(10)').css('color', 'red');
+				$(row).find('td:eq(9)').css('color', 'red');
 			}
 
 		}
@@ -76,10 +76,10 @@ function loadTableTechnical() {
 		} ],
 		rowCallback : function(row, data, index) {
 			if (data.profitPer > 0.0) {
-				$(row).find('td:eq(9)').css('color', 'green');
+				$(row).find('td:eq(8)').css('color', 'green');
 			}
 			if (data.profitPer < 0.0) {
-				$(row).find('td:eq(9)').css('color', 'red');
+				$(row).find('td:eq(8)').css('color', 'red');
 			}
 
 		}

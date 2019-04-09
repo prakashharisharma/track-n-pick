@@ -183,3 +183,39 @@ https://www.nseindia.com/marketinfo/companyTracker/resultsCompare.jsp?symbol=BEL
 https://www.nseindia.com/marketinfo/companyTracker/compInfo.jsp?symbol=BEL&series=EQ
 https://www.nseindia.com/marketinfo/companyTracker/corpAction.jsp?symbol=BEL
 https://www.nseindia.com/marketinfo/companyTracker/corpAnnounce.jsp?symbol=BEL
+
+OBV
+STOCK_SEARCH
+
+
+BEL 50 97.10
+TECHM 6 777.95
+SUVEN 2 255.10
+
+
+BEL	NIFTY100
+
+EXIDEIND	NIFTY250
+AVANTIFEED	NIFTY250
+VAKRANGEE	NIFTY250
+
+
+M&M	NIFTY50	
+INFY	NIFTY50	
+TECHM NIFTY50
+WIPRO	NIFTY50	
+
+JAGRAN	NIFTY500
+GUJALKALI	NIFTY500
+COCHINSHIP	NIFTY500
+BDL	NIFTY500
+BALMLAWRIE	NIFTY500
+DCMSHRIRAM	NIFTY500	
+KSCL	NIFTY500	
+FDC	NIFTY500	
+CYIENT	NIFTY500
+MINDAIND	NIFTY500	
+PERSISTENT	NIFTY500	
+DBCORP	NIFTY500	
+WABAG	NIFTY500	
+TVTODAY	NIFTY500	

@@ -22,7 +22,6 @@ import com.example.mq.producer.QueueService;
 import com.example.service.CalendarService;
 import com.example.service.DownloadLedgerService;
 import com.example.service.FileNameService;
-import com.example.service.SectorService;
 import com.example.util.DownloadUtil;
 import com.example.util.io.model.DownloadTriggerIO;
 import com.example.util.io.model.DownloadTriggerIO.DownloadType;
@@ -39,8 +38,6 @@ public class DownloadTriggerConsumer {
 	@Autowired
 	private DownloadBhavService downloadBhavService;
 
-	@Autowired
-	private SectorService sectorService;
 	
 	@Autowired
 	private DownloadUtil downloadUtil;
@@ -92,7 +89,7 @@ public class DownloadTriggerConsumer {
 
 					this.updateDownloadLedger(downloadTriggerIO);
 					
-					this.updateSectorPEPB();
+					
 					
 					//
 					TradingSessionIO tradingSessionIO = new TradingSessionIO(downloadTriggerIO.getDownloadDate());
@@ -172,8 +169,5 @@ public class DownloadTriggerConsumer {
 		
 		downloadLedgerService.save(downloadLedger);
 	}
-	
-	private void updateSectorPEPB() {
-		sectorService.updateSectorPEPB();
-	}
+
 }

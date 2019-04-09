@@ -21,6 +21,7 @@ import com.example.mq.producer.QueueService;
 import com.example.service.FundsLedgerService;
 import com.example.service.PerformanceLedgerService;
 import com.example.service.ResearchLedgerService;
+import com.example.service.SectorService;
 import com.example.service.StockService;
 import com.example.service.UserService;
 import com.example.util.io.model.ResearchIO;
@@ -48,6 +49,9 @@ public class UpdateTriggerConsumer {
 	@Autowired
 	private StockService stockService;
 
+	@Autowired
+	private SectorService sectorService;
+	
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateTriggerConsumer.class);
 
 	@JmsListener(destination = QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE)
@@ -57,7 +61,10 @@ public class UpdateTriggerConsumer {
 		LOGGER.info(QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE.toUpperCase() + " : " + updateTriggerIO + " : START");
 
 		if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_RESEARCH) {
+			this.updateSectorPEPB();
+			
 			this.updateResearch();
+			
 		} else if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_CYRO) {
 			this.updateCYRO();
 		} else if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_FYRO) {
@@ -160,5 +167,12 @@ public class UpdateTriggerConsumer {
 
 	private void process(ResearchIO researchIO) {
 		queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
+	}
+	
+	
+	private void updateSectorPEPB() {
+		sectorService.updateSectorPEPB();
+		
+		System.out.println("updateSectorPEPB END");
 	}
 }

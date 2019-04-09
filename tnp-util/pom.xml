@@ -7,19 +7,17 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>tnp-util</name>
 	<description>tnp-util</description>
-
+	<packaging>jar</packaging>
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.13.RELEASE</version>
-		<relativePath /> <!-- lookup parent from repository -->
+		<groupId>com.example</groupId>
+		<artifactId>track-n-pick</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../</relativePath>
 	</parent>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>1.8</java.version>
-	</properties>
+	<!-- <properties> <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding> 
+		<java.version>1.8</java.version> </properties> -->
 
 	<dependencies>
 
@@ -33,18 +31,8 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 		</dependency>
 
-<!-- 		<dependency>
-			<groupId>com.example</groupId>
-			<artifactId>tnp-model</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-			<scope>compile</scope>
-		</dependency> -->
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+		<!-- <dependency> <groupId>com.example</groupId> <artifactId>tnp-model</artifactId> 
+			<version>0.0.1-SNAPSHOT</version> <scope>compile</scope> </dependency> -->
 
 		<dependency>
 			<groupId>junit</groupId>
@@ -53,17 +41,7 @@
 		</dependency>
 	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-
+	<!-- <build> <plugins> <plugin> <groupId>org.apache.maven.plugins</groupId> 
+		<artifactId>maven-compiler-plugin</artifactId> <configuration> <source>1.8</source> 
+		<target>1.8</target> </configuration> </plugin> </plugins> </build> -->
 </project>

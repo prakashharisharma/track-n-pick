@@ -310,4 +310,6 @@ public class PortfolioService {
 		return portfolioRepository.findSectoralAllocation(userProfile);
 	}
 
+	
+	
 }

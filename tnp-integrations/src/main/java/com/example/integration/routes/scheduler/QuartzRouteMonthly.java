@@ -16,7 +16,7 @@ public class QuartzRouteMonthly extends RouteBuilder {
 	public void configure() throws Exception {
 
 		//0 47 10 1 * ? *
-		from("quartz2://everyMonth_1ST_At_10_47?cron=0+41+10+1+*+?+*").process(updateMonthlyValueProcessor)
+		from("quartz2://everyMonth_1ST_At_10_47?cron=0+51+10+1+*+?+*").process(updateMonthlyValueProcessor)
 				.to("log:everyMonth_1ST_At_10_47");
 
 	}
