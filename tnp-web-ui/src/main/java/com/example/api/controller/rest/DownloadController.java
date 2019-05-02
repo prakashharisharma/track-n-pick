@@ -51,7 +51,7 @@ public class DownloadController {
         	downloadType = DownloadType.NIFTY500;
         }
 
-        DownloadTriggerIO downloadTriggerIO = new DownloadTriggerIO(downloadDate, downloadType);
+        DownloadTriggerIO downloadTriggerIO = new DownloadTriggerIO(downloadDate, downloadType,DownloadTriggerIO.TriggerType.MANUAL );
         
         queueService.send(downloadTriggerIO, QueueConstants.MTQueue.DOWNLOAD_TRIGGER_QUEUE);
         

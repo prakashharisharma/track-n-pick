@@ -130,7 +130,30 @@ public class StockService {
 			stockRepository.save(stock);
 		}
 	}
-
+	
+	public void resetFactors() {
+		
+		List<Stock> stocksList = stockRepository.findByActive(true);
+		
+		int i=0;
+		
+		for (Stock stock : stocksList) {
+			i++;
+			
+			StockFactor stockFactor = stock.getStockFactor();
+			
+			stockFactor.setLastModified(LocalDate.now().minusDays(20 + i));
+			
+			stockFactorRepository.save(stockFactor);
+			
+			if(i == 20) {
+				i=0;
+			}
+			
+		}
+		
+	}
+	
 	public Stock add(String isinCode, String companyName, String nseSymbol, IndiceType primaryIndice,
 			Sector sectorName) {
 

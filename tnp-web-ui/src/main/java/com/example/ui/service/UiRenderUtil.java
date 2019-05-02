@@ -1,6 +1,7 @@
 package com.example.ui.service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import com.example.model.ledger.PerformanceLedger;
 import com.example.model.ledger.ResearchLedger;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
+import com.example.model.type.IndicedAllocation;
 import com.example.model.type.SectoralAllocation;
 import com.example.model.um.UserProfile;
 import com.example.service.DividendLedgerService;
@@ -22,6 +24,7 @@ import com.example.service.TradeLedgerService;
 import com.example.service.TradeProfitLedgerService;
 import com.example.ui.model.ChartPerformance;
 import com.example.ui.model.ChartType;
+import com.example.ui.model.RenderIndiceAllocation;
 import com.example.ui.model.RenderSectorWiseValue;
 import com.example.ui.model.UIOverallGainLoss;
 import com.example.ui.model.UIRenderStock;
@@ -122,6 +125,39 @@ public class UiRenderUtil {
 		return portfolioList;
 	}
 
+	public List<UIRenderStock> renderAdvancedResearchList(List<ResearchLedger> researchList) {
+
+		List<UIRenderStock> resultList = new ArrayList<>();
+
+		for (ResearchLedger researchStock : researchList) {
+
+			double currentPrice = researchStock.getStock().getStockPrice().getCurrentPrice();
+			
+			double bookValue= researchStock.getStock().getStockFactor().getBookValue();
+			
+			double eps = researchStock.getStock().getStockFactor().getEps();
+			
+			double pe= formulaService.calculatePe(currentPrice, eps);
+			
+			double pb= formulaService.calculatePb(currentPrice, bookValue);
+
+
+			double sectorPe = researchStock.getStock().getSector().getSectorPe();
+			
+			double peDifference = sectorPe - pe;
+			
+			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(
+					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getEntryPrice())));
+
+			resultList.add(new UIRenderStock(researchStock, profitPer,pe, pb,peDifference));
+			
+		}
+
+		resultList.stream().sorted(Comparator.comparing(UIRenderStock::getPeDifference).thenComparing(UIRenderStock::getIndice));
+		
+		return resultList;
+	}
+	
 	private double calculateProfitPer(double currentPrice, double averagePrice) {
 
 		double profit = currentPrice - averagePrice;
@@ -226,7 +262,7 @@ public class UiRenderUtil {
 		
 		double currentInvestmentValue = portfolioService.currentInvestmentValue(user);
 		
-		//List<SectorWiseValue> sectorWiseValueList = portfolioService.sectoralAllocation(user);
+		
 		List<SectoralAllocation> sectorWiseValueList = portfolioService.sectoralAllocation(user);
 		
 		List<RenderSectorWiseValue> renderList = new ArrayList<>();
@@ -234,6 +270,23 @@ public class UiRenderUtil {
 		sectorWiseValueList.forEach( sw -> {
 			
 			renderList.add(new RenderSectorWiseValue(sw.getSectorName(), formulaService.calculatePercentRate(currentInvestmentValue, sw.getAllocation())));
+		});
+		
+		return renderList;
+	}
+	
+	public List<RenderIndiceAllocation> indicedAllocation(UserProfile user){
+		
+		double currentInvestmentValue = portfolioService.currentInvestmentValue(user);
+		
+		
+		List<IndicedAllocation> indiceWiseValueList = portfolioService.indicedAllocation(user);
+		
+		List<RenderIndiceAllocation> renderList = new ArrayList<>();
+		
+		indiceWiseValueList.forEach( sw -> {
+			
+			renderList.add(new RenderIndiceAllocation(sw.getIndice().toString(), formulaService.calculatePercentRate(currentInvestmentValue, sw.getAllocation())));
 		});
 		
 		return renderList;

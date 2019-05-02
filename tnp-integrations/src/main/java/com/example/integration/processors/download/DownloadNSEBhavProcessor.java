@@ -29,7 +29,7 @@ public class DownloadNSEBhavProcessor implements Processor {
 		//downloadUtil.downloadFile(fileNameService.getNSEBhavDownloadURI(),fileNameService.getNSEBhavFileName());
 		//downloadBhavService.downloadFile(fileNameService.getNSEBhavReferrerURI(), fileNameService.getNSEBhavDownloadURI(),fileNameService.getNSEBhavFileName());
 		
-		DownloadTriggerIO downloadTriggerIO = new DownloadTriggerIO(LocalDate.now().minusDays(1), DownloadTriggerIO.DownloadType.BHAV);
+		DownloadTriggerIO downloadTriggerIO = new DownloadTriggerIO(LocalDate.now().minusDays(1), DownloadTriggerIO.DownloadType.BHAV, DownloadTriggerIO.TriggerType.SYSTEM );
 		
 		queueService.send(downloadTriggerIO, QueueConstants.MTQueue.DOWNLOAD_TRIGGER_QUEUE);
 		

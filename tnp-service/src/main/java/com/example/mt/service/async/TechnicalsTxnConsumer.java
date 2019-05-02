@@ -52,9 +52,10 @@ public class TechnicalsTxnConsumer {
 
 		if (stockTechnicals != null) {
 			stockTechnicals.setSma50(stockTechnicalsIO.getSma50());
-			stockTechnicals.setPrevSma50(stockTechnicalsIO.getPrevSma50());
 			stockTechnicals.setSma100(stockTechnicalsIO.getSma100());
 			stockTechnicals.setSma200(stockTechnicalsIO.getSma200());
+			stockTechnicals.setPrevSma50(stockTechnicalsIO.getPrevSma50());
+			stockTechnicals.setPrevSma100(stockTechnicalsIO.getPrevSma100());
 			stockTechnicals.setPrevSma200(stockTechnicalsIO.getPrevSma200());
 			stockTechnicals.setRsi(stockTechnicalsIO.getRsi());
 			stockTechnicals.setCurrentTrend(stockTechnicalsIO.getCurrentTrend());
@@ -66,9 +67,11 @@ public class TechnicalsTxnConsumer {
 			stockTechnicals.setStock(stock);
 			
 			stockTechnicals.setSma50(stockTechnicalsIO.getSma50());
-			stockTechnicals.setPrevSma50(stockTechnicalsIO.getPrevSma50());
+			
 			stockTechnicals.setSma100(stockTechnicalsIO.getSma100());
 			stockTechnicals.setSma200(stockTechnicalsIO.getSma200());
+			stockTechnicals.setPrevSma50(stockTechnicalsIO.getPrevSma50());
+			stockTechnicals.setPrevSma100(stockTechnicalsIO.getPrevSma100());
 			stockTechnicals.setPrevSma200(stockTechnicalsIO.getPrevSma200());
 			stockTechnicals.setRsi(stockTechnicalsIO.getRsi());
 			stockTechnicals.setCurrentTrend(stockTechnicalsIO.getCurrentTrend());

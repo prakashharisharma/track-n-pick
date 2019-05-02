@@ -44,6 +44,8 @@ public class UIRenderStock {
 
 	double researchPrice;
 
+	double peDifference;
+	
 	LocalDate researchDate;
 
 	IndiceType indice;
@@ -103,6 +105,28 @@ public class UIRenderStock {
 		
 	}
 
+	
+	public UIRenderStock(ResearchLedger researchLedger, double profitPer, double pe, double pb, double peDifference) {
+
+		this.symbol = researchLedger.getStock().getNseSymbol();
+		this.currentPrice = researchLedger.getStock().getStockPrice().getCurrentPrice();
+		this.yearLow = researchLedger.getStock().getStockPrice().getYearLow();
+		this.yearHigh = researchLedger.getStock().getStockPrice().getYearHigh();
+		this.researchPrice = researchLedger.getEntryPrice();
+		this.researchDate = researchLedger.getEntryhDate();
+		this.profitPer = profitPer;
+		this.indice = researchLedger.getStock().getPrimaryIndice();
+		this.pe = pe;
+		this.pb = pb;
+		this.debtEquity = researchLedger.getStock().getStockFactor().getDebtEquity();
+		this.roe= researchLedger.getStock().getStockFactor().getReturnOnEquity();
+
+		this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
+		this.sma200= researchLedger.getStock().getTechnicals().getSma200();
+		this.rsi= researchLedger.getStock().getTechnicals().getRsi();
+		this.peDifference = peDifference;
+	}
+	
 	public long getStockid() {
 		return stockid;
 	}
@@ -285,6 +309,16 @@ public class UIRenderStock {
 
 	public void setOverValued(boolean overValued) {
 		this.overValued = overValued;
+	}
+
+
+	public double getPeDifference() {
+		return peDifference;
+	}
+
+
+	public void setPeDifference(double peDifference) {
+		this.peDifference = peDifference;
 	}
 
 

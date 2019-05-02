@@ -9,6 +9,9 @@ public class DownloadTriggerIO implements Serializable{
 		BHAV, NIFTY50, NIFTY100, NIFTY250, NIFTY500
 	}
 	
+	public enum TriggerType{
+		SYSTEM, MANUAL
+	}
 	
 	/**
 	 * 
@@ -19,12 +22,14 @@ public class DownloadTriggerIO implements Serializable{
 	
 	private DownloadType downloadType;
 	
+	private TriggerType triggerType;
 	
 
-	public DownloadTriggerIO(LocalDate downloadDate, DownloadType downloadType) {
+	public DownloadTriggerIO(LocalDate downloadDate, DownloadType downloadType,TriggerType triggerType) {
 		super();
 		this.downloadDate = downloadDate;
 		this.downloadType = downloadType;
+		this.triggerType = triggerType;
 		
 	}
 
@@ -49,6 +54,14 @@ public class DownloadTriggerIO implements Serializable{
 
 	public void setDownloadType(DownloadType downloadType) {
 		this.downloadType = downloadType;
+	}
+
+	public TriggerType getTriggerType() {
+		return triggerType;
+	}
+
+	public void setTriggerType(TriggerType triggerType) {
+		this.triggerType = triggerType;
 	}
 
 	@Override

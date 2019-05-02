@@ -110,6 +110,7 @@ public class TechnicalsHistoryConsumer {
 				stockTechnicalsIO.setSma100(sma100);
 				stockTechnicalsIO.setSma200(sma200);
 				stockTechnicalsIO.setPrevSma50(technicalsTemplate.getPrevSessionSma50(stockPriceIO.getNseSymbol()));
+				stockTechnicalsIO.setPrevSma100(technicalsTemplate.getPrevSessionSma100(stockPriceIO.getNseSymbol()));
 				stockTechnicalsIO.setPrevSma200(technicalsTemplate.getPrevSessionSma200(stockPriceIO.getNseSymbol()));
 				stockTechnicalsIO.setRsi(smoothedRsi);
 				

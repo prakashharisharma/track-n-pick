@@ -113,6 +113,17 @@ public class AppRunner implements CommandLineRunner {
 
 		LOGGER.info("RSI2 " + technicalsTemplate.getCurrentSmoothedRSI("ZEEL"));
 		
+		//stockService.resetFactors();
+		
+		List<Stock> sm = stockService.getActiveStocks();
+		
+		for (Stock s : sm) {
+			stockService.updateFactor(s);
+			
+			Thread.sleep(100);
+			
+		}
+		
 		//sectorService.updateSectorPEPB();
 		
 		/*List<Stock> stkList = stockService.getActiveStocks();

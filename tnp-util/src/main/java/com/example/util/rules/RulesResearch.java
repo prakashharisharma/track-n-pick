@@ -22,6 +22,8 @@ public class RulesResearch {
 	private double pbOvervalued;
 	private double peOvervalued;
 	
+	private long crossOverDays;
+	
 	public double getPb() {
 		return pb;
 	}
@@ -75,6 +77,12 @@ public class RulesResearch {
 	}
 	public void setPeOvervalued(double peOvervalued) {
 		this.peOvervalued = peOvervalued;
+	}
+	public long getCrossOverDays() {
+		return crossOverDays;
+	}
+	public void setCrossOverDays(long crossOverDays) {
+		this.crossOverDays = crossOverDays;
 	}
 
 }

@@ -8,14 +8,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.model.master.Stock;
+import com.example.model.stocks.StockFactor;
+import com.example.model.stocks.StockPrice;
+import com.example.model.stocks.StockTechnicals;
 import com.example.repo.master.StockRepository;
 import com.example.service.StockService;
+import com.example.ui.model.StockDetailsIO;
 import com.example.ui.model.StockSearch;
+import com.example.util.FormulaService;
 
 @RestController
 @RequestMapping("/api/stocks")
@@ -27,12 +33,41 @@ public class StockController {
 	@Autowired
 	private StockService stockService;
 
+	@Autowired
+	private FormulaService formulaService;
+	
 	@GetMapping(value = "/active", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<Stock>> getStocksMaster() {
 
 		return ResponseEntity.ok(stockRepository.findAll());
 	}
 
+	@GetMapping(value = "/{nseSymbol}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> getStockFundamentals(@PathVariable String nseSymbol) {
+
+		Stock stock = stockRepository.findByNseSymbol(nseSymbol);
+		
+		if(stock != null) {
+		
+		StockPrice stockPrice = stock.getStockPrice();
+		
+		StockFactor stockFactor = stock.getStockFactor();
+
+		StockTechnicals stockTechnicals = stock.getTechnicals();
+		
+		double pe = formulaService.calculatePe(stockPrice.getCurrentPrice(), stockFactor.getEps());
+		
+		double pb = formulaService.calculatePb(stockPrice.getCurrentPrice(), stockFactor.getBookValue());
+				
+		StockDetailsIO StockDetails = new com.example.ui.model.StockDetailsIO(stock.getNseSymbol(), stock.getSector().getSectorName(), stockPrice.getCurrentPrice(), stockPrice.getYearLow(), stockPrice.getYearHigh(), stockFactor.getMarketCap(), stockFactor.getDebtEquity(), stockFactor.getCurrentRatio(), stockFactor.getQuickRatio(), stockFactor.getDividend(), pb, pe, stock.getSector().getSectorPe(), stockFactor.getReturnOnEquity(), stockFactor.getReturnOnCapital(), stockTechnicals.getRsi(), stockTechnicals.getLongTermTrend(), stockTechnicals.getMidTermTrend(), stockTechnicals.getCurrentTrend());
+		
+		return ResponseEntity.ok(StockDetails);
+		}else {
+			return ResponseEntity.ok("NOT FOUND : " + nseSymbol);
+		}
+	}
+	
+	
 	@GetMapping(value = "/searchstock", produces = { MediaType.APPLICATION_ATOM_XML_VALUE,
 			MediaType.APPLICATION_JSON_VALUE })
 	public ResponseEntity<List<StockSearch>> searchStock1(@RequestParam String query) {

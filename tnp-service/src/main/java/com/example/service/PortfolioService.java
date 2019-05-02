@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
+import com.example.model.type.IndicedAllocation;
 import com.example.model.type.SectorWiseValue;
 import com.example.model.type.SectoralAllocation;
 import com.example.model.um.UserProfile;
@@ -310,6 +311,10 @@ public class PortfolioService {
 		return portfolioRepository.findSectoralAllocation(userProfile);
 	}
 
-	
+	@Cacheable(value = "indicedAllocation", key = "#userProfile.userId")
+	public List<IndicedAllocation> indicedAllocation(UserProfile userProfile) {
+
+		return portfolioRepository.findIndicedAllocation(userProfile);
+	}
 	
 }

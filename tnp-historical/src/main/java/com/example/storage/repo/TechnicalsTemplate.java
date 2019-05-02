@@ -274,6 +274,37 @@ public class TechnicalsTemplate {
 		return prevSessionSma50;
 	}
 
+	public double getPrevSessionSma100(String nseSymbol) {
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+
+		LimitOperation limitToTwoDoc = Aggregation.limit(2);
+
+		GroupOperation prevSma50Group = Aggregation.group("nseSymbol").last("movingAverage.sma100").as("prevSma100");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("prevSma100").as("resultPrice");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToTwoDoc,
+				prevSma50Group, projectToMatchModel);
+
+		AggregationResults<StockPriceResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_TH,
+				StockPriceResult.class);
+
+		StockPriceResult stockPriceResult = result.getUniqueMappedResult();
+
+		double prevSessionSma100 = 0.00;
+
+		if (stockPriceResult != null) {
+			prevSessionSma100 = stockPriceResult.getResultPrice();
+		}
+
+		return prevSessionSma100;
+	}
+	
+	
 	public double getPrevSessionSma200(String nseSymbol) {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));

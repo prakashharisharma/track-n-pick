@@ -39,4 +39,20 @@ public class ResearchController {
 		
 		return ResponseEntity.ok(uiRenderUtil.renderResearchList(researchList));
 	}
+	
+	@GetMapping(value="/fundamental/advance", produces = MediaType.APPLICATION_JSON_VALUE )
+	public ResponseEntity<List<UIRenderStock>> getAdvancedFundamentalResearchStocks() {
+
+		List<ResearchLedger> researchList = researchLedgerService.researchStocksFundamentals();
+		
+		return ResponseEntity.ok(uiRenderUtil.renderAdvancedResearchList(researchList));
+	}
+	
+	@GetMapping(value="/technical/advance", produces = MediaType.APPLICATION_JSON_VALUE )
+	public ResponseEntity<List<UIRenderStock>> getAdvancedTechnicalResearchStocks() {
+
+		List<ResearchLedger> researchList = researchLedgerService.researchStocksTechnicalss();
+		
+		return ResponseEntity.ok(uiRenderUtil.renderAdvancedResearchList(researchList));
+	}
 }

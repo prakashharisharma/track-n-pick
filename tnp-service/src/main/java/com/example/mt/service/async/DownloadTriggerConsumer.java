@@ -37,7 +37,6 @@ public class DownloadTriggerConsumer {
 
 	@Autowired
 	private DownloadBhavService downloadBhavService;
-
 	
 	@Autowired
 	private DownloadUtil downloadUtil;
@@ -76,19 +75,39 @@ public class DownloadTriggerConsumer {
 					LOGGER.info("NOT DOWNLOADING for  " + downloadTriggerIO.getDownloadDate().getDayOfWeek().name()
 							+ " BHAV ALREADY DOWNLOADED");
 				}else if (calendarService.isHoliday(downloadTriggerIO.getDownloadDate())) {
-					LOGGER.info("NOT DOWNLOADING for  " + downloadTriggerIO.getDownloadDate().getDayOfWeek().name()
-							+ " NSE Holiday");
+					
+					if(downloadTriggerIO.getTriggerType() == DownloadTriggerIO.TriggerType.SYSTEM) {
+						DownloadTriggerIO downloadTriggerIONew = new DownloadTriggerIO(calendarService.previousWorkingDay(downloadTriggerIO.getDownloadDate()), DownloadTriggerIO.DownloadType.BHAV, DownloadTriggerIO.TriggerType.SYSTEM );
+						
+						queueService.send(downloadTriggerIONew, QueueConstants.MTQueue.DOWNLOAD_TRIGGER_QUEUE);
+						
+					}else {
+						LOGGER.info("NOT DOWNLOADING for  " + downloadTriggerIO.getDownloadDate().getDayOfWeek().name()
+								+ " NSE Holiday");
+					}
+					
 				}
 				else if (downloadTriggerIO.getDownloadDate().getDayOfWeek() == DayOfWeek.SUNDAY
 						|| downloadTriggerIO.getDownloadDate().getDayOfWeek() == DayOfWeek.SATURDAY) {
-					LOGGER.info("NOT DOWNLOADING for  " + downloadTriggerIO.getDownloadDate().getDayOfWeek().name());
+					
+					if(downloadTriggerIO.getTriggerType() == DownloadTriggerIO.TriggerType.SYSTEM) {
+
+						DownloadTriggerIO downloadTriggerIONew = new DownloadTriggerIO(calendarService.previousWorkingDay(downloadTriggerIO.getDownloadDate()), DownloadTriggerIO.DownloadType.BHAV, DownloadTriggerIO.TriggerType.SYSTEM );
+						
+						queueService.send(downloadTriggerIONew, QueueConstants.MTQueue.DOWNLOAD_TRIGGER_QUEUE);
+						
+						
+					}else {
+						LOGGER.info("NOT DOWNLOADING for  " + downloadTriggerIO.getDownloadDate().getDayOfWeek().name());
+					}
+					
+					
 				} 
 
 				else {
 					downloadBhavService.downloadFile(referrerURI, fileURI, fileName);
 
 					this.updateDownloadLedger(downloadTriggerIO);
-					
 					
 					
 					//

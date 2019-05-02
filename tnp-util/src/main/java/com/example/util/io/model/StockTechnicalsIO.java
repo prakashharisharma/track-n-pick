@@ -15,12 +15,14 @@ public class StockTechnicalsIO implements Serializable{
 
 	double sma50;
 
-	double prevSma50;
-
 	double sma100;
 
 	double sma200;
 
+	double prevSma50;
+	
+	double prevSma100;
+	
 	double prevSma200;
 
 	double rsi;
@@ -52,6 +54,24 @@ public class StockTechnicalsIO implements Serializable{
 		this.currentTrend = currentTrend;
 	}
 
+	public StockTechnicalsIO(String nseSymbol, double sma50, double prevSma50, double sma100, double prevSma100, double sma200,
+			double prevSma200, double rsi, DirectionIO longTermTrend, DirectionIO midTermTrend,
+			DirectionIO currentTrend) {
+		super();
+		this.nseSymbol = nseSymbol;
+		this.sma50 = sma50;
+		this.prevSma50 = prevSma50;
+		this.sma100 = sma100;
+		this.prevSma100 = prevSma100;
+		this.sma200 = sma200;
+		this.prevSma200 = prevSma200;
+		this.rsi = rsi;
+		this.longTermTrend = longTermTrend;
+		this.midTermTrend = midTermTrend;
+		this.currentTrend = currentTrend;
+	}
+
+	
 	public String getNseSymbol() {
 		return nseSymbol;
 	}
@@ -130,6 +150,15 @@ public class StockTechnicalsIO implements Serializable{
 
 	public void setCurrentTrend(DirectionIO currentTrend) {
 		this.currentTrend = currentTrend;
+	}
+
+	
+	public double getPrevSma100() {
+		return prevSma100;
+	}
+
+	public void setPrevSma100(double prevSma100) {
+		this.prevSma100 = prevSma100;
 	}
 
 	@Override

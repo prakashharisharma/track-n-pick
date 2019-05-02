@@ -39,16 +39,20 @@ public class StockTechnicals implements Serializable{
 
 	@Column(name = "SMA_50", columnDefinition="Decimal(10,2) default '0.00'")
 	double sma50;
-	
-	@Column(name = "PREV_SMA_50", columnDefinition="Decimal(10,2) default '0.00'")
-	double prevSma50;
-	
+
 	
 	@Column(name = "SMA_100", columnDefinition="Decimal(10,2) default '0.00'")
 	double sma100;
 	
 	@Column(name = "SMA_200", columnDefinition="Decimal(10,2) default '0.00'")
 	double sma200;
+	
+	
+	@Column(name = "PREV_SMA_50", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevSma50;
+	
+	@Column(name = "PREV_SMA_100", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevSma100;
 	
 	@Column(name = "PREV_SMA_200", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevSma200;
@@ -109,6 +113,14 @@ public class StockTechnicals implements Serializable{
 
 	public void setSma200(double sma200) {
 		this.sma200 = sma200;
+	}
+
+	public double getPrevSma100() {
+		return prevSma100;
+	}
+
+	public void setPrevSma100(double prevSma100) {
+		this.prevSma100 = prevSma100;
 	}
 
 	public double getPrevSma200() {

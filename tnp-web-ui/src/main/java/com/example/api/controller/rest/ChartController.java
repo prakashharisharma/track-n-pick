@@ -1,6 +1,5 @@
 package com.example.api.controller.rest;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,15 +49,7 @@ public class ChartController {
 	@GetMapping(value="/indice/allocation", produces = MediaType.APPLICATION_JSON_VALUE )
 	public ResponseEntity<List<RenderIndiceAllocation>> getIndiceAllocation() {
 
-		
-		List<RenderIndiceAllocation> test = new ArrayList<>();
-		
-		test.add(new RenderIndiceAllocation("LARGE", 33));
-		test.add(new RenderIndiceAllocation("MID", 33));
-		test.add(new RenderIndiceAllocation("SMALL", 34));
-		
-		//return ResponseEntity.ok(uiRenderUtil.sectoralAllocation(loginService.getLoginUserProfile()));
-		return ResponseEntity.ok(test);
+		return ResponseEntity.ok(uiRenderUtil.indicedAllocation(loginService.getLoginUserProfile()));
 	}
 	
 }

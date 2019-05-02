@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
 import com.example.model.stocks.UserPortfolioKey;
+import com.example.model.type.IndicedAllocation;
 import com.example.model.type.SectorWiseValue;
 import com.example.model.type.SectoralAllocation;
 import com.example.model.um.UserProfile;
@@ -41,6 +42,14 @@ public interface PortfolioRepository extends JpaRepository<UserPortfolio, UserPo
 			+ " GROUP BY s.sectorName"
 			)
 	List<SectoralAllocation> findSectoralAllocation(@Param("userId") UserProfile userId);
+	
+	@Query(value = "select new com.example.model.type.IndicedAllocation(sm.primaryIndice, sum(up.averagePrice * up.quantity ))  from UserPortfolio up "
+			+ "  JOIN  up.portfolioId.stock as sm"
+			+ " WHERE up.portfolioId.user =:userId "
+			+ " GROUP BY sm.primaryIndice"
+			)
+	List<IndicedAllocation> findIndicedAllocation(@Param("userId") UserProfile userId);
+	
 	
 	@Query(value = "select sum(sp.currentPrice * up.quantity )  from UserPortfolio up "
 			+ "  JOIN  up.portfolioId.stock as sm"

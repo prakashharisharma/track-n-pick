@@ -13,7 +13,7 @@ $(document).ready(function() {
 function loadTableFundamental() {
 	$('#fundamental').DataTable({
 		"ajax" : {
-			"url" : "/api/research/fundamental",
+			"url" : "/api/research/fundamental/advance",
 			"dataSrc" : ""
 		},
 		"columns" : [ {
@@ -34,15 +34,18 @@ function loadTableFundamental() {
 			"data" : "roe"
 		}, {
 			"data" : "debtEquity"
-		}, {
+		},{
+			"data" : "peDifference"
+		}, 
+		{
 			"data" : "profitPer"
 		} ],
 		rowCallback : function(row, data, index) {
 			if (data.profitPer > 0.0) {
-				$(row).find('td:eq(9)').css('color', 'green');
+				$(row).find('td:eq(10)').css('color', 'green');
 			}
 			if (data.profitPer < 0.0) {
-				$(row).find('td:eq(9)').css('color', 'red');
+				$(row).find('td:eq(10)').css('color', 'red');
 			}
 
 		}
