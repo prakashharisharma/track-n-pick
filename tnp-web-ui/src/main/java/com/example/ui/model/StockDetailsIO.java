@@ -48,11 +48,13 @@ public class StockDetailsIO implements Serializable{
 	DirectionIO midTermTrend;
 
 	DirectionIO currentTrend;
+	
+	String valuation;
 
 	public StockDetailsIO(String nseSymbol, String sector, double currentPrice, double yearLow,double yearHigh, double marketCap, double debtEquity, double currentRatio,
 			double quickRatio, double dividend, double pb, double pe, double sectorPe, double returnOnEquity,
 			double returnOnCapital, double rsi, DirectionIO longTermTrend, DirectionIO midTermTrend,
-			DirectionIO currentTrend) {
+			DirectionIO currentTrend,String valuation) {
 		super();
 		this.nseSymbol = nseSymbol;
 		this.sector = sector;
@@ -73,6 +75,7 @@ public class StockDetailsIO implements Serializable{
 		this.longTermTrend = longTermTrend;
 		this.midTermTrend = midTermTrend;
 		this.currentTrend = currentTrend;
+		this.valuation = valuation;
 	}
 
 	public String getNseSymbol() {
@@ -225,6 +228,14 @@ public class StockDetailsIO implements Serializable{
 
 	public void setCurrentTrend(DirectionIO currentTrend) {
 		this.currentTrend = currentTrend;
+	}
+
+	public String getValuation() {
+		return valuation;
+	}
+
+	public void setValuation(String valuation) {
+		this.valuation = valuation;
 	}
 	
 	

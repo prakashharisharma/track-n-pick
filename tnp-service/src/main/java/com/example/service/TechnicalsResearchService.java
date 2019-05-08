@@ -124,7 +124,7 @@ public class TechnicalsResearchService {
 		boolean isBearishCrossover = false;
 
 		if (prevShortTermAvg >= prevLongTermAvg) {
-			if (shortTermAvg < longTermAvg) {
+			if (shortTermAvg <= longTermAvg) {
 				isBearishCrossover = true;
 			}
 		}

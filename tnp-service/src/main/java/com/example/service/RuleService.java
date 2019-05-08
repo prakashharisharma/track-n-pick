@@ -52,27 +52,37 @@ public class RuleService {
 
 				double pb = stockService.getPb(stock);
 
+				double sectorPe = stock.getSector().getSectorPe();
+				
+				double peDiff = sectorPe - pe;
+				
 				if (pe > 0.0) {
 
 					LOGGER.debug(stock.getNseSymbol() + " : " + stockPrice + " PE : " + pe + " PB : " + pb);
 
-					if (pe <= researchRules.getPe() && pb <= researchRules.getPb()) {
+					/*if (pe <= researchRules.getPe() && pb <= researchRules.getPb()) {
 						LOGGER.debug(" RULE 1 ");
-
-						isUndervalued = true;
+						if(peDiff > 2.0) {
+							isUndervalued = true;
+						}
 					}
 
-					else if (pb <= stock.getSector().getSectorPb() && pe <= stock.getSector().getSectorPe()) {
+					else*/ 
+					if (pb <= stock.getSector().getSectorPb() && pe <= stock.getSector().getSectorPe()) {
 
 						LOGGER.debug(" RULE 4 ");
 
-						isUndervalued = true;
+						if(peDiff > 3.0) {
+							isUndervalued = true;
+						}
 
-					} else if (pe <= stock.getSector().getSectorPe() && pb <= stock.getSector().getVariationPb()) {
+					} else if (pe <= stock.getSector().getSectorPe() && pb <= (stock.getSector().getSectorPb() + stock.getSector().getVariationPb())) {
 
 						LOGGER.debug(" RULE 2");
 
-						isUndervalued = true;
+						if(peDiff > 5.0) {
+							isUndervalued = true;
+						}
 
 					} /*
 						 * else if (pb <= stock.getSector().getSectorPb() && pe <=
@@ -92,8 +102,29 @@ public class RuleService {
 	public boolean isOvervalued(Stock stock) {
 		boolean isOvervalued = false;
 
-		if (!isUndervalued(stock)) {
+		if (!this.isUndervaluedPre(stock)) {
 			isOvervalued = true;
+		}else{
+			double pe = stockService.getPe(stock);
+
+			double pb = stockService.getPb(stock);
+			
+			if (pe <= 0.0) {
+				isOvervalued = true;
+			}else {
+				if (pb > stock.getSector().getSectorPb() && pe > stock.getSector().getSectorPe()) {
+
+					LOGGER.debug(" RULE 4 ");
+					isOvervalued = true;
+
+				} else if (pe <= stock.getSector().getSectorPe() && pb > (stock.getSector().getSectorPb() + stock.getSector().getVariationPb())) {
+
+					LOGGER.debug(" RULE 2");
+					isOvervalued = true;
+
+				}
+			}
+			
 		}
 
 		return isOvervalued;

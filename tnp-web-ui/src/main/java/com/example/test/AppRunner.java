@@ -115,14 +115,14 @@ public class AppRunner implements CommandLineRunner {
 		
 		//stockService.resetFactors();
 		
-		List<Stock> sm = stockService.getActiveStocks();
+		/*List<Stock> sm = stockService.getActiveStocks();
 		
 		for (Stock s : sm) {
 			stockService.updateFactor(s);
 			
 			Thread.sleep(100);
 			
-		}
+		}*/
 		
 		//sectorService.updateSectorPEPB();
 		

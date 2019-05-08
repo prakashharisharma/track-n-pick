@@ -1,4 +1,4 @@
-package com.example.api.controller.rest;
+package com.example.open.api.controller.rest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,18 +17,15 @@ import com.example.model.master.Stock;
 import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.StockTechnicals;
-import com.example.repo.master.StockRepository;
+import com.example.service.RuleService;
 import com.example.service.StockService;
 import com.example.ui.model.StockDetailsIO;
 import com.example.ui.model.StockSearch;
 import com.example.util.FormulaService;
 
 @RestController
-@RequestMapping("/api/stocks")
-public class StockController {
-
-	@Autowired
-	private StockRepository stockRepository;
+@RequestMapping("/public/api/stocks")
+public class PublicStockController {
 
 	@Autowired
 	private StockService stockService;
@@ -36,12 +33,43 @@ public class StockController {
 	@Autowired
 	private FormulaService formulaService;
 	
-	@GetMapping(value = "/active", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<Stock>> getStocksMaster() {
-
-		return ResponseEntity.ok(stockRepository.findAll());
-	}
+	@Autowired
+	private RuleService ruleService;
 	
+	@GetMapping(value = "/{stockId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> getStockFundamentals(@PathVariable long stockId) {
+
+		Stock stock = stockService.getStockById(stockId);
+		
+		if(stock != null) {
+		
+		StockPrice stockPrice = stock.getStockPrice();
+		
+		StockFactor stockFactor = stock.getStockFactor();
+
+		StockTechnicals stockTechnicals = stock.getTechnicals();
+		
+		double pe = formulaService.calculatePe(stockPrice.getCurrentPrice(), stockFactor.getEps());
+		
+		double pb = formulaService.calculatePb(stockPrice.getCurrentPrice(), stockFactor.getBookValue());
+		
+		String valuation = "NUETRAL";
+		
+		if(ruleService.isUndervalued(stock)) {
+			valuation = "UNDERVALUE";
+		}else if(ruleService.isOvervalued(stock)) {
+			valuation = "OVERVALUED";
+		}else {
+			valuation = "NUETRAL";
+		}
+		
+		StockDetailsIO StockDetails = new com.example.ui.model.StockDetailsIO(stock.getNseSymbol(), stock.getSector().getSectorName(), stockPrice.getCurrentPrice(), stockPrice.getYearLow(), stockPrice.getYearHigh(), stockFactor.getMarketCap(), stockFactor.getDebtEquity(), stockFactor.getCurrentRatio(), stockFactor.getQuickRatio(), stockFactor.getDividend(), pb, pe, stock.getSector().getSectorPe(), stockFactor.getReturnOnEquity(), stockFactor.getReturnOnCapital(), stockTechnicals.getRsi(), stockTechnicals.getLongTermTrend(), stockTechnicals.getMidTermTrend(), stockTechnicals.getCurrentTrend(),valuation);
+		
+		return ResponseEntity.ok(StockDetails);
+		}else {
+			return ResponseEntity.ok("NOT FOUND");
+		}
+	}
 	
 	@GetMapping(value = "/searchstock", produces = { MediaType.APPLICATION_ATOM_XML_VALUE,
 			MediaType.APPLICATION_JSON_VALUE })
@@ -60,8 +88,6 @@ public class StockController {
 
 		if (searchResult.isEmpty()) {
 
-			System.out.println("DEFAULT");
-			
 			List<StockSearch> noSearchResult = new ArrayList<>();
 			
 			noSearchResult.add(new StockSearch(0, "No Result Found"));

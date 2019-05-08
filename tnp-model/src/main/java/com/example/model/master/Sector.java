@@ -99,7 +99,7 @@ public class Sector implements Serializable{
 	}
 
 	public double getVariationPe() {
-		return variationPe + sectorPe;
+		return variationPe;
 	}
 
 	public void setVariationPe(double variationPe) {
@@ -107,7 +107,7 @@ public class Sector implements Serializable{
 	}
 
 	public double getVariationPb() {
-		return variationPb + sectorPb;
+		return variationPb;
 	}
 
 	public void setVariationPb(double variationPb) {

@@ -98,12 +98,12 @@ public class PortfolioController {
 
 		System.out.println(stocksList);
 
-		List<StockSearch> searchResult = stocksList.stream().filter(s -> s.getCompanyNameAndSymbol().contains(query)).collect(Collectors.toList());
+		List<StockSearch> searchResult = stocksList.stream().filter(s -> s.getCompanyNameAndSymbol().toLowerCase().contains(query.toLowerCase())).collect(Collectors.toList());
 		
 		System.out.println(searchResult);
 		
 		if(searchResult.isEmpty()) {
-			System.out.println("DEFAULT");
+			
 			
 			List<StockSearch> noSearchResult = new ArrayList<>();
 			

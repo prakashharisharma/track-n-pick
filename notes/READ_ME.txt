@@ -38,7 +38,20 @@ http://cns.bu.edu/~gsc/CN710/fincast/Technical%20_indicators/Relative%20Strength
 https://www.investopedia.com/terms/o/onbalancevolume.asp
 https://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:on_balance_volume_obv
 -- MACD
+https://www.nseindia.com/companytracker/cmtracker.jsp?symbol=BEL&cName=cmtracker_nsedef.css
 
+https://www.nseindia.com/corporates/shldStructure/ShareholdingPattern/shp_table1_mkt_tracker.jsp?ndsId=132912&symbol=BEL&asOnDate=31-DEC-2018
+
+https://www.nseindia.com/marketinfo/companyTracker/resultsCompare.jsp?symbol=BEL
+https://www.nseindia.com/marketinfo/companyTracker/compInfo.jsp?symbol=BEL&series=EQ
+https://www.nseindia.com/marketinfo/companyTracker/corpAction.jsp?symbol=BEL
+https://www.nseindia.com/marketinfo/companyTracker/corpAnnounce.jsp?symbol=BEL
+
+OBV
+STOCK_SEARCH
+
+
+https://quickfs.net/company/INFY
 
 Interest coverage ratio > 1.5
 
@@ -105,6 +118,13 @@ AND sm.SECTOR_ID=s.SECTOR_ID
 AND sm.INDICE = 'NIFTY50'
  order by  s.SECTOR_NAME, DIFF  desc 
 
+ --NITY100 UNDERVALUE 
+  SELECT sm.NSE_SYMBOL, s.SECTOR_NAME, ul.RESEARCH_DATE, s.SECTOR_PE, ul.PE, s.SECTOR_PE - ul.PE AS DIFF FROM UNDERVALUE_LEDGER ul, STOCK_MASTER sm, SECTORS s
+WHERE ul.STOCK_ID=sm.STOCK_ID
+AND sm.SECTOR_ID=s.SECTOR_ID
+AND sm.INDICE = 'NIFTY100'
+ order by  s.SECTOR_NAME, DIFF  desc 
+ 
  --NITFY250 UNDERVALUE
  SELECT sm.NSE_SYMBOL, s.SECTOR_NAME, ul.RESEARCH_DATE, s.SECTOR_PE, ul.PE, s.SECTOR_PE - ul.PE AS DIFF FROM UNDERVALUE_LEDGER ul, STOCK_MASTER sm, SECTORS s
 WHERE ul.STOCK_ID=sm.STOCK_ID
@@ -152,28 +172,22 @@ AND srl.RESEARCH_STATUS='BUY'
 and srl.RESEARCH_TYPE='TECHNICAL'
 order by PERFORMANCE desc
 
--- OVERSOLD
+-- OVERSOLD TECHNICAL
 select sm.NSE_SYMBOL, st.RSI from STOCK_TECHNICALS st, STOCK_MASTER sm,STOCK_RESEARCH_LEDGER srl where st.STOCK_ID = sm.STOCK_ID and srl.STOCK_ID=sm.STOCK_ID
 and srl.RESEARCH_STATUS='BUY'
+and srl.RESEARCH_TYPE='TECHNICAL'
  and  st.RSI < 30
+ 
+-- OVERSOLD FUNDAMENTAL
+select sm.NSE_SYMBOL, st.RSI from STOCK_TECHNICALS st, STOCK_MASTER sm,STOCK_RESEARCH_LEDGER srl where st.STOCK_ID = sm.STOCK_ID and srl.STOCK_ID=sm.STOCK_ID
+and srl.RESEARCH_STATUS='BUY'
+and srl.RESEARCH_TYPE='FUNDAMENTAL'
+ and  st.RSI < 30 
  
 -- OVERBAUGHT
 select sm.NSE_SYMBOL, st.RSI from STOCK_TECHNICALS st, STOCK_MASTER sm,UNDERVALUE_LEDGER ul where st.STOCK_ID = sm.STOCK_ID and ul.STOCK_ID=sm.STOCK_ID and  st.RSI > 70
 
-https://www.nseindia.com/companytracker/cmtracker.jsp?symbol=BEL&cName=cmtracker_nsedef.css
 
-https://www.nseindia.com/corporates/shldStructure/ShareholdingPattern/shp_table1_mkt_tracker.jsp?ndsId=132912&symbol=BEL&asOnDate=31-DEC-2018
-
-https://www.nseindia.com/marketinfo/companyTracker/resultsCompare.jsp?symbol=BEL
-https://www.nseindia.com/marketinfo/companyTracker/compInfo.jsp?symbol=BEL&series=EQ
-https://www.nseindia.com/marketinfo/companyTracker/corpAction.jsp?symbol=BEL
-https://www.nseindia.com/marketinfo/companyTracker/corpAnnounce.jsp?symbol=BEL
-
-OBV
-STOCK_SEARCH
-
-
-https://quickfs.net/company/INFY
 
 GUJALKALI
 GRAPHITE
