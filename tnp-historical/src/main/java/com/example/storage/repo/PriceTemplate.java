@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.LimitOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
@@ -20,7 +21,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Repository;
 
 import com.example.storage.model.StockPrice;
-import com.example.storage.model.TradingSession;
+import com.example.storage.model.result.HighLowResult;
+import com.example.storage.model.result.StockOBVResult;
 import com.example.storage.model.result.StockPriceResult;
 import com.example.storage.model.result.YearHighLowResult;
 
@@ -29,9 +31,6 @@ public class PriceTemplate {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
- 
-	@Autowired
-	private TradingSessionTemplate storageTemplate;
 	
 	final String COLLECTION_PH = "price_history";
 
@@ -44,8 +43,6 @@ public class PriceTemplate {
 	public List<YearHighLowResult> getYearLowStocks(LocalDate localdate) {
 
 		System.out.println("IN1");
-		
-		//TradingSession ts = storageTemplate.currentTradingSession();
 		
 		Instant bhavInstant = localdate.atStartOfDay().toInstant(ZoneOffset.UTC);
 		
@@ -86,8 +83,6 @@ public class PriceTemplate {
 	public List<YearHighLowResult> getYearHighStocks(LocalDate localdate) {
 
 		System.out.println("IN1");
-		
-		//TradingSession ts = storageTemplate.currentTradingSession();
 		
 		Instant bhavInstant = localdate.atStartOfDay().toInstant(ZoneOffset.UTC);
 		
@@ -152,6 +147,198 @@ public class PriceTemplate {
 		return yearLow;
 	}
 	
+	public HighLowResult getHighLowByDays(String nseSymbol, int days) {
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
+
+		GroupOperation yearLowGroup = Aggregation.group("nseSymbol").min("low").as("daysLow").max("high").as("daysHigh");
+		
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("daysLow").as("low").andExpression("daysHigh").as("high");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc,yearLowGroup,
+				projectToMatchModel);
+
+		AggregationResults<HighLowResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_PH,
+				HighLowResult.class);
+
+		HighLowResult highLowResult = result.getUniqueMappedResult();
+
+		
+
+		if (highLowResult == null) {
+			highLowResult = new HighLowResult("NO_DATA_FOUND",0.00,0.00);
+		}
+
+		return highLowResult;
+	
+	}
+	@Deprecated
+	public double getDaysLow(String nseSymbol, int days) {
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
+
+		GroupOperation yearLowGroup = Aggregation.group("nseSymbol").min("low").as("daysLow");
+		
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("daysLow").as("resultPrice");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc,yearLowGroup,
+				projectToMatchModel);
+
+		AggregationResults<StockPriceResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_PH,
+				StockPriceResult.class);
+
+		StockPriceResult stockPriceResult = result.getUniqueMappedResult();
+
+		double yearLow = 0.00;
+
+		if (stockPriceResult != null) {
+			yearLow = stockPriceResult.getResultPrice();
+		}
+
+		return yearLow;
+	}
+	@Deprecated
+	public double getDaysHigh(String nseSymbol, int days) {
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
+
+		GroupOperation yearLowGroup = Aggregation.group("nseSymbol").max("high").as("daysHigh");
+		
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("daysHigh").as("resultPrice");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc,yearLowGroup,
+				projectToMatchModel);
+
+		AggregationResults<StockPriceResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_PH,
+				StockPriceResult.class);
+
+		StockPriceResult stockPriceResult = result.getUniqueMappedResult();
+
+		double yearLow = 0.00;
+
+		if (stockPriceResult != null) {
+			yearLow = stockPriceResult.getResultPrice();
+		}
+
+		return yearLow;
+	}
+	
+	public HighLowResult getHighLowByDate(String nseSymbol, LocalDate fromDate) {
+		Instant yearBackInstant = fromDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		MatchOperation matchPrices = Aggregation
+				.match(new Criteria("bhavDate").gte(Date.from(yearBackInstant)));
+		
+		GroupOperation yearLowGroup = Aggregation.group("nseSymbol").min("low").as("yearLow").max("high").as("yearHigh");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("yearLow").as("low").andExpression("yearHigh").as("high");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol,  matchPrices,  yearLowGroup,
+				projectToMatchModel);
+
+		AggregationResults<HighLowResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_PH,
+				HighLowResult.class);
+
+		HighLowResult highLowResult = result.getUniqueMappedResult();
+
+		if(highLowResult == null) {
+			highLowResult = new HighLowResult("NO_DATA_FOUND",0.00,0.00);
+		}
+		
+		return highLowResult;
+	}
+	
+	@Deprecated
+	public double getLowFromDate(String nseSymbol, LocalDate fromDate) {
+
+		Instant yearBackInstant = fromDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		MatchOperation matchPrices = Aggregation
+				.match(new Criteria("bhavDate").gte(Date.from(yearBackInstant)));
+
+/*		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.ASC, "low"));
+		
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);*/
+		
+		GroupOperation yearLowGroup = Aggregation.group("nseSymbol").min("low").as("yearLow");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("yearLow").as("resultPrice");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol,  matchPrices,  yearLowGroup,
+				projectToMatchModel);
+
+		AggregationResults<StockPriceResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_PH,
+				StockPriceResult.class);
+
+		double yearLow= 0.00;
+		
+		StockPriceResult stockPriceResult = result.getUniqueMappedResult();
+
+		if(stockPriceResult != null) {
+			yearLow = stockPriceResult.getResultPrice();
+		}
+		
+		return yearLow;
+	}
+	
+	@Deprecated
+	public double getHighFromDate(String nseSymbol, LocalDate fromDate) {
+
+
+		Instant yearBackInstant = fromDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		MatchOperation matchPrices = Aggregation
+				.match(new Criteria("bhavDate").gte(Date.from(yearBackInstant)));
+
+		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").max("high").as("yearHigh");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("yearHigh").as("resultPrice");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol,  matchPrices, yearHighGroup,
+				projectToMatchModel);
+
+		AggregationResults<StockPriceResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_PH,
+				StockPriceResult.class);
+
+		double yearHigh = 0.00;
+		
+		StockPriceResult stockPriceResult = result.getUniqueMappedResult();
+
+		if(stockPriceResult != null) {
+			yearHigh = stockPriceResult.getResultPrice();;
+		}
+		
+		//System.out.println(result.getRawResults());
+
+		return yearHigh;
+	}
+	
+	
+	
 	public double getyearHigh(String nseSymbol) {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
@@ -178,5 +365,146 @@ public class PriceTemplate {
 		}
 
 		return yearHigh;
+	}
+	
+	public long getTotalTradedQuantity(String nseSymbol) {
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("totalTradedQuantity").as("resultOBV");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc,
+				projectToMatchModel);
+
+		AggregationResults<StockOBVResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_PH,
+				StockOBVResult.class);
+
+		StockOBVResult stockOBVResult = result.getUniqueMappedResult();
+
+		long prevOBV = 0;
+
+		if (stockOBVResult != null) {
+			prevOBV = stockOBVResult.getResultOBV();
+		}
+
+		return prevOBV;
+	}
+	
+	public double getAveragePrice(String nseSymbol, int days) {
+		//TradingSession ts = this.getTradingSessionBeforeDays(days);
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
+		
+
+		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").avg("close").as("avgPrice");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("avgPrice").as("resultPrice");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc, yearHighGroup,
+				projectToMatchModel);
+
+		AggregationResults<StockPriceResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_PH,
+				StockPriceResult.class);
+
+		StockPriceResult stockPriceResult = result.getUniqueMappedResult();
+
+		double averagePrice= 0.00;
+		if(stockPriceResult != null) {
+			averagePrice = stockPriceResult.getResultPrice();
+		}
+		
+		//System.out.println(result.getRawResults());
+
+		return averagePrice;
+	}
+	
+	public double getTotalGain(String nseSymbol, int days) {
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
+		
+		Criteria criteriaTotalGain = new Criteria("change").gt(0.00);
+		
+		MatchOperation matchPrices = Aggregation.match(criteriaTotalGain);
+
+		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").sum("change").as("totalGain");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("totalGain").as("resultPrice");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc,limitToOnlyFirstDoc, matchPrices, yearHighGroup,
+				projectToMatchModel);
+
+		AggregationResults<StockPriceResult> result = mongoTemplate.aggregate(aggregation,  COLLECTION_PH,
+				StockPriceResult.class);
+
+		double totalGain = 0.00;
+		
+		StockPriceResult stockPriceResult = result.getUniqueMappedResult();
+
+		if(stockPriceResult != null) {
+			totalGain = stockPriceResult.getResultPrice();
+		}
+
+		return totalGain;
+	
+	}
+	
+	public double getAverageGain(String nseSymbol, int days) {
+		double averageGain =  this.getTotalGain(nseSymbol, days) / days;
+		return averageGain;
+	}
+	
+	public double getTotalLoss(String nseSymbol, int days) {
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
+		
+		Criteria criteriaTotalGain = new Criteria("change").lt(0.00);
+		
+		MatchOperation matchPrices = Aggregation.match(criteriaTotalGain);
+
+		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").sum("change").as("totalLoss");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("totalLoss").as("resultPrice");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc,limitToOnlyFirstDoc, matchPrices, yearHighGroup,
+				projectToMatchModel);
+
+		AggregationResults<StockPriceResult> result = mongoTemplate.aggregate(aggregation,  COLLECTION_PH,
+				StockPriceResult.class);
+
+		double totalLoss = 0.00;
+		
+		StockPriceResult stockPriceResult = result.getUniqueMappedResult();
+
+		if(stockPriceResult != null) {
+			totalLoss = stockPriceResult.getResultPrice();
+		}
+
+		return totalLoss;
+	
+	}
+	
+	public double getAverageLoss(String nseSymbol, int days) {
+		double averageLoss = Math.abs( this.getTotalLoss(nseSymbol, days) / days);
+		return averageLoss;
 	}
 }

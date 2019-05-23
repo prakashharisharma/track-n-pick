@@ -7,6 +7,7 @@ import com.example.storage.model.Trend;
 import com.example.storage.repo.TechnicalsTemplate;
 import com.example.util.io.model.type.DirectionIO;
 
+@Deprecated
 @Service
 public class TrendServiceImpl {
 
@@ -16,6 +17,7 @@ public class TrendServiceImpl {
 
 	@Autowired
 	private TechnicalsTemplate technicalsTemplate;
+	
 	
 	public Trend getMovingAverageTrends(String nseSymbol) {
 		

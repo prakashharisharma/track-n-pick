@@ -187,8 +187,55 @@ and srl.RESEARCH_TYPE='FUNDAMENTAL'
 -- OVERBAUGHT
 select sm.NSE_SYMBOL, st.RSI from STOCK_TECHNICALS st, STOCK_MASTER sm,UNDERVALUE_LEDGER ul where st.STOCK_ID = sm.STOCK_ID and ul.STOCK_ID=sm.STOCK_ID and  st.RSI > 70
 
+https://medium.com/@sourav.pati09/how-to-use-java-high-level-rest-client-with-spring-boot-to-talk-to-aws-elasticsearch-2b6106f2e2c
+
+SELECT cl.CROSSOVER_TYPE, sm.NSE_SYMBOL, cl.CATEGORY, cl.RESEARCH_DATE FROM CROSSOVER_LEDGER cl, STOCK_MASTER sm where cl.STOCK_ID=sm.STOCK_ID
+AND cl.STATUS='OPEN'
+AND cl.CROSSOVER_TYPE='BULLISH'
+order by 
+sm.NSE_SYMBOL,
+CL.RESEARCH_DATE DESC
+
+--Golden CROSS
+SELECT cl.CROSSOVER_TYPE, sm.NSE_SYMBOL, cl.CATEGORY, cl.RESEARCH_DATE FROM CROSSOVER_LEDGER cl, STOCK_MASTER sm where cl.STOCK_ID=sm.STOCK_ID
+AND cl.STATUS='OPEN'
+AND cl.CROSSOVER_TYPE='BULLISH'
+AND cl.CATEGORY='CROSS200'
+order by 
+sm.NSE_SYMBOL,
+CL.RESEARCH_DATE DESC
+
+SELECT cl.CROSSOVER_TYPE, sm.NSE_SYMBOL, cl.CATEGORY, cl.RESEARCH_DATE FROM CROSSOVER_LEDGER cl, STOCK_MASTER sm where cl.STOCK_ID=sm.STOCK_ID
+AND cl.STATUS='OPEN'
+AND cl.CROSSOVER_TYPE='BEARISH'
+order by 
+sm.NSE_SYMBOL,
+CL.RESEARCH_DATE DESC
+
+--Death Cross
+SELECT cl.CROSSOVER_TYPE, sm.NSE_SYMBOL, cl.CATEGORY, cl.RESEARCH_DATE FROM CROSSOVER_LEDGER cl, STOCK_MASTER sm where cl.STOCK_ID=sm.STOCK_ID
+AND cl.STATUS='OPEN'
+AND cl.CROSSOVER_TYPE='BEARISH'
+AND cl.CATEGORY='CROSS200'
+order by 
+sm.NSE_SYMBOL,
+CL.RESEARCH_DATE DESC
+
+SELECT sm.NSE_SYMBOL, bl.CATEGORY, bl.TYPE, bl.BREAKOUT_DATE FROM BREAKOUT_LEDGER bl , STOCK_MASTER sm 
+where bl.STOCK_ID=sm.STOCK_ID 
+AND bl.TYPE='POSITIVE'
+order by
+sm.NSE_SYMBOL,
+ bl.BREAKOUT_DATE desc
+
+SELECT sm.NSE_SYMBOL, bl.CATEGORY, bl.TYPE, bl.BREAKOUT_DATE FROM BREAKOUT_LEDGER bl , STOCK_MASTER sm 
+where bl.STOCK_ID=sm.STOCK_ID 
+AND bl.TYPE='NEGATIVE'
+order by 
+sm.NSE_SYMBOL,
+bl.BREAKOUT_DATE desc
 
 
-GUJALKALI
-GRAPHITE
-NATCOPHARMA
+https://www.rediff.com/money/special/trading-volume-what-it-reveals-about-the-market/20090703.htm
+https://www.nseindia.com/products/content/sec_bhavdata_full.csv
+https://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:moving_averages

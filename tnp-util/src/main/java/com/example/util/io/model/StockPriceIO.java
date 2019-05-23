@@ -47,6 +47,9 @@ public class StockPriceIO implements Serializable {
 	private double yearLow;
 	private double yearHigh;
 
+	private double low14;
+	private double high14;
+	
 	public StockPriceIO() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -243,6 +246,22 @@ public class StockPriceIO implements Serializable {
 
 	public void setBhavDate(Instant bhavDate) {
 		this.bhavDate = bhavDate;
+	}
+
+	public double getLow14() {
+		return low14;
+	}
+
+	public void setLow14(double low14) {
+		this.low14 = low14;
+	}
+
+	public double getHigh14() {
+		return high14;
+	}
+
+	public void setHigh14(double high14) {
+		this.high14 = high14;
 	}
 
 	@Override

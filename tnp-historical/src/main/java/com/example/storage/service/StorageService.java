@@ -13,8 +13,10 @@ public interface StorageService {
     
      double getRSI(String nseSymbol, int days);
      
+     @Deprecated
      double getAverageGain(String nseSymbol, int days);
      
+     @Deprecated
      double getAverageLoss(String nseSymbol, int days);
      
      double getyearHigh(String nseSymbol);

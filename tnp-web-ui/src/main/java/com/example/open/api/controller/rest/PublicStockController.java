@@ -13,10 +13,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.model.ledger.BreakoutLedger;
+import com.example.model.ledger.CrossOverLedger;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.StockTechnicals;
+import com.example.service.BreakoutLedgerService;
+import com.example.service.CrossOverLedgerService;
 import com.example.service.RuleService;
 import com.example.service.StockService;
 import com.example.ui.model.StockDetailsIO;
@@ -32,45 +36,80 @@ public class PublicStockController {
 
 	@Autowired
 	private FormulaService formulaService;
-	
+
 	@Autowired
 	private RuleService ruleService;
-	
+
+	@Autowired
+	private CrossOverLedgerService crossOverLedgerService;
+
+	@Autowired
+	private BreakoutLedgerService breakoutLedgerService;
+
 	@GetMapping(value = "/{stockId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> getStockFundamentals(@PathVariable long stockId) {
 
 		Stock stock = stockService.getStockById(stockId);
-		
-		if(stock != null) {
-		
-		StockPrice stockPrice = stock.getStockPrice();
-		
-		StockFactor stockFactor = stock.getStockFactor();
 
-		StockTechnicals stockTechnicals = stock.getTechnicals();
-		
-		double pe = formulaService.calculatePe(stockPrice.getCurrentPrice(), stockFactor.getEps());
-		
-		double pb = formulaService.calculatePb(stockPrice.getCurrentPrice(), stockFactor.getBookValue());
-		
-		String valuation = "NUETRAL";
-		
-		if(ruleService.isUndervalued(stock)) {
-			valuation = "UNDERVALUE";
-		}else if(ruleService.isOvervalued(stock)) {
-			valuation = "OVERVALUED";
-		}else {
-			valuation = "NUETRAL";
-		}
-		
-		StockDetailsIO StockDetails = new com.example.ui.model.StockDetailsIO(stock.getNseSymbol(), stock.getSector().getSectorName(), stockPrice.getCurrentPrice(), stockPrice.getYearLow(), stockPrice.getYearHigh(), stockFactor.getMarketCap(), stockFactor.getDebtEquity(), stockFactor.getCurrentRatio(), stockFactor.getQuickRatio(), stockFactor.getDividend(), pb, pe, stock.getSector().getSectorPe(), stockFactor.getReturnOnEquity(), stockFactor.getReturnOnCapital(), stockTechnicals.getRsi(), stockTechnicals.getLongTermTrend(), stockTechnicals.getMidTermTrend(), stockTechnicals.getCurrentTrend(),valuation);
-		
-		return ResponseEntity.ok(StockDetails);
-		}else {
+		if (stock != null) {
+
+			StockPrice stockPrice = stock.getStockPrice();
+
+			StockFactor stockFactor = stock.getStockFactor();
+
+			StockTechnicals stockTechnicals = stock.getTechnicals();
+
+			double pe = formulaService.calculatePe(stockPrice.getCurrentPrice(), stockFactor.getEps());
+
+			double pb = formulaService.calculatePb(stockPrice.getCurrentPrice(), stockFactor.getBookValue());
+
+			String valuation = "NUETRAL";
+
+			if (ruleService.isUndervalued(stock)) {
+				valuation = "UNDERVALUE";
+			} else if (ruleService.isOvervalued(stock)) {
+				valuation = "OVERVALUED";
+			} else {
+				valuation = "NUETRAL";
+			}
+
+			double sok = stockTechnicals.getSok();
+
+			double sod = stockTechnicals.getSod();
+
+			long obv = stockTechnicals.getObv();
+
+			double rocv = stockTechnicals.getRocv();
+
+			double ema20 = stockTechnicals.getSma21();
+
+			double ema50 = stockTechnicals.getSma50();
+
+			double ema100 = stockTechnicals.getSma100();
+
+			double ema200 = stockTechnicals.getSma200();
+
+			String crossOver = this.getCrossOver(stock);
+			
+			String breakOut = this.getBreakOut(stock);
+			
+			StockDetailsIO stockDetails = new com.example.ui.model.StockDetailsIO(stock.getNseSymbol(),
+					stock.getSector().getSectorName(), stockPrice.getCurrentPrice(), stockPrice.getYearLow(),
+					stockPrice.getYearHigh(), stockFactor.getMarketCap(), stockFactor.getDebtEquity(),
+					stockFactor.getCurrentRatio(), stockFactor.getQuickRatio(), stockFactor.getDividend(), pb, pe,
+					stock.getSector().getSectorPe(), stock.getSector().getSectorPb(), stockFactor.getReturnOnEquity(),
+					stockFactor.getReturnOnCapital(), stockTechnicals.getRsi(), valuation, stock.getPrimaryIndice(),
+					sok, sod, obv, rocv, ema20, ema50, ema100, ema200);
+			
+			stockDetails.setCrossOver(crossOver);
+			stockDetails.setBreakOut(breakOut);
+
+			return ResponseEntity.ok(stockDetails);
+		} else {
 			return ResponseEntity.ok("NOT FOUND");
 		}
 	}
-	
+
 	@GetMapping(value = "/searchstock", produces = { MediaType.APPLICATION_ATOM_XML_VALUE,
 			MediaType.APPLICATION_JSON_VALUE })
 	public ResponseEntity<List<StockSearch>> searchStock1(@RequestParam String query) {
@@ -83,18 +122,68 @@ public class PublicStockController {
 			stocksList.add(new StockSearch(s.getStockId(), s.getCompanyName() + " - [" + s.getNseSymbol() + "]"));
 		});
 
-		List<StockSearch> searchResult = stocksList.stream().filter(s -> s.getCompanyNameAndSymbol().toLowerCase().contains(query.toLowerCase()))
+		List<StockSearch> searchResult = stocksList.stream()
+				.filter(s -> s.getCompanyNameAndSymbol().toLowerCase().contains(query.toLowerCase()))
 				.collect(Collectors.toList());
 
 		if (searchResult.isEmpty()) {
 
 			List<StockSearch> noSearchResult = new ArrayList<>();
-			
+
 			noSearchResult.add(new StockSearch(0, "No Result Found"));
-			
+
 			return ResponseEntity.ok(noSearchResult);
 		}
 
 		return ResponseEntity.ok(searchResult);
 	}
+
+	private String getCrossOver(Stock stock) {
+		StringBuilder crossOverHtml = new StringBuilder("<p>");
+
+		List<CrossOverLedger> crossOverList = crossOverLedgerService.getCrossOver(stock);
+
+		crossOverList.forEach(cl -> {
+			if (cl.getCrossOverType() == CrossOverLedger.CrossOverType.BULLISH) {
+				crossOverHtml.append("<font color='green'>");
+
+				crossOverHtml.append(cl.getCrossOverType().toString() + " of " + cl.getCrossOverCategory().toString()
+						+ " on " + cl.getResearchDate().toString());
+				crossOverHtml.append("</font>");
+			} else {
+				crossOverHtml.append("<font color='red'>");
+				crossOverHtml.append(cl.getCrossOverType().toString() + " of " + cl.getCrossOverCategory().toString()
+						+ " on " + cl.getResearchDate().toString());
+				crossOverHtml.append("</font>");
+			}
+			crossOverHtml.append("<br/>");
+
+		});
+		crossOverHtml.append("</p>");
+
+		return crossOverHtml.toString();
+	}
+
+	private String getBreakOut(Stock stock) {
+		StringBuilder breakOutHtml = new StringBuilder("<p>");
+
+		List<BreakoutLedger> breakoutList = breakoutLedgerService.getBreakouts(stock);
+
+		breakoutList.forEach(bl -> {
+			if (bl.getBreakoutType() == BreakoutLedger.BreakoutType.POSITIVE) {
+				breakOutHtml.append("<font color='green'>");
+				breakOutHtml.append(bl.getBreakoutType().toString() +" of " + bl.getBreakoutCategory().toString() +" on " + bl.getBreakoutDate().toString());
+				breakOutHtml.append("</font>");
+			} else {
+				breakOutHtml.append("<font color='red'>");
+				breakOutHtml.append(bl.getBreakoutType().toString() +" of " + bl.getBreakoutCategory().toString() +" on " + bl.getBreakoutDate().toString());
+				breakOutHtml.append("</font>");
+			}
+			breakOutHtml.append("<br/>");
+		});
+
+		breakOutHtml.append("</p>");
+		return breakOutHtml.toString();
+	}
+
 }

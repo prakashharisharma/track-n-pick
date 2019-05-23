@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.example.model.ledger.ValuationLedger.Category;
 import com.example.model.master.Stock;
 import com.example.util.io.model.ResearchIO.ResearchTrigger;
 import com.example.util.io.model.ResearchIO.ResearchType;
@@ -59,6 +60,10 @@ public class ResearchLedger {
 	
 	@Column(name = "IS_NOTIFIED_STORAGE")
 	boolean notifiedStorage = false;
+	
+	@Column(name = "CATEGORY")
+	@Enumerated(EnumType.STRING)
+	Category category;
 	
 	public long getSrlId() {
 		return srlId;
@@ -147,6 +152,14 @@ public class ResearchLedger {
 
 	public void setNotifiedStorage(boolean notifiedStorage) {
 		this.notifiedStorage = notifiedStorage;
+	}
+
+	public Category getCategory() {
+		return category;
+	}
+
+	public void setCategory(Category category) {
+		this.category = category;
 	}
 
 	@Override

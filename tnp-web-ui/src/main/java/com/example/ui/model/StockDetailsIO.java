@@ -2,9 +2,10 @@ package com.example.ui.model;
 
 import java.io.Serializable;
 
+import com.example.util.io.model.StockIO.IndiceType;
 import com.example.util.io.model.type.DirectionIO;
 
-public class StockDetailsIO implements Serializable{
+public class StockDetailsIO implements Serializable {
 
 	/**
 	 * 
@@ -12,49 +13,68 @@ public class StockDetailsIO implements Serializable{
 	private static final long serialVersionUID = 738919998494172793L;
 
 	String nseSymbol;
-	
+
 	String sector;
 
 	double currentPrice;
-	
+
 	double yearLow;
-	
+
 	double yearHigh;
-	
+
 	double marketCap;
 
 	double debtEquity;
 
 	double currentRatio;
 
-	double quickRatio;	
+	double quickRatio;
 
 	double dividend;
 
 	double pb;
 
 	double pe;
-	
+
 	double sectorPe;
+
+	double sectorPb;
 
 	double returnOnEquity;
 
 	double returnOnCapital;
-	
-	double rsi;
 
-	DirectionIO longTermTrend;
-
-	DirectionIO midTermTrend;
-
-	DirectionIO currentTrend;
-	
 	String valuation;
 
-	public StockDetailsIO(String nseSymbol, String sector, double currentPrice, double yearLow,double yearHigh, double marketCap, double debtEquity, double currentRatio,
-			double quickRatio, double dividend, double pb, double pe, double sectorPe, double returnOnEquity,
-			double returnOnCapital, double rsi, DirectionIO longTermTrend, DirectionIO midTermTrend,
-			DirectionIO currentTrend,String valuation) {
+	IndiceType indice;
+
+	double rsi;
+
+	double sok;
+
+	double sod;
+
+	long obv;
+
+	double rocv;
+
+	double ema20;
+
+	double ema50;
+
+	double ema100;
+
+	double ema200;
+
+	String crossOver;
+
+	String breakOut;
+
+	public StockDetailsIO(String nseSymbol, String sector, double currentPrice, double yearLow, double yearHigh,
+			double marketCap, double debtEquity, double currentRatio, double quickRatio, double dividend, double pb,
+			double pe, double sectorPe, double sectorPb, double returnOnEquity, double returnOnCapital, double rsi,
+			String valuation, IndiceType indice, double sok, double sod, long obv, double rocv, double ema20,
+			double ema50, double ema100, double ema200) {
 		super();
 		this.nseSymbol = nseSymbol;
 		this.sector = sector;
@@ -69,13 +89,29 @@ public class StockDetailsIO implements Serializable{
 		this.pb = pb;
 		this.pe = pe;
 		this.sectorPe = sectorPe;
+		this.sectorPb = sectorPb;
 		this.returnOnEquity = returnOnEquity;
 		this.returnOnCapital = returnOnCapital;
 		this.rsi = rsi;
-		this.longTermTrend = longTermTrend;
-		this.midTermTrend = midTermTrend;
-		this.currentTrend = currentTrend;
 		this.valuation = valuation;
+		this.indice = indice;
+
+		this.sok = sok;
+
+		this.sod = sod;
+
+		this.obv = obv;
+
+		this.rocv = rocv;
+
+		this.ema20 = ema20;
+
+		this.ema50 = ema50;
+
+		this.ema100 = ema100;
+
+		this.ema200 = ema200;
+
 	}
 
 	public String getNseSymbol() {
@@ -182,6 +218,14 @@ public class StockDetailsIO implements Serializable{
 		this.sectorPe = sectorPe;
 	}
 
+	public double getSectorPb() {
+		return sectorPb;
+	}
+
+	public void setSectorPb(double sectorPb) {
+		this.sectorPb = sectorPb;
+	}
+
 	public double getReturnOnEquity() {
 		return returnOnEquity;
 	}
@@ -206,30 +250,6 @@ public class StockDetailsIO implements Serializable{
 		this.rsi = rsi;
 	}
 
-	public DirectionIO getLongTermTrend() {
-		return longTermTrend;
-	}
-
-	public void setLongTermTrend(DirectionIO longTermTrend) {
-		this.longTermTrend = longTermTrend;
-	}
-
-	public DirectionIO getMidTermTrend() {
-		return midTermTrend;
-	}
-
-	public void setMidTermTrend(DirectionIO midTermTrend) {
-		this.midTermTrend = midTermTrend;
-	}
-
-	public DirectionIO getCurrentTrend() {
-		return currentTrend;
-	}
-
-	public void setCurrentTrend(DirectionIO currentTrend) {
-		this.currentTrend = currentTrend;
-	}
-
 	public String getValuation() {
 		return valuation;
 	}
@@ -237,6 +257,93 @@ public class StockDetailsIO implements Serializable{
 	public void setValuation(String valuation) {
 		this.valuation = valuation;
 	}
-	
-	
+
+	public IndiceType getIndice() {
+		return indice;
+	}
+
+	public void setIndice(IndiceType indice) {
+		this.indice = indice;
+	}
+
+	public double getSok() {
+		return sok;
+	}
+
+	public void setSok(double sok) {
+		this.sok = sok;
+	}
+
+	public double getSod() {
+		return sod;
+	}
+
+	public void setSod(double sod) {
+		this.sod = sod;
+	}
+
+	public long getObv() {
+		return obv;
+	}
+
+	public void setObv(long obv) {
+		this.obv = obv;
+	}
+
+	public double getRocv() {
+		return rocv;
+	}
+
+	public void setRocv(double rocv) {
+		this.rocv = rocv;
+	}
+
+	public double getEma20() {
+		return ema20;
+	}
+
+	public void setEma20(double ema20) {
+		this.ema20 = ema20;
+	}
+
+	public double getEma50() {
+		return ema50;
+	}
+
+	public void setEma50(double ema50) {
+		this.ema50 = ema50;
+	}
+
+	public double getEma100() {
+		return ema100;
+	}
+
+	public void setEma100(double ema100) {
+		this.ema100 = ema100;
+	}
+
+	public double getEma200() {
+		return ema200;
+	}
+
+	public void setEma200(double ema200) {
+		this.ema200 = ema200;
+	}
+
+	public String getCrossOver() {
+		return crossOver;
+	}
+
+	public void setCrossOver(String crossOver) {
+		this.crossOver = crossOver;
+	}
+
+	public String getBreakOut() {
+		return breakOut;
+	}
+
+	public void setBreakOut(String breakOut) {
+		this.breakOut = breakOut;
+	}
+
 }

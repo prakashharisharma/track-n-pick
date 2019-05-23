@@ -1,6 +1,7 @@
 package com.example.storage.repo;
 
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -15,10 +16,12 @@ import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.aggregation.UnwindOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import com.example.storage.model.RsiCountResult;
 import com.example.storage.model.StockPrice;
+import com.example.storage.model.result.StockOBVResult;
 import com.example.storage.model.result.StockPriceResult;
 import com.example.storage.model.StockTechnicals;
 import com.example.storage.model.TradingSession;
@@ -35,7 +38,7 @@ public class TechnicalsTemplate {
 	public void create(StockTechnicals stockTechnicals) {
 		mongoTemplate.insert(stockTechnicals);
 	}
-
+	
 	public double getPrevTotalGain(String nseSymbol) {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
@@ -92,6 +95,35 @@ public class TechnicalsTemplate {
 		return prevTotalLoss;
 	}
 
+	public long getOBV(String nseSymbol) {
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("indicator.priceVolume.obv").as("resultOBV");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc,
+				projectToMatchModel);
+
+		AggregationResults<StockOBVResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_TH,
+				StockOBVResult.class);
+
+		StockOBVResult stockOBVResult = result.getUniqueMappedResult();
+
+		long prevOBV = 0;
+
+		if (stockOBVResult != null) {
+			prevOBV = stockOBVResult.getResultOBV();
+		}
+
+		return prevOBV;
+	}
+	
+	
 	public double getCurrentRSI(String nseSymbol) {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
@@ -244,6 +276,37 @@ public class TechnicalsTemplate {
 		return count;
 	}
 
+	public double getPrevSessionSma21(String nseSymbol) {
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+
+		LimitOperation limitToTwoDoc = Aggregation.limit(2);
+
+		GroupOperation prevSma50Group = Aggregation.group("nseSymbol").last("movingAverage.sma21").as("prevSma21");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("prevSma21").as("resultPrice");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToTwoDoc,
+				prevSma50Group, projectToMatchModel);
+
+		AggregationResults<StockPriceResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_TH,
+				StockPriceResult.class);
+
+		StockPriceResult stockPriceResult = result.getUniqueMappedResult();
+
+		double prevSessionSma50 = 0.00;
+
+		if (stockPriceResult != null) {
+			prevSessionSma50 = stockPriceResult.getResultPrice();
+		}
+
+		return prevSessionSma50;
+	}
+	
+	
 	public double getPrevSessionSma50(String nseSymbol) {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
@@ -333,5 +396,60 @@ public class TechnicalsTemplate {
 		}
 
 		return prevSessionSma50;
+	}
+	
+	public double getAverageStochasticOscillatorK(String nseSymbol, int days) {
+		//TradingSession ts = this.getTradingSessionBeforeDays(days);
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
+
+		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").avg("indicator.stochasticOscillator.k").as("avgD");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("avgD").as("resultPrice");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc, yearHighGroup,
+				projectToMatchModel);
+
+		AggregationResults<StockPriceResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_TH,
+				StockPriceResult.class);
+
+		
+		
+		StockPriceResult stockPriceResult = result.getUniqueMappedResult();
+
+		double averagePrice= 0.00;
+		if(stockPriceResult != null) {
+			averagePrice = stockPriceResult.getResultPrice();
+		}
+		
+		//System.out.println(result.getRawResults());
+
+		return averagePrice;
+	}
+	
+	
+	public StockTechnicals getPrevTechnicals(String nseSymbol) {
+
+		Query query = new Query(new Criteria("nseSymbol").is(nseSymbol));
+		
+		query.with(new Sort(Sort.Direction.DESC,"bhavDate")).limit(1);
+		
+		//new Sort(new Order(Direction.ASC, FIELD_NAME).ignoreCase()
+		
+		List<StockTechnicals> stockTechnicalsList = mongoTemplate.find(query, StockTechnicals.class);
+		
+		StockTechnicals stockTechnicals = null;
+		
+		if(!stockTechnicalsList.isEmpty()) {
+			stockTechnicals = stockTechnicalsList.get(0);
+		}
+		
+		return stockTechnicals;
+		
 	}
 }

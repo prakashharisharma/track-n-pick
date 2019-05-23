@@ -34,6 +34,41 @@ public class FormulaService {
 		return smoothedRs;
 	}
 
+	public double calculateStochasticOscillatorValue(double currentPrice, double low14, double high14) {
+		double stochasticOscillatorValue = 0.00;
+		
+		if((high14 - low14 != 0)  ) {
+			stochasticOscillatorValue = ((currentPrice - low14) / (high14 - low14)) * 100;
+		}else {
+			stochasticOscillatorValue = 0.00;
+		}
+		return stochasticOscillatorValue;
+	}
+	
+	public double calculateRateOfChange(double current, double previous) {
+		double rateOfChange = 0.00;
+		if(previous !=0) {
+		rateOfChange = ((current - previous) / previous) * 100;
+		}else {
+			rateOfChange = 0.00;
+		}
+		return rateOfChange;
+		
+	}
+	
+	public double calculateRateOfChange(long current, long previous) {
+		double rateOfChange = 0.00;
+		
+		if(previous !=0) {
+		
+			rateOfChange = ((current - previous) / previous) * 100;
+		}else {
+			rateOfChange = 0.00;
+		}
+		return rateOfChange;
+		
+	}
+	
 	public double calculatePe(double currentPrice, double eps) {
 
 		double pe = 0.0;
@@ -66,4 +101,41 @@ public class FormulaService {
 		
 		return percentage;
 	}
+	
+	public long calculateOBV(long prevOBV, double prevClose, double currentClose, long currentVolume) {
+		long OBV = 0;
+		
+		if(currentClose > prevClose) {
+			OBV = prevOBV + currentVolume;
+		}else if(currentClose < prevClose) {
+			OBV = prevOBV - currentVolume;
+		}else {
+			OBV = prevOBV;
+		}
+		
+		return OBV;
+	}
+	
+	public double calculateAverage(double num1, double num2) {
+		
+		return (num1 + num2) / 2;
+	}
+	
+	public double getEMAMultiplier(int timePeriod) {
+		
+		double multiplier = (2 / (timePeriod + 1) );
+		
+		return multiplier;
+	}
+
+	public double calculateEMA(double close, double prevEMA, int timePeriod) {
+		double ema;
+		
+		double K = this.getEMAMultiplier(timePeriod);
+		
+		ema = (close  * K) + (prevEMA * (1 - K));
+		 // (22.15 * 0.1818) + (22.22 * ( 1 - 0.1818)) = 4.02687 + (22.22 * (0.8182)) = 18.180404 = 22.207274
+		return ema;
+	}
+	
 }

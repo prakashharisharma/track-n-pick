@@ -100,7 +100,7 @@ public class NotificationTriggerConsumer {
 		String emailSubject = "Stocks Research Report - " + LocalDate.now() + "!";
 
 		String formatedbuyList = null;
-
+System.out.println("1");
 		
 		if (buyResearchLedgerList != null && !buyResearchLedgerList.isEmpty()) {
 
@@ -108,23 +108,32 @@ public class NotificationTriggerConsumer {
 					.filter(researchLedger -> researchLedger.getResearchType() == ResearchType.FUNDAMENTAL)
 					.map(rl -> rl.getStock()).collect(Collectors.toList());
 
-
+			System.out.println("2");
 			List<Stock> buyTechnicals = buyResearchLedgerList.stream()
 					.filter(researchLedger -> researchLedger.getResearchType() == ResearchType.TECHNICAL)
 					.map(rl -> rl.getStock()).collect(Collectors.toList());
 
 			formatedbuyList = prettyPrintService.formatBuyListHTML(buyFundamentals, buyTechnicals);
+			System.out.println("3");
 			
-			
-			buyFundamentals.forEach(stock -> {
+			/*buyFundamentals.forEach(stock -> {
 				researchLedgerService.updateResearchNotifiedBuy(stock, ResearchType.FUNDAMENTAL);
+			});*/
+			
+			buyResearchLedgerList.forEach(srl -> {
+				researchLedgerService.updateResearchNotifiedBuy(srl);
 			});
+			System.out.println("4");
 			
-			
-			buyTechnicals.forEach(stock -> {
+			/*buyTechnicals.forEach(stock -> {
 				researchLedgerService.updateResearchNotifiedBuy(stock, ResearchType.TECHNICAL);
-			});
-
+			});*/
+			
+			/*buyResearchLedgerList.forEach(srl -> {
+				researchLedgerService.updateResearchNotifiedSell(srl);
+			});*/
+			
+			System.out.println("5");
 			
 
 		}
@@ -133,26 +142,31 @@ public class NotificationTriggerConsumer {
 		
 		if (sellResearchLedgerList!=null && !sellResearchLedgerList.isEmpty()) {
 			
-			
+			System.out.println("6");
 			List<Stock> sellFundamentals = sellResearchLedgerList.stream()
 					.filter(researchLedger -> researchLedger.getResearchType() == ResearchType.FUNDAMENTAL)
 					.map(rl -> rl.getStock()).collect(Collectors.toList());
-
+			System.out.println("7");
 			List<Stock> sellTechnicals = sellResearchLedgerList.stream()
 					.filter(researchLedger -> researchLedger.getResearchType() == ResearchType.TECHNICAL)
 					.map(rl -> rl.getStock()).collect(Collectors.toList());
-
+			System.out.println("8");
 			formatedsellList = prettyPrintService.formatSellListHTML(sellFundamentals, sellTechnicals);
+			System.out.println("9");
 			
-			
-			sellFundamentals.forEach(stock -> {
+			/*sellFundamentals.forEach(stock -> {
 				researchLedgerService.updateResearchNotifiedSell(stock, ResearchType.FUNDAMENTAL);
+			});*/
+			
+			sellResearchLedgerList.forEach(srl -> {
+				researchLedgerService.updateResearchNotifiedSell(srl);
 			});
-		
-			sellTechnicals.forEach(stock -> {
+			
+			System.out.println("10");
+			/*sellTechnicals.forEach(stock -> {
 				researchLedgerService.updateResearchNotifiedSell(stock, ResearchType.TECHNICAL);
-			});
-
+			});*/
+			System.out.println("11");
 			
 
 		}

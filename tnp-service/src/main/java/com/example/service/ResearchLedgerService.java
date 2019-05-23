@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.model.ledger.ResearchLedger;
+import com.example.model.ledger.ValuationLedger.Category;
 import com.example.model.master.Stock;
 import com.example.repo.ledger.ResearchLedgerRepository;
 import com.example.util.MiscUtil;
@@ -28,9 +29,9 @@ public class ResearchLedgerService {
 	@Autowired
 	private MiscUtil miscUtil;
 
-	public void addResearch(Stock stock, ResearchType researchType) {
+	public void addResearch(Stock stock, ResearchType researchType, Category category) {
 
-		ResearchLedger researchLedger = researchLedgerRepository.findByStockAndResearchType(stock, researchType);
+		ResearchLedger researchLedger = researchLedgerRepository.findByStockAndResearchTypeAndResearchStatus(stock, researchType,ResearchTrigger.BUY);
 
 		if (researchLedger == null) {
 			researchLedger = new ResearchLedger();
@@ -39,6 +40,8 @@ public class ResearchLedgerService {
 			researchLedger.setEntryPrice(stock.getStockPrice().getCurrentPrice());
 			researchLedger.setResearchType(researchType);
 			researchLedger.setResearchStatus(ResearchTrigger.BUY);
+			researchLedger.setCategory(category);
+			
 			researchLedgerRepository.save(researchLedger);
 		} else {
 			LOGGER.debug(stock.getNseSymbol() + " is already in Ledger for " + researchType);
@@ -46,23 +49,24 @@ public class ResearchLedgerService {
 
 	}
 
-	public void updateResearch(Stock stock, ResearchType researchType) {
+	public void updateResearch(Stock stock, ResearchType researchType, Category category) {
 
-		ResearchLedger researchLedger = researchLedgerRepository.findByStockAndResearchType(stock, researchType);
+		ResearchLedger researchLedger = researchLedgerRepository.findByStockAndResearchTypeAndResearchStatus(stock, researchType,ResearchTrigger.BUY);
 		if (researchLedger != null) {
 
 			researchLedger.setExitDate(miscUtil.currentDate());
 			researchLedger.setExitPrice(stock.getStockPrice().getCurrentPrice());
 			researchLedger.setResearchStatus(ResearchTrigger.SELL);
-
-		} else {
+			researchLedger.setCategory(category);
+		}
+		else {
 			researchLedger = new ResearchLedger();
 			researchLedger.setStock(stock);
 			researchLedger.setExitDate(miscUtil.currentDate());
 			researchLedger.setExitPrice(stock.getStockPrice().getCurrentPrice());
 			researchLedger.setResearchType(researchType);
 			researchLedger.setResearchStatus(ResearchTrigger.SELL);
-
+			researchLedger.setCategory(category);
 		}
 		researchLedgerRepository.save(researchLedger);
 	}
@@ -80,7 +84,9 @@ public class ResearchLedgerService {
 
 	
 	public void updateResearchNotifiedBuy(Stock stock, ResearchType researchType) {
-		ResearchLedger researchLedger = researchLedgerRepository.findByStockAndResearchType(stock, researchType);
+		
+		ResearchLedger researchLedger = researchLedgerRepository.findByStockAndResearchTypeAndNotifiedBuy(stock, researchType,false);
+		
 		if (researchLedger != null) {
 
 			researchLedger.setNotifiedBuy(true);
@@ -89,9 +95,36 @@ public class ResearchLedgerService {
 		researchLedgerRepository.save(researchLedger);
 	}
 
+	public void updateResearchNotifiedBuy(ResearchLedger researchLedger) {
+		
+		ResearchLedger researchLedger1 = researchLedgerRepository.findBySrlId(researchLedger.getSrlId());
+		
+		if (researchLedger1 != null) {
+
+			researchLedger1.setNotifiedBuy(true);
+
+		}
+		researchLedgerRepository.save(researchLedger1);
+	}
+	
+
+	public void updateResearchNotifiedSell(ResearchLedger researchLedger) {
+
+		ResearchLedger researchLedger1 = researchLedgerRepository.findBySrlId(researchLedger.getSrlId());
+		
+		if (researchLedger1 != null) {
+
+			researchLedger1.setNotifiedSell(true);
+
+		}
+		researchLedgerRepository.save(researchLedger1);
+
+	}
+	
+	
 	public void updateResearchNotifiedSell(Stock stock, ResearchType researchType) {
 
-		ResearchLedger researchLedger = researchLedgerRepository.findByStockAndResearchType(stock, researchType);
+		ResearchLedger researchLedger = researchLedgerRepository.findByStockAndResearchTypeAndNotifiedSell(stock, researchType,false);
 		if (researchLedger != null) {
 
 			researchLedger.setNotifiedSell(true);
@@ -113,10 +146,15 @@ public class ResearchLedgerService {
 
 	}
 
-	public List<ResearchLedger> allActiveResearch() {
-		return researchLedgerRepository.findByResearchStatus(ResearchTrigger.BUY);
+	public List<ResearchLedger> allActiveResearchString() {
+		return researchLedgerRepository.findByResearchStatusAndCategory(ResearchTrigger.BUY, Category.STRONG);
 	}
 
+	public List<ResearchLedger> allActiveResearchTweaked() {
+		return researchLedgerRepository.findByResearchStatusAndCategory(ResearchTrigger.BUY, Category.TWEAKED);
+	}
+
+	
 	public List<ResearchLedger> allNotificationPending() {
 		return researchLedgerRepository.findByNotifiedBuyOrNotifiedSell(false, false);
 	}

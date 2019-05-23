@@ -1,0 +1,70 @@
+<?xml version="1.0" ?>
+<CDXFTransactionSet os_st_id="52452826674"
+	os_id="CDXFTransactionSet_52452826674"
+	xmlns="http://www.oneshield.com/DragonSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema">
+	<CDXFTransaction os_st_id="52452826774"
+		os_id="CDXFTransaction_52452826774">
+		<GenericTransactionID>52452826774</GenericTransactionID>
+		<CDXFDeliveryMethod os_st_id="52452822974"
+			os_id="CDXFDeliveryMethod_52452822974">
+			<AddressID>52452822974</AddressID>
+			<ContactMethod>
+				<id>62</id>
+				<code>62</code>
+				<value>Task</value>
+			</ContactMethod>
+			<ObjectLabel>Task: </ObjectLabel>
+		</CDXFDeliveryMethod>
+		<CDXFDeliveryMethod os_st_id="52452822974"
+			os_id="CDXFDeliveryMethod_52452822974">
+			<AddressID>52452822974</AddressID>
+			<ContactMethod>
+				<id>62</id>
+				<code>62</code>
+				<value>Task</value>
+			</ContactMethod>
+			<ObjectLabel>Task: </ObjectLabel>
+		</CDXFDeliveryMethod>
+		<CDXFDeliveryMethod os_st_id="52452822974"
+			os_id="CDXFDeliveryMethod_52452822974">
+			<AddressID>52452822974</AddressID>
+			<ContactMethod>
+				<id>62</id>
+				<code>62</code>
+				<value>Task</value>
+			</ContactMethod>
+			<ObjectLabel>Task: </ObjectLabel>
+		</CDXFDeliveryMethod>
+		<CDXFDiary os_st_id="52452822974"
+			os_id="CDXFDiary_52452822974">
+			<TaskID>52452822974</TaskID>
+			<TaskCategory>
+				<id>12064</id>
+				<value>Customer</value>
+			</TaskCategory>
+			<TaskSubCategory>
+				<id>48964</id>
+				<value>Please Call</value>
+			</TaskSubCategory>
+			<TaskEmailTemplate>
+				<id>481764</id>
+				<value>Unable to Reach You</value>
+			</TaskEmailTemplate>
+		</CDXFDiary>
+		<CDXFDocumentDeliveryFolder
+			os_st_id="52452825974" os_id="CDXFDocumentDeliveryFolder_52452825974">
+			<DeliveryDocumentFolderID>52452825974</DeliveryDocumentFolderID>
+			<EmailBodyRef>CDXFDocument_52452825674</EmailBodyRef>
+			<CDXFDocumentDeliveryAssociatedDocument
+				os_st_id="52452826274"
+				os_id="CDXFDocumentDeliveryAssociatedDocument_52452826274">
+				<DocumentDeliveryAssociatedDocumentRef>CDXFDocument_52452825674
+				</DocumentDeliveryAssociatedDocumentRef>
+			</CDXFDocumentDeliveryAssociatedDocument>
+			<CDXFDocumentDeliveryFolderInstruction
+				os_st_id="52452826174"
+				os_id="CDXFDocumentDeliveryFolderInstruction_52452826174"></CDXFDocumentDeliveryFolderInstruction>
+		</CDXFDocumentDeliveryFolder>
+	</CDXFTransaction>
+</CDXFTransactionSet><!--OneShield Proprietary . Do Not Distribute --><!--Unreferenced Objects in this XML: 52452825674 -->

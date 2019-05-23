@@ -38,12 +38,16 @@ public interface QueueConstants {
 		public static String UPDATE_TECHNICALS_TXN_QUEUE = "queue.mt.technicals.update";
 		
 		public static String UPDATE_FACTOR_TXN_QUEUE = "queue.mt.factor.update";
+/*		
+		public static String RESEARCH_UNDERVALUE_QUEUE = "queue.mt.research.fundamental";
 		
-		public static String RESEARCH_UNDERVALUE_QUEUE = "queue.mt.research.fundamenta";
+		public static String RESEARCH_TECHNICALS_QUEUE = "queue.mt.research.technical";*/
 		
-		public static String RESEARCH_TECHNICALS_QUEUE = "queue.mt.research.technical";
+		public static String RESEARCH_QUEUE = "queue.mt.research.gateway";
 		
-		public static String RESEARCH_QUEUE = "queue.mt.research.master";
+		public static String RESEARCH_FUNDAMENTAL_QUEUE = "queue.mt.research.fundamental";
+		
+		public static String RESEARCH_TECHNICAL_QUEUE = "queue.mt.research.technical";
 		
 		//public static String PORTFOLIO_NOTIFICATION_TRIGGER = "queue.mt.notification.portfolio";
 		

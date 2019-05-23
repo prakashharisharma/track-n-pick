@@ -39,28 +39,33 @@ public class StockTechnicals implements Serializable{
 
 	@Column(name = "SMA_50", columnDefinition="Decimal(10,2) default '0.00'")
 	double sma50;
-
-	
-	@Column(name = "SMA_100", columnDefinition="Decimal(10,2) default '0.00'")
-	double sma100;
-	
-	@Column(name = "SMA_200", columnDefinition="Decimal(10,2) default '0.00'")
-	double sma200;
-	
 	
 	@Column(name = "PREV_SMA_50", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevSma50;
 	
+	@Column(name = "SMA_100", columnDefinition="Decimal(10,2) default '0.00'")
+	double sma100;
+	
+	
 	@Column(name = "PREV_SMA_100", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevSma100;
+	
+	@Column(name = "SMA_200", columnDefinition="Decimal(10,2) default '0.00'")
+	double sma200;
 	
 	@Column(name = "PREV_SMA_200", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevSma200;
 	
+	@Column(name = "SMA_21", columnDefinition="Decimal(10,2) default '0.00'")
+	double sma21;
+	
+	@Column(name = "PREV_SMA_21", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevSma21;
+	
 	@Column(name = "RSI", columnDefinition="Decimal(10,2) default '0.00'")
 	double rsi;
-
-	@Column(name = "LONG_TERM_TREND")
+	
+/*	@Column(name = "LONG_TERM_TREND")
 	@Enumerated(EnumType.STRING)
 	DirectionIO longTermTrend;
 	
@@ -70,11 +75,23 @@ public class StockTechnicals implements Serializable{
 	
 	@Column(name = "CURRENT_TREND")
 	@Enumerated(EnumType.STRING)
-	DirectionIO currentTrend;
+	DirectionIO currentTrend;*/
 	
 	@Column(name = "LAST_MODIFIED")
 	LocalDate lastModified = LocalDate.now();
 
+	@Column(name = "SOK", columnDefinition="Decimal(10,2) default '0.00'")
+	double sok;
+	
+	@Column(name = "SOD", columnDefinition="Decimal(10,2) default '0.00'")
+	double sod;
+	
+	@Column(name = "OBV")
+	long obv;
+	
+	@Column(name = "ROCV", columnDefinition="Decimal(10,2) default '0.00'")
+	double rocv;
+	
 	public long getStockTechnicalsId() {
 		return stockTechnicalsId;
 	}
@@ -155,7 +172,23 @@ public class StockTechnicals implements Serializable{
 		this.sma100 = sma100;
 	}
 
-	public DirectionIO getLongTermTrend() {
+	public double getSma21() {
+		return sma21;
+	}
+
+	public void setSma21(double sma21) {
+		this.sma21 = sma21;
+	}
+
+	public double getPrevSma21() {
+		return prevSma21;
+	}
+
+	public void setPrevSma21(double prevSma21) {
+		this.prevSma21 = prevSma21;
+	}
+
+/*	public DirectionIO getLongTermTrend() {
 		return longTermTrend;
 	}
 
@@ -177,15 +210,48 @@ public class StockTechnicals implements Serializable{
 
 	public void setCurrentTrend(DirectionIO currentTrend) {
 		this.currentTrend = currentTrend;
+	}*/
+
+	public double getSok() {
+		return sok;
+	}
+
+	public void setSok(double sok) {
+		this.sok = sok;
+	}
+
+	public double getSod() {
+		return sod;
+	}
+
+	public void setSod(double sod) {
+		this.sod = sod;
+	}
+
+	public long getObv() {
+		return obv;
+	}
+
+	public void setObv(long obv) {
+		this.obv = obv;
+	}
+
+	public double getRocv() {
+		return rocv;
+	}
+
+	public void setRocv(double rocv) {
+		this.rocv = rocv;
 	}
 
 	@Override
 	public String toString() {
-		return "StockTechnicals [stockTechnicalsId=" + stockTechnicalsId + ", stock=" + stock.getNseSymbol() + ", sma50=" + sma50
-				+ ", prevSma50=" + prevSma50 + ", sma100=" + sma100 + ", sma200=" + sma200 + ", prevSma200="
-				+ prevSma200 + ", rsi=" + rsi + ", longTermTrend=" + longTermTrend + ", midTermTrend=" + midTermTrend
-				+ ", currentTrend=" + currentTrend + ", lastModified=" + lastModified + "]";
+		return "StockTechnicals [stockTechnicalsId=" + stockTechnicalsId + ", stock=" + stock + ", sma50=" + sma50
+				+ ", prevSma50=" + prevSma50 + ", sma100=" + sma100 + ", prevSma100=" + prevSma100 + ", sma200="
+				+ sma200 + ", prevSma200=" + prevSma200 + ", sma21=" + sma21 + ", prevSma21=" + prevSma21 + ", rsi="
+				+ rsi + ", lastModified=" + lastModified + ", sok=" + sok + ", sod=" + sod + ", obv=" + obv + ", rocv="
+				+ rocv + "]";
 	}
 
-
+	
 }

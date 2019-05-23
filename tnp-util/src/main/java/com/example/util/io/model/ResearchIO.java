@@ -6,12 +6,12 @@ import java.time.Instant;
 public class ResearchIO implements Serializable{
 
 	public enum ResearchTrigger{
-		BUY, SELL
+		BUY, SELL, BUY_SELL
 	}
 	
 	public enum ResearchType{
 		
-		FUNDAMENTAL, TECHNICAL
+		FUNDAMENTAL, FUNDAMENTAL_TWEAK, TECHNICAL, TECHNICAL_TWEAK
 	}
 	
 	/**

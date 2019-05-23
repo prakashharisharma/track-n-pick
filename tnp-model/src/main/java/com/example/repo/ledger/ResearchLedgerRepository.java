@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.example.model.ledger.ResearchLedger;
+import com.example.model.ledger.ValuationLedger.Category;
 import com.example.model.master.Stock;
 import com.example.util.io.model.ResearchIO.ResearchTrigger;
 import com.example.util.io.model.ResearchIO.ResearchType;
@@ -18,6 +19,8 @@ import com.example.util.io.model.ResearchIO.ResearchType;
 @Repository
 public interface ResearchLedgerRepository extends JpaRepository<ResearchLedger, Long> {
 
+	ResearchLedger findBySrlId(long srlId); 
+	
 	ResearchLedger findByStockAndResearchTypeAndResearchStatus(Stock stock,ResearchType researchType, ResearchTrigger researchStatus);
 	
 	ResearchLedger findByStockAndResearchTypeAndResearchStatusAndNotifiedStorage(Stock stock,ResearchType researchType, ResearchTrigger researchStatus, boolean notifiedStorage);
@@ -26,9 +29,17 @@ public interface ResearchLedgerRepository extends JpaRepository<ResearchLedger, 
 	
 	ResearchLedger findByStockAndResearchType(Stock stock, ResearchType researchType);
 	
+	ResearchLedger findByStockAndResearchTypeAndNotifiedBuy(Stock stock, ResearchType researchType,boolean isNotifiedBuy);
+	
+	ResearchLedger findByStockAndResearchTypeAndNotifiedSell(Stock stock, ResearchType researchType,boolean isNotifiedBuy);
+	
+	ResearchLedger findByStockAndResearchTypeAndCategory(Stock stock, ResearchType researchType, Category category);
+	
 	ResearchLedger findByStockAndResearchTypeAndNotifiedStorage(Stock stock, ResearchType researchType, boolean notifiedStorage);
 	
 	List<ResearchLedger> findByResearchStatus(ResearchTrigger researchStatus);
+	
+	List<ResearchLedger> findByResearchStatusAndCategory(ResearchTrigger researchStatus, Category category);
 	
 	List<ResearchLedger> findByResearchType(ResearchType researchType);
 	

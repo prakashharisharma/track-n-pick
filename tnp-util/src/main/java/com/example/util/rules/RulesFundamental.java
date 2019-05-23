@@ -13,12 +13,20 @@ public class RulesFundamental {
 	private double pricelt;
 	private double mcap;
 	private double debtEquity;
+	private double debtEquityTweaked;
+	
 	private double dividend;
 	private double roe;
 	private double roce;
+	private double roeTweaked;
+	private double roceTweaked;
+	
 	private double currentRatio;
 	private double quickRatioBanks;
 
+	private double currentRatioTweaked;
+	private double quickRatioBanksTweaked;
+	
 	public double getPricegt() {
 		return pricegt;
 	}
@@ -89,6 +97,46 @@ public class RulesFundamental {
 
 	public void setQuickRatioBanks(double quickRatioBanks) {
 		this.quickRatioBanks = quickRatioBanks;
+	}
+
+	public double getDebtEquityTweaked() {
+		return debtEquityTweaked;
+	}
+
+	public void setDebtEquityTweaked(double debtEquityTweaked) {
+		this.debtEquityTweaked = debtEquityTweaked;
+	}
+
+	public double getRoeTweaked() {
+		return roeTweaked;
+	}
+
+	public void setRoeTweaked(double roeTweaked) {
+		this.roeTweaked = roeTweaked;
+	}
+
+	public double getRoceTweaked() {
+		return roceTweaked;
+	}
+
+	public void setRoceTweaked(double roceTweaked) {
+		this.roceTweaked = roceTweaked;
+	}
+
+	public double getCurrentRatioTweaked() {
+		return currentRatioTweaked;
+	}
+
+	public void setCurrentRatioTweaked(double currentRatioTweaked) {
+		this.currentRatioTweaked = currentRatioTweaked;
+	}
+
+	public double getQuickRatioBanksTweaked() {
+		return quickRatioBanksTweaked;
+	}
+
+	public void setQuickRatioBanksTweaked(double quickRatioBanksTweaked) {
+		this.quickRatioBanksTweaked = quickRatioBanksTweaked;
 	}
 
 }

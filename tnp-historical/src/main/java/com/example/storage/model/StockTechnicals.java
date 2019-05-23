@@ -23,6 +23,7 @@ public class StockTechnicals {
 	
 	private Momentum indicator;
 	
+	
 	public StockTechnicals() {
 		super();
 		
@@ -37,7 +38,6 @@ public class StockTechnicals {
 		this.avgLoss = avgLoss;
 		this.movingAverage = movingAverage;
 		this.indicator = indicator;
-		
 	}
 
 	public String getId() {
@@ -96,6 +96,14 @@ public class StockTechnicals {
 		this.indicator = indicator;
 	}
 
+	/*public long getObv() {
+		return obv;
+	}
+
+	public void setObv(long obv) {
+		this.obv = obv;
+	}
+*/
 	@Override
 	public String toString() {
 		return "StockTechnicals [id=" + id + ", nseSymbol=" + nseSymbol + ", bhavDate=" + bhavDate + ", avgGain="

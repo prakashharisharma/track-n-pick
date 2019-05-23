@@ -29,6 +29,9 @@ public class StockPrice {
 	double yearLow;
 	double yearHigh;
 	
+	double low14;
+	double high14;
+	
 	public StockPrice() {
 		super();
 	}
@@ -168,6 +171,22 @@ public class StockPrice {
 
 	public void setYearHigh(double yearHigh) {
 		this.yearHigh = yearHigh;
+	}
+
+	public double getLow14() {
+		return low14;
+	}
+
+	public void setLow14(double low14) {
+		this.low14 = low14;
+	}
+
+	public double getHigh14() {
+		return high14;
+	}
+
+	public void setHigh14(double high14) {
+		this.high14 = high14;
 	}
 
 	@Override

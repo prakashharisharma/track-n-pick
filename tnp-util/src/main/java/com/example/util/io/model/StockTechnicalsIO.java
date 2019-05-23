@@ -13,12 +13,16 @@ public class StockTechnicalsIO implements Serializable{
 
 	String nseSymbol;
 
+	double sma21;
+	
 	double sma50;
 
 	double sma100;
 
 	double sma200;
 
+	double prevSma21;
+	
 	double prevSma50;
 	
 	double prevSma100;
@@ -27,20 +31,27 @@ public class StockTechnicalsIO implements Serializable{
 
 	double rsi;
 
-	DirectionIO longTermTrend;
+/*	DirectionIO longTermTrend;
 
 	DirectionIO midTermTrend;
 
-	DirectionIO currentTrend;
+	DirectionIO currentTrend;*/
 
+	double sok;
+	
+	double sod;
+	
+	long obv;
+	
+	double rocv;
+	
 	public StockTechnicalsIO() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
 	public StockTechnicalsIO(String nseSymbol, double sma50, double prevSma50, double sma100, double sma200,
-			double prevSma200, double rsi, DirectionIO longTermTrend, DirectionIO midTermTrend,
-			DirectionIO currentTrend) {
+			double prevSma200, double rsi) {
 		super();
 		this.nseSymbol = nseSymbol;
 		this.sma50 = sma50;
@@ -49,14 +60,13 @@ public class StockTechnicalsIO implements Serializable{
 		this.sma200 = sma200;
 		this.prevSma200 = prevSma200;
 		this.rsi = rsi;
-		this.longTermTrend = longTermTrend;
+/*		this.longTermTrend = longTermTrend;
 		this.midTermTrend = midTermTrend;
-		this.currentTrend = currentTrend;
+		this.currentTrend = currentTrend;*/
 	}
 
 	public StockTechnicalsIO(String nseSymbol, double sma50, double prevSma50, double sma100, double prevSma100, double sma200,
-			double prevSma200, double rsi, DirectionIO longTermTrend, DirectionIO midTermTrend,
-			DirectionIO currentTrend) {
+			double prevSma200, double rsi) {
 		super();
 		this.nseSymbol = nseSymbol;
 		this.sma50 = sma50;
@@ -66,9 +76,9 @@ public class StockTechnicalsIO implements Serializable{
 		this.sma200 = sma200;
 		this.prevSma200 = prevSma200;
 		this.rsi = rsi;
-		this.longTermTrend = longTermTrend;
+		/*this.longTermTrend = longTermTrend;
 		this.midTermTrend = midTermTrend;
-		this.currentTrend = currentTrend;
+		this.currentTrend = currentTrend;*/
 	}
 
 	
@@ -86,6 +96,22 @@ public class StockTechnicalsIO implements Serializable{
 
 	public void setSma50(double sma50) {
 		this.sma50 = sma50;
+	}
+
+	public double getSma21() {
+		return sma21;
+	}
+
+	public void setSma21(double sma21) {
+		this.sma21 = sma21;
+	}
+
+	public double getPrevSma21() {
+		return prevSma21;
+	}
+
+	public void setPrevSma21(double prevSma21) {
+		this.prevSma21 = prevSma21;
 	}
 
 	public double getPrevSma50() {
@@ -127,7 +153,7 @@ public class StockTechnicalsIO implements Serializable{
 	public void setRsi(double rsi) {
 		this.rsi = rsi;
 	}
-
+/*
 	public DirectionIO getLongTermTrend() {
 		return longTermTrend;
 	}
@@ -152,7 +178,7 @@ public class StockTechnicalsIO implements Serializable{
 		this.currentTrend = currentTrend;
 	}
 
-	
+	*/
 	public double getPrevSma100() {
 		return prevSma100;
 	}
@@ -161,14 +187,47 @@ public class StockTechnicalsIO implements Serializable{
 		this.prevSma100 = prevSma100;
 	}
 
+	public double getSok() {
+		return sok;
+	}
+
+	public void setSok(double sok) {
+		this.sok = sok;
+	}
+
+	public double getSod() {
+		return sod;
+	}
+
+	public void setSod(double sod) {
+		this.sod = sod;
+	}
+
+	public long getObv() {
+		return obv;
+	}
+
+	public void setObv(long obv) {
+		this.obv = obv;
+	}
+
+	public double getRocv() {
+		return rocv;
+	}
+
+	public void setRocv(double rocv) {
+		this.rocv = rocv;
+	}
+
 	@Override
 	public String toString() {
-		return "StockTechnicalsIO [nseSymbol=" + nseSymbol + ", sma50=" + sma50 + ", prevSma50=" + prevSma50
-				+ ", sma100=" + sma100 + ", sma200=" + sma200 + ", prevSma200=" + prevSma200 + ", rsi=" + rsi
-				+ ", longTermTrend=" + longTermTrend + ", midTermTrend=" + midTermTrend + ", currentTrend="
-				+ currentTrend + "]";
+		return "StockTechnicalsIO [nseSymbol=" + nseSymbol + ", sma21=" + sma21 + ", sma50=" + sma50 + ", sma100="
+				+ sma100 + ", sma200=" + sma200 + ", prevSma21=" + prevSma21 + ", prevSma50=" + prevSma50
+				+ ", prevSma100=" + prevSma100 + ", prevSma200=" + prevSma200 + ", rsi=" + rsi + ", sok=" + sok
+				+ ", sod=" + sod + ", obv=" + obv + ", rocv=" + rocv + "]";
 	}
-	
+
+
 	
 	
 }

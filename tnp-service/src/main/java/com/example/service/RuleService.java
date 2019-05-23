@@ -52,6 +52,8 @@ public class RuleService {
 
 				double pb = stockService.getPb(stock);
 
+				double sectorPb = stock.getSector().getSectorPb();
+				
 				double sectorPe = stock.getSector().getSectorPe();
 				
 				double peDiff = sectorPe - pe;
@@ -62,21 +64,21 @@ public class RuleService {
 
 					/*if (pe <= researchRules.getPe() && pb <= researchRules.getPb()) {
 						LOGGER.debug(" RULE 1 ");
-						if(peDiff > 2.0) {
+						if(pe > sectorPe) {
 							isUndervalued = true;
 						}
 					}
 
-					else*/ 
-					if (pb <= stock.getSector().getSectorPb() && pe <= stock.getSector().getSectorPe()) {
+					else */
+					if (pb <= sectorPb && pe <= sectorPe) {
 
-						LOGGER.debug(" RULE 4 ");
-
-						if(peDiff > 3.0) {
-							isUndervalued = true;
+						if(peDiff > 5.0) {
+							if (pe <= researchRules.getPe() && pb <= researchRules.getPb()) {
+								isUndervalued = true;
+							}
 						}
 
-					} else if (pe <= stock.getSector().getSectorPe() && pb <= (stock.getSector().getSectorPb() + stock.getSector().getVariationPb())) {
+					} /*else if (pe <= sectorPe && pb <= (sectorPb + stock.getSector().getVariationPb())) {
 
 						LOGGER.debug(" RULE 2");
 
@@ -84,7 +86,7 @@ public class RuleService {
 							isUndervalued = true;
 						}
 
-					} /*
+					}*/ /*
 						 * else if (pb <= stock.getSector().getSectorPb() && pe <=
 						 * stock.getSector().getVariationPe()) { LOGGER.debug(" RULE 3"); isUndervalued
 						 * = true;
@@ -109,20 +111,29 @@ public class RuleService {
 
 			double pb = stockService.getPb(stock);
 			
+			double sectorPb = stock.getSector().getSectorPb();
+			
+			double sectorPe = stock.getSector().getSectorPe();
+			
 			if (pe <= 0.0) {
 				isOvervalued = true;
 			}else {
-				if (pb > stock.getSector().getSectorPb() && pe > stock.getSector().getSectorPe()) {
+				if (pb > sectorPb && pe > sectorPe) {
 
 					LOGGER.debug(" RULE 4 ");
 					isOvervalued = true;
 
-				} else if (pe <= stock.getSector().getSectorPe() && pb > (stock.getSector().getSectorPb() + stock.getSector().getVariationPb())) {
+				} /*else if (pe <= sectorPe && pb > (sectorPb + stock.getSector().getVariationPb())) {
 
 					LOGGER.debug(" RULE 2");
 					isOvervalued = true;
 
-				}
+				}else if(pb <= sectorPb && pe <= sectorPe) {
+					LOGGER.debug(" RULE 3");
+					if(pe > sectorPe) {
+					isOvervalued = true;
+					}
+				}*/
 			}
 			
 		}
@@ -130,6 +141,46 @@ public class RuleService {
 		return isOvervalued;
 	}
 
+	public boolean isOvervaluedTweaked(Stock stock) {
+		boolean isOvervalued = false;
+
+		if (!this.isUndervaluedPreTweaked(stock)) {
+			isOvervalued = true;
+		}else{
+			double pe = stockService.getPe(stock);
+
+/*			double pb = stockService.getPb(stock);
+			
+			double sectorPb = stock.getSector().getSectorPb();*/
+			
+			double sectorPe = stock.getSector().getSectorPe();
+			
+			if (pe <= 0.0) {
+				isOvervalued = true;
+			}else {
+				if (pe > sectorPe) {
+
+					LOGGER.debug(" RULE 4 ");
+					isOvervalued = true;
+
+				} /*else if (pe <= sectorPe && pb > (sectorPb + stock.getSector().getVariationPb())) {
+
+					LOGGER.debug(" RULE 2");
+					isOvervalued = true;
+
+				}else if(pb <= sectorPb && pe <= sectorPe) {
+					LOGGER.debug(" RULE 3");
+					if(pe > sectorPe) {
+					isOvervalued = true;
+					}
+				}*/
+			}
+			
+		}
+
+		return isOvervalued;
+	}
+	
 	private boolean isUndervaluedPre(Stock stock) {
 
 		boolean isUndervalued = false;
@@ -173,4 +224,139 @@ public class RuleService {
 		return isUndervalued;
 	}
 
+	public boolean isUndervaluedPreTweaked(Stock stock) {
+
+		boolean isUndervalued = false;
+
+		Sector sector = stock.getSector();
+
+		if (stock != null) {
+			if (sector != null) {
+
+				String sectorName = sector.getSectorName();
+
+				if (sectorName != null && !sectorName.isEmpty()) {
+
+					if (stock.getSector().getSectorName().equalsIgnoreCase("FINANCIAL SERVICES")) {
+
+						if (stock.getStockFactor().getMarketCap() >= rules.getMcap()
+								&& stock.getStockFactor().getDividend() >= rules.getDividend()
+								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoceTweaked()
+								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoceTweaked()
+								&& stock.getStockFactor().getCurrentRatio() >= rules.getCurrentRatio()
+								&& stock.getStockFactor().getQuickRatio() >= rules.getQuickRatioBanksTweaked()) {
+							isUndervalued = true;
+						}
+
+					} else {
+						if (stock.getStockFactor().getMarketCap() >= rules.getMcap()
+								&& stock.getStockFactor().getDebtEquity() < rules.getDebtEquity()
+								&& stock.getStockFactor().getDividend() >= rules.getDividend()
+								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoceTweaked()
+								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoceTweaked()
+								&& stock.getStockFactor().getCurrentRatio() >= rules.getCurrentRatioTweaked()
+
+						) {
+
+							isUndervalued = true;
+						}
+					}
+				}
+				
+
+				
+				if(isUndervalued) {
+					
+					
+					double pe = stockService.getPe(stock);
+
+					double sectorPe = stock.getSector().getSectorPe();
+					
+					double peDiff = sectorPe - pe;
+					
+					
+					if (pe > 0.0) {
+						
+						if (pe <= sectorPe) {
+							LOGGER.debug(" RULE 1 ");
+							if(peDiff > 2.0) {
+								isUndervalued = true;
+							}else {
+								isUndervalued = false;
+							}
+						}else {
+							isUndervalued = false;
+						}
+
+					}else {
+						isUndervalued = false;
+					}
+				}
+				
+			}
+		}
+		return isUndervalued;
+	}
+	public boolean isUndervaluedTweaked(Stock stock) {
+		boolean isUndervalued = false;
+
+		if (this.isUndervaluedPreTweaked(stock)) {
+
+			StockPrice stockPrice = stock.getStockPrice();
+
+			if (isPriceInRange(stock)) {
+
+				double pe = stockService.getPe(stock);
+
+				double pb = stockService.getPb(stock);
+
+				double sectorPb = stock.getSector().getSectorPb();
+				
+				double sectorPe = stock.getSector().getSectorPe();
+				
+				double peDiff = sectorPe - pe;
+				
+				if (pe > 0.0) {
+
+					LOGGER.debug(stock.getNseSymbol() + " : " + stockPrice + " PE : " + pe + " PB : " + pb);
+
+				/*	if (pe <= researchRules.getPe() && pb <= researchRules.getPb()) {
+						LOGGER.debug(" RULE 1 ");
+						if(pe > sectorPe) {
+							isUndervalued = true;
+						}
+					}
+
+					else */
+				//	if (pb <= sectorPb && pe <= sectorPe) {
+
+					//	LOGGER.debug(" RULE 4 ");
+
+						if(peDiff > 3.0) {
+							isUndervalued = true;
+						}
+
+					//}
+					/* else if (pe <= sectorPe && pb <= (sectorPb + stock.getSector().getVariationPb())) {
+
+						LOGGER.debug(" RULE 2");
+
+						if(peDiff > 5.0) {
+							isUndervalued = true;
+						}
+
+					}*/ /*
+						 * else if (pb <= stock.getSector().getSectorPb() && pe <=
+						 * stock.getSector().getVariationPe()) { LOGGER.debug(" RULE 3"); isUndervalued
+						 * = true;
+						 * 
+						 * }
+						 */
+				}
+			}
+
+		}
+
+		return isUndervalued;
+	}
 }

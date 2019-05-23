@@ -17,9 +17,14 @@ import org.springframework.stereotype.Component;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockTechnicals;
 import com.example.mq.constants.QueueConstants;
+import com.example.mq.producer.QueueService;
 import com.example.repo.stocks.StockTechnicalsRepository;
+import com.example.service.RuleService;
 import com.example.service.StockService;
+import com.example.util.io.model.ResearchIO;
 import com.example.util.io.model.StockTechnicalsIO;
+import com.example.util.io.model.ResearchIO.ResearchTrigger;
+import com.example.util.io.model.ResearchIO.ResearchType;
 
 @Component
 public class TechnicalsTxnConsumer {
@@ -30,6 +35,12 @@ public class TechnicalsTxnConsumer {
 	private StockService stockService;
 	@Autowired
 	private StockTechnicalsRepository stockTechnicalsRepository;
+
+	@Autowired
+	private QueueService queueService;
+	
+	@Autowired
+	private RuleService ruleService;
 	
 	@JmsListener(destination = QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE)
 	public void receiveMessage(@Payload StockTechnicalsIO stockTechnicalsIO, @Headers MessageHeaders headers, Message message,
@@ -58,10 +69,19 @@ public class TechnicalsTxnConsumer {
 			stockTechnicals.setPrevSma100(stockTechnicalsIO.getPrevSma100());
 			stockTechnicals.setPrevSma200(stockTechnicalsIO.getPrevSma200());
 			stockTechnicals.setRsi(stockTechnicalsIO.getRsi());
-			stockTechnicals.setCurrentTrend(stockTechnicalsIO.getCurrentTrend());
+/*			stockTechnicals.setCurrentTrend(stockTechnicalsIO.getCurrentTrend());
 			stockTechnicals.setMidTermTrend(stockTechnicalsIO.getMidTermTrend());
-			stockTechnicals.setLongTermTrend(stockTechnicalsIO.getLongTermTrend());
+			stockTechnicals.setLongTermTrend(stockTechnicalsIO.getLongTermTrend());*/
 			stockTechnicals.setLastModified(LocalDate.now());
+			
+			stockTechnicals.setSok(stockTechnicalsIO.getSok());
+			stockTechnicals.setSod(stockTechnicalsIO.getSod());
+			stockTechnicals.setObv(stockTechnicalsIO.getObv());
+			stockTechnicals.setRocv(stockTechnicalsIO.getRocv());
+			
+			stockTechnicals.setSma21(stockTechnicalsIO.getSma21());
+			stockTechnicals.setPrevSma21(stockTechnicalsIO.getPrevSma21());
+			
 		}else {
 			stockTechnicals = new StockTechnicals();
 			stockTechnicals.setStock(stock);
@@ -74,13 +94,34 @@ public class TechnicalsTxnConsumer {
 			stockTechnicals.setPrevSma100(stockTechnicalsIO.getPrevSma100());
 			stockTechnicals.setPrevSma200(stockTechnicalsIO.getPrevSma200());
 			stockTechnicals.setRsi(stockTechnicalsIO.getRsi());
-			stockTechnicals.setCurrentTrend(stockTechnicalsIO.getCurrentTrend());
+/*			stockTechnicals.setCurrentTrend(stockTechnicalsIO.getCurrentTrend());
 			stockTechnicals.setMidTermTrend(stockTechnicalsIO.getMidTermTrend());
-			stockTechnicals.setLongTermTrend(stockTechnicalsIO.getLongTermTrend());
+			stockTechnicals.setLongTermTrend(stockTechnicalsIO.getLongTermTrend());*/
 			stockTechnicals.setLastModified(LocalDate.now());
+			
+			stockTechnicals.setSok(stockTechnicalsIO.getSok());
+			stockTechnicals.setSod(stockTechnicalsIO.getSod());
+			stockTechnicals.setObv(stockTechnicalsIO.getObv());
+			stockTechnicals.setRocv(stockTechnicalsIO.getRocv());
+			
+			stockTechnicals.setSma21(stockTechnicalsIO.getSma21());
+			stockTechnicals.setPrevSma21(stockTechnicalsIO.getPrevSma21());
+			
+			
 		}
 		
 		stockTechnicalsRepository.save(stockTechnicals);
+		
+		if(ruleService.isPriceInRange(stock)) {
+			
+			ResearchIO researchIO = new ResearchIO(stockTechnicalsIO.getNseSymbol(), ResearchType.TECHNICAL_TWEAK, ResearchTrigger.BUY_SELL);
+			
+			this.processResearch(researchIO);
+		}
+		
 	}
 	
+	private void processResearch(ResearchIO researchIO) {
+		queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_TECHNICAL_QUEUE);
+	}
 }

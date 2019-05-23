@@ -200,7 +200,9 @@ public class TradingSessionTemplate {
 		return 0.0;
 	}
 	
+	@Deprecated
 	public double getTotalGain(String nseSymbol, int days) {
+		
 		TradingSession ts = this.getTradingSessionBeforeDays(days);
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
@@ -240,6 +242,7 @@ public class TradingSessionTemplate {
 		return totalGain;
 	}
 	
+	@Deprecated
 	public double getTotalLoss(String nseSymbol, int days) {
 		TradingSession ts = this.getTradingSessionBeforeDays(days);
 
@@ -332,7 +335,7 @@ public class TradingSessionTemplate {
 	}
 
 	@Deprecated
-	public double getyearHigh(String nseSymbol) {
+	public double getyearHigh(String nseSymbol) { 
 
 		// TradingSession ts = this.getTradingSessionBeforeDays(365);
 

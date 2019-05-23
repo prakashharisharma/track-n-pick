@@ -1,6 +1,7 @@
 package com.example.test;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -25,6 +26,8 @@ import com.example.service.StockService;
 import com.example.service.TechnicalsResearchService;
 import com.example.service.UserService;
 import com.example.service.WatchListService;
+import com.example.storage.model.StockTechnicals;
+import com.example.storage.model.result.HighLowResult;
 import com.example.storage.repo.PriceTemplate;
 import com.example.storage.repo.TechnicalsTemplate;
 import com.example.storage.repo.TradingSessionTemplate;
@@ -89,9 +92,11 @@ public class AppRunner implements CommandLineRunner {
 	@Autowired
 	private PriceTemplate priceTemplate;
 
+	@Autowired
+	private TradingSessionTemplate tradingSessionTemplate;
+
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
-
 
 		LOGGER.info("PREV50 " + technicalsTemplate.getPrevSessionSma50("ZEEL"));
 		LOGGER.info("PREV200 " + technicalsTemplate.getPrevSessionSma200("ZEEL"));
@@ -106,42 +111,108 @@ public class AppRunner implements CommandLineRunner {
 
 		LOGGER.info("HIgh " + priceTemplate.getyearHigh("ZEEL"));
 
-
 		LOGGER.info("RSI " + storageService.getRSI("ZEEL", 14));
 
 		LOGGER.info("RSI1 " + technicalsTemplate.getCurrentRSI("ZEEL"));
 
 		LOGGER.info("RSI2 " + technicalsTemplate.getCurrentSmoothedRSI("ZEEL"));
+
+		LOGGER.info("PREV OBV " + technicalsTemplate.getOBV("ZEEL"));
+
+		LOGGER.info("PREV OBV " + priceTemplate.getTotalTradedQuantity("ZEEL"));
+		
+		//StockTechnicals stockTechnicals = technicalsTemplate.getPrevTechnicals("ZEEL");
+		
+		//System.out.println(stockTechnicals);
 		
 		//stockService.resetFactors();
 		
-		/*List<Stock> sm = stockService.getActiveStocks();
-		
-		for (Stock s : sm) {
-			stockService.updateFactor(s);
-			
-			Thread.sleep(100);
-			
-		}*/
-		
-		//sectorService.updateSectorPEPB();
-		
-		/*List<Stock> stkList = stockService.getActiveStocks();
-		
-		stkList.forEach( s -> {
-			stockService.updateFactor(s);
-			
-		});*/
+		/*LOGGER.info("DAYS HIGH " + priceTemplate.getDaysHigh("TEST6", 14));
 
-/*		UserProfile user1 = userService.getUserById(1);
-		UserProfile user2 = userService.getUserById(2);
+		LOGGER.info("DAYS LOW " + priceTemplate.getDaysLow("TEST6", 14));
+
+		LOGGER.info("DATE HIGH " + priceTemplate.getHighFromDate("ZEEL", LocalDate.now().minusWeeks(52)));
+
+		LOGGER.info("DATE LOW " + priceTemplate.getLowFromDate("ZEEL", LocalDate.now().minusWeeks(52)));
+
+		LOGGER.info("AVG PRICe " + priceTemplate.getAveragePrice("ZEEL", 2));
+
+		HighLowResult result = priceTemplate.getHighLowByDate("ZEEL", LocalDate.now().minusWeeks(52));
+
+		System.out.println(result);
+
+		result = priceTemplate.getHighLowByDays("ZEEL", 2);
+
+		System.out.println(result);
+
+		double r = tradingSessionTemplate.getTotalGain("ZEEL", 14);
+
+		System.out.println(r);
+
+		r = priceTemplate.getTotalGain("ZEEL", 14);
+
+		System.out.println(r);
 		
-		Stock stock = stockService.getStockByNseSymbol("NTPC");
+		r = storageService.getAverageGain("ZEEL", 14);
+
+		System.out.println(r);
+
+		r = priceTemplate.getAverageGain("ZEEL", 14);
+
+		System.out.println(r);
 		
-		portfolioService.addBonus(user1, stock, 5, 1);
-		portfolioService.addBonus(user2, stock, 5, 1);*/
 		
+		r = tradingSessionTemplate.getTotalLoss("ZEEL", 14);
+
+		System.out.println(r);
+
+		r = priceTemplate.getTotalLoss("ZEEL", 14);
+
+		System.out.println(r);
+		
+		r = storageService.getAverageLoss("ZEEL", 14);
+
+		System.out.println(r);
+
+		r = priceTemplate.getAverageLoss("ZEEL", 14);
+
+		System.out.println(r);*/
+		
+		// LOGGER.info("AVG PRICe " +
+		// technicalsTemplate.getAverageStochasticOscillatorK("ZEEL",2));
+
+		// stockService.resetFactors();
+
+		/*
+		 * List<Stock> sm = stockService.getActiveStocks();
+		 * 
+		 * for (Stock s : sm) { stockService.updateFactor(s);
+		 * 
+		 * Thread.sleep(100);
+		 * 
+		 * }
+		 */
+
+		// sectorService.updateSectorPEPB();
+
+		/*
+		 * List<Stock> stkList = stockService.getActiveStocks();
+		 * 
+		 * stkList.forEach( s -> { stockService.updateFactor(s);
+		 * 
+		 * });
+		 */
+
+		/*
+		 * UserProfile user1 = userService.getUserById(1); UserProfile user2 =
+		 * userService.getUserById(2);
+		 * 
+		 * Stock stock = stockService.getStockByNseSymbol("NTPC");
+		 * 
+		 * portfolioService.addBonus(user1, stock, 5, 1);
+		 * portfolioService.addBonus(user2, stock, 5, 1);
+		 */
+
 	}
-
 
 }
