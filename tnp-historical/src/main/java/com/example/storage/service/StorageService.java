@@ -1,11 +1,6 @@
 package com.example.storage.service;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.util.List;
-
-import com.example.storage.model.deprecated.Stock;
-import com.example.storage.model.deprecated.StockPriceD;
 
 public interface StorageService {
 

@@ -45,6 +45,8 @@ public class BhavUpdateProcessor implements Processor {
 			
 			LOGGER.trace("BHAV UPDATE PROCESSOR : Queuing to Update Price Queue..." + stockPriceIO);
 			
+			queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_BHAV_QUEUE);
+			
 			queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE);
 			
 		});

@@ -1,4 +1,4 @@
-package com.example.storage.model;
+package com.example.storage.model.result;
 
 public class RsiCountResult {
 

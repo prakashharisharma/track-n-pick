@@ -13,14 +13,14 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 import com.example.model.ledger.BreakoutLedger;
+import com.example.model.ledger.CrossOverLedger;
 import com.example.model.ledger.CrossOverLedger.CrossOverCategory;
-import com.example.model.ledger.ValuationLedger.Category;
 import com.example.model.master.Stock;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.service.BreakoutLedgerService;
 import com.example.service.CrossOverLedgerService;
-import com.example.service.ResearchLedgerService;
+import com.example.service.ResearchLedgerTechnicalService;
 import com.example.service.StockService;
 import com.example.service.TechnicalsResearchService;
 import com.example.util.io.model.ResearchIO;
@@ -34,7 +34,7 @@ public class ResearchTechnicalConsumer {
 
 	@Autowired
 	private StockService stockService;
-	
+
 	@Autowired
 	private CrossOverLedgerService crossOverLedgerService;
 
@@ -42,36 +42,31 @@ public class ResearchTechnicalConsumer {
 	private TechnicalsResearchService technicalsResearchService;
 
 	@Autowired
-	private ResearchLedgerService researchLedgerService;
+	private ResearchLedgerTechnicalService researchLedgerService;
 
 	@Autowired
 	private BreakoutLedgerService breakoutLedgerService;
-	
+
 	@Autowired
 	private QueueService queueService;
-	
+
 	@JmsListener(destination = QueueConstants.MTQueue.RESEARCH_TECHNICAL_QUEUE)
 	public void receiveMessage(@Payload ResearchIO researchIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
 
-		LOGGER.info("TECHCOMSUMER 1" + researchIO.getNseSymbol() +" " + researchIO.getResearchType());
-	
-		if (researchIO.getResearchType() == ResearchType.TECHNICAL) {
-			Stock stock = stockService.getStockByNseSymbol(researchIO.getNseSymbol());
-			
-			this.researchTechnical(stock, researchIO.getResearchTrigger());
+		LOGGER.info("TECHCOMSUMER 1" + researchIO.getNseSymbol() + " " + researchIO.getResearchType());
 
-		} else if (researchIO.getResearchType() == ResearchType.TECHNICAL_TWEAK) {
-			
+		if (researchIO.getResearchType() == ResearchType.TECHNICAL) {
+
 			Stock stock = stockService.getStockByNseSymbol(researchIO.getNseSymbol());
-			
-			this.researchTechnicalTweak(stock, researchIO.getResearchTrigger());
+
+			this.researchTechnical(stock, researchIO.getResearchTrigger());
 
 			this.researchPositiveBreakout(stock);
 
 			this.researchNegativeBreakout(stock);
 
-		}else {
+		} else {
 			LOGGER.info("INVALID RESEARCH TYPE");
 		}
 	}
@@ -79,98 +74,51 @@ public class ResearchTechnicalConsumer {
 	private void researchTechnical(Stock stock, ResearchTrigger researchTrigger) {
 
 		if (researchTrigger == ResearchTrigger.BUY) {
-			
+
 			if (technicalsResearchService.isBullishCrossOver200(stock)) {
 
 				this.addBullishCrossOverLedger(stock, CrossOverCategory.CROSS200);
-
-					this.addToResearchLedgerTechnical(stock, Category.STRONG);
-					this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.BUY);
-			} 
-			
-			if (technicalsResearchService.isBullishCrossOver100(stock)) {
-
-				this.addBullishCrossOverLedger(stock, CrossOverCategory.CROSS100);
-
 
 			}
 
 		} else if (researchTrigger == ResearchTrigger.SELL) {
-			
-			if (technicalsResearchService.isBearishCrossover200(stock)) {
 
-				this.addBearishCrossOverLedger(stock, CrossOverCategory.CROSS200);
-				
-			} 
-			
 			if (technicalsResearchService.isBearishCrossover100(stock)) {
 
 				this.addBearishCrossOverLedger(stock, CrossOverCategory.CROSS100);
-				
-				
-					this.updateResearchLedgerTechnical(stock, Category.STRONG);
-					this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.SELL);
-				
 
 			}
 
 		} else {
-			LOGGER.info("INVALID RESEARCH TYPE");
-		}
 
-	}
-
-	private void researchTechnicalTweak(Stock stock, ResearchTrigger researchTrigger) {
-	
-		LOGGER.info("TECHCOMSUMER 2" + stock.getNseSymbol() +" " + researchTrigger);
-		
-			if (technicalsResearchService.isBullishCrossOver50(stock)) {
-
-				this.addBullishCrossOverLedger(stock, CrossOverCategory.CROSS50);
-				this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.BUY);
-			}
-			
-			
 			if (technicalsResearchService.isBullishCrossOver200(stock)) {
 
 				this.addBullishCrossOverLedger(stock, CrossOverCategory.CROSS200);
 
-				this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.BUY);
+			}
 
-			} 
-			
 			if (technicalsResearchService.isBullishCrossOver100(stock)) {
 
 				this.addBullishCrossOverLedger(stock, CrossOverCategory.CROSS100);
-				this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.BUY);
 
 			}
-	
 
-			if (technicalsResearchService.isBearishCrossover50(stock)) {
-
-				this.addBearishCrossOverLedger(stock, CrossOverCategory.CROSS50);
-				
-				this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.SELL);
-				
-			} 
-			
 			if (technicalsResearchService.isBearishCrossover200(stock)) {
 
 				this.addBearishCrossOverLedger(stock, CrossOverCategory.CROSS200);
-				this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.SELL);
-
-			} 
-			
-			if (technicalsResearchService.isBearishCrossover100(stock)) {
-
-				this.addBearishCrossOverLedger(stock, CrossOverCategory.CROSS100);
-				this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.SELL);
 
 			}
 
+			if (technicalsResearchService.isBearishCrossover100(stock)) {
+
+				this.addBearishCrossOverLedger(stock, CrossOverCategory.CROSS100);
+
+			}
+
+		}
+
 	}
-	
+
 	private void researchPositiveBreakout(Stock stock) {
 
 		LOGGER.info("RESEARCH_CONSUMER researchPositiveBreakout " + stock.getNseSymbol());
@@ -202,39 +150,41 @@ public class ResearchTechnicalConsumer {
 		}
 
 	}
-	
-	private void updateResearchLedgerTechnical(Stock stock, Category category) {
-		researchLedgerService.updateResearch(stock, ResearchType.TECHNICAL,category);
-	}
-
-	private void addToResearchLedgerTechnical(Stock stock, Category category) {
-		researchLedgerService.addResearch(stock, ResearchType.TECHNICAL,category);
-	}
 
 	private void addBullishCrossOverLedger(Stock stock, CrossOverCategory crossOverCategory) {
-		String nseSymbol = stock.getNseSymbol();
 
-		LOGGER.info("TECHCOMSUMER 3" + stock.getNseSymbol() +" " + crossOverCategory);
-		
-		
-		if (stockService.isActive(nseSymbol)) {
+		LOGGER.info("TECHCOMSUMER 3" + stock.getNseSymbol() + " " + crossOverCategory);
 
-			LOGGER.info("TECHCOMSUMER 4" + stock.getNseSymbol() +" " + crossOverCategory);
+		LOGGER.info("TECHCOMSUMER 4" + stock.getNseSymbol() + " " + crossOverCategory);
+
+		CrossOverLedger entryCrossOver = crossOverLedgerService.addBullish(stock, crossOverCategory);
+
+		if (crossOverCategory == CrossOverCategory.CROSS200) {
 			
-			
-			crossOverLedgerService.addBullish(stock, crossOverCategory);
+			this.addToResearchLedgerTechnical(stock, entryCrossOver);
+		}
 
-		} else {
-			LOGGER.debug("NOT IN MASTER, IGNORED..." + nseSymbol);
+		this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchTrigger.BUY);
+
+	}
+
+	private void addBearishCrossOverLedger(Stock stock, CrossOverCategory crossOverCategory) {
+
+		CrossOverLedger exitCrossOver = crossOverLedgerService.addBearish(stock, crossOverCategory);
+
+		if (crossOverCategory == CrossOverCategory.CROSS100) {
+			this.updateResearchLedgerTechnical(stock, exitCrossOver);
 		}
 	}
 
-
-	private void addBearishCrossOverLedger(Stock stock, CrossOverCategory crossOverCategory) {
-		crossOverLedgerService.addBearish(stock, crossOverCategory);
-
+	private void updateResearchLedgerTechnical(Stock stock, CrossOverLedger exitCrossOver) {
+		researchLedgerService.updateResearch(stock, exitCrossOver);
 	}
-	
+
+	private void addToResearchLedgerTechnical(Stock stock, CrossOverLedger entryCrossOver) {
+		researchLedgerService.addResearch(stock, entryCrossOver);
+	}
+
 	private void addToResearchHistory(Stock stock, ResearchType researchType, ResearchTrigger researchTrigger) {
 
 		double currentPrice = stock.getStockPrice().getCurrentPrice();
@@ -246,15 +196,8 @@ public class ResearchTechnicalConsumer {
 		ResearchIO researchIO = new ResearchIO(stock.getNseSymbol(), researchType, researchTrigger, currentPrice, pe,
 				pb);
 
-		if (!researchLedgerService.isResearchStorageNotified(stock, researchType, researchTrigger)) {
+		queueService.send(researchIO, QueueConstants.HistoricalQueue.UPDATE_RESEARCH_QUEUE);
 
-			queueService.send(researchIO, QueueConstants.HistoricalQueue.UPDATE_RESEARCH_QUEUE);
-
-			researchLedgerService.updateResearchNotifiedStorage(stock, researchType);
-
-		} else {
-			LOGGER.debug("RESEARCH ALREADY EXIST..." + stock.getNseSymbol());
-		}
 
 	}
 }

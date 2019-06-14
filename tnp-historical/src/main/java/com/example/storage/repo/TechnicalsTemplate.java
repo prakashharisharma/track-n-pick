@@ -1,6 +1,5 @@
 package com.example.storage.repo;
 
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,17 +13,15 @@ import org.springframework.data.mongodb.core.aggregation.LimitOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
-import org.springframework.data.mongodb.core.aggregation.UnwindOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
-import com.example.storage.model.RsiCountResult;
-import com.example.storage.model.StockPrice;
+import com.example.storage.model.StockTechnicals;
+import com.example.storage.model.result.RsiCountResult;
 import com.example.storage.model.result.StockOBVResult;
 import com.example.storage.model.result.StockPriceResult;
-import com.example.storage.model.StockTechnicals;
-import com.example.storage.model.TradingSession;
+import com.example.storage.model.result.VolumeResult;
 
 @Repository
 public class TechnicalsTemplate {
@@ -39,6 +36,7 @@ public class TechnicalsTemplate {
 		mongoTemplate.insert(stockTechnicals);
 	}
 	
+	
 	public double getPrevTotalGain(String nseSymbol) {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
@@ -48,7 +46,7 @@ public class TechnicalsTemplate {
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
-				.andExpression("avgGain").as("resultPrice");
+				.andExpression("momentum.rsi.avgGain").as("resultPrice");
 
 		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc,
 				projectToMatchModel);
@@ -67,6 +65,7 @@ public class TechnicalsTemplate {
 		return prevTotalGain;
 	}
 
+	
 	public double getPrevTotalLoss(String nseSymbol) {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
@@ -76,7 +75,7 @@ public class TechnicalsTemplate {
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
-				.andExpression("avgLoss").as("resultPrice");
+				.andExpression("momentum.rsi.avgLoss").as("resultPrice");
 
 		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc,
 				projectToMatchModel);
@@ -95,6 +94,7 @@ public class TechnicalsTemplate {
 		return prevTotalLoss;
 	}
 
+	
 	public long getOBV(String nseSymbol) {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
@@ -104,7 +104,7 @@ public class TechnicalsTemplate {
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
-				.andExpression("indicator.priceVolume.obv").as("resultOBV");
+				.andExpression("volume.obv").as("resultOBV");
 
 		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc,
 				projectToMatchModel);
@@ -133,7 +133,7 @@ public class TechnicalsTemplate {
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
-				.andExpression("indicator.rsi.rsi").as("resultPrice");
+				.andExpression("momentum.rsi.rsi").as("resultPrice");
 
 		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc,
 				projectToMatchModel);
@@ -161,7 +161,7 @@ public class TechnicalsTemplate {
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
-				.andExpression("indicator.rsi.smoothedRsi").as("resultPrice");
+				.andExpression("momentum.rsi.smoothedRsi").as("resultPrice");
 
 		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc,
 				projectToMatchModel);
@@ -180,6 +180,35 @@ public class TechnicalsTemplate {
 		return currentRSI;
 	}
 
+	public Long getAverageVolume(String nseSymbol, int days) {
+		
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
+
+		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").avg("volume.volume").as("avgVolume");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("avgVolume").as("volume");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc, yearHighGroup,
+				projectToMatchModel);
+
+		AggregationResults<VolumeResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_TH,
+				VolumeResult.class);
+
+		VolumeResult volumeResult = result.getUniqueMappedResult();
+
+		Long averageVolume = 0l;
+		if(volumeResult != null) {
+			averageVolume = volumeResult.getVolume();
+		}
+		
+		return averageVolume;
+	}
+	
 	public double getPriorDaysSma50Average(String nseSymbol, int days) {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
@@ -188,7 +217,7 @@ public class TechnicalsTemplate {
 
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
 
-		GroupOperation avgSma50Group = Aggregation.group("nseSymbol").avg("movingAverage.sma50").as("avgsma50");
+		GroupOperation avgSma50Group = Aggregation.group("nseSymbol").avg("trend.movingAverage.simple.avg50").as("avgsma50");
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
 				.andExpression("avgsma50").as("resultPrice");
@@ -210,6 +239,7 @@ public class TechnicalsTemplate {
 		return currentRSI;
 	}
 
+	@Deprecated
 	public int getrsiCountAbove(double rsi, String nseSymbol, int days) {
 
 		Criteria criteriaAbove = new Criteria().andOperator(new Criteria("nseSymbol").is(nseSymbol),
@@ -243,6 +273,7 @@ public class TechnicalsTemplate {
 		return count;
 	}
 
+	@Deprecated
 	public int getrsiCountBelow(double rsi, String nseSymbol, int days) {
 
 		Criteria criteriaBelow = new Criteria().andOperator(new Criteria("nseSymbol").is(nseSymbol),
@@ -276,6 +307,7 @@ public class TechnicalsTemplate {
 		return count;
 	}
 
+	@Deprecated
 	public double getPrevSessionSma21(String nseSymbol) {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
@@ -315,7 +347,7 @@ public class TechnicalsTemplate {
 
 		LimitOperation limitToTwoDoc = Aggregation.limit(2);
 
-		GroupOperation prevSma50Group = Aggregation.group("nseSymbol").last("movingAverage.sma50").as("prevSma50");
+		GroupOperation prevSma50Group = Aggregation.group("nseSymbol").last("trend.movingAverage.simple.avg50").as("prevSma50");
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
 				.andExpression("prevSma50").as("resultPrice");
@@ -345,7 +377,7 @@ public class TechnicalsTemplate {
 
 		LimitOperation limitToTwoDoc = Aggregation.limit(2);
 
-		GroupOperation prevSma50Group = Aggregation.group("nseSymbol").last("movingAverage.sma100").as("prevSma100");
+		GroupOperation prevSma50Group = Aggregation.group("nseSymbol").last("trend.movingAverage.simple.avg100").as("prevSma100");
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
 				.andExpression("prevSma100").as("resultPrice");
@@ -376,7 +408,7 @@ public class TechnicalsTemplate {
 
 		LimitOperation limitToTwoDoc = Aggregation.limit(2);
 
-		GroupOperation prevSma200Group = Aggregation.group("nseSymbol").last("movingAverage.sma200").as("prevSma200");
+		GroupOperation prevSma200Group = Aggregation.group("nseSymbol").last("trend.movingAverage.simple.avg200").as("prevSma200");
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
 				.andExpression("prevSma200").as("resultPrice");
@@ -407,7 +439,7 @@ public class TechnicalsTemplate {
 		
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
 
-		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").avg("indicator.stochasticOscillator.k").as("avgD");
+		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").avg("momentum.stochasticOscillator.k").as("avgD");
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
 				.andExpression("avgD").as("resultPrice");
@@ -427,19 +459,16 @@ public class TechnicalsTemplate {
 			averagePrice = stockPriceResult.getResultPrice();
 		}
 		
-		//System.out.println(result.getRawResults());
 
 		return averagePrice;
 	}
 	
 	
-	public StockTechnicals getPrevTechnicals(String nseSymbol) {
+	public StockTechnicals getPrevTechnicals(String nseSymbol, int days) {
 
 		Query query = new Query(new Criteria("nseSymbol").is(nseSymbol));
 		
-		query.with(new Sort(Sort.Direction.DESC,"bhavDate")).limit(1);
-		
-		//new Sort(new Order(Direction.ASC, FIELD_NAME).ignoreCase()
+		query.with(new Sort(Sort.Direction.DESC,"bhavDate")).limit(days);
 		
 		List<StockTechnicals> stockTechnicalsList = mongoTemplate.find(query, StockTechnicals.class);
 		

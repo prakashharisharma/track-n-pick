@@ -23,6 +23,7 @@ import com.example.service.BreakoutLedgerService;
 import com.example.service.CrossOverLedgerService;
 import com.example.service.RuleService;
 import com.example.service.StockService;
+import com.example.ui.model.RecentCrossOverIO;
 import com.example.ui.model.StockDetailsIO;
 import com.example.ui.model.StockSearch;
 import com.example.util.FormulaService;
@@ -67,9 +68,10 @@ public class PublicStockController {
 
 			if (ruleService.isUndervalued(stock)) {
 				valuation = "UNDERVALUE";
-			} else if (ruleService.isOvervalued(stock)) {
+			}else if (ruleService.isOvervalued(stock)) {
 				valuation = "OVERVALUED";
-			} else {
+			}
+			else {
 				valuation = "NUETRAL";
 			}
 
@@ -137,7 +139,15 @@ public class PublicStockController {
 
 		return ResponseEntity.ok(searchResult);
 	}
-
+	@GetMapping(value = "/recentcrossover", produces = { 
+			MediaType.APPLICATION_JSON_VALUE })
+	public ResponseEntity<RecentCrossOverIO> recentCrossOver() {
+		
+		RecentCrossOverIO recentCrossOverIO = new RecentCrossOverIO(this.getRecentCrossOver());
+		
+		return ResponseEntity.ok(recentCrossOverIO);
+	}
+	
 	private String getCrossOver(Stock stock) {
 		StringBuilder crossOverHtml = new StringBuilder("<p>");
 
@@ -186,4 +196,34 @@ public class PublicStockController {
 		return breakOutHtml.toString();
 	}
 
+	private String getRecentCrossOver() {
+		StringBuilder recentHtml = new StringBuilder("<p>");
+		
+		List<CrossOverLedger> crossOverList = crossOverLedgerService.getRecentCrossOver();
+		
+		crossOverList.forEach(cl -> {
+			if (cl.getCrossOverType() == CrossOverLedger.CrossOverType.BULLISH) {
+				recentHtml.append("<font color='green'>");
+
+				recentHtml.append(cl.getStockId().getNseSymbol());
+				recentHtml.append("&nbsp;&nbsp;&nbsp;--&nbsp;&nbsp;&nbsp;");
+				recentHtml.append(cl.getResearchDate().toString());
+				recentHtml.append("&nbsp;&nbsp;&nbsp;--&nbsp;&nbsp;&nbsp;");
+				recentHtml.append("</font>");
+			} else {
+				recentHtml.append("<font color='red'>");
+				recentHtml.append(cl.getStockId().getNseSymbol());
+				recentHtml.append("&nbsp;&nbsp;&nbsp;--&nbsp;&nbsp;&nbsp;");
+				recentHtml.append(cl.getResearchDate().toString());
+				recentHtml.append("&nbsp;&nbsp;&nbsp;--&nbsp;&nbsp;&nbsp;");
+				recentHtml.append("</font>");
+			}
+			
+		});
+		
+		recentHtml.append("</p>");
+		
+		return recentHtml.toString();
+	}
+	
 }

@@ -198,8 +198,6 @@ public class PortfolioService {
 		portfolioList.forEach(up -> {
 			if (ruleService.isUndervalued(up.getStock())) {
 				underValuedStocksList.add(up);
-			}else if(ruleService.isUndervaluedTweaked(up.getStock())) {
-				underValuedStocksList.add(up);
 			}
 
 		});
@@ -218,7 +216,7 @@ public class PortfolioService {
 		Set<UserPortfolio> portfolioList = user.getUserPortfolio();
 
 		portfolioList.forEach(stock -> {
-			if (ruleService.isOvervaluedTweaked(stock.getStock())) {
+			if (ruleService.isOvervalued(stock.getStock())) {
 				overValuedStocksList.add(stock);
 			}
 

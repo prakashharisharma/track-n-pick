@@ -19,16 +19,15 @@ import com.example.model.stocks.StockTechnicals;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.repo.stocks.StockTechnicalsRepository;
-import com.example.service.RuleService;
 import com.example.service.StockService;
 import com.example.util.io.model.ResearchIO;
-import com.example.util.io.model.StockTechnicalsIO;
 import com.example.util.io.model.ResearchIO.ResearchTrigger;
 import com.example.util.io.model.ResearchIO.ResearchType;
+import com.example.util.io.model.StockTechnicalsIO;
 
 @Component
 public class TechnicalsTxnConsumer {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(TechnicalsTxnConsumer.class);
 
 	@Autowired
@@ -38,27 +37,24 @@ public class TechnicalsTxnConsumer {
 
 	@Autowired
 	private QueueService queueService;
-	
-	@Autowired
-	private RuleService ruleService;
-	
+
 	@JmsListener(destination = QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE)
-	public void receiveMessage(@Payload StockTechnicalsIO stockTechnicalsIO, @Headers MessageHeaders headers, Message message,
-			Session session) throws InterruptedException {
-		
+	public void receiveMessage(@Payload StockTechnicalsIO stockTechnicalsIO, @Headers MessageHeaders headers,
+			Message message, Session session) throws InterruptedException {
+
 		LOGGER.info("TECHNICALSTXN_CONSUMER START " + stockTechnicalsIO);
-		
-		if(stockService.isActive(stockTechnicalsIO.getNseSymbol())) {
+
+		if (stockService.isActive(stockTechnicalsIO.getNseSymbol())) {
 			this.processPriceUpdate(stockTechnicalsIO);
-		}else {
+		} else {
 			LOGGER.debug("NOT IN MASTER, IGNORED..." + stockTechnicalsIO.getNseSymbol());
 		}
 	}
-	
+
 	private void processPriceUpdate(StockTechnicalsIO stockTechnicalsIO) {
-		
+
 		Stock stock = stockService.getStockByNseSymbol(stockTechnicalsIO.getNseSymbol());
-		
+
 		StockTechnicals stockTechnicals = stock.getTechnicals();
 
 		if (stockTechnicals != null) {
@@ -69,59 +65,58 @@ public class TechnicalsTxnConsumer {
 			stockTechnicals.setPrevSma100(stockTechnicalsIO.getPrevSma100());
 			stockTechnicals.setPrevSma200(stockTechnicalsIO.getPrevSma200());
 			stockTechnicals.setRsi(stockTechnicalsIO.getRsi());
-/*			stockTechnicals.setCurrentTrend(stockTechnicalsIO.getCurrentTrend());
-			stockTechnicals.setMidTermTrend(stockTechnicalsIO.getMidTermTrend());
-			stockTechnicals.setLongTermTrend(stockTechnicalsIO.getLongTermTrend());*/
+
 			stockTechnicals.setLastModified(LocalDate.now());
-			
+
 			stockTechnicals.setSok(stockTechnicalsIO.getSok());
 			stockTechnicals.setSod(stockTechnicalsIO.getSod());
 			stockTechnicals.setObv(stockTechnicalsIO.getObv());
 			stockTechnicals.setRocv(stockTechnicalsIO.getRocv());
-			
+
 			stockTechnicals.setSma21(stockTechnicalsIO.getSma21());
 			stockTechnicals.setPrevSma21(stockTechnicalsIO.getPrevSma21());
 			
-		}else {
+			stockTechnicals.setVolume(stockTechnicalsIO.getVolume());
+			stockTechnicals.setAvgVolume(stockTechnicalsIO.getAvgVolume());
+
+		} else {
 			stockTechnicals = new StockTechnicals();
 			stockTechnicals.setStock(stock);
-			
+
 			stockTechnicals.setSma50(stockTechnicalsIO.getSma50());
-			
+
 			stockTechnicals.setSma100(stockTechnicalsIO.getSma100());
 			stockTechnicals.setSma200(stockTechnicalsIO.getSma200());
 			stockTechnicals.setPrevSma50(stockTechnicalsIO.getPrevSma50());
 			stockTechnicals.setPrevSma100(stockTechnicalsIO.getPrevSma100());
 			stockTechnicals.setPrevSma200(stockTechnicalsIO.getPrevSma200());
 			stockTechnicals.setRsi(stockTechnicalsIO.getRsi());
-/*			stockTechnicals.setCurrentTrend(stockTechnicalsIO.getCurrentTrend());
-			stockTechnicals.setMidTermTrend(stockTechnicalsIO.getMidTermTrend());
-			stockTechnicals.setLongTermTrend(stockTechnicalsIO.getLongTermTrend());*/
+
 			stockTechnicals.setLastModified(LocalDate.now());
-			
+
 			stockTechnicals.setSok(stockTechnicalsIO.getSok());
 			stockTechnicals.setSod(stockTechnicalsIO.getSod());
 			stockTechnicals.setObv(stockTechnicalsIO.getObv());
 			stockTechnicals.setRocv(stockTechnicalsIO.getRocv());
-			
+
 			stockTechnicals.setSma21(stockTechnicalsIO.getSma21());
 			stockTechnicals.setPrevSma21(stockTechnicalsIO.getPrevSma21());
 			
-			
+			stockTechnicals.setVolume(stockTechnicalsIO.getVolume());
+			stockTechnicals.setAvgVolume(stockTechnicalsIO.getAvgVolume());
+
 		}
-		
+
 		stockTechnicalsRepository.save(stockTechnicals);
-		
-		if(ruleService.isPriceInRange(stock)) {
-			
-			ResearchIO researchIO = new ResearchIO(stockTechnicalsIO.getNseSymbol(), ResearchType.TECHNICAL_TWEAK, ResearchTrigger.BUY_SELL);
-			
-			this.processResearch(researchIO);
-		}
-		
+
+		ResearchIO researchIO = new ResearchIO(stockTechnicalsIO.getNseSymbol(), ResearchType.TECHNICAL,
+				ResearchTrigger.BUY);
+
+		this.processResearch(researchIO);
+
 	}
-	
+
 	private void processResearch(ResearchIO researchIO) {
-		queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_TECHNICAL_QUEUE);
+		queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
 	}
 }

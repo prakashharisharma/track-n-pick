@@ -58,7 +58,7 @@ public class Stock implements Serializable{
 	@Column(name = "SECTOR_NAME")
 	String sectorName;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "sectorId", nullable = false)
 	Sector sector;
 	

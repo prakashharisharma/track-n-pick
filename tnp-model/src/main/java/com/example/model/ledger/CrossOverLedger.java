@@ -67,6 +67,15 @@ public class CrossOverLedger implements Serializable{
 	@Column(name = "LONG_AVG", columnDefinition="Decimal(10,2) default '0.00'")
 	double longAvg;
 	
+	@Column(name = "PRICE", columnDefinition="Decimal(10,2) default '0.00'")
+	double price;
+	
+	@Column(name = "VOLUME")
+	Long volume;
+	
+	@Column(name = "AVG_VOLUME")
+	Long avgVolume;
+	
 	public CrossOverLedger() {
 		super();
 	}
@@ -152,6 +161,31 @@ public class CrossOverLedger implements Serializable{
 
 	public void setCloseDate(LocalDate closeDate) {
 		this.closeDate = closeDate;
+	}
+
+
+	public double getPrice() {
+		return price;
+	}
+
+	public void setPrice(double price) {
+		this.price = price;
+	}
+
+	public long getVolume() {
+		return volume != null ? volume : 0;
+	}
+
+	public void setVolume(long volume) {
+		this.volume = volume;
+	}
+
+	public long getAvgVolume() {
+		return avgVolume != null ? avgVolume : 0;
+	}
+
+	public void setAvgVolume(long avgVolume) {
+		this.avgVolume = avgVolume;
 	}
 
 	@Override

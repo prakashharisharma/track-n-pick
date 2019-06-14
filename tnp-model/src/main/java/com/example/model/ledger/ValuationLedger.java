@@ -22,8 +22,6 @@ public class ValuationLedger implements Serializable {
 
 	public enum Type {UNDERVALUE, OVERVALUE}
 	
-	public enum Category { STRONG, TWEAKED }
-	
 	public enum Status {OPEN, CLOSE};
 	
 	/**
@@ -36,7 +34,6 @@ public class ValuationLedger implements Serializable {
 	@Column(name = "UNDERVALUE_ID")
 	long undervalueId;
 
-	
 	@ManyToOne
 	@JoinColumn(name = "stockId")
 	Stock stockId;
@@ -53,19 +50,30 @@ public class ValuationLedger implements Serializable {
 	@Column(name = "PB" , columnDefinition="Decimal(10,2) default '0.00'")
 	double pb;
 	
-	@Column(name = "NEW_PE" , columnDefinition="Decimal(10,2) default '0.00'")
-	double newPe;
+	@Column(name = "SECTOR_PE" , columnDefinition="Decimal(10,2) default '0.00'")
+	double sectorPe;
 	
-	@Column(name = "NEW_PB" , columnDefinition="Decimal(10,2) default '0.00'")
-	double newPb;
+	@Column(name = "SECTOR_PB" , columnDefinition="Decimal(10,2) default '0.00'")
+	double sectorPb;
+	
+	@Column(name = "DEBT_EQUITY", columnDefinition="Decimal(10,2) default '0.00'")
+	double debtEquity;
+	
+	@Column(name = "CURRENT_RATIO", columnDefinition="Decimal(10,2) default '0.00'")
+	double currentRatio;
+	
+	@Column(name = "QUICK_RATIO", columnDefinition="Decimal(10,2) default '0.00'")
+	double quickRatio;
+	
+	@Column(name = "DIVIDEND", columnDefinition="Decimal(10,2) default '0.00'")
+	double dividend;
+	
+	@Column(name = "PRICE", columnDefinition="Decimal(10,2) default '0.00'")
+	double price;
 	
 	@Column(name = "TYPE")
 	@Enumerated(EnumType.STRING)
 	Type type;
-	
-	@Column(name = "CATEGORY")
-	@Enumerated(EnumType.STRING)
-	Category category;
 	
 	@Column(name = "STATUS")
 	@Enumerated(EnumType.STRING)
@@ -133,36 +141,12 @@ public class ValuationLedger implements Serializable {
 		this.lastModified = lastModified;
 	}
 
-	public double getNewPe() {
-		return newPe;
-	}
-
-	public void setNewPe(double newPe) {
-		this.newPe = newPe;
-	}
-
-	public double getNewPb() {
-		return newPb;
-	}
-
-	public void setNewPb(double newPb) {
-		this.newPb = newPb;
-	}
-
 	public Type getType() {
 		return type;
 	}
 
 	public void setType(Type type) {
 		this.type = type;
-	}
-
-	public Category getCategory() {
-		return category;
-	}
-
-	public void setCategory(Category category) {
-		this.category = category;
 	}
 
 	public Status getStatus() {
@@ -173,6 +157,62 @@ public class ValuationLedger implements Serializable {
 		this.status = status;
 	}
 
-	
-	
+	public double getSectorPe() {
+		return sectorPe;
+	}
+
+	public void setSectorPe(double sectorPe) {
+		this.sectorPe = sectorPe;
+	}
+
+	public double getSectorPb() {
+		return sectorPb;
+	}
+
+	public void setSectorPb(double sectorPb) {
+		this.sectorPb = sectorPb;
+	}
+
+	public double getDebtEquity() {
+		return debtEquity;
+	}
+
+	public void setDebtEquity(double debtEquity) {
+		this.debtEquity = debtEquity;
+	}
+
+	public double getCurrentRatio() {
+		return currentRatio;
+	}
+
+	public void setCurrentRatio(double currentRatio) {
+		this.currentRatio = currentRatio;
+	}
+
+	public double getQuickRatio() {
+		return quickRatio;
+	}
+
+	public void setQuickRatio(double quickRatio) {
+		this.quickRatio = quickRatio;
+	}
+
+	public double getDividend() {
+		return dividend;
+	}
+
+	public void setDividend(double dividend) {
+		this.dividend = dividend;
+	}
+
+	public double getPrice() {
+		return price;
+	}
+
+	public void setPrice(double price) {
+		this.price = price;
+	}
+
+
+
 }

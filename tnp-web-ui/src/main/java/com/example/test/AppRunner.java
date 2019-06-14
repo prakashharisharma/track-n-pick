@@ -1,7 +1,6 @@
 package com.example.test;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -12,8 +11,10 @@ import org.springframework.stereotype.Component;
 
 import com.example.external.bhav.service.DownloadBhavService;
 import com.example.external.dylh.service.DylhService;
+import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.master.Stock;
-import com.example.model.um.UserProfile;
+import com.example.mq.constants.QueueConstants;
+import com.example.mq.producer.QueueService;
 import com.example.repo.master.HolidayCalendarRepository;
 import com.example.repo.stocks.PortfolioRepository;
 import com.example.service.CalendarService;
@@ -21,18 +22,25 @@ import com.example.service.DividendLedgerService;
 import com.example.service.ExpenseService;
 import com.example.service.FundsLedgerService;
 import com.example.service.PortfolioService;
+import com.example.service.ResearchLedgerTechnicalService;
 import com.example.service.SectorService;
 import com.example.service.StockService;
 import com.example.service.TechnicalsResearchService;
 import com.example.service.UserService;
 import com.example.service.WatchListService;
 import com.example.storage.model.StockTechnicals;
-import com.example.storage.model.result.HighLowResult;
 import com.example.storage.repo.PriceTemplate;
 import com.example.storage.repo.TechnicalsTemplate;
 import com.example.storage.repo.TradingSessionTemplate;
 import com.example.storage.service.StorageService;
+import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
+import com.example.util.io.model.ResearchIO;
+import com.example.util.io.model.ResearchIO.ResearchTrigger;
+import com.example.util.io.model.ResearchIO.ResearchType;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 @Component
 public class AppRunner implements CommandLineRunner {
@@ -95,6 +103,13 @@ public class AppRunner implements CommandLineRunner {
 	@Autowired
 	private TradingSessionTemplate tradingSessionTemplate;
 
+	@Autowired
+	private FormulaService formulaService;
+
+	@Autowired
+	private QueueService queueService;
+	@Autowired
+	private ResearchLedgerTechnicalService tecnicalLedger;
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
 
@@ -120,64 +135,128 @@ public class AppRunner implements CommandLineRunner {
 		LOGGER.info("PREV OBV " + technicalsTemplate.getOBV("ZEEL"));
 
 		LOGGER.info("PREV OBV " + priceTemplate.getTotalTradedQuantity("ZEEL"));
+
+		StockTechnicals prevStockTechnicals = technicalsTemplate.getPrevTechnicals("ZEEL", 1);
+		System.out.println("BHAV_DATE : " + prevStockTechnicals.getBhavDate());
+		this.printJson(prevStockTechnicals);
+
+		List<Stock> stocksList = stockService.activeStocks();
+
+		List<ResearchLedgerTechnical> buyResearchTechnicalLedgerList = tecnicalLedger.buyNotificationPending();
 		
-		//StockTechnicals stockTechnicals = technicalsTemplate.getPrevTechnicals("ZEEL");
+		buyResearchTechnicalLedgerList.forEach(System.out::println);
 		
-		//System.out.println(stockTechnicals);
-		
-		//stockService.resetFactors();
-		
-		/*LOGGER.info("DAYS HIGH " + priceTemplate.getDaysHigh("TEST6", 14));
+/*		// Sell Research Fundamental
+		stocksList.forEach(stock -> {
+			ResearchIO researchIO = new ResearchIO();
 
-		LOGGER.info("DAYS LOW " + priceTemplate.getDaysLow("TEST6", 14));
+			researchIO.setNseSymbol(stock.getNseSymbol());
+			researchIO.setResearchTrigger(ResearchTrigger.BUY);
+			researchIO.setResearchType(ResearchType.FUNDAMENTAL);
+			// this.processFundamental(researchIO);
 
-		LOGGER.info("DATE HIGH " + priceTemplate.getHighFromDate("ZEEL", LocalDate.now().minusWeeks(52)));
+			queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
+		});
 
-		LOGGER.info("DATE LOW " + priceTemplate.getLowFromDate("ZEEL", LocalDate.now().minusWeeks(52)));
+		// Sell Research Technical
 
-		LOGGER.info("AVG PRICe " + priceTemplate.getAveragePrice("ZEEL", 2));
+		stocksList.forEach(stock -> {
+			ResearchIO researchIO = new ResearchIO();
+			researchIO.setNseSymbol(stock.getNseSymbol());
+			researchIO.setResearchTrigger(ResearchTrigger.BUY);
+			researchIO.setResearchType(ResearchType.TECHNICAL);
+			// this.processTechnical(researchIO);
 
-		HighLowResult result = priceTemplate.getHighLowByDate("ZEEL", LocalDate.now().minusWeeks(52));
+			queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
+		});*/
 
-		System.out.println(result);
+		/*
+		 * double ema20 = formulaService.calculateRateOfChange(150, 100);
+		 * 
+		 * System.out.println(ema20);
+		 */
 
-		result = priceTemplate.getHighLowByDays("ZEEL", 2);
+		/*
+		 * ema20 = formulaService.calculateEMA(22.15, 22.22, 50);
+		 * 
+		 * System.out.println(ema20);
+		 * 
+		 * ema20 = formulaService.calculateEMA(22.15, 22.22,100);
+		 * 
+		 * System.out.println(ema20);
+		 * 
+		 * ema20 = formulaService.calculateEMA(22.15, 22.22,200);
+		 * 
+		 * System.out.println(ema20);
+		 */
+		/*
+		 * double K = formulaService.getEMAMultiplier(20); System.out.println(K);
+		 * 
+		 * K = formulaService.getEMAMultiplier(50); System.out.println(K);
+		 */
+		// StockTechnicals stockTechnicals =
+		// technicalsTemplate.getPrevTechnicals("ZEEL");
 
-		System.out.println(result);
+		// System.out.println(stockTechnicals);
 
-		double r = tradingSessionTemplate.getTotalGain("ZEEL", 14);
+		// stockService.resetFactors();
 
-		System.out.println(r);
+		/*
+		 * LOGGER.info("DAYS HIGH " + priceTemplate.getDaysHigh("TEST6", 14));
+		 * 
+		 * LOGGER.info("DAYS LOW " + priceTemplate.getDaysLow("TEST6", 14));
+		 * 
+		 * LOGGER.info("DATE HIGH " + priceTemplate.getHighFromDate("ZEEL",
+		 * LocalDate.now().minusWeeks(52)));
+		 * 
+		 * LOGGER.info("DATE LOW " + priceTemplate.getLowFromDate("ZEEL",
+		 * LocalDate.now().minusWeeks(52)));
+		 * 
+		 * LOGGER.info("AVG PRICe " + priceTemplate.getAveragePrice("ZEEL", 2));
+		 * 
+		 * HighLowResult result = priceTemplate.getHighLowByDate("ZEEL",
+		 * LocalDate.now().minusWeeks(52));
+		 * 
+		 * System.out.println(result);
+		 * 
+		 * result = priceTemplate.getHighLowByDays("ZEEL", 2);
+		 * 
+		 * System.out.println(result);
+		 * 
+		 * double r = tradingSessionTemplate.getTotalGain("ZEEL", 14);
+		 * 
+		 * System.out.println(r);
+		 * 
+		 * r = priceTemplate.getTotalGain("ZEEL", 14);
+		 * 
+		 * System.out.println(r);
+		 * 
+		 * r = storageService.getAverageGain("ZEEL", 14);
+		 * 
+		 * System.out.println(r);
+		 * 
+		 * r = priceTemplate.getAverageGain("ZEEL", 14);
+		 * 
+		 * System.out.println(r);
+		 * 
+		 * 
+		 * r = tradingSessionTemplate.getTotalLoss("ZEEL", 14);
+		 * 
+		 * System.out.println(r);
+		 * 
+		 * r = priceTemplate.getTotalLoss("ZEEL", 14);
+		 * 
+		 * System.out.println(r);
+		 * 
+		 * r = storageService.getAverageLoss("ZEEL", 14);
+		 * 
+		 * System.out.println(r);
+		 * 
+		 * r = priceTemplate.getAverageLoss("ZEEL", 14);
+		 * 
+		 * System.out.println(r);
+		 */
 
-		r = priceTemplate.getTotalGain("ZEEL", 14);
-
-		System.out.println(r);
-		
-		r = storageService.getAverageGain("ZEEL", 14);
-
-		System.out.println(r);
-
-		r = priceTemplate.getAverageGain("ZEEL", 14);
-
-		System.out.println(r);
-		
-		
-		r = tradingSessionTemplate.getTotalLoss("ZEEL", 14);
-
-		System.out.println(r);
-
-		r = priceTemplate.getTotalLoss("ZEEL", 14);
-
-		System.out.println(r);
-		
-		r = storageService.getAverageLoss("ZEEL", 14);
-
-		System.out.println(r);
-
-		r = priceTemplate.getAverageLoss("ZEEL", 14);
-
-		System.out.println(r);*/
-		
 		// LOGGER.info("AVG PRICe " +
 		// technicalsTemplate.getAverageStochasticOscillatorK("ZEEL",2));
 
@@ -215,4 +294,19 @@ public class AppRunner implements CommandLineRunner {
 
 	}
 
+	private void printJson(Object stockTechnicals) {
+
+		// pretty print
+		ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+
+		String json;
+		try {
+			json = mapper.writeValueAsString(stockTechnicals);
+			System.out.println(json);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
 }

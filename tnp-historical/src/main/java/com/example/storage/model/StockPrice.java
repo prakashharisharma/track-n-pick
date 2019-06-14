@@ -7,48 +7,40 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "price_history")
 public class StockPrice {
 
-
 	@Id
 	private String id;
 
-	String nseSymbol;
+	private String nseSymbol;
 	
-	double open;
-	double high;
-	double low;
-	double close;
-	double last;
-	double prevClose;
-	long totalTradedQuantity;
-	double totalTradedValue;
-	long totalTrades;
+	private Double open;
+	private Double high;
+	private Double low;
+	private Double close;
+	private Double prevClose;
 
-	Instant bhavDate = Instant.now();
+	private Instant bhavDate = Instant.now();
 	
-	double change;
-	double yearLow;
-	double yearHigh;
+	private Double change;
 	
-	double low14;
-	double high14;
+	private Double yearLow;
+	private Double yearHigh;
+	
+	private Double low14;
+	private Double high14;
 	
 	public StockPrice() {
 		super();
 	}
 
-	public StockPrice(String nseSymbol, double open, double high, double low, double close, double last,
-			double prevClose, long totalTradedQuantity, double totalTradedValue, long totalTrades, Instant bhavDate) {
+	public StockPrice(String nseSymbol, Double open, Double high, Double low, Double close,
+			Double prevClose, Instant bhavDate) {
 		super();
 		this.nseSymbol = nseSymbol;
 		this.open = open;
 		this.high = high;
 		this.low = low;
 		this.close = close;
-		this.last = last;
 		this.prevClose = prevClose;
-		this.totalTradedQuantity = totalTradedQuantity;
-		this.totalTradedValue = totalTradedValue;
-		this.totalTrades = totalTrades;
 		this.bhavDate = bhavDate;
 		this.change = (close - prevClose );
 	}
@@ -69,76 +61,44 @@ public class StockPrice {
 		this.nseSymbol = nseSymbol;
 	}
 
-	public double getOpen() {
+	public Double getOpen() {
 		return open;
 	}
 
-	public void setOpen(double open) {
+	public void setOpen(Double open) {
 		this.open = open;
 	}
 
-	public double getHigh() {
+	public Double getHigh() {
 		return high;
 	}
 
-	public void setHigh(double high) {
+	public void setHigh(Double high) {
 		this.high = high;
 	}
 
-	public double getLow() {
+	public Double getLow() {
 		return low;
 	}
 
-	public void setLow(double low) {
+	public void setLow(Double low) {
 		this.low = low;
 	}
 
-	public double getClose() {
+	public Double getClose() {
 		return close;
 	}
 
-	public void setClose(double close) {
+	public void setClose(Double close) {
 		this.close = close;
 	}
 
-	public double getLast() {
-		return last;
-	}
-
-	public void setLast(double last) {
-		this.last = last;
-	}
-
-	public double getPrevClose() {
+	public Double getPrevClose() {
 		return prevClose;
 	}
 
-	public void setPrevClose(double prevClose) {
+	public void setPrevClose(Double prevClose) {
 		this.prevClose = prevClose;
-	}
-
-	public long getTotalTradedQuantity() {
-		return totalTradedQuantity;
-	}
-
-	public void setTotalTradedQuantity(long totalTradedQuantity) {
-		this.totalTradedQuantity = totalTradedQuantity;
-	}
-
-	public double getTotalTradedValue() {
-		return totalTradedValue;
-	}
-
-	public void setTotalTradedValue(double totalTradedValue) {
-		this.totalTradedValue = totalTradedValue;
-	}
-
-	public long getTotalTrades() {
-		return totalTrades;
-	}
-
-	public void setTotalTrades(long totalTrades) {
-		this.totalTrades = totalTrades;
 	}
 
 	public Instant getBhavDate() {
@@ -149,54 +109,53 @@ public class StockPrice {
 		this.bhavDate = bhavDate;
 	}
 
-	public double getChange() {
+	public Double getChange() {
 		return change;
 	}
 
-	public void setChange(double change) {
+	public void setChange(Double change) {
 		this.change = change;
 	}
 
-	public double getYearLow() {
+	public Double getYearLow() {
 		return yearLow;
 	}
 
-	public void setYearLow(double yearLow) {
+	public void setYearLow(Double yearLow) {
 		this.yearLow = yearLow;
 	}
 
-	public double getYearHigh() {
+	public Double getYearHigh() {
 		return yearHigh;
 	}
 
-	public void setYearHigh(double yearHigh) {
+	public void setYearHigh(Double yearHigh) {
 		this.yearHigh = yearHigh;
 	}
 
-	public double getLow14() {
+	public Double getLow14() {
 		return low14;
 	}
 
-	public void setLow14(double low14) {
+	public void setLow14(Double low14) {
 		this.low14 = low14;
 	}
 
-	public double getHigh14() {
+	public Double getHigh14() {
 		return high14;
 	}
 
-	public void setHigh14(double high14) {
+	public void setHigh14(Double high14) {
 		this.high14 = high14;
 	}
 
 	@Override
 	public String toString() {
-		return "StockPriceN [id=" + id + ", nseSymbol=" + nseSymbol + ", open=" + open + ", high=" + high + ", low="
-				+ low + ", close=" + close + ", last=" + last + ", prevClose=" + prevClose + ", totalTradedQuantity="
-				+ totalTradedQuantity + ", totalTradedValue=" + totalTradedValue + ", totalTrades=" + totalTrades
-				+ ", bhavDate=" + bhavDate + ", change=" + change + ", yearLow=" + yearLow + ", yearHigh=" + yearHigh
+		return "StockPrice [id=" + id + ", nseSymbol=" + nseSymbol + ", open=" + open + ", high=" + high + ", low="
+				+ low + ", close=" + close + ", prevClose=" + prevClose + ", bhavDate=" + bhavDate + ", change="
+				+ change + ", yearLow=" + yearLow + ", yearHigh=" + yearHigh + ", low14=" + low14 + ", high14=" + high14
 				+ "]";
 	}
 
-	
+
 }

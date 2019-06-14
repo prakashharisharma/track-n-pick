@@ -12,11 +12,11 @@ import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import com.example.model.ledger.ValuationLedger.Category;
+import com.example.model.ledger.ValuationLedger;
 import com.example.model.master.Stock;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
-import com.example.service.ResearchLedgerService;
+import com.example.service.ResearchLedgerFundamentalService;
 import com.example.service.RuleService;
 import com.example.service.StockService;
 import com.example.service.ValuationLedgerService;
@@ -39,11 +39,11 @@ public class ResearchFundamentalConsumer {
 	private ValuationLedgerService undervalueLedgerService;
 
 	@Autowired
-	private ResearchLedgerService researchLedgerService;
-	
+	private ResearchLedgerFundamentalService researchLedgerService;
+
 	@Autowired
 	private QueueService queueService;
-	
+
 	@JmsListener(destination = QueueConstants.MTQueue.RESEARCH_FUNDAMENTAL_QUEUE)
 	public void receiveMessage(@Payload ResearchIO researchIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
@@ -51,11 +51,7 @@ public class ResearchFundamentalConsumer {
 		Stock stock = stockService.getStockByNseSymbol(researchIO.getNseSymbol());
 		if (researchIO.getResearchType() == ResearchType.FUNDAMENTAL) {
 			this.researchFundamental(stock, researchIO.getResearchTrigger());
-		}else if (researchIO.getResearchType() == ResearchType.FUNDAMENTAL_TWEAK) {
-			this.researchFundamentalTweak(stock, researchIO.getResearchTrigger());
-		}
-		
-		else {
+		} else {
 			LOGGER.info("INVALID RESEARCH TYPE");
 		}
 
@@ -66,83 +62,57 @@ public class ResearchFundamentalConsumer {
 		if (researchTrigger == ResearchTrigger.BUY) {
 			if (ruleService.isUndervalued(stock)) {
 
-				this.addToUnderValueLedger(stock, Category.STRONG);
-
-				this.addToResearchLedgerFundamental(stock,Category.STRONG);
-
-				this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.BUY);
-
-			}else if (ruleService.isUndervaluedTweaked(stock)) {
-
-				this.addToUnderValueLedger(stock, Category.TWEAKED);
-
-				this.addToResearchLedgerFundamental(stock,Category.TWEAKED);
-
-				this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.BUY);
+				this.addToUnderValueLedger(stock);
 
 			}
 		} else if (researchTrigger == ResearchTrigger.SELL) {
 			if (ruleService.isOvervalued(stock)) {
-				this.removeFromUnderValueLedger(stock,Category.STRONG);
-				this.updateResearchLedgerFundamental(stock,Category.STRONG);
-				this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.SELL);
+				this.removeFromUnderValueLedger(stock);
+
 			}
 		} else {
-			LOGGER.info("INVALID RESEARCH TYPE");
+			if (ruleService.isUndervalued(stock)) {
+
+				this.addToUnderValueLedger(stock);
+
+			} else if (ruleService.isOvervalued(stock)) {
+				this.removeFromUnderValueLedger(stock);
+
+			}
+
 		}
 
 	}
 
-	private void researchFundamentalTweak(Stock stock, ResearchTrigger researchTrigger) {
+	private void addToUnderValueLedger(Stock stock) {
 
-		if (researchTrigger == ResearchTrigger.BUY) {
-			if (ruleService.isUndervaluedTweaked(stock)) {
+		ValuationLedger entryValuation = undervalueLedgerService.addUndervalued(stock);
 
-				this.addToUnderValueLedger(stock, Category.TWEAKED);
-
-				this.addToResearchLedgerFundamental(stock,Category.TWEAKED);
-
-				this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.BUY);
-
-			}
-		} else if (researchTrigger == ResearchTrigger.SELL) {
-			if(ruleService.isOvervaluedTweaked(stock)) {
-				this.removeFromUnderValueLedger(stock,Category.TWEAKED);
-				this.updateResearchLedgerFundamental(stock,Category.TWEAKED);
-				this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.SELL);
-			}
-		} else {
-			LOGGER.info("INVALID RESEARCH TYPE");
-		}
+		this.addToResearchLedgerFundamental(stock, entryValuation);
 
 	}
-	
-	private void addToUnderValueLedger(Stock stock, Category category) {
 
-		String nseSymbol = stock.getNseSymbol();
+	private void removeFromUnderValueLedger(Stock stock) {
 
-		if (stockService.isActive(nseSymbol)) {
+		ValuationLedger exitValuation = undervalueLedgerService.addOvervalued(stock);
 
-			undervalueLedgerService.addUndervalued(stock, category);
-
-		} else {
-			LOGGER.debug("NOT IN MASTER, IGNORED..." + nseSymbol);
-		}
-	}
-	
-	private void addToResearchLedgerFundamental(Stock stock, Category category) {
-		researchLedgerService.addResearch(stock, ResearchType.FUNDAMENTAL,category);
+		this.updateResearchLedgerFundamental(stock, exitValuation);
 	}
 
-	private void removeFromUnderValueLedger(Stock stock, Category category) {
-		undervalueLedgerService.addOvervalued(stock,category);
+	private void addToResearchLedgerFundamental(Stock stock, ValuationLedger entryValuation) {
 
+		researchLedgerService.addResearch(stock, entryValuation);
+
+		this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.BUY);
 	}
-	
-	private void updateResearchLedgerFundamental(Stock stock, Category category) {
-		researchLedgerService.updateResearch(stock, ResearchType.FUNDAMENTAL,category);
+
+	private void updateResearchLedgerFundamental(Stock stock, ValuationLedger exitValuation) {
+
+		researchLedgerService.updateResearch(stock, exitValuation);
+
+		this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.SELL);
 	}
-	
+
 	private void addToResearchHistory(Stock stock, ResearchType researchType, ResearchTrigger researchTrigger) {
 
 		double currentPrice = stock.getStockPrice().getCurrentPrice();
@@ -154,16 +124,8 @@ public class ResearchFundamentalConsumer {
 		ResearchIO researchIO = new ResearchIO(stock.getNseSymbol(), researchType, researchTrigger, currentPrice, pe,
 				pb);
 
-		if (!researchLedgerService.isResearchStorageNotified(stock, researchType, researchTrigger)) {
-
-			queueService.send(researchIO, QueueConstants.HistoricalQueue.UPDATE_RESEARCH_QUEUE);
-
-			researchLedgerService.updateResearchNotifiedStorage(stock, researchType);
-
-		} else {
-			LOGGER.debug("RESEARCH ALREADY EXIST..." + stock.getNseSymbol());
-		}
+		queueService.send(researchIO, QueueConstants.HistoricalQueue.UPDATE_RESEARCH_QUEUE);
 
 	}
-	
+
 }

@@ -14,21 +14,23 @@ import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import com.example.model.ledger.ResearchLedger;
+import com.example.model.ledger.ResearchLedgerFundamental;
+import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.um.UserProfile;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.service.FundsLedgerService;
 import com.example.service.PerformanceLedgerService;
-import com.example.service.ResearchLedgerService;
+import com.example.service.ResearchLedgerFundamentalService;
+import com.example.service.ResearchLedgerTechnicalService;
 import com.example.service.SectorService;
 import com.example.service.StockService;
 import com.example.service.UserService;
 import com.example.util.io.model.ResearchIO;
 import com.example.util.io.model.ResearchIO.ResearchTrigger;
 import com.example.util.io.model.ResearchIO.ResearchType;
-import com.example.util.io.model.UpdateTriggerIO.TriggerType;
 import com.example.util.io.model.UpdateTriggerIO;
+import com.example.util.io.model.UpdateTriggerIO.TriggerType;
 
 @Component
 public class UpdateTriggerConsumer {
@@ -37,8 +39,11 @@ public class UpdateTriggerConsumer {
 	private QueueService queueService;
 
 	@Autowired
-	private ResearchLedgerService researchLedgerService;
+	private ResearchLedgerFundamentalService researchLedgerService;
 
+	@Autowired
+	private ResearchLedgerTechnicalService researchLedgerTechnicalService;
+	
 	@Autowired
 	private FundsLedgerService fundsLedgerService;
 	@Autowired
@@ -65,7 +70,7 @@ public class UpdateTriggerConsumer {
 			
 			this.updateResearchStrong();
 			
-			this.updateResearchTweaked();
+			//this.updateResearchTweaked();
 			
 		} else if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_CYRO) {
 			this.updateCYRO();
@@ -112,125 +117,41 @@ public class UpdateTriggerConsumer {
 
 	private void updateResearchStrong() {
 
-		List<ResearchLedger> researchLedgerList = researchLedgerService.allActiveResearchString();
-
-		// Sell Research Fundamental and Technical
-		researchLedgerList.forEach(researchLedger -> {
-			ResearchIO researchIO = new ResearchIO();
-
-			researchIO.setNseSymbol(researchLedger.getStock().getNseSymbol());
+		List<ResearchLedgerFundamental> researchLedgerList = researchLedgerService.allActiveResearch();
 		
+		List<ResearchLedgerTechnical> researchLedgerTechnicalList = researchLedgerTechnicalService.allActiveResearch();
 
-			if (researchLedger.getResearchType() == ResearchType.TECHNICAL) {
-
-				researchIO.setResearchType(ResearchType.TECHNICAL);
-				researchIO.setResearchTrigger(ResearchTrigger.SELL);
-				this.process(researchIO);
-			} else if (researchLedger.getResearchType() == ResearchType.FUNDAMENTAL) {
-				researchIO.setResearchType(ResearchType.FUNDAMENTAL);
-				researchIO.setResearchTrigger(ResearchTrigger.SELL);
-				this.process(researchIO);
-			} else {
-				LOGGER.debug("INVALID RESEARCH TYPE" + researchLedger.getResearchType()
-						+ researchLedger.getStock().getNseSymbol());
-			}
-
-		});
-
-		// Buy Research Technical for fundamental
-
+		// Sell Research Fundamental
 		researchLedgerList.forEach(researchLedger -> {
 			ResearchIO researchIO = new ResearchIO();
+
 			researchIO.setNseSymbol(researchLedger.getStock().getNseSymbol());
-
-			if (researchLedger.getResearchType() == ResearchType.FUNDAMENTAL) {
-				researchIO.setResearchType(ResearchType.TECHNICAL);
-				researchIO.setResearchTrigger(ResearchTrigger.BUY);
-				this.process(researchIO);
-			}
-
+			researchIO.setResearchTrigger(ResearchTrigger.SELL);
+			researchIO.setResearchType(ResearchType.FUNDAMENTAL);
+			this.processFundamental(researchIO);
 		});
 
-		// Sell Research Fundamental for Technicals
+		// Sell Research Technical
 
-		/*researchLedgerList.forEach(researchLedger -> {
+		researchLedgerTechnicalList.forEach(researchLedger -> {
 			ResearchIO researchIO = new ResearchIO();
 			researchIO.setNseSymbol(researchLedger.getStock().getNseSymbol());
-
-			if (researchLedger.getResearchType() == ResearchType.TECHNICAL) {
-				researchIO.setResearchType(ResearchType.FUNDAMENTAL);
-				researchIO.setResearchTrigger(ResearchTrigger.SELL);
-				this.process(researchIO);
-			}
-
-		});*/
+			researchIO.setResearchTrigger(ResearchTrigger.SELL);
+			researchIO.setResearchType(ResearchType.TECHNICAL);
+			this.processTechnical(researchIO);
+		});
 
 	}
 
-	private void updateResearchTweaked() {
 
-		List<ResearchLedger> researchLedgerList = researchLedgerService.allActiveResearchTweaked();
-
-		// Sell Research Fundamental and Technical
-		researchLedgerList.forEach(researchLedger -> {
-			ResearchIO researchIO = new ResearchIO();
-
-			researchIO.setNseSymbol(researchLedger.getStock().getNseSymbol());
-		
-
-			if (researchLedger.getResearchType() == ResearchType.TECHNICAL) {
-
-				researchIO.setResearchType(ResearchType.TECHNICAL);
-				researchIO.setResearchTrigger(ResearchTrigger.SELL);
-				this.process(researchIO);
-			} else if (researchLedger.getResearchType() == ResearchType.FUNDAMENTAL) {
-				researchIO.setResearchType(ResearchType.FUNDAMENTAL_TWEAK);
-				researchIO.setResearchTrigger(ResearchTrigger.SELL);
-				this.processFundamentalTweak(researchIO);
-			} else {
-				LOGGER.debug("INVALID RESEARCH TYPE" + researchLedger.getResearchType()
-						+ researchLedger.getStock().getNseSymbol());
-			}
-
-		});
-
-		// Buy Research Technical for fundamental
-
-		researchLedgerList.forEach(researchLedger -> {
-			ResearchIO researchIO = new ResearchIO();
-			researchIO.setNseSymbol(researchLedger.getStock().getNseSymbol());
-
-			if (researchLedger.getResearchType() == ResearchType.FUNDAMENTAL) {
-				researchIO.setResearchType(ResearchType.TECHNICAL);
-				researchIO.setResearchTrigger(ResearchTrigger.BUY);
-				this.process(researchIO);
-			}
-
-		});
-
-		// Sell Research Fundamental for Technicals
-
-		/*researchLedgerList.forEach(researchLedger -> {
-			ResearchIO researchIO = new ResearchIO();
-			researchIO.setNseSymbol(researchLedger.getStock().getNseSymbol());
-
-			if (researchLedger.getResearchType() == ResearchType.TECHNICAL) {
-				researchIO.setResearchType(ResearchType.FUNDAMENTAL_TWEAK);
-				researchIO.setResearchTrigger(ResearchTrigger.SELL);
-				this.processFundamentalTweak(researchIO);
-			}
-
-		});*/
-
-	}
-	
-	private void process(ResearchIO researchIO) {
+	private void processFundamental(ResearchIO researchIO) {
 		queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
 	}
 	
-	private void processFundamentalTweak(ResearchIO researchIO) {
-		queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_FUNDAMENTAL_QUEUE);
+	private void processTechnical(ResearchIO researchIO) {
+		queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
 	}
+
 	private void updateSectorPEPB() {
 		sectorService.updateSectorPEPB();
 		

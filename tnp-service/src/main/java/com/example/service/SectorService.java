@@ -28,6 +28,9 @@ public class SectorService {
 	@Autowired
 	private RulesFundamental rules;
 	
+	@Autowired
+	private RuleService ruleService;
+	
 	public Sector getSectorByName(String sectorName) {
 		return sectorRepository.findBySectorNameContainingIgnoreCase(sectorName).get(0);
 	}
@@ -96,7 +99,8 @@ public Sector add(String sectorName) {
 			
 			Set<Stock> stocks = sector.getStocks();
 			
-			List<Stock> activeStockList =  stocks.stream().filter(stock -> (stock.isActive() && stock.getStockPrice().getCurrentPrice() > rules.getPricegt() && stock.getStockPrice().getCurrentPrice() < rules.getPricelt() )).collect(Collectors.toList());
+			//List<Stock> activeStockList =  stocks.stream().filter(stock -> (stock.isActive() && stock.getStockPrice().getCurrentPrice() > rules.getPricegt() && stock.getStockPrice().getCurrentPrice() < rules.getPricelt() )).collect(Collectors.toList());
+			List<Stock> activeStockList =  stocks.stream().filter(stock -> (stock.isActive() && ruleService.isPriceInRange(stock) )).collect(Collectors.toList());
 			
 			double avgCmp = activeStockList.stream().map(stock -> stock.getStockPrice()).mapToDouble(sp -> sp.getCurrentPrice()).average().orElse(0.00);
 			

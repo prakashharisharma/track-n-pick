@@ -27,5 +27,7 @@ public interface CrossOverLedgerRepository extends JpaRepository<CrossOverLedger
 	List<CrossOverLedger> findByResearchDate(LocalDate researchDate);
 	
 	List<CrossOverLedger> findByStockIdAndStatusOrderByResearchDateDesc(Stock stock,Status status);
+
+	List<CrossOverLedger> findTop5ByCrossOverTypeAndCrossOverCategoryAndStatusOrderByResearchDateDesc(CrossOverType crossOverType,CrossOverCategory crossOverCategory,Status status);
 	
 }

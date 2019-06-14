@@ -5,8 +5,6 @@ import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,7 +14,6 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.example.model.master.Stock;
-import com.example.util.io.model.type.DirectionIO;
 
 @Entity
 @Table(name = "STOCK_TECHNICALS")
@@ -46,7 +43,6 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "SMA_100", columnDefinition="Decimal(10,2) default '0.00'")
 	double sma100;
 	
-	
 	@Column(name = "PREV_SMA_100", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevSma100;
 	
@@ -65,18 +61,6 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "RSI", columnDefinition="Decimal(10,2) default '0.00'")
 	double rsi;
 	
-/*	@Column(name = "LONG_TERM_TREND")
-	@Enumerated(EnumType.STRING)
-	DirectionIO longTermTrend;
-	
-	@Column(name = "MID_TERM_TREND")
-	@Enumerated(EnumType.STRING)
-	DirectionIO midTermTrend;
-	
-	@Column(name = "CURRENT_TREND")
-	@Enumerated(EnumType.STRING)
-	DirectionIO currentTrend;*/
-	
 	@Column(name = "LAST_MODIFIED")
 	LocalDate lastModified = LocalDate.now();
 
@@ -91,6 +75,12 @@ public class StockTechnicals implements Serializable{
 	
 	@Column(name = "ROCV", columnDefinition="Decimal(10,2) default '0.00'")
 	double rocv;
+	
+	@Column(name = "VOLUME")
+	Long volume;
+	
+	@Column(name = "AVG_VOLUME")
+	Long avgVolume;
 	
 	public long getStockTechnicalsId() {
 		return stockTechnicalsId;
@@ -242,6 +232,22 @@ public class StockTechnicals implements Serializable{
 
 	public void setRocv(double rocv) {
 		this.rocv = rocv;
+	}
+
+	public long getVolume() {
+		return volume != null ? volume : 0;
+	}
+
+	public void setVolume(long volume) {
+		this.volume = volume;
+	}
+
+	public long getAvgVolume() {
+		return avgVolume != null ? avgVolume : 0;
+	}
+
+	public void setAvgVolume(long avgVolume) {
+		this.avgVolume = avgVolume;
 	}
 
 	@Override

@@ -4,12 +4,16 @@ public class StockOBVResult {
 
 	private String _id;
 
-	private long resultOBV;
+	private Long resultOBV;
 
-	public StockOBVResult(String _id, long resultOBV) {
+	public StockOBVResult(String _id, Long resultOBV) {
 		super();
 		this._id = _id;
+		if(resultOBV != null) {
 		this.resultOBV = resultOBV;
+		}else {
+			this.resultOBV = 0l;
+		}
 	}
 
 	public String get_id() {
@@ -20,11 +24,11 @@ public class StockOBVResult {
 		this._id = _id;
 	}
 
-	public long getResultOBV() {
+	public Long getResultOBV() {
 		return resultOBV;
 	}
 
-	public void setResultOBV(long resultOBV) {
+	public void setResultOBV(Long resultOBV) {
 		this.resultOBV = resultOBV;
 	}
 

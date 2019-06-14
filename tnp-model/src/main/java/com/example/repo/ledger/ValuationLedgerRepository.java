@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.example.model.ledger.ValuationLedger;
-import com.example.model.ledger.ValuationLedger.Category;
 import com.example.model.ledger.ValuationLedger.Status;
 import com.example.model.ledger.ValuationLedger.Type;
 import com.example.model.master.Stock;
@@ -21,8 +20,6 @@ public interface ValuationLedgerRepository extends JpaRepository<ValuationLedger
 	List<ValuationLedger> findByStockId(Stock stock);
 	
 	List<ValuationLedger> findByResearchDate(LocalDate researchDate);
-	
-	ValuationLedger findByStockIdAndTypeAndCategoryAndStatus(Stock stock,Type type, Category category, Status status);
 	
 	ValuationLedger findByStockIdAndTypeAndStatus(Stock stock,Type type, Status status);
 

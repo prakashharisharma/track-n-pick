@@ -1,6 +1,7 @@
 package com.example.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -18,7 +19,7 @@ public class CrossOverLedgerService {
 	@Autowired
 	private CrossOverLedgerRepository crossOverLedgerRepository;
 
-	public void addBullish(Stock stock,CrossOverLedger.CrossOverCategory crossOverCategory) {
+	public CrossOverLedger addBullish(Stock stock,CrossOverLedger.CrossOverCategory crossOverCategory) {
 		
 		CrossOverLedger crossOverLedger = crossOverLedgerRepository.findByStockIdAndCrossOverTypeAndCrossOverCategoryAndStatus(stock, CrossOverLedger.CrossOverType.BULLISH,crossOverCategory,CrossOverLedger.Status.OPEN);
 		
@@ -32,7 +33,12 @@ public class CrossOverLedgerService {
 				crossOverLedger = new CrossOverLedger(stock, LocalDate.now(), CrossOverLedger.CrossOverType.BULLISH,crossOverCategory, stock.getTechnicals().getSma21(),stock.getTechnicals().getSma50(), CrossOverLedger.Status.OPEN );
 			}
 			
-			crossOverLedgerRepository.save(crossOverLedger);
+			crossOverLedger.setAvgVolume(stock.getTechnicals().getAvgVolume());
+			crossOverLedger.setVolume(stock.getTechnicals().getVolume());
+			
+			crossOverLedger.setPrice(stock.getStockPrice().getCurrentPrice());
+			
+			crossOverLedger = crossOverLedgerRepository.save(crossOverLedger);
 		}
 		
 		CrossOverLedger crossOverLedgerPrevBearish = crossOverLedgerRepository.findByStockIdAndCrossOverTypeAndCrossOverCategoryAndStatus(stock, CrossOverLedger.CrossOverType.BEARISH,crossOverCategory,CrossOverLedger.Status.OPEN);
@@ -43,9 +49,11 @@ public class CrossOverLedgerService {
 			crossOverLedgerRepository.save(crossOverLedgerPrevBearish);
 		}
 		
+		return crossOverLedger;
+		
 	}
 	
-	public void addBearish(Stock stock,CrossOverLedger.CrossOverCategory crossOverCategory) {
+	public CrossOverLedger addBearish(Stock stock,CrossOverLedger.CrossOverCategory crossOverCategory) {
 		
 		CrossOverLedger crossOverLedger = crossOverLedgerRepository.findByStockIdAndCrossOverTypeAndCrossOverCategoryAndStatus(stock, CrossOverLedger.CrossOverType.BEARISH,crossOverCategory,CrossOverLedger.Status.OPEN);
 		
@@ -59,7 +67,14 @@ public class CrossOverLedgerService {
 				crossOverLedger = new CrossOverLedger(stock, LocalDate.now(), CrossOverLedger.CrossOverType.BEARISH,crossOverCategory, stock.getTechnicals().getSma21(),stock.getTechnicals().getSma50(), CrossOverLedger.Status.OPEN );
 			}
 			
-			crossOverLedgerRepository.save(crossOverLedger);
+			crossOverLedger.setAvgVolume(1000);
+			crossOverLedger.setVolume(1000);
+			crossOverLedger.setPrice(stock.getStockPrice().getCurrentPrice());
+			
+			crossOverLedger.setAvgVolume(stock.getTechnicals().getAvgVolume());
+			crossOverLedger.setVolume(stock.getTechnicals().getVolume());
+			
+			crossOverLedger = crossOverLedgerRepository.save(crossOverLedger);
 		}
 		
 		CrossOverLedger crossOverLedgerPrevBullish = crossOverLedgerRepository.findByStockIdAndCrossOverTypeAndCrossOverCategoryAndStatus(stock, CrossOverLedger.CrossOverType.BULLISH,crossOverCategory,CrossOverLedger.Status.OPEN);
@@ -69,7 +84,7 @@ public class CrossOverLedgerService {
 			crossOverLedgerPrevBullish.setCloseDate(LocalDate.now());
 			crossOverLedgerRepository.save(crossOverLedgerPrevBullish);
 		}
-		
+		return crossOverLedger;
 	}
 	
 	public List<CrossOverLedger> getCrossOver(Stock stock){
@@ -77,4 +92,15 @@ public class CrossOverLedgerService {
 		
 		return crossOverList;
 	}
+	
+	public List<CrossOverLedger> getRecentCrossOver(){
+		List<CrossOverLedger> recentCrossOverList = new ArrayList<>();
+		
+		recentCrossOverList.addAll(crossOverLedgerRepository.findTop5ByCrossOverTypeAndCrossOverCategoryAndStatusOrderByResearchDateDesc(CrossOverLedger.CrossOverType.BULLISH, CrossOverLedger.CrossOverCategory.CROSS200, CrossOverLedger.Status.OPEN));
+		
+		recentCrossOverList.addAll(crossOverLedgerRepository.findTop5ByCrossOverTypeAndCrossOverCategoryAndStatusOrderByResearchDateDesc(CrossOverLedger.CrossOverType.BEARISH, CrossOverLedger.CrossOverCategory.CROSS200, CrossOverLedger.Status.OPEN));
+		
+		return recentCrossOverList;
+	}
+	
 }

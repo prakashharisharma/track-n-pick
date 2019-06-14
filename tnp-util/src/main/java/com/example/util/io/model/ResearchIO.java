@@ -11,7 +11,7 @@ public class ResearchIO implements Serializable{
 	
 	public enum ResearchType{
 		
-		FUNDAMENTAL, FUNDAMENTAL_TWEAK, TECHNICAL, TECHNICAL_TWEAK
+		FUNDAMENTAL, TECHNICAL
 	}
 	
 	/**

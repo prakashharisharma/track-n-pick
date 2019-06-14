@@ -23,22 +23,31 @@ function loadTableFundamental() {
 		}, {
 			"data" : "researchDate"
 		}, {
-			"data" : "researchPrice"
+			"data" : "researchPrice",
+			render: $.fn.dataTable.render.number(',', '.', 2)
 		}, {
-			"data" : "currentPrice"
+			"data" : "currentPrice",
+			render: $.fn.dataTable.render.number(',', '.', 2)
 		}, {
-			"data" : "pe"
+			"data" : "pe",
+			render: $.fn.dataTable.render.number(',', '.', 2)
 		}, {
-			"data" : "pb"
+			"data" : "pb",
+			
+			render: $.fn.dataTable.render.number(',', '.', 2)
 		}, {
-			"data" : "roe"
+			"data" : "roe",
+			render: $.fn.dataTable.render.number(',', '.', 2)
 		}, {
-			"data" : "debtEquity"
+			"data" : "roc",
+			render: $.fn.dataTable.render.number(',', '.', 2)
 		},{
-			"data" : "peDifference"
+			"data" : "peDifference",
+			render: $.fn.dataTable.render.number(',', '.', 2)
 		}, 
 		{
-			"data" : "profitPer"
+			"data" : "profitPer",
+			render: $.fn.dataTable.render.number(',', '.', 2)
 		} ],
 		rowCallback : function(row, data, index) {
 			if (data.profitPer > 0.0) {

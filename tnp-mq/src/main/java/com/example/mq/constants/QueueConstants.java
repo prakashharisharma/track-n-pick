@@ -8,6 +8,8 @@ public interface QueueConstants {
 		
 		public static String UPDATE_PRICE_QUEUE = "queue.historical.price.update";
 		
+		public static String UPDATE_BHAV_QUEUE = "queue.historical.bhav.update";
+		
 		public static String UPDATE_TECHNICALS_QUEUE = "queue.historical.technicals.update";
 		
 		public static String UPDATE_FACTORS_QUEUE = "queue.historical.factors.update";

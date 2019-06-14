@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.model.ledger.ResearchLedger;
-import com.example.service.ResearchLedgerService;
+import com.example.model.ledger.ResearchLedgerFundamental;
+import com.example.model.ledger.ResearchLedgerTechnical;
+import com.example.service.ResearchLedgerFundamentalService;
+import com.example.service.ResearchLedgerTechnicalService;
 import com.example.ui.model.UIRenderStock;
 import com.example.ui.service.UiRenderUtil;
 
@@ -19,15 +21,18 @@ import com.example.ui.service.UiRenderUtil;
 public class ResearchController {
 
 	@Autowired
-	private ResearchLedgerService researchLedgerService;
+	private ResearchLedgerFundamentalService researchLedgerService;
 
+	@Autowired
+	private ResearchLedgerTechnicalService researchLedgerTechnicalService;
+	
 	@Autowired
 	private UiRenderUtil uiRenderUtil;
 	
 	@GetMapping(value="/fundamental", produces = MediaType.APPLICATION_JSON_VALUE )
 	public ResponseEntity<List<UIRenderStock>> getFundamentalResearchStocks() {
 
-		List<ResearchLedger> researchList = researchLedgerService.researchStocksFundamentals();
+		List<ResearchLedgerFundamental> researchList = researchLedgerService.researchStocksFundamentals();
 		
 		return ResponseEntity.ok(uiRenderUtil.renderResearchList(researchList));
 	}
@@ -35,15 +40,15 @@ public class ResearchController {
 	@GetMapping(value="/technical", produces = MediaType.APPLICATION_JSON_VALUE )
 	public ResponseEntity<List<UIRenderStock>> getTechnicalResearchStocks() {
 
-		List<ResearchLedger> researchList = researchLedgerService.researchStocksTechnicalss();
+		List<ResearchLedgerTechnical> researchList = researchLedgerTechnicalService.researchStocksTechnicals();
 		
-		return ResponseEntity.ok(uiRenderUtil.renderResearchList(researchList));
+		return ResponseEntity.ok(uiRenderUtil.renderResearchTechnicalList(researchList));
 	}
 	
 	@GetMapping(value="/fundamental/advance", produces = MediaType.APPLICATION_JSON_VALUE )
 	public ResponseEntity<List<UIRenderStock>> getAdvancedFundamentalResearchStocks() {
 
-		List<ResearchLedger> researchList = researchLedgerService.researchStocksFundamentals();
+		List<ResearchLedgerFundamental> researchList = researchLedgerService.researchStocksFundamentals();
 		
 		return ResponseEntity.ok(uiRenderUtil.renderAdvancedResearchList(researchList));
 	}
@@ -51,8 +56,8 @@ public class ResearchController {
 	@GetMapping(value="/technical/advance", produces = MediaType.APPLICATION_JSON_VALUE )
 	public ResponseEntity<List<UIRenderStock>> getAdvancedTechnicalResearchStocks() {
 
-		List<ResearchLedger> researchList = researchLedgerService.researchStocksTechnicalss();
+		List<ResearchLedgerTechnical> researchList = researchLedgerTechnicalService.researchStocksTechnicals();
 		
-		return ResponseEntity.ok(uiRenderUtil.renderAdvancedResearchList(researchList));
+		return ResponseEntity.ok(uiRenderUtil.renderAdvancedResearchTechnicalList(researchList));
 	}
 }

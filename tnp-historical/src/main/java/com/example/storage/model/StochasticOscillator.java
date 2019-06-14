@@ -2,34 +2,34 @@ package com.example.storage.model;
 
 public class StochasticOscillator {
 
-	private double k;
-	
-	private double d;
+	private Double k;
+
+	private Double d;
 
 	public StochasticOscillator() {
 		super();
-		
+
 	}
 
-	public StochasticOscillator(double k, double d) {
+	public StochasticOscillator(Double k, Double d) {
 		super();
-		this.k = k;
-		this.d = d;
+		this.k = k != null ? k : 0.00;
+		this.d = d != null ? d : 0.00;
 	}
 
-	public double getK() {
+	public Double getK() {
 		return k;
 	}
 
-	public void setK(double k) {
+	public void setK(Double k) {
 		this.k = k;
 	}
 
-	public double getD() {
+	public Double getD() {
 		return d;
 	}
 
-	public void setD(double d) {
+	public void setD(Double d) {
 		this.d = d;
 	}
 
@@ -38,7 +38,4 @@ public class StochasticOscillator {
 		return "StochasticOscillator [k=" + k + ", d=" + d + "]";
 	}
 
-	
-	
-	
 }

@@ -50,7 +50,7 @@ public class FormulaService {
 		if(previous !=0) {
 		rateOfChange = ((current - previous) / previous) * 100;
 		}else {
-			rateOfChange = 0.00;
+			rateOfChange = current;
 		}
 		return rateOfChange;
 		
@@ -61,9 +61,9 @@ public class FormulaService {
 		
 		if(previous !=0) {
 		
-			rateOfChange = ((current - previous) / previous) * 100;
+			rateOfChange = (((double) current - (double)previous) / (double)previous) * 100;
 		}else {
-			rateOfChange = 0.00;
+			rateOfChange = current;
 		}
 		return rateOfChange;
 		
@@ -73,8 +73,9 @@ public class FormulaService {
 
 		double pe = 0.0;
 
-		pe = currentPrice / eps;
-		;
+		if(eps != 0.00) {
+			pe = currentPrice / eps;
+		}
 
 		return pe;
 	}
@@ -83,8 +84,10 @@ public class FormulaService {
 
 		double pb = 0.0;
 
-		pb = currentPrice / bookValue;
-
+		if(bookValue != 0.00) {
+			pb = currentPrice / bookValue;
+		}
+		
 		return pb;
 	}
 	
@@ -123,8 +126,8 @@ public class FormulaService {
 	
 	public double getEMAMultiplier(int timePeriod) {
 		
-		double multiplier = (2 / (timePeriod + 1) );
-		
+		double multiplier = (2.0 / ((double)timePeriod + 1.0) );
+
 		return multiplier;
 	}
 
@@ -132,6 +135,8 @@ public class FormulaService {
 		double ema;
 		
 		double K = this.getEMAMultiplier(timePeriod);
+		
+		//System.out.println("K" + K);
 		
 		ema = (close  * K) + (prevEMA * (1 - K));
 		 // (22.15 * 0.1818) + (22.22 * ( 1 - 0.1818)) = 4.02687 + (22.22 * (0.8182)) = 18.180404 = 22.207274

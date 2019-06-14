@@ -7,7 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.model.ledger.ResearchLedger;
+import com.example.model.ledger.ResearchLedgerFundamental;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
 import com.example.util.FormulaService;
@@ -219,7 +219,7 @@ double currentPrice = s.getStockPrice().getCurrentPrice();
 		return sb.toString();
 	}
 
-	public String formatResearchListTargetAchivedHTML(List<ResearchLedger> researchList) {/*
+	public String formatResearchListTargetAchivedHTML(List<ResearchLedgerFundamental> researchList) {/*
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div><h3>Our past research achived the target</h3>");

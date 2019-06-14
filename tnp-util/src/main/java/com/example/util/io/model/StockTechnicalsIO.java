@@ -45,6 +45,10 @@ public class StockTechnicalsIO implements Serializable{
 	
 	double rocv;
 	
+	long volume;
+	
+	long avgVolume;
+	
 	public StockTechnicalsIO() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -217,6 +221,22 @@ public class StockTechnicalsIO implements Serializable{
 
 	public void setRocv(double rocv) {
 		this.rocv = rocv;
+	}
+
+	public long getVolume() {
+		return volume;
+	}
+
+	public void setVolume(long volume) {
+		this.volume = volume;
+	}
+
+	public long getAvgVolume() {
+		return avgVolume;
+	}
+
+	public void setAvgVolume(long avgVolume) {
+		this.avgVolume = avgVolume;
 	}
 
 	@Override

@@ -15,31 +15,26 @@ public class StockTechnicals {
 	
 	Instant bhavDate = Instant.now();
 	
-	double avgGain;
+	Volume volume;
+
+	Trend trend;
 	
-	double avgLoss;
-	
-	private MovingAverage movingAverage;
-	
-	private Momentum indicator;
-	
+	Momentum momentum;
 	
 	public StockTechnicals() {
 		super();
 		
 	}
 
-	public StockTechnicals(String nseSymbol, Instant bhavDate, double avgGain, double avgLoss,
-			MovingAverage movingAverage, Momentum indicator) {
+	public StockTechnicals(String nseSymbol, Instant bhavDate, Volume volume, Trend trend, Momentum momentum) {
 		super();
 		this.nseSymbol = nseSymbol;
 		this.bhavDate = bhavDate;
-		this.avgGain = avgGain;
-		this.avgLoss = avgLoss;
-		this.movingAverage = movingAverage;
-		this.indicator = indicator;
+		this.volume = volume;
+		this.trend = trend;
+		this.momentum = momentum;
 	}
-
+	
 	public String getId() {
 		return id;
 	}
@@ -64,51 +59,34 @@ public class StockTechnicals {
 		this.bhavDate = bhavDate;
 	}
 
-	public double getAvgGain() {
-		return avgGain;
+	public Volume getVolume() {
+		return volume;
 	}
 
-	public void setAvgGain(double avgGain) {
-		this.avgGain = avgGain;
+	public void setVolume(Volume volume) {
+		this.volume = volume;
 	}
 
-	public double getAvgLoss() {
-		return avgLoss;
+	public Trend getTrend() {
+		return trend;
 	}
 
-	public void setAvgLoss(double avgLoss) {
-		this.avgLoss = avgLoss;
+	public void setTrend(Trend trend) {
+		this.trend = trend;
 	}
 
-	public MovingAverage getMovingAverage() {
-		return movingAverage;
+	public Momentum getMomentum() {
+		return momentum;
 	}
 
-	public void setMovingAverage(MovingAverage movingAverage) {
-		this.movingAverage = movingAverage;
+	public void setMomentum(Momentum momentum) {
+		this.momentum = momentum;
 	}
 
-	public Momentum getIndicator() {
-		return indicator;
-	}
-
-	public void setIndicator(Momentum indicator) {
-		this.indicator = indicator;
-	}
-
-	/*public long getObv() {
-		return obv;
-	}
-
-	public void setObv(long obv) {
-		this.obv = obv;
-	}
-*/
 	@Override
 	public String toString() {
-		return "StockTechnicals [id=" + id + ", nseSymbol=" + nseSymbol + ", bhavDate=" + bhavDate + ", avgGain="
-				+ avgGain + ", avgLoss=" + avgLoss + ", movingAverage=" + movingAverage + ", indicator=" + indicator
-				+ "]";
+		return "StockTechnicals [id=" + id + ", nseSymbol=" + nseSymbol + ", bhavDate=" + bhavDate + ", volume="
+				+ volume + ", trend=" + trend + ", momentum=" + momentum + "]";
 	}
 
 }

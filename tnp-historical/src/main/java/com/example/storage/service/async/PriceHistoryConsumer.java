@@ -30,7 +30,6 @@ public class PriceHistoryConsumer {
 	@Autowired
 	private StorageService storageService;
 
-	// Temporary
 	@Autowired
 	private PriceTemplate priceTemplate;
 
@@ -51,12 +50,10 @@ public class PriceHistoryConsumer {
 		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : updating Price History..");
 		
 		StockPrice stockPriceN = new StockPrice(stockPriceIO.getNseSymbol(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
-				stockPriceIO.getLow(), stockPriceIO.getClose(), stockPriceIO.getLast(), stockPriceIO.getPrevClose(),
-				stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdval(), stockPriceIO.getTotaltrades(), stockPriceIO.getBhavDate());
+				stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getPrevClose(),
+				 stockPriceIO.getBhavDate());
 
-/*		double yearLow = storageService.getyearLow(stockPriceIO.getNseSymbol());
 
-		double yearHigh = storageService.getyearHigh(stockPriceIO.getNseSymbol());*/
 		HighLowResult highLowResult = priceTemplate.getHighLowByDate(stockPriceIO.getNseSymbol(), LocalDate.now().minusWeeks(52));
 		
 		double yearLow = 0.00;
@@ -72,13 +69,7 @@ public class PriceHistoryConsumer {
 			yearLow = stockPriceIO.getLow();
 			yearHigh = stockPriceIO.getHigh();
 		}
-		
-		
-		//double yearLow = priceTemplate.getLowFromDate(stockPriceIO.getNseSymbol(), LocalDate.now().minusWeeks(52));
 
-		//double yearHigh = priceTemplate.getHighFromDate(stockPriceIO.getNseSymbol(), LocalDate.now().minusWeeks(52));
-
-		
 		
 		if (yearLow > stockPriceIO.getLow()) {
 			yearLow = stockPriceIO.getLow();
@@ -114,9 +105,6 @@ public class PriceHistoryConsumer {
 			
 		}
 		
-		//double low14 = priceTemplate.getDaysLow(stockPriceIO.getNseSymbol(), 14);
-		
-		//double high14 = priceTemplate.getDaysHigh(stockPriceIO.getNseSymbol(), 14);
 		
 		if (low14 > stockPriceIO.getLow()) {
 			
@@ -141,12 +129,12 @@ public class PriceHistoryConsumer {
 		
 		if(stockPriceIO.getTottrdqty() < 1000) {
 			stockPriceIO.setTottrdqty(1);
-			stockPriceN.setTotalTradedQuantity(1);
+			//stockPriceN.setTotalTradedQuantity(1);
 		}else {
 			long volumne = stockPriceIO.getTottrdqty() / 1000;
 			
 			stockPriceIO.setTottrdqty(volumne);
-			stockPriceN.setTotalTradedQuantity(volumne);
+			//stockPriceN.setTotalTradedQuantity(volumne);
 		}
 		
 		

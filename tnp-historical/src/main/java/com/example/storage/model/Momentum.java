@@ -6,18 +6,10 @@ public class Momentum {
 
 	private StochasticOscillator stochasticOscillator;
 	
-	private PriceVolume priceVolume;
-	
-	public Momentum() {
-		super();
-		
-	}
-
-	public Momentum(RSI rsi,StochasticOscillator stochasticOscillator, PriceVolume priceVolume) {
+	public Momentum(RSI rsi,StochasticOscillator stochasticOscillator) {
 		super();
 		this.rsi = rsi;
 		this.stochasticOscillator = stochasticOscillator;
-		this.priceVolume = priceVolume;
 	}
 
 	public RSI getRsi() {
@@ -28,20 +20,17 @@ public class Momentum {
 		this.rsi = rsi;
 	}
 
-	public PriceVolume getPriceVolume() {
-		return priceVolume;
+	public StochasticOscillator getStochasticOscillator() {
+		return stochasticOscillator;
 	}
 
-	public void setPriceVolume(PriceVolume priceVolume) {
-		this.priceVolume = priceVolume;
+	public void setStochasticOscillator(StochasticOscillator stochasticOscillator) {
+		this.stochasticOscillator = stochasticOscillator;
 	}
 
 	@Override
 	public String toString() {
-		return "Momentum [rsi=" + rsi + ", stochasticOscillator=" + stochasticOscillator + ", priceVolume="
-				+ priceVolume + "]";
+		return "Momentum [rsi=" + rsi + ", stochasticOscillator=" + stochasticOscillator + "]";
 	}
-
-
 	
 }

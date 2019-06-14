@@ -1,7 +1,9 @@
 package com.example.ui.model;
+
 import java.time.LocalDate;
 
-import com.example.model.ledger.ResearchLedger;
+import com.example.model.ledger.ResearchLedgerFundamental;
+import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
 import com.example.util.io.model.StockIO.IndiceType;
@@ -9,7 +11,7 @@ import com.example.util.io.model.StockIO.IndiceType;
 public class UIRenderStock {
 
 	long stockid;
-	
+
 	String symbol;
 
 	long qunatity;
@@ -17,7 +19,7 @@ public class UIRenderStock {
 	double averagePrice;
 
 	double currentPrice;
-	
+
 	double buySellPrice;
 
 	double yearLow;
@@ -31,33 +33,32 @@ public class UIRenderStock {
 	double roe;
 
 	double roc;
-	
+
 	double pe;
-	
+
 	double pb;
-	
+
 	double sma50;
-	
+
 	double sma200;
-	
+
 	double rsi;
 
 	double researchPrice;
 
 	double peDifference;
-	
+
 	LocalDate researchDate;
 
 	IndiceType indice;
-	
+
 	boolean overValued;
-	
+
 	public UIRenderStock() {
 		this.researchDate = LocalDate.now();
 	}
-	
-	
-	public UIRenderStock(UserPortfolio userPortfolioStock, double profitPer,boolean overValued) {
+
+	public UIRenderStock(UserPortfolio userPortfolioStock, double profitPer, boolean overValued) {
 		super();
 		this.symbol = userPortfolioStock.getStock().getNseSymbol();
 		this.qunatity = userPortfolioStock.getQuantity();
@@ -84,46 +85,95 @@ public class UIRenderStock {
 
 	}
 
-	public UIRenderStock(ResearchLedger researchLedger, double profitPer, double pe, double pb) {
+	public UIRenderStock(ResearchLedgerFundamental researchLedger, double profitPer, double pe, double pb) {
 
 		this.symbol = researchLedger.getStock().getNseSymbol();
 		this.currentPrice = researchLedger.getStock().getStockPrice().getCurrentPrice();
 		this.yearLow = researchLedger.getStock().getStockPrice().getYearLow();
 		this.yearHigh = researchLedger.getStock().getStockPrice().getYearHigh();
-		this.researchPrice = researchLedger.getEntryPrice();
-		this.researchDate = researchLedger.getEntryhDate();
+		this.researchPrice = researchLedger.getEntryValuation().getPrice();
+		if (researchLedger.getEntryValuation() != null) {
+			this.researchDate = researchLedger.getEntryValuation().getResearchDate();
+		}
 		this.profitPer = profitPer;
 		this.indice = researchLedger.getStock().getPrimaryIndice();
 		this.pe = pe;
 		this.pb = pb;
 		this.debtEquity = researchLedger.getStock().getStockFactor().getDebtEquity();
-		this.roe= researchLedger.getStock().getStockFactor().getReturnOnEquity();
+		this.roe = researchLedger.getStock().getStockFactor().getReturnOnEquity();
 
 		this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
-		this.sma200= researchLedger.getStock().getTechnicals().getSma200();
-		this.rsi= researchLedger.getStock().getTechnicals().getRsi();
-		
+		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
+		this.rsi = researchLedger.getStock().getTechnicals().getRsi();
+
+	}
+	public UIRenderStock(ResearchLedgerTechnical researchLedger, double profitPer, double pe, double pb) {
+
+		this.symbol = researchLedger.getStock().getNseSymbol();
+		this.currentPrice = researchLedger.getStock().getStockPrice().getCurrentPrice();
+		this.yearLow = researchLedger.getStock().getStockPrice().getYearLow();
+		this.yearHigh = researchLedger.getStock().getStockPrice().getYearHigh();
+		this.researchPrice = researchLedger.getEntryCrossOver().getPrice();
+		if (researchLedger.getEntryCrossOver() != null) {
+			this.researchDate = researchLedger.getEntryCrossOver().getResearchDate();
+		}
+		this.profitPer = profitPer;
+		this.indice = researchLedger.getStock().getPrimaryIndice();
+		this.pe = pe;
+		this.pb = pb;
+		this.debtEquity = researchLedger.getStock().getStockFactor().getDebtEquity();
+		this.roe = researchLedger.getStock().getStockFactor().getReturnOnEquity();
+
+		this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
+		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
+		this.rsi = researchLedger.getStock().getTechnicals().getRsi();
+
+	}
+	public UIRenderStock(ResearchLedgerFundamental researchLedger, double profitPer, double pe, double pb,
+			double peDifference) {
+
+		this.symbol = researchLedger.getStock().getNseSymbol();
+		this.currentPrice = researchLedger.getStock().getStockPrice().getCurrentPrice();
+		this.yearLow = researchLedger.getStock().getStockPrice().getYearLow();
+		this.yearHigh = researchLedger.getStock().getStockPrice().getYearHigh();
+		this.researchPrice = researchLedger.getEntryValuation().getPrice();
+		if (researchLedger.getEntryValuation() != null) {
+			this.researchDate = researchLedger.getEntryValuation().getResearchDate();
+		}
+		this.profitPer = profitPer;
+		this.indice = researchLedger.getStock().getPrimaryIndice();
+		this.pe = pe;
+		this.pb = pb;
+		this.debtEquity = researchLedger.getStock().getStockFactor().getDebtEquity();
+		this.roe = researchLedger.getStock().getStockFactor().getReturnOnEquity();
+		this.roc = researchLedger.getStock().getStockFactor().getReturnOnCapital();
+		this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
+		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
+		this.rsi = researchLedger.getStock().getTechnicals().getRsi();
+		this.peDifference = peDifference;
 	}
 
-	
-	public UIRenderStock(ResearchLedger researchLedger, double profitPer, double pe, double pb, double peDifference) {
+	public UIRenderStock(ResearchLedgerTechnical researchLedger, double profitPer, double pe, double pb,
+			double peDifference) {
 
 		this.symbol = researchLedger.getStock().getNseSymbol();
 		this.currentPrice = researchLedger.getStock().getStockPrice().getCurrentPrice();
 		this.yearLow = researchLedger.getStock().getStockPrice().getYearLow();
 		this.yearHigh = researchLedger.getStock().getStockPrice().getYearHigh();
-		this.researchPrice = researchLedger.getEntryPrice();
-		this.researchDate = researchLedger.getEntryhDate();
+		this.researchPrice = researchLedger.getEntryCrossOver().getPrice();
+		if (researchLedger.getEntryCrossOver() != null) {
+			this.researchDate = researchLedger.getEntryCrossOver().getResearchDate();
+		}
 		this.profitPer = profitPer;
 		this.indice = researchLedger.getStock().getPrimaryIndice();
 		this.pe = pe;
 		this.pb = pb;
 		this.debtEquity = researchLedger.getStock().getStockFactor().getDebtEquity();
-		this.roe= researchLedger.getStock().getStockFactor().getReturnOnEquity();
+		this.roe = researchLedger.getStock().getStockFactor().getReturnOnEquity();
 
 		this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
-		this.sma200= researchLedger.getStock().getTechnicals().getSma200();
-		this.rsi= researchLedger.getStock().getTechnicals().getRsi();
+		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
+		this.rsi = researchLedger.getStock().getTechnicals().getRsi();
 		this.peDifference = peDifference;
 	}
 	
@@ -231,22 +281,17 @@ public class UIRenderStock {
 		this.researchDate = researchDate;
 	}
 
-	
-	
 	public double getBuySellPrice() {
 		return buySellPrice;
 	}
-
 
 	public void setBuySellPrice(double buySellPrice) {
 		this.buySellPrice = buySellPrice;
 	}
 
-
 	public double getPe() {
 		return pe;
 	}
-
 
 	public void setPe(double pe) {
 		this.pe = pe;
@@ -256,71 +301,57 @@ public class UIRenderStock {
 		return pb;
 	}
 
-
 	public void setPb(double pb) {
 		this.pb = pb;
 	}
-
 
 	public double getSma50() {
 		return sma50;
 	}
 
-
 	public void setSma50(double sma50) {
 		this.sma50 = sma50;
 	}
-
 
 	public double getSma200() {
 		return sma200;
 	}
 
-
 	public void setSma200(double sma200) {
 		this.sma200 = sma200;
 	}
-
 
 	public double getRsi() {
 		return rsi;
 	}
 
-
 	public void setRsi(double rsi) {
 		this.rsi = rsi;
 	}
-
 
 	public IndiceType getIndice() {
 		return indice;
 	}
 
-
 	public void setIndice(IndiceType indice) {
 		this.indice = indice;
 	}
-
 
 	public boolean isOverValued() {
 		return overValued;
 	}
 
-
 	public void setOverValued(boolean overValued) {
 		this.overValued = overValued;
 	}
-
 
 	public double getPeDifference() {
 		return peDifference;
 	}
 
-
 	public void setPeDifference(double peDifference) {
 		this.peDifference = peDifference;
 	}
-
 
 	@Override
 	public String toString() {
@@ -330,6 +361,5 @@ public class UIRenderStock {
 				+ ", roe=" + roe + ", roc=" + roc + ", researchPrice=" + researchPrice + ", researchDate="
 				+ researchDate + "]";
 	}
-
 
 }

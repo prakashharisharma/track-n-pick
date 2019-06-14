@@ -8,8 +8,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import com.example.util.io.model.ResearchIO.ResearchTrigger;
 import com.example.util.io.model.ResearchIO.ResearchType;
 
-
-
 @Document(collection = "research_history")
 public class StockResearch {
 

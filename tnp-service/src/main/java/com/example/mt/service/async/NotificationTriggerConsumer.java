@@ -1,6 +1,7 @@
 package com.example.mt.service.async;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,7 +17,8 @@ import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import com.example.model.ledger.ResearchLedger;
+import com.example.model.ledger.ResearchLedgerFundamental;
+import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
 import com.example.model.um.UserProfile;
@@ -24,7 +26,8 @@ import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.service.PortfolioService;
 import com.example.service.PrettyPrintService;
-import com.example.service.ResearchLedgerService;
+import com.example.service.ResearchLedgerFundamentalService;
+import com.example.service.ResearchLedgerTechnicalService;
 import com.example.service.UserService;
 import com.example.util.MiscUtil;
 import com.example.util.io.model.EmailIO;
@@ -34,7 +37,10 @@ import com.example.util.io.model.ResearchIO.ResearchType;
 @Component
 public class NotificationTriggerConsumer {
 	@Autowired
-	private ResearchLedgerService researchLedgerService;
+	private ResearchLedgerFundamentalService fundamentalLedger;
+
+	@Autowired
+	private ResearchLedgerTechnicalService tecnicalLedger;
 
 	@Autowired
 	private UserService userService;
@@ -48,26 +54,26 @@ public class NotificationTriggerConsumer {
 	@Autowired
 	private QueueService queueService;
 
-
 	@Autowired
 	private PortfolioService portfolioService;
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(NotificationTriggerConsumer.class);
-	
+
 	@JmsListener(destination = QueueConstants.MTQueue.NOTIFICATION_SEND_MAIL_TRIGGER)
 	public void receiveMessage(@Payload NotificationTriggerIO notificationTriggerIO, @Headers MessageHeaders headers,
 			Message message, Session session) throws InterruptedException {
 
-		LOGGER.debug(QueueConstants.MTQueue.NOTIFICATION_SEND_MAIL_TRIGGER.toUpperCase() +" : " + notificationTriggerIO + " : START");
+		LOGGER.debug(QueueConstants.MTQueue.NOTIFICATION_SEND_MAIL_TRIGGER.toUpperCase() + " : " + notificationTriggerIO
+				+ " : START");
 
-		
-		if(notificationTriggerIO.getTriggerType() == NotificationTriggerIO.TriggerType.RESEARCH ) {
+		if (notificationTriggerIO.getTriggerType() == NotificationTriggerIO.TriggerType.RESEARCH) {
 			this.processResearchNotification();
-		}else if(notificationTriggerIO.getTriggerType() == NotificationTriggerIO.TriggerType.PORTFOLIO) {
+		} else if (notificationTriggerIO.getTriggerType() == NotificationTriggerIO.TriggerType.PORTFOLIO) {
 			this.processPortfolioNotification();
 		}
-		
-		LOGGER.debug(QueueConstants.MTQueue.NOTIFICATION_SEND_MAIL_TRIGGER.toUpperCase() +" : " + notificationTriggerIO + " : END");
+
+		LOGGER.debug(QueueConstants.MTQueue.NOTIFICATION_SEND_MAIL_TRIGGER.toUpperCase() + " : " + notificationTriggerIO
+				+ " : END");
 	}
 
 	private void processPortfolioNotification() throws InterruptedException {
@@ -77,9 +83,9 @@ public class NotificationTriggerConsumer {
 		for (UserProfile user : userList) {
 
 			try {
-				
+
 				this.preparePortfolioReportAndSendMail(user);
-				
+
 			} catch (Exception e) {
 				LOGGER.error("Error while preparing email " + user);
 			}
@@ -89,115 +95,149 @@ public class NotificationTriggerConsumer {
 		}
 
 	}
-	
-	private void processResearchNotification() throws InterruptedException {
-		List<ResearchLedger> buyResearchLedgerList = researchLedgerService.buyNotificationPending();
 
-		List<ResearchLedger> sellResearchLedgerList = researchLedgerService.sellNotificationPending();
+	private void processResearchNotification() throws InterruptedException {
+
+		List<ResearchLedgerFundamental> buyResearchLedgerList = fundamentalLedger.buyNotificationPending();
+
+		List<ResearchLedgerFundamental> sellResearchLedgerList = fundamentalLedger.sellNotificationPending();
+
+		List<ResearchLedgerTechnical> buyResearchTechnicalLedgerList = tecnicalLedger.buyNotificationPending();
+
+		List<ResearchLedgerTechnical> sellResearchTechnicalLedgerList = tecnicalLedger.sellNotificationPending();
 
 		List<UserProfile> allActiveUsers = userService.activeUsers();
 
 		String emailSubject = "Stocks Research Report - " + LocalDate.now() + "!";
 
 		String formatedbuyList = null;
-System.out.println("1");
-		
+		System.out.println("1");
+
+		List<Stock> buyFundamentals = new ArrayList<>();
+		List<Stock> buyTechnicals = new ArrayList<>();
+		boolean isBuy = false;
+		boolean isSell = false;
 		if (buyResearchLedgerList != null && !buyResearchLedgerList.isEmpty()) {
 
-			List<Stock> buyFundamentals = buyResearchLedgerList.stream()
-					.filter(researchLedger -> researchLedger.getResearchType() == ResearchType.FUNDAMENTAL)
-					.map(rl -> rl.getStock()).collect(Collectors.toList());
+			buyFundamentals = buyResearchLedgerList.stream().map(rl -> rl.getStock()).collect(Collectors.toList());
 
 			System.out.println("2");
-			List<Stock> buyTechnicals = buyResearchLedgerList.stream()
-					.filter(researchLedger -> researchLedger.getResearchType() == ResearchType.TECHNICAL)
-					.map(rl -> rl.getStock()).collect(Collectors.toList());
 
 			formatedbuyList = prettyPrintService.formatBuyListHTML(buyFundamentals, buyTechnicals);
+
 			System.out.println("3");
-			
-			/*buyFundamentals.forEach(stock -> {
-				researchLedgerService.updateResearchNotifiedBuy(stock, ResearchType.FUNDAMENTAL);
-			});*/
-			
+
 			buyResearchLedgerList.forEach(srl -> {
-				researchLedgerService.updateResearchNotifiedBuy(srl);
+				fundamentalLedger.updateResearchNotified(srl);
 			});
+
 			System.out.println("4");
-			
-			/*buyTechnicals.forEach(stock -> {
-				researchLedgerService.updateResearchNotifiedBuy(stock, ResearchType.TECHNICAL);
-			});*/
-			
-			/*buyResearchLedgerList.forEach(srl -> {
-				researchLedgerService.updateResearchNotifiedSell(srl);
-			});*/
-			
+
 			System.out.println("5");
-			
+			isBuy = true;
+		}
+
+		if (buyResearchTechnicalLedgerList != null && !buyResearchTechnicalLedgerList.isEmpty()) {
+
+
+			System.out.println("2");
+			buyTechnicals = buyResearchTechnicalLedgerList.stream().map(rl -> rl.getStock())
+					.collect(Collectors.toList());
+
+			System.out.println("3");
+
+
+			System.out.println("4");
+			buyResearchTechnicalLedgerList.forEach(srl -> {
+				tecnicalLedger.updateResearchNotified(srl);
+			});
+
+			System.out.println("5");
+			isBuy = true;
 
 		}
+
+		formatedbuyList = prettyPrintService.formatBuyListHTML(buyFundamentals, buyTechnicals);
 
 		String formatedsellList = null;
+
+		List<Stock> sellFundamentals = new ArrayList<>();
 		
-		if (sellResearchLedgerList!=null && !sellResearchLedgerList.isEmpty()) {
-			
+		List<Stock> sellTechnicals = new ArrayList<>();
+		
+		if (sellResearchLedgerList != null && !sellResearchLedgerList.isEmpty()) {
+
 			System.out.println("6");
-			List<Stock> sellFundamentals = sellResearchLedgerList.stream()
-					.filter(researchLedger -> researchLedger.getResearchType() == ResearchType.FUNDAMENTAL)
+			sellFundamentals = sellResearchLedgerList.stream()
+
 					.map(rl -> rl.getStock()).collect(Collectors.toList());
 			System.out.println("7");
-			List<Stock> sellTechnicals = sellResearchLedgerList.stream()
-					.filter(researchLedger -> researchLedger.getResearchType() == ResearchType.TECHNICAL)
+
+			System.out.println("8");
+	
+			System.out.println("9");
+
+			sellResearchLedgerList.forEach(srl -> {
+				fundamentalLedger.updateResearchNotified(srl);
+			});
+
+
+			System.out.println("10");
+
+			System.out.println("11");
+			isSell = true;
+		}
+
+		if (sellResearchTechnicalLedgerList != null && !sellResearchTechnicalLedgerList.isEmpty()) {
+
+			System.out.println("6");
+
+			System.out.println("7");
+			sellTechnicals = sellResearchTechnicalLedgerList.stream()
+
 					.map(rl -> rl.getStock()).collect(Collectors.toList());
 			System.out.println("8");
-			formatedsellList = prettyPrintService.formatSellListHTML(sellFundamentals, sellTechnicals);
+
 			System.out.println("9");
-			
-			/*sellFundamentals.forEach(stock -> {
-				researchLedgerService.updateResearchNotifiedSell(stock, ResearchType.FUNDAMENTAL);
-			});*/
-			
-			sellResearchLedgerList.forEach(srl -> {
-				researchLedgerService.updateResearchNotifiedSell(srl);
+
+
+			sellResearchTechnicalLedgerList.forEach(srl -> {
+				tecnicalLedger.updateResearchNotified(srl);
 			});
-			
 			System.out.println("10");
-			/*sellTechnicals.forEach(stock -> {
-				researchLedgerService.updateResearchNotifiedSell(stock, ResearchType.TECHNICAL);
-			});*/
+
 			System.out.println("11");
-			
-
+			isSell = true;
 		}
 
-		String disclaimer= prettyPrintService.getDisclaimer();
-		
+		formatedsellList = prettyPrintService.formatSellListHTML(sellFundamentals, sellTechnicals);
+
+		String disclaimer = prettyPrintService.getDisclaimer();
+
 		String formatedResearchList = null;
-		
-		
-		if (!buyResearchLedgerList.isEmpty() && !sellResearchLedgerList.isEmpty()) {
-			
-			formatedResearchList = formatedbuyList + formatedsellList+disclaimer;
-		} else if (!buyResearchLedgerList.isEmpty()) {
-			
-			formatedResearchList = formatedbuyList +disclaimer;
-		} else if (!sellResearchLedgerList.isEmpty()) {
-			
-			formatedResearchList = formatedsellList +disclaimer;
+
+		if (isBuy==true && isSell==true) {
+
+			formatedResearchList = formatedbuyList + formatedsellList + disclaimer;
+		} else if (isBuy==true) {
+
+			formatedResearchList = formatedbuyList + disclaimer;
+		} else if (isSell==true) {
+
+			formatedResearchList = formatedsellList + disclaimer;
 		}
 
-		if (formatedResearchList !=null ) {
+		if (formatedResearchList != null) {
 			for (UserProfile user : allActiveUsers) {
 				this.prepareWatchListReportAndSendMail(user, formatedResearchList, emailSubject);
 
 				Thread.sleep(miscUtil.getInterval());
 			}
-		}else {
+		} else {
 			LOGGER.info("NO RESEARCH");
 		}
 	}
-	
+
 	private void preparePortfolioReportAndSendMail(UserProfile user) throws Exception {
 
 		LOGGER.info("prepareReportAndSendMail START" + user.getFirstName());
@@ -220,12 +260,12 @@ System.out.println("1");
 				formatedBookProfitList, formatedConsiderAveragingList);
 
 		EmailIO emailIO = new EmailIO(user.getUserEmail(), emailSubject, emailBody);
-		
+
 		queueService.send(emailIO, QueueConstants.ExternalQueue.SEND_EMAIL_QUEUE);
-		
+
 		LOGGER.info("prepareReportAndSendMail END" + user.getFirstName());
 	}
-	
+
 	private void prepareWatchListReportAndSendMail(UserProfile user, String formatedResearchList, String emailSubject) {
 
 		LOGGER.info("Emailing START" + user.getFirstName() + " : " + user.getUserEmail() + ": " + emailSubject);

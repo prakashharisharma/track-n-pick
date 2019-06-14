@@ -4,6 +4,14 @@ $(document).ready(function() {
 	  $('#resultTechnicals').hide();
 	  $('#resultNotifications').hide();
 
+	  $.ajax({
+          url: "/public/api/stocks/recentcrossover"
+      }).then(function(data) {
+    	  $('#recentCrossOver').html('');
+    	  $('#recentCrossOver').append(data.recentCrossOver);
+    	  
+      });
+	  
 });
 
 
