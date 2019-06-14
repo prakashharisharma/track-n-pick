@@ -43,7 +43,6 @@ public class ResearchLedgerTechnicalService {
 			
 			researchLedger.setEntryCrossOver(entryCrossOver);
 			
-			
 			researchLedgerRepository.save(researchLedger);
 		} else {
 			LOGGER.debug(stock.getNseSymbol() + " is already in Ledger for " + stock.getNseSymbol());

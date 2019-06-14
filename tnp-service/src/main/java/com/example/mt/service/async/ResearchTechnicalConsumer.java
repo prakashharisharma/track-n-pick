@@ -79,7 +79,11 @@ public class ResearchTechnicalConsumer {
 
 				this.addBullishCrossOverLedger(stock, CrossOverCategory.CROSS200);
 
+			}else if(technicalsResearchService.isPriceVolumeBullish(stock)) {
+				this.addBullishCrossOverLedger(stock, CrossOverCategory.VOL_INCR_PRICE_RISE);
 			}
+			
+			
 
 		} else if (researchTrigger == ResearchTrigger.SELL) {
 
@@ -87,6 +91,8 @@ public class ResearchTechnicalConsumer {
 
 				this.addBearishCrossOverLedger(stock, CrossOverCategory.CROSS100);
 
+			}else if(technicalsResearchService.isPriceVolumeBearish(stock)) {
+				this.addBearishCrossOverLedger(stock, CrossOverCategory.VOL_INCR_PRICE_FALL);
 			}
 
 		} else {
@@ -114,7 +120,15 @@ public class ResearchTechnicalConsumer {
 				this.addBearishCrossOverLedger(stock, CrossOverCategory.CROSS100);
 
 			}
+			
+			if(technicalsResearchService.isPriceVolumeBullish(stock)) {
+				this.addBullishCrossOverLedger(stock, CrossOverCategory.VOL_INCR_PRICE_RISE);
+			}
 
+			if(technicalsResearchService.isPriceVolumeBearish(stock)) {
+				this.addBearishCrossOverLedger(stock, CrossOverCategory.VOL_INCR_PRICE_FALL);
+			}
+			
 		}
 
 	}
@@ -159,7 +173,7 @@ public class ResearchTechnicalConsumer {
 
 		CrossOverLedger entryCrossOver = crossOverLedgerService.addBullish(stock, crossOverCategory);
 
-		if (crossOverCategory == CrossOverCategory.CROSS200) {
+		if (crossOverCategory == CrossOverCategory.CROSS200 || crossOverCategory == CrossOverCategory.VOL_INCR_PRICE_RISE) {
 			
 			this.addToResearchLedgerTechnical(stock, entryCrossOver);
 		}
@@ -172,7 +186,7 @@ public class ResearchTechnicalConsumer {
 
 		CrossOverLedger exitCrossOver = crossOverLedgerService.addBearish(stock, crossOverCategory);
 
-		if (crossOverCategory == CrossOverCategory.CROSS100) {
+		if (crossOverCategory == CrossOverCategory.CROSS100 || crossOverCategory == CrossOverCategory.VOL_INCR_PRICE_FALL) {
 			this.updateResearchLedgerTechnical(stock, exitCrossOver);
 		}
 	}

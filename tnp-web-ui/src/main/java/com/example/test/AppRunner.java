@@ -146,8 +146,8 @@ public class AppRunner implements CommandLineRunner {
 		
 		buyResearchTechnicalLedgerList.forEach(System.out::println);
 		
-/*		// Sell Research Fundamental
-		stocksList.forEach(stock -> {
+		// Buy Research Fundamental
+		/*stocksList.forEach(stock -> {
 			ResearchIO researchIO = new ResearchIO();
 
 			researchIO.setNseSymbol(stock.getNseSymbol());
@@ -156,11 +156,11 @@ public class AppRunner implements CommandLineRunner {
 			// this.processFundamental(researchIO);
 
 			queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
-		});
+		});*/
 
-		// Sell Research Technical
+		// Buy Research Technical
 
-		stocksList.forEach(stock -> {
+		/*stocksList.forEach(stock -> {
 			ResearchIO researchIO = new ResearchIO();
 			researchIO.setNseSymbol(stock.getNseSymbol());
 			researchIO.setResearchTrigger(ResearchTrigger.BUY);

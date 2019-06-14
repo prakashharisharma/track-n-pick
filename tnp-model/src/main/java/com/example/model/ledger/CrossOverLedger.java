@@ -22,7 +22,7 @@ public class CrossOverLedger implements Serializable{
 
 	public enum CrossOverType {BULLISH, BEARISH}
 	
-	public enum CrossOverCategory { CROSS50, CROSS100, CROSS200 }
+	public enum CrossOverCategory { CROSS50, CROSS100, CROSS200 , VOL_INCR_PRICE_RISE, VOL_INCR_PRICE_FALL }
 	
 	public enum Status {OPEN, CLOSE};
 	
@@ -69,6 +69,9 @@ public class CrossOverLedger implements Serializable{
 	
 	@Column(name = "PRICE", columnDefinition="Decimal(10,2) default '0.00'")
 	double price;
+	
+	@Column(name = "PREV_CLOSE", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevClose;
 	
 	@Column(name = "VOLUME")
 	Long volume;
@@ -186,6 +189,14 @@ public class CrossOverLedger implements Serializable{
 
 	public void setAvgVolume(long avgVolume) {
 		this.avgVolume = avgVolume;
+	}
+
+	public double getPrevClose() {
+		return prevClose;
+	}
+
+	public void setPrevClose(double prevClose) {
+		this.prevClose = prevClose;
 	}
 
 	@Override
