@@ -142,10 +142,10 @@ public class AppRunner implements CommandLineRunner {
 
 		List<Stock> stocksList = stockService.activeStocks();
 
-		List<ResearchLedgerTechnical> buyResearchTechnicalLedgerList = tecnicalLedger.buyNotificationPending();
+		/*List<ResearchLedgerTechnical> buyResearchTechnicalLedgerList = tecnicalLedger.buyNotificationPending();
 		
 		buyResearchTechnicalLedgerList.forEach(System.out::println);
-		
+		*/
 		// Buy Research Fundamental
 		/*stocksList.forEach(stock -> {
 			ResearchIO researchIO = new ResearchIO();

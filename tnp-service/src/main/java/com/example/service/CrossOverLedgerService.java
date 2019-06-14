@@ -31,7 +31,7 @@ public class CrossOverLedgerService {
 				crossOverLedger = new CrossOverLedger(stock, LocalDate.now(), CrossOverLedger.CrossOverType.BULLISH,crossOverCategory, stock.getTechnicals().getSma50(),stock.getTechnicals().getSma200(), CrossOverLedger.Status.OPEN );
 			}else if (crossOverCategory == CrossOverLedger.CrossOverCategory.CROSS50) {
 				crossOverLedger = new CrossOverLedger(stock, LocalDate.now(), CrossOverLedger.CrossOverType.BULLISH,crossOverCategory, stock.getTechnicals().getSma21(),stock.getTechnicals().getSma50(), CrossOverLedger.Status.OPEN );
-			}else if (crossOverCategory == CrossOverLedger.CrossOverCategory.VOL_INCR_PRICE_RISE) {
+			}else if (crossOverCategory == CrossOverLedger.CrossOverCategory.VIPR) {
 				crossOverLedger = new CrossOverLedger(stock, LocalDate.now(), CrossOverLedger.CrossOverType.BULLISH,crossOverCategory, stock.getTechnicals().getSma50(),stock.getTechnicals().getSma200(), CrossOverLedger.Status.OPEN );
 			}
 			
@@ -70,7 +70,7 @@ public class CrossOverLedgerService {
 				crossOverLedger = new CrossOverLedger(stock, LocalDate.now(), CrossOverLedger.CrossOverType.BEARISH,crossOverCategory, stock.getTechnicals().getSma50(),stock.getTechnicals().getSma200(), CrossOverLedger.Status.OPEN );
 			}else if (crossOverCategory == CrossOverLedger.CrossOverCategory.CROSS50) {
 				crossOverLedger = new CrossOverLedger(stock, LocalDate.now(), CrossOverLedger.CrossOverType.BEARISH,crossOverCategory, stock.getTechnicals().getSma21(),stock.getTechnicals().getSma50(), CrossOverLedger.Status.OPEN );
-			}else if (crossOverCategory == CrossOverLedger.CrossOverCategory.VOL_INCR_PRICE_FALL) {
+			}else if (crossOverCategory == CrossOverLedger.CrossOverCategory.VIPF) {
 				crossOverLedger = new CrossOverLedger(stock, LocalDate.now(), CrossOverLedger.CrossOverType.BEARISH,crossOverCategory, stock.getTechnicals().getSma50(),stock.getTechnicals().getSma100(), CrossOverLedger.Status.OPEN );
 			}
 			

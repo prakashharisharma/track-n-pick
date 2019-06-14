@@ -22,7 +22,7 @@ public class CrossOverLedger implements Serializable{
 
 	public enum CrossOverType {BULLISH, BEARISH}
 	
-	public enum CrossOverCategory { CROSS50, CROSS100, CROSS200 , VOL_INCR_PRICE_RISE, VOL_INCR_PRICE_FALL }
+	public enum CrossOverCategory { CROSS50, CROSS100, CROSS200 , VIPR, VIPF }
 	
 	public enum Status {OPEN, CLOSE};
 	

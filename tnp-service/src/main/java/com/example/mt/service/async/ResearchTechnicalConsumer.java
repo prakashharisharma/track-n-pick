@@ -80,7 +80,7 @@ public class ResearchTechnicalConsumer {
 				this.addBullishCrossOverLedger(stock, CrossOverCategory.CROSS200);
 
 			}else if(technicalsResearchService.isPriceVolumeBullish(stock)) {
-				this.addBullishCrossOverLedger(stock, CrossOverCategory.VOL_INCR_PRICE_RISE);
+				this.addBullishCrossOverLedger(stock, CrossOverCategory.VIPR);
 			}
 			
 			
@@ -92,7 +92,7 @@ public class ResearchTechnicalConsumer {
 				this.addBearishCrossOverLedger(stock, CrossOverCategory.CROSS100);
 
 			}else if(technicalsResearchService.isPriceVolumeBearish(stock)) {
-				this.addBearishCrossOverLedger(stock, CrossOverCategory.VOL_INCR_PRICE_FALL);
+				this.addBearishCrossOverLedger(stock, CrossOverCategory.VIPF);
 			}
 
 		} else {
@@ -122,11 +122,11 @@ public class ResearchTechnicalConsumer {
 			}
 			
 			if(technicalsResearchService.isPriceVolumeBullish(stock)) {
-				this.addBullishCrossOverLedger(stock, CrossOverCategory.VOL_INCR_PRICE_RISE);
+				this.addBullishCrossOverLedger(stock, CrossOverCategory.VIPR);
 			}
 
 			if(technicalsResearchService.isPriceVolumeBearish(stock)) {
-				this.addBearishCrossOverLedger(stock, CrossOverCategory.VOL_INCR_PRICE_FALL);
+				this.addBearishCrossOverLedger(stock, CrossOverCategory.VIPF);
 			}
 			
 		}
@@ -173,7 +173,7 @@ public class ResearchTechnicalConsumer {
 
 		CrossOverLedger entryCrossOver = crossOverLedgerService.addBullish(stock, crossOverCategory);
 
-		if (crossOverCategory == CrossOverCategory.CROSS200 || crossOverCategory == CrossOverCategory.VOL_INCR_PRICE_RISE) {
+		if (crossOverCategory == CrossOverCategory.CROSS200 || crossOverCategory == CrossOverCategory.VIPR) {
 			
 			this.addToResearchLedgerTechnical(stock, entryCrossOver);
 		}
@@ -186,7 +186,7 @@ public class ResearchTechnicalConsumer {
 
 		CrossOverLedger exitCrossOver = crossOverLedgerService.addBearish(stock, crossOverCategory);
 
-		if (crossOverCategory == CrossOverCategory.CROSS100 || crossOverCategory == CrossOverCategory.VOL_INCR_PRICE_FALL) {
+		if (crossOverCategory == CrossOverCategory.CROSS100 || crossOverCategory == CrossOverCategory.VIPF) {
 			this.updateResearchLedgerTechnical(stock, exitCrossOver);
 		}
 	}

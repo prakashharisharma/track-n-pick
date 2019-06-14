@@ -43,6 +43,8 @@ public class UIRenderStock {
 	double sma200;
 
 	double rsi;
+	
+	String category;
 
 	double researchPrice;
 
@@ -127,6 +129,8 @@ public class UIRenderStock {
 		this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
 		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
 		this.rsi = researchLedger.getStock().getTechnicals().getRsi();
+		
+		this.category = researchLedger.getEntryCrossOver().getCrossOverCategory().toString();
 
 	}
 	public UIRenderStock(ResearchLedgerFundamental researchLedger, double profitPer, double pe, double pb,
@@ -351,6 +355,14 @@ public class UIRenderStock {
 
 	public void setPeDifference(double peDifference) {
 		this.peDifference = peDifference;
+	}
+
+	public String getCategory() {
+		return category;
+	}
+
+	public void setCategory(String category) {
+		this.category = category;
 	}
 
 	@Override

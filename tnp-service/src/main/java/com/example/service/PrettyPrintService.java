@@ -66,7 +66,7 @@ public class PrettyPrintService {
 		if(!fundamentalList.isEmpty()) {
 			sb.append("<p>Fundamental </p>");
 		
-		sb.append("<div><table><thead><tr><th>SYMBOL</th><th>INDICE</th><th>CMP</th><th>PE</th><th>PB</th><th>DEBT_EQ</th><th>ROE</th></tr></thead>");
+		sb.append("<div><table><thead><tr><th>SYMBOL</th><th>INDICE</th><th>CMP</th><th>PE</th><th>SPE</th><th>PB</th><th>ROE</th><th>ROCE</th></tr></thead>");
 
 		sb.append("<tbody>");
 
@@ -84,9 +84,10 @@ public class PrettyPrintService {
 					+ s.getPrimaryIndice()+ "</td><td>"
 					+ formatDouble(s.getStockPrice().getCurrentPrice()) + "</td><td>" 
 					+ formatDouble(pe) + "</td><td>"
+					+ formatDouble(s.getSector().getSectorPe()) + "</td><td>"
 					+ formatDouble(pb) + "</td><td>"
-					+ s.getStockFactor().getDebtEquity() + "</td><td>" 
-					+ s.getStockFactor().getReturnOnEquity()
+					+ s.getStockFactor().getReturnOnEquity() + "</td><td>" 
+					+ s.getStockFactor().getReturnOnCapital()
 					+ "</td></tr>");
 		});
 
@@ -128,7 +129,7 @@ public class PrettyPrintService {
 		sb.append("<div><h3>Our research Sell List</h3></div>");
 		if(!fundamentalList.isEmpty()) {
 			sb.append("<p>Fundamenta </p>");
-			sb.append("<div><table><thead><tr><th>SYMBOL</th><th>INDICE</th><th>CMP</th><th>PE</th><th>PB</th><th>DEBT_EQ</th><th>ROE</th></tr></thead>");
+			sb.append("<div><table><thead><tr><th>SYMBOL</th><th>INDICE</th><th>CMP</th><th>PE</th><th>PE</th><th>PB</th><th>ROE</th><th>ROCE</th></tr></thead>");
 
 		sb.append("<tbody>");
 
@@ -146,9 +147,10 @@ double currentPrice = s.getStockPrice().getCurrentPrice();
 					+ s.getPrimaryIndice()+ "</td><td>"
 					+ formatDouble(s.getStockPrice().getCurrentPrice()) + "</td><td>" 
 					+ formatDouble(pe) + "</td><td>"
+					+ formatDouble(s.getSector().getSectorPe()) + "</td><td>"
 					+ formatDouble(pb) + "</td><td>"
-					+ s.getStockFactor().getDebtEquity() + "</td><td>" 
-					+ s.getStockFactor().getReturnOnEquity()
+					+ s.getStockFactor().getReturnOnEquity() + "</td><td>" 
+					+ s.getStockFactor().getReturnOnCapital()
 					+ "</td></tr>");
 		});
 
@@ -261,7 +263,7 @@ double currentPrice = s.getStockPrice().getCurrentPrice();
 		}else {
 		
 		sb.append(
-				"<table><thead><tr><th>SYMBOL</th><th>AVG.</th><th>CURRENT</th><th>LOW52</th><th>HIGH52</th><th>PROFIT%</th></tr></thead>");
+				"<table><thead><tr><th>SYMBOL</th><th>QTY</th><th>AVG.</th><th>CURRENT</th><th>LOW52</th><th>HIGH52</th><th>PROFIT%</th></tr></thead>");
 
 		sb.append("<tbody>");
 
@@ -273,7 +275,8 @@ double currentPrice = s.getStockPrice().getCurrentPrice();
 			
 			double profir_per = ((currentPrice - averagePrice) * 100)/averagePrice;
 			
-			sb.append("<tr><td>" + s.getStock().getNseSymbol() + "</td><td>" 
+			sb.append("<tr><td>" + s.getStock().getNseSymbol() + "</td><td>"
+								+ s.getQuantity() +"</td><td>"
 								+ formatDouble(s.getAveragePrice()) +"</td><td>"
 								+ formatDouble(s.getStock().getStockPrice().getCurrentPrice()) + "</td><td>"
 								+ s.getStock().getStockPrice().getYearLow() + "</td><td>" 

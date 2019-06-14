@@ -74,6 +74,9 @@ function loadTableTechnical() {
 		}, {
 			"data" : "researchDate"
 		}, {
+			"data" : "category"
+		}
+		, {
 			"data" : "researchPrice"
 		}, {
 			"data" : "currentPrice"
@@ -88,10 +91,10 @@ function loadTableTechnical() {
 		} ],
 		rowCallback : function(row, data, index) {
 			if (data.profitPer > 0.0) {
-				$(row).find('td:eq(8)').css('color', 'green');
+				$(row).find('td:eq(9)').css('color', 'green');
 			}
 			if (data.profitPer < 0.0) {
-				$(row).find('td:eq(8)').css('color', 'red');
+				$(row).find('td:eq(9)').css('color', 'red');
 			}
 
 		}
