@@ -27,8 +27,8 @@ public class PriceHistoryConsumer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PriceHistoryConsumer.class);
 
-	@Autowired
-	private StorageService storageService;
+	//@Autowired
+	//private StorageService storageService;
 
 	@Autowired
 	private PriceTemplate priceTemplate;
@@ -43,7 +43,7 @@ public class PriceHistoryConsumer {
 		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : START");
 
 		// To Be Removed In Future
-		storageService.updatePrice(stockPriceIO.getNseSymbol(), stockPriceIO.getOpen(), stockPriceIO.getHigh(), stockPriceIO.getLow(), stockPriceIO.getClose(), stockPriceIO.getLast(), stockPriceIO.getPrevClose(), stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdval(), stockPriceIO.getTotaltrades(), stockPriceIO.getBhavDate());
+		//storageService.updatePrice(stockPriceIO.getNseSymbol(), stockPriceIO.getOpen(), stockPriceIO.getHigh(), stockPriceIO.getLow(), stockPriceIO.getClose(), stockPriceIO.getLast(), stockPriceIO.getPrevClose(), stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdval(), stockPriceIO.getTotaltrades(), stockPriceIO.getBhavDate());
 		//
 		
 		

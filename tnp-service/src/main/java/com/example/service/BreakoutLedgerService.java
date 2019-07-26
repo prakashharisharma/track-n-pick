@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.model.ledger.BreakoutLedger;
 import com.example.model.ledger.BreakoutLedger.BreakoutCategory;
+import com.example.model.ledger.BreakoutLedger.BreakoutType;
 import com.example.model.master.Stock;
 import com.example.repo.ledger.BreakoutLedgerRepository;
 
@@ -20,7 +21,9 @@ public class BreakoutLedgerService {
 	private BreakoutLedgerRepository breakoutLedgerRepository;
 	
 	public void addPositive(Stock stock,BreakoutCategory breakoutCategory) {
+		
 		BreakoutLedger breakoutLedger =  breakoutLedgerRepository.findByStockIdAndBreakoutTypeAndBreakoutCategoryAndBreakoutDate(stock, BreakoutLedger.BreakoutType.POSITIVE, breakoutCategory, LocalDate.now());
+		
 		if(breakoutLedger == null) {
 			if(breakoutCategory == BreakoutLedger.BreakoutCategory.CROSS50) {
 				breakoutLedger = new BreakoutLedger(stock, LocalDate.now(), BreakoutLedger.BreakoutType.POSITIVE, breakoutCategory, stock.getStockPrice().getCurrentPrice(), stock.getTechnicals().getSma50());
@@ -54,4 +57,18 @@ public class BreakoutLedgerService {
 		
 		return breakoutList;
 	}
+	
+	public boolean isBreakout(Stock stock,BreakoutType breakoutType,BreakoutCategory breakoutCategory){
+		
+		boolean isBreakout = false;
+		
+		BreakoutLedger breakoutLedger =  breakoutLedgerRepository.findByStockIdAndBreakoutTypeAndBreakoutCategoryAndBreakoutDate(stock, breakoutType, breakoutCategory, LocalDate.now());
+		
+		if (breakoutLedger != null) {
+			isBreakout = true;
+		}
+		
+		return isBreakout;
+	}
+	
 }

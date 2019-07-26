@@ -24,13 +24,15 @@ import com.example.model.stocks.StockFactor;
 public class FactorRediff implements FactorBaseService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FactorRediff.class);
-	
+
 	private static String BASE_URL_REDIFF = "https://money.rediff.com/companies/";
 
+	private static int remoteCallCounter = 0;
+
 	static Map<String, String> dateMap = new HashMap<>();
-	
+
 	static Map<String, String> resultQuarterMap = new HashMap<>();
-	
+
 	static {
 		dateMap.put("JAN", "31");
 		dateMap.put("FEB", "28");
@@ -45,7 +47,7 @@ public class FactorRediff implements FactorBaseService {
 		dateMap.put("NOV", "30");
 		dateMap.put("DEC", "31");
 	}
-	
+
 	static {
 		resultQuarterMap.put("JAN", "DEC");
 		resultQuarterMap.put("FEB", "DEC");
@@ -60,7 +62,7 @@ public class FactorRediff implements FactorBaseService {
 		resultQuarterMap.put("NOV", "SEP");
 		resultQuarterMap.put("DEC", "SEP");
 	}
-	
+
 	private String ratioURL;
 
 	private StockFactor getMcapFaceValue(Stock stock, StockFactor stockFactor) throws IOException {
@@ -68,41 +70,41 @@ public class FactorRediff implements FactorBaseService {
 		String rediffURL = this.buildURL(stock);
 
 		System.out.println("REDIFFURL " + rediffURL);
-		
+
 		Document doc = Jsoup.connect(rediffURL).get();
 
 		Element body = doc.body();
 
 		Element allElement = body.getElementsByClass("zoom-container").first();
-		
-		if(allElement == null) {
+
+		if (allElement == null) {
 			return stockFactor;
 		}
-		
+
 		String url = allElement.select("a").first().absUrl("href");
 
-		if(url == null || url.isEmpty()) {
+		if (url == null || url.isEmpty()) {
 			return stockFactor;
 		}
-		
+
 		String mcapFaceValueURL = url.replace("/bse/day/chart", "");
 
 		LOGGER.info(mcapFaceValueURL);
 
 		this.setRatioURL(mcapFaceValueURL + "/ratio");
 
-		Elements  allElements = doc.select("span#ltpid");
+		Elements allElements = doc.select("span#ltpid");
 
 		allElements = doc.select("span#MarketCap");
 
 		for (Element element : allElements) {
 
 			double marketCap = Double.parseDouble(element.text().replace(",", ""));
-			
+
 			stockFactor.setMarketCap(marketCap);
 
 		}
-		
+
 		allElements = doc.select("div#div_rcard_more");
 
 		for (Element element : allElements) {
@@ -113,9 +115,9 @@ public class FactorRediff implements FactorBaseService {
 				j++;
 
 				if (j == 16) {
-					
+
 					double faceValue = Double.parseDouble(child.text().replace(",", "").trim());
-					
+
 					stockFactor.setFaceValue(faceValue);
 				}
 			}
@@ -125,35 +127,35 @@ public class FactorRediff implements FactorBaseService {
 		return stockFactor;
 	}
 
-	private StockFactor getRatios(Stock stock, StockFactor stockFactor) throws IOException{
+	private StockFactor getRatios(Stock stock, StockFactor stockFactor) throws IOException {
 
 		String ratioUrl = this.getRatioURL();
-		
-		if(ratioUrl == null || ratioUrl.isEmpty()) {
+
+		if (ratioUrl == null || ratioUrl.isEmpty()) {
 			return stockFactor;
 		}
-		
+
 		Document doc = Jsoup.connect(ratioUrl).get();
 
 		Elements allElement = doc.getElementsByClass("dataTable");
 
-		if(allElement == null) {
+		if (allElement == null) {
 			return stockFactor;
 		}
-		
+
 		int i = 0;
 
 		for (Element element : allElement) {
-			
+
 			i++;
 
 			Elements childTr = element.getElementsByTag("tr");
 
 			int trCount = 0;
-			
+
 			for (Element childElement : childTr) {
 				trCount++;
-			
+
 				if (trCount == 1) { // Period
 					Elements chilTheadTh = element.getElementsByTag("th");
 
@@ -163,53 +165,53 @@ public class FactorRediff implements FactorBaseService {
 
 						j++;
 						if (j == 2) {
-							String quarterStr= th.text();
-							
+							String quarterStr = th.text();
+
 							String quarterStrArr[] = quarterStr.split("'");
-							
+
 							String Month = quarterStrArr[0].trim().toUpperCase();
-							
+
 							String date = dateMap.get(Month);
-							
+
 							String resultMonth = resultQuarterMap.get(Month);
-							
-							String dateStr = date+"-"+resultMonth+"-" + "20"+quarterStrArr[1].trim();
-							
-							DateTimeFormatter formatter=new DateTimeFormatterBuilder().parseCaseInsensitive().appendPattern("dd-MMM-yyyy").toFormatter(Locale.ENGLISH);
-							
-							LocalDate quarterEnded= LocalDate.parse(dateStr,formatter);
-							
+
+							String dateStr = date + "-" + resultMonth + "-" + "20" + quarterStrArr[1].trim();
+
+							DateTimeFormatter formatter = new DateTimeFormatterBuilder().parseCaseInsensitive()
+									.appendPattern("dd-MMM-yyyy").toFormatter(Locale.ENGLISH);
+
+							LocalDate quarterEnded = LocalDate.parse(dateStr, formatter);
+
 							stockFactor.setQuarterEnded(quarterEnded);
-							//Store Quarter 
+							// Store Quarter
 						}
 					}
 				}
-				
-				
+
 				if (childElement.text().startsWith("Adjusted EPS (Rs)")) {
 
 					Elements childTd = childElement.getElementsByTag("td");
-					
+
 					int j = 0;
-					
+
 					for (Element td : childTd) {
-						
+
 						j++;
 						if (j == 2) {
-							
+
 							double eps = 0.00;
-							if(td.text().trim().equalsIgnoreCase("-")) {
-								eps =0.00;
-							}else {
-							
-							eps = Double.parseDouble(td.text().replace(",", "").trim());
+							if (td.text().trim().equalsIgnoreCase("-")) {
+								eps = 0.00;
+							} else {
+
+								eps = Double.parseDouble(td.text().replace(",", "").trim());
 							}
 							stockFactor.setEps(eps);
 						}
 					}
 
 				}
-				
+
 				else if (childElement.text().startsWith("Dividend per share")) {
 
 					Elements childTd = childElement.getElementsByTag("td");
@@ -217,22 +219,21 @@ public class FactorRediff implements FactorBaseService {
 					for (Element td : childTd) {
 						j++;
 						if (j == 2) {
-							
+
 							double dividend = 0.00;
-							
-							if(td.text().trim().equalsIgnoreCase("-")) {
+
+							if (td.text().trim().equalsIgnoreCase("-")) {
 								dividend = 0.00;
-							}else {
-							
-							dividend = Double.parseDouble(td.text().replace(",", "").trim());
-							
+							} else {
+
+								dividend = Double.parseDouble(td.text().replace(",", "").trim());
+
 							}
 							stockFactor.setDividend(dividend);
 						}
 					}
 
-				}
-				else if (childElement.text().startsWith("Book value (incl rev res) per share EPS (Rs)")) {
+				} else if (childElement.text().startsWith("Book value (incl rev res) per share EPS (Rs)")) {
 
 					Elements childTd = childElement.getElementsByTag("td");
 					int j = 0;
@@ -240,59 +241,56 @@ public class FactorRediff implements FactorBaseService {
 						j++;
 						if (j == 2) {
 							double bookValue = 0.00;
-							if(td.text().trim().equalsIgnoreCase("-")) {
+							if (td.text().trim().equalsIgnoreCase("-")) {
 								bookValue = 0.00;
-							}else {
+							} else {
 								bookValue = Double.parseDouble(td.text().replace(",", "").trim());
 							}
 							stockFactor.setBookValue(bookValue);
-						
+
 						}
 					}
 
-				}
-				else if (childElement.text().startsWith("Adjusted return on net worth")) {
+				} else if (childElement.text().startsWith("Adjusted return on net worth")) {
 
 					Elements childTd = childElement.getElementsByTag("td");
 					int j = 0;
 					for (Element td : childTd) {
 						j++;
 						if (j == 2) {
-							
+
 							double roe = 0.00;
-							if(td.text().trim().equalsIgnoreCase("-")) {
+							if (td.text().trim().equalsIgnoreCase("-")) {
 								roe = 0.00;
-							}else {
-							
-							roe = Double.parseDouble(td.text().replace(",", "").trim());
+							} else {
+
+								roe = Double.parseDouble(td.text().replace(",", "").trim());
 							}
 							stockFactor.setReturnOnEquity(roe);
-							
+
 						}
 					}
 
-				}
-				else if (childElement.text().startsWith("Return on long term funds")) {
+				} else if (childElement.text().startsWith("Return on long term funds")) {
 
 					Elements childTd = childElement.getElementsByTag("td");
 					int j = 0;
 					for (Element td : childTd) {
 						j++;
 						if (j == 2) {
-							
+
 							double roce = 0.00;
-							if(td.text().trim().equalsIgnoreCase("-")) {
+							if (td.text().trim().equalsIgnoreCase("-")) {
 								roce = 0.00;
-							}else {
+							} else {
 								roce = Double.parseDouble(td.text().replace(",", "").trim());
 							}
 							stockFactor.setReturnOnCapital(roce);
-							
+
 						}
 					}
 
-				}
-				else if (childElement.text().startsWith("Total debt/equity")) {
+				} else if (childElement.text().startsWith("Total debt/equity")) {
 
 					Elements childTd = childElement.getElementsByTag("td");
 					int j = 0;
@@ -300,20 +298,19 @@ public class FactorRediff implements FactorBaseService {
 						j++;
 						if (j == 2) {
 							double debtEquity = 0.00;
-							if(td.text().trim().equalsIgnoreCase("-")) {
+							if (td.text().trim().equalsIgnoreCase("-")) {
 								debtEquity = 0.00;
-							}else {
-							
+							} else {
+
 								debtEquity = Double.parseDouble(td.text().replace(",", "").trim());
 							}
-							
+
 							stockFactor.setDebtEquity(debtEquity);
-							
+
 						}
 					}
 
-				}
-				else if (childElement.text().startsWith("Current ratio")) {
+				} else if (childElement.text().startsWith("Current ratio")) {
 
 					Elements childTd = childElement.getElementsByTag("td");
 					int j = 0;
@@ -321,20 +318,19 @@ public class FactorRediff implements FactorBaseService {
 						j++;
 						if (j == 2) {
 							double currentRatio = 0.00;
-							if(td.text().trim().equalsIgnoreCase("-")) {
+							if (td.text().trim().equalsIgnoreCase("-")) {
 								currentRatio = 0.00;
-							}else {
-							
+							} else {
+
 								currentRatio = Double.parseDouble(td.text().replace(",", "").trim());
 							}
-							
+
 							stockFactor.setCurrentRatio(currentRatio);
-							
+
 						}
 					}
 
-				}
-				else if (childElement.text().startsWith("Quick ratio")) {
+				} else if (childElement.text().startsWith("Quick ratio")) {
 
 					Elements childTd = childElement.getElementsByTag("td");
 					int j = 0;
@@ -342,25 +338,24 @@ public class FactorRediff implements FactorBaseService {
 						j++;
 						if (j == 2) {
 							double quickRatio = 0.00;
-							if(td.text().trim().equalsIgnoreCase("-")) {
+							if (td.text().trim().equalsIgnoreCase("-")) {
 								quickRatio = 0.00;
-							}else {
-							
+							} else {
+
 								quickRatio = Double.parseDouble(td.text().replace(",", "").trim());
 							}
-							
+
 							stockFactor.setQuickRatio(quickRatio);
-							
+
 						}
 					}
 
 				}
-				
-				
+
 				else {
 					continue;
 				}
-				
+
 			}
 
 		}
@@ -372,9 +367,9 @@ public class FactorRediff implements FactorBaseService {
 		String companyName = stock.getCompanyName().replace(".", "");
 
 		String companyNameurlStr = companyName.replaceAll(" ", "-").toLowerCase();
-		
+
 		companyNameurlStr = companyNameurlStr.replace("&-", "");
-		
+
 		companyNameurlStr = companyNameurlStr.replace("'s", "-s");
 
 		return BASE_URL_REDIFF + companyNameurlStr;
@@ -394,32 +389,38 @@ public class FactorRediff implements FactorBaseService {
 	}
 
 	@Override
-	public StockFactor getFactor(Stock stock){
+	public StockFactor getFactor(Stock stock) {
 
-		StockFactor stockFactor =null;
-		
-		if(stock.getStockFactor() == null) {
-			
+		StockFactor stockFactor = null;
+
+		if (stock.getStockFactor() == null) {
+
 			stockFactor = new StockFactor();
-			
-		}else {
-			
+
+		} else {
+
 			stockFactor = stock.getStockFactor();
-			
-			
+
 		}
-		
-		try {
-			stockFactor.setLastModified(LocalDate.now());
-			stockFactor = this.getMcapFaceValue(stock, stockFactor);
-			stockFactor = this.getRatios(stock, stockFactor);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+
+		if (stock.getStockFactor() == null || remoteCallCounter < 25) {
+
+			try {
+				stockFactor.setLastModified(LocalDate.now());
+				stockFactor = this.getMcapFaceValue(stock, stockFactor);
+				stockFactor = this.getRatios(stock, stockFactor);
+
+				// increment thye remoteCallCounter
+				remoteCallCounter++;
+
+			} catch (IOException e) {
+				
+				e.printStackTrace();
+			}
+
+			stockFactor.setStock(stock);
 		}
-		
-		stockFactor.setStock(stock);
-		
+
 		return stockFactor;
 	}
 }

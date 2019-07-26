@@ -23,8 +23,10 @@ public interface PortfolioRepository extends JpaRepository<UserPortfolio, UserPo
 
 	List<UserPortfolio> findByPortfolioIdUser(UserProfile user);
 
+	List<UserPortfolio> findByPortfolioIdStock(Stock stock);
+	
 	UserPortfolio findByPortfolioIdUserAndPortfolioIdStock(UserProfile user, Stock stock);
-
+	
 	List<UserPortfolio> findAll();
 
 	@Query(value = "select s.sectorName, sum(up.averagePrice * up.quantity )  from UserPortfolio up "

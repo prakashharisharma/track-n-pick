@@ -62,9 +62,11 @@ public class PriceTxnConsumer {
 			stockPrice.setLastModified(LocalDate.now());
 			stockPrice.setCurrentPrice(stockPriceIO.getClose());
 			stockPrice.setPrevClose(stockPriceIO.getPrevClose());
+			stockPrice.setOpenPrice(stockPriceIO.getOpen());
 			stockPrice.setYearHigh(stockPriceIO.getYearHigh());
 			stockPrice.setYearLow(stockPriceIO.getYearLow());
 			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
+			
 			
 		} else {
 			stockPrice = new StockPrice();
@@ -72,6 +74,7 @@ public class PriceTxnConsumer {
 			stockPrice.setLastModified(LocalDate.now());
 			stockPrice.setCurrentPrice(stockPriceIO.getClose());
 			stockPrice.setPrevClose(stockPriceIO.getPrevClose());
+			stockPrice.setOpenPrice(stockPriceIO.getOpen());
 			stockPrice.setYearHigh(stockPriceIO.getYearHigh());
 			stockPrice.setYearLow(stockPriceIO.getYearLow());
 			stockPrice.setBhavDate(stockPriceIO.getTimestamp());

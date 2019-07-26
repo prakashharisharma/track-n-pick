@@ -40,22 +40,22 @@ public class TradingSessionTemplate {
 
 	final String COLLECTION_TS = "tading_sessions";
 
-	public void create(Stock stock) {
+/*	public void create(Stock stock) {
 		mongoTemplate.insert(stock);
-	}
+	}*/
 
 	public void createTS(TradingSession tadingSession) {
 		mongoTemplate.insert(tadingSession);
 	}
 
-	public void update(Stock stock) {
+/*	public void update(Stock stock) {
 		mongoTemplate.save(stock);
 	}
 
 	public Stock find(Stock stock) {
 		Query query = new Query(Criteria.where("_id").is(stock.getId()));
 		return mongoTemplate.findOne(query, Stock.class, COLLECTION_STK);
-	}
+	}*/
 
 	public List<TradingSession> getTradingSessions(int days) {
 		Query query = new Query();
@@ -89,10 +89,10 @@ public class TradingSessionTemplate {
 		return tsList.get(tsList.size() - 1);
 	}
 
-	public Stock findByNseSymbol(String nseSymbol) {
+/*	public Stock findByNseSymbol(String nseSymbol) {
 		Query query = new Query(Criteria.where("nseSymbol").is(nseSymbol));
 		return mongoTemplate.findOne(query, Stock.class, COLLECTION_STK);
-	}
+	}*/
 
 	public double getAveragePrice(String nseSymbol, int days) {
 		TradingSession ts = this.getTradingSessionBeforeDays(days);
@@ -407,7 +407,7 @@ public class TradingSessionTemplate {
 		return currentPrice;
 	}
 
-	public List<Stock> findAll() {
+	/*public List<Stock> findAll() {
 		return (List<Stock>) mongoTemplate.findAll(Stock.class);
 	}
 
@@ -426,9 +426,9 @@ public class TradingSessionTemplate {
 					new Update().push("stockPrices", stockPrice), "stocks");
 
 		}
-	}
+	}*/
 
-	public void addTechnicals(String nseSymbol, StockTechnicals stockTechnicals) {
+	/*public void addTechnicals(String nseSymbol, StockTechnicals stockTechnicals) {
 
 		Stock stock = this.findByNseSymbol(nseSymbol);
 
@@ -443,6 +443,6 @@ public class TradingSessionTemplate {
 					new Update().push("stockTechnicals", stockTechnicals), "stocks");
 
 		}
-	}
+	}*/
 	
 }

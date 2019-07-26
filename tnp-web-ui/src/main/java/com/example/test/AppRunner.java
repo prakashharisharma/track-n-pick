@@ -110,6 +110,9 @@ public class AppRunner implements CommandLineRunner {
 	private QueueService queueService;
 	@Autowired
 	private ResearchLedgerTechnicalService tecnicalLedger;
+	
+	@Autowired
+	private TechnicalsResearchService technicalsResearchService;
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
 
@@ -142,6 +145,7 @@ public class AppRunner implements CommandLineRunner {
 
 		List<Stock> stocksList = stockService.activeStocks();
 
+		
 		/*List<ResearchLedgerTechnical> buyResearchTechnicalLedgerList = tecnicalLedger.buyNotificationPending();
 		
 		buyResearchTechnicalLedgerList.forEach(System.out::println);

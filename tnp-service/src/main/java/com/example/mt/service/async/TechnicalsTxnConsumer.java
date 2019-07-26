@@ -19,10 +19,9 @@ import com.example.model.stocks.StockTechnicals;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.repo.stocks.StockTechnicalsRepository;
+import com.example.service.PortfolioService;
+import com.example.service.ResearchLedgerFundamentalService;
 import com.example.service.StockService;
-import com.example.util.io.model.ResearchIO;
-import com.example.util.io.model.ResearchIO.ResearchTrigger;
-import com.example.util.io.model.ResearchIO.ResearchType;
 import com.example.util.io.model.StockTechnicalsIO;
 
 @Component
@@ -37,6 +36,12 @@ public class TechnicalsTxnConsumer {
 
 	@Autowired
 	private QueueService queueService;
+
+	@Autowired
+	private ResearchLedgerFundamentalService researchLedgerFundamentalService;
+
+	@Autowired
+	private PortfolioService portfolioService;
 
 	@JmsListener(destination = QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE)
 	public void receiveMessage(@Payload StockTechnicalsIO stockTechnicalsIO, @Headers MessageHeaders headers,
@@ -75,7 +80,7 @@ public class TechnicalsTxnConsumer {
 
 			stockTechnicals.setSma21(stockTechnicalsIO.getSma21());
 			stockTechnicals.setPrevSma21(stockTechnicalsIO.getPrevSma21());
-			
+
 			stockTechnicals.setVolume(stockTechnicalsIO.getVolume());
 			stockTechnicals.setAvgVolume(stockTechnicalsIO.getAvgVolume());
 
@@ -101,7 +106,7 @@ public class TechnicalsTxnConsumer {
 
 			stockTechnicals.setSma21(stockTechnicalsIO.getSma21());
 			stockTechnicals.setPrevSma21(stockTechnicalsIO.getPrevSma21());
-			
+
 			stockTechnicals.setVolume(stockTechnicalsIO.getVolume());
 			stockTechnicals.setAvgVolume(stockTechnicalsIO.getAvgVolume());
 
@@ -109,14 +114,19 @@ public class TechnicalsTxnConsumer {
 
 		stockTechnicalsRepository.save(stockTechnicals);
 
-		ResearchIO researchIO = new ResearchIO(stockTechnicalsIO.getNseSymbol(), ResearchType.TECHNICAL,
-				ResearchTrigger.BUY);
-
-		this.processResearch(researchIO);
+		this.processResearch(stock, stockTechnicalsIO);
 
 	}
 
-	private void processResearch(ResearchIO researchIO) {
-		queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
+	private void processResearch(Stock stock, StockTechnicalsIO stockTechnicalsIO) {
+
+		if (researchLedgerFundamentalService.isResearchActive(stock)) {
+			queueService.send(stockTechnicalsIO, QueueConstants.MTQueue.RESEARCH_BREAKOUT_QUEUE);
+		} else if (portfolioService.isPortfolioStock(stock)) {
+			queueService.send(stockTechnicalsIO, QueueConstants.MTQueue.RESEARCH_BREAKOUT_QUEUE);
+		} else {
+			LOGGER.info("RESEARCH_CONSUMER processToTechnicals, Skip as This is not Active in research or Portfolio "
+					+ stock.getNseSymbol());
+		}
 	}
 }

@@ -38,12 +38,15 @@ public class Sector implements Serializable{
 	@Column(name = "SECTOR_PB",columnDefinition="Decimal(10,4) default '1.00'")
 	double sectorPb = 1.00;
 
+	@Column(name = "SECTOR_CURR_RATIO",columnDefinition="Decimal(10,4) default '1.00'")
+	double sectorCurrentRatio = 1.00;	
+	
 	@Column(name = "VARIATION_PE",columnDefinition="Decimal(10,4) default '2.00'")
 	double variationPe = 2.00;
 	
 	@Column(name = "VARIATION_PB",columnDefinition="Decimal(10,4) default '0.50'")
 	double variationPb = 0.50;
-	
+
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "sector")
 	private Set<Stock> stocks = new HashSet<Stock>(0);
 	
@@ -122,10 +125,19 @@ public class Sector implements Serializable{
 		this.stocks = stocks;
 	}
 
+	public double getSectorCurrentRatio() {
+		return sectorCurrentRatio;
+	}
+
+	public void setSectorCurrentRatio(double sectorCurrentRatio) {
+		this.sectorCurrentRatio = sectorCurrentRatio;
+	}
+
 	@Override
 	public String toString() {
 		return "Sector [sectorId=" + sectorId + ", sectorName=" + sectorName + ", sectorPe=" + sectorPe + ", sectorPb="
-				+ sectorPb + "]";
+				+ sectorPb + ", sectorCurrentRatio=" + sectorCurrentRatio + "]";
 	}
+
 
 }

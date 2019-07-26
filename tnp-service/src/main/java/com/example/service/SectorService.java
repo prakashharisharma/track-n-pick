@@ -126,12 +126,17 @@ public Sector add(String sectorName) {
 			
 			double variationPb= formulaService.calculatePercentage(sectorPb, 10);
 			
+			double sectorCurrentRatio = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getCurrentRatio()).average().orElse(0.00);
+			
+			
 			System.out.println("SECTOR_PB : " + sectorPb);
 			
 			sector.setSectorPe(sectorPe);
 			sector.setSectorPb(sectorPb);
 			sector.setVariationPe(variationPe);
 			sector.setVariationPb(variationPb);
+			sector.setSectorCurrentRatio(sectorCurrentRatio);
+			
 			sectorRepository.save(sector);
 			
 		});

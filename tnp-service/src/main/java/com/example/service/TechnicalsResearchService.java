@@ -3,12 +3,19 @@ package com.example.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.model.ledger.BreakoutLedger.BreakoutCategory;
+import com.example.model.ledger.BreakoutLedger.BreakoutType;
 import com.example.model.master.Stock;
+import com.example.util.io.model.StockIO.IndiceType;
 
 @Service
 public class TechnicalsResearchService {
+
+	@Autowired
+	private BreakoutLedgerService breakoutLedgerService;
 
 	/**
 	 * A bullish crossover occurs when the shorter moving average crosses above the
@@ -223,16 +230,34 @@ public class TechnicalsResearchService {
 
 		long volume = stock.getTechnicals().getVolume();
 		long avgVolume = stock.getTechnicals().getAvgVolume();
-		double price = stock.getStockPrice().getCurrentPrice();
 		double prevClose = stock.getStockPrice().getPrevClose();
 
+		double openPrice = stock.getStockPrice().getOpenPrice();
+
 		if (volume > (avgVolume * 2)) {
-			if (volume > 499) {
-				if (price > prevClose) {
-					isPriceVolumeBullish = true;
+			if (stock.getTechnicals().getSma50() > stock.getTechnicals().getSma200()) {
+				if (volume > 250) {
+					if (openPrice > prevClose) {
+						isPriceVolumeBullish = true;
+					}
+				}
+			}else if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma50()) {
+				if (volume > 500) {
+					if (openPrice > prevClose) {
+						isPriceVolumeBullish = true;
+					}
+				}
+			}
+			
+			else {
+				if (volume > 1000) {
+					if (openPrice > prevClose) {
+						isPriceVolumeBullish = true;
+					}
 				}
 			}
 		}
+
 
 		return isPriceVolumeBullish;
 	}
@@ -242,17 +267,99 @@ public class TechnicalsResearchService {
 
 		long volume = stock.getTechnicals().getVolume();
 		long avgVolume = stock.getTechnicals().getAvgVolume();
-		double price = stock.getStockPrice().getCurrentPrice();
 		double prevClose = stock.getStockPrice().getPrevClose();
+		double openPrice = stock.getStockPrice().getOpenPrice();
 
 		if (volume > (avgVolume * 2)) {
-			if (volume > 499) {
-				if (price < prevClose) {
-					isPriceVolumeBearish = true;
+			if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma200()) {
+				if (volume > 1000) {
+					if (openPrice < prevClose) {
+						isPriceVolumeBearish = true;
+					}
+				}
+			}else if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma50()) {
+				if (volume > 500) {
+					if (openPrice < prevClose) {
+						isPriceVolumeBearish = true;
+					}
+				}
+			}
+			
+			else {
+				if (volume > 250) {
+					if (openPrice < prevClose) {
+						isPriceVolumeBearish = true;
+					}
 				}
 			}
 		}
 
+
 		return isPriceVolumeBearish;
+	}
+
+	public boolean isHighVolume(Stock stock) {
+
+		boolean isHighVolume = false;
+
+		long volume = stock.getTechnicals().getVolume();
+		long avgVolume = stock.getTechnicals().getAvgVolume();
+
+		if (volume > (avgVolume * 2)) {
+			isHighVolume = true;
+		}
+
+		return isHighVolume;
+	}
+
+	public boolean isBreakOut50Bullish(Stock stock) {
+		boolean isBreakOut50Bullish = false;
+
+		if (breakoutLedgerService.isBreakout(stock, BreakoutType.POSITIVE, BreakoutCategory.CROSS50)) {
+			if (this.isHighVolume(stock)) {
+				isBreakOut50Bullish = true;
+			}
+		}
+
+		return isBreakOut50Bullish;
+	}
+
+	public boolean isBreakOut50Bearish(Stock stock) {
+		boolean isBreakOut50Bearish = false;
+		if (stock.getPrimaryIndice() == IndiceType.NIFTY50 || stock.getPrimaryIndice() == IndiceType.NIFTY100) {
+			if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma200()) {
+				if (breakoutLedgerService.isBreakout(stock, BreakoutType.NEGATIVE, BreakoutCategory.CROSS50)) {
+					if (this.isHighVolume(stock)) {
+						isBreakOut50Bearish = true;
+					}
+				}
+			}
+		}
+
+		return isBreakOut50Bearish;
+	}
+
+	public boolean isBreakOut200HighVolumeBullish(Stock stock) {
+		boolean isBreakOut200HighVolumeBullish = false;
+
+		if (breakoutLedgerService.isBreakout(stock, BreakoutType.POSITIVE, BreakoutCategory.CROSS200)) {
+			if (this.isHighVolume(stock)) {
+				isBreakOut200HighVolumeBullish = true;
+			}
+		}
+
+		return isBreakOut200HighVolumeBullish;
+	}
+
+	public boolean isBreakOut200HighVolumeBearish(Stock stock) {
+		boolean isBreakOut200HighVolumeBearish = false;
+
+		if (breakoutLedgerService.isBreakout(stock, BreakoutType.NEGATIVE, BreakoutCategory.CROSS200)) {
+			if (this.isHighVolume(stock)) {
+				isBreakOut200HighVolumeBearish = true;
+			}
+		}
+
+		return isBreakOut200HighVolumeBearish;
 	}
 }

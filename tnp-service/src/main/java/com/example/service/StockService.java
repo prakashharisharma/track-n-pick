@@ -203,8 +203,7 @@ public class StockService {
 
 		if (stock.getStockFactor() != null) {
 
-			if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > notificationRules
-					.getFactorIntervalDays()) {
+			if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > notificationRules.getFactorIntervalDays()) {
 
 				try {
 					Thread.sleep(miscUtil.getInterval());

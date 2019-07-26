@@ -124,5 +124,16 @@ public class ResearchLedgerFundamentalService {
 
 		return researchLedgerRepository.findByResearchStatus(ResearchTrigger.BUY);
 	}
+	public boolean isResearchActive(Stock stock) {
+		boolean isResearchActive = false;
+		
+		ResearchLedgerFundamental researchLedgerFundamental = researchLedgerRepository.findByStockAndResearchStatus(stock, ResearchTrigger.BUY);
+		
+		if(researchLedgerFundamental != null) {
+			isResearchActive = true;
+		}
+		
+		return isResearchActive;
+	}
 
 }

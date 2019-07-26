@@ -1,467 +1,97 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<CDXFTransactionSet os_st_id="52334430574"
-	os_id="CDXFTransactionSet_52334430574"
-	xmlns="http://www.oneshield.com/DragonSchema"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema">
-	<CDXFTransaction os_st_id="52472109674"
-		os_id="CDXFTransaction_52472109674">
-		<GenericTransactionID>52472109674</GenericTransactionID>
-		<CDXFBillingTransaction os_st_id="52334430574"
-			os_id="CDXFBillingTransaction_52334430574">
-			<BillingTransactionAmount>4.0</BillingTransactionAmount>
-			<TotalPastDue>0</TotalPastDue>
-			<TotalNumberItems>0</TotalNumberItems>
-			<BillingAccountBalance>4.0</BillingAccountBalance>
-			<BillingTransactionBatchNumber>Batch20190518072704
-			</BillingTransactionBatchNumber>
-			<BillingTransactionEnteredBy>Ankur Senior Underwriter
-			</BillingTransactionEnteredBy>
-			<BillingTransactionEntryMethod>
-				<id>401</id>
-				<code>System</code>
-				<value>System</value>
-			</BillingTransactionEntryMethod>
-			<BillingTransactionPostedDate>20190518072704
-			</BillingTransactionPostedDate>
-			<BillingTransactionProcessedDate>20190518072704
-			</BillingTransactionProcessedDate>
-			<BillingTransactionStatus>
-				<id>39846</id>
-				<code>Processed</code>
-				<value>Processed</value>
-			</BillingTransactionStatus>
-			<BillingTransactionTypeID>
-				<id>1</id>
-				<code>1</code>
-				<value>Cancellation - Insured</value>
-			</BillingTransactionTypeID>
-			<PolicyBillingMethod>
-				<id>1</id>
-				<code>Direct Billed</code>
-				<value>Direct Billed</value>
-			</PolicyBillingMethod>
-			<PolicyIdentifierPolicyNumber>P100002027
-			</PolicyIdentifierPolicyNumber>
-			<StatementDescription>M05 - 2019</StatementDescription>
-			<TransactionPrintIndicator>
-				<id>1</id>
-				<value>Yes</value>
-			</TransactionPrintIndicator>
-			<CDXFFinancialTransaction
-				os_st_id="52334434974" os_id="CDXFFinancialTransaction_52334434974">
-				<AccountingPeriod>M05 - 2019</AccountingPeriod>
-				<Type>
-					<id>801</id>
-					<code>Payables Earning Adjustment</code>
-					<value>Payables Earning Adjustment</value>
-				</Type>
-				<DateEffective>20190518000100</DateEffective>
-				<DateGeneralLedger>20190518000100</DateGeneralLedger>
-				<DatePosted>20190518000100</DatePosted>
-				<FinancialTransactionNetAmount>0.0</FinancialTransactionNetAmount>
-			</CDXFFinancialTransaction>
-			<CDXFFinancialTransaction
-				os_st_id="52334430674" os_id="CDXFFinancialTransaction_52334430674">
-				<AccountingPeriod>M05 - 2019</AccountingPeriod>
-				<Type>
-					<id>601</id>
-					<code>Debit Generation</code>
-					<value>Debit Generation</value>
-				</Type>
-				<DateEffective>20190520000100</DateEffective>
-				<DatePosted>20190518072704</DatePosted>
-				<FinancialTransactionProcessDate>20190518072704
-				</FinancialTransactionProcessDate>
-				<GLsCreatedIndicator>
-					<id>1</id>
-				</GLsCreatedIndicator>
-				<CDXFFinancialItem os_st_id="52334431074"
-					os_id="CDXFFinancialItem_52334431074">
-					<ActionType>
-						<id>101</id>
-						<code>Create</code>
-						<value>Create</value>
-					</ActionType>
-					<DateProcessing>20190518072704</DateProcessing>
-					<DueDate>20190520000100</DueDate>
-					<FIChangeSequenceNumber>10003550958</FIChangeSequenceNumber>
-					<FinancialBillingStatus>
-						<id>38246</id>
-						<code>Active</code>
-						<value>Active</value>
-					</FinancialBillingStatus>
-					<FinancialChangedAmount>-162.68043</FinancialChangedAmount>
-					<FitemTotalAmountFinal>-162.68043</FitemTotalAmountFinal>
-					<FitemTotalAmountprevious>0.0</FitemTotalAmountprevious>
-					<LedgerTotalAmountFinal>-162.68043</LedgerTotalAmountFinal>
-					<LedgerTotalAmountprevious>0.0</LedgerTotalAmountprevious>
-					<PolicyTotalAmountFinal>510.31957</PolicyTotalAmountFinal>
-					<PolilcyTotalAmountprevious>673.0</PolilcyTotalAmountprevious>
-					<ProcessingStatus>
-						<id>39346</id>
-						<code>Processed</code>
-						<value>Processed</value>
-					</ProcessingStatus>
-					<SumIncludeTF>
-						<id>1</id>
-						<code>Yes</code>
-						<value>Yes</value>
-					</SumIncludeTF>
-					<WithdrawalDate>20190618000000</WithdrawalDate>
-				</CDXFFinancialItem>
-				<CDXFFinancialItem os_st_id="52334431474"
-					os_id="CDXFFinancialItem_52334431474">
-					<ActionType>
-						<id>101</id>
-						<code>Create</code>
-						<value>Create</value>
-					</ActionType>
-					<DateProcessing>20190518072704</DateProcessing>
-					<DueDate>20190818000000</DueDate>
-					<FIChangeSequenceNumber>10003550960</FIChangeSequenceNumber>
-					<FinancialBillingStatus>
-						<id>38246</id>
-						<code>Active</code>
-						<value>Active</value>
-					</FinancialBillingStatus>
-					<FinancialChangedAmount>-168.77957</FinancialChangedAmount>
-					<FitemTotalAmountFinal>-168.77957</FitemTotalAmountFinal>
-					<FitemTotalAmountprevious>0.0</FitemTotalAmountprevious>
-					<LedgerTotalAmountFinal>-168.77957</LedgerTotalAmountFinal>
-					<LedgerTotalAmountprevious>0.0</LedgerTotalAmountprevious>
-					<PolicyTotalAmountFinal>341.54</PolicyTotalAmountFinal>
-					<PolilcyTotalAmountprevious>510.31957</PolilcyTotalAmountprevious>
-					<ProcessingStatus>
-						<id>39346</id>
-						<code>Processed</code>
-						<value>Processed</value>
-					</ProcessingStatus>
-					<SumIncludeTF>
-						<id>1</id>
-						<code>Yes</code>
-						<value>Yes</value>
-					</SumIncludeTF>
-					<WithdrawalDate>20190518000000</WithdrawalDate>
-				</CDXFFinancialItem>
-				<CDXFFinancialItem os_st_id="52334431874"
-					os_id="CDXFFinancialItem_52334431874">
-					<ActionType>
-						<id>101</id>
-						<code>Create</code>
-						<value>Create</value>
-					</ActionType>
-					<DateProcessing>20190518072704</DateProcessing>
-					<DueDate>20191118000000</DueDate>
-					<FIChangeSequenceNumber>10003550962</FIChangeSequenceNumber>
-					<FinancialBillingStatus>
-						<id>38246</id>
-						<code>Active</code>
-						<value>Active</value>
-					</FinancialBillingStatus>
-					<FinancialChangedAmount>-168.77</FinancialChangedAmount>
-					<FitemTotalAmountFinal>-168.77</FitemTotalAmountFinal>
-					<FitemTotalAmountprevious>0.0</FitemTotalAmountprevious>
-					<LedgerTotalAmountFinal>-168.77</LedgerTotalAmountFinal>
-					<LedgerTotalAmountprevious>0.0</LedgerTotalAmountprevious>
-					<PolicyTotalAmountFinal>172.77</PolicyTotalAmountFinal>
-					<PolilcyTotalAmountprevious>341.54</PolilcyTotalAmountprevious>
-					<ProcessingStatus>
-						<id>39346</id>
-						<code>Processed</code>
-						<value>Processed</value>
-					</ProcessingStatus>
-					<SumIncludeTF>
-						<id>1</id>
-						<code>Yes</code>
-						<value>Yes</value>
-					</SumIncludeTF>
-					<WithdrawalDate>20190518000000</WithdrawalDate>
-				</CDXFFinancialItem>
-				<CDXFFinancialItem os_st_id="52334432274"
-					os_id="CDXFFinancialItem_52334432274">
-					<ActionType>
-						<id>101</id>
-						<code>Create</code>
-						<value>Create</value>
-					</ActionType>
-					<DateProcessing>20190518072704</DateProcessing>
-					<DueDate>20200218000000</DueDate>
-					<FIChangeSequenceNumber>10003550964</FIChangeSequenceNumber>
-					<FinancialBillingStatus>
-						<id>38246</id>
-						<code>Active</code>
-						<value>Active</value>
-					</FinancialBillingStatus>
-					<FinancialChangedAmount>-168.77</FinancialChangedAmount>
-					<FitemTotalAmountFinal>-168.77</FitemTotalAmountFinal>
-					<FitemTotalAmountprevious>0.0</FitemTotalAmountprevious>
-					<LedgerTotalAmountFinal>-168.77</LedgerTotalAmountFinal>
-					<LedgerTotalAmountprevious>0.0</LedgerTotalAmountprevious>
-					<PolicyTotalAmountFinal>4.0</PolicyTotalAmountFinal>
-					<PolilcyTotalAmountprevious>172.77</PolilcyTotalAmountprevious>
-					<ProcessingStatus>
-						<id>39346</id>
-						<code>Processed</code>
-						<value>Processed</value>
-					</ProcessingStatus>
-					<SumIncludeTF>
-						<id>1</id>
-						<code>Yes</code>
-						<value>Yes</value>
-					</SumIncludeTF>
-					<WithdrawalDate>20190518000000</WithdrawalDate>
-				</CDXFFinancialItem>
-			</CDXFFinancialTransaction>
-			<CDXFFinancialTransaction
-				os_st_id="52334430774" os_id="CDXFFinancialTransaction_52334430774">
-				<AccountingPeriod>M05 - 2019</AccountingPeriod>
-				<Type>
-					<id>602</id>
-					<code>Credit Generation</code>
-					<value>Credit Generation</value>
-				</Type>
-				<DateEffective>20190520000100</DateEffective>
-				<DatePosted>20190518072704</DatePosted>
-				<FinancialTransactionProcessDate>20190518072704
-				</FinancialTransactionProcessDate>
-				<GLsCreatedIndicator>
-					<id>1</id>
-				</GLsCreatedIndicator>
-			</CDXFFinancialTransaction>
-			<CDXFAccountAsscPolicy os_st_id="52334364174"
-				os_id="CDXFAccountAsscPolicy_52334364174" />
-		</CDXFBillingTransaction>
-		<CDXFBillingAccount os_st_id="52334341374"
-			os_id="CDXFBillingAccount_52334341374">
-			<BillingAccountBalance>841.77957</BillingAccountBalance>
-			<BillingAccountID>52334341374</BillingAccountID>
-		</CDXFBillingAccount>
-		<CDXFDeliveryMethod os_st_id="52334311574"
-			os_id="CDXFDeliveryMethod_52334311574">
-			<AddressCity>Marlborough</AddressCity>
-			<AddressCountry>
-				<id>1</id>
-				<code>US</code>
-				<value>United States</value>
-			</AddressCountry>
-			<AddressID>52334311574</AddressID>
-			<AddressLine1>465</AddressLine1>
-			<AddressLine2>Lake City</AddressLine2>
-			<AddressPostalCode>01752</AddressPostalCode>
-			<AddressStateProvince>
-				<id>21</id>
-				<code>MA</code>
-				<value>Massachusetts</value>
-			</AddressStateProvince>
-			<ContactMethod>
-				<id>2304114</id>
-				<code>2304114</code>
-				<value>CustomerAddress</value>
-			</ContactMethod>
-			<ObjectLabel>465 | Marlborough | MA | 01752</ObjectLabel>
-		</CDXFDeliveryMethod>
-		<CDXFDeliveryMethod os_st_id="48372324174"
-			os_id="CDXFDeliveryMethod_48372324174">
-			<AddressCity>Marlborough</AddressCity>
-			<AddressCountry>
-				<id>1</id>
-				<code>US</code>
-				<value>United States</value>
-			</AddressCountry>
-			<AddressID>48372324174</AddressID>
-			<AddressLine1>109 Main St</AddressLine1>
-			<AddressPostalCode>01752</AddressPostalCode>
-			<AddressStateProvince>
-				<id>21</id>
-				<code>MA</code>
-				<value>Massachusetts</value>
-			</AddressStateProvince>
-			<ContactMethod>
-				<id>2309114</id>
-				<code>2309114</code>
-				<value>PartnerAddress</value>
-			</ContactMethod>
-			<ObjectLabel>109 Main St | Marlborough | Massachusetts | 01752 |
-				United States</ObjectLabel>
-		</CDXFDeliveryMethod>
-		<CDXFDeliveryMethod os_st_id="36875028755"
-			os_id="CDXFDeliveryMethod_36875028755">
-			<AddressCity>Miami Beach</AddressCity>
-			<AddressCountry>
-				<id>1</id>
-				<code>US</code>
-				<value>United States</value>
-			</AddressCountry>
-			<AddressID>36875028755</AddressID>
-			<AddressLine1>330 Bay Road</AddressLine1>
-			<AddressPostalCode>33154</AddressPostalCode>
-			<AddressStateProvince>
-				<id>9</id>
-				<code>FL</code>
-				<value>Florida</value>
-			</AddressStateProvince>
-			<ContactMethod>
-				<id>2623046</id>
-				<code>2623046</code>
-				<value>DragonUserAddress</value>
-			</ContactMethod>
-			<ObjectLabel>330 Bay Road | Miami Beach | Florida | 33154 | United
-				States</ObjectLabel>
-		</CDXFDeliveryMethod>
-		<CDXFDeliveryMethod os_st_id="52334311374"
-			os_id="CDXFDeliveryMethod_52334311374">
-			<PhoneID>52334311374</PhoneID>
-			<PhoneNumber>8607564149</PhoneNumber>
-			<PhoneType>
-				<id>7</id>
-				<value>Primary Phone</value>
-			</PhoneType>
-			<ObjectLabel>8607564149</ObjectLabel>
-		</CDXFDeliveryMethod>
-		<CDXFDeliveryMethod os_st_id="48372323874"
-			os_id="CDXFDeliveryMethod_48372323874">
-			<PhoneID>48372323874</PhoneID>
-			<PhoneNumber>5554448888</PhoneNumber>
-			<ObjectLabel>5554448888</ObjectLabel>
-		</CDXFDeliveryMethod>
-		<CDXFDeliveryMethod os_st_id="52334311474"
-			os_id="CDXFDeliveryMethod_52334311474">
-			<EmailAddress>gfdgjfch@gmail.com</EmailAddress>
-			<EmailObjectID>52334311474</EmailObjectID>
-			<EmailType>
-				<id>20</id>
-				<value>Primary Email</value>
-			</EmailType>
-			<ObjectLabel>gfdgjfch@gmail.com</ObjectLabel>
-		</CDXFDeliveryMethod>
-		<CDXFDeliveryMethod os_st_id="48372324074"
-			os_id="CDXFDeliveryMethod_48372324074">
-			<EmailAddress>partnersrus@email.com</EmailAddress>
-			<EmailObjectID>48372324074</EmailObjectID>
-			<ObjectLabel>partnersrus@email.com</ObjectLabel>
-		</CDXFDeliveryMethod>
-		<CDXFDeliveryMethod os_st_id="50415300674"
-			os_id="CDXFDeliveryMethod_50415300674">
-			<EmailAddress>test123@gmail.com</EmailAddress>
-			<EmailObjectID>50415300674</EmailObjectID>
-			<ObjectLabel>test123@gmail.com</ObjectLabel>
-		</CDXFDeliveryMethod>
-		<CDXFDeliveryMethod os_st_id="36875029355"
-			os_id="CDXFDeliveryMethod_36875029355">
-			<EmailAddress>l@l.com</EmailAddress>
-			<EmailObjectID>36875029355</EmailObjectID>
-			<ObjectLabel>l@l.com</ObjectLabel>
-		</CDXFDeliveryMethod>
-		<CDXFDocument os_st_id="52334442174"
-			os_id="CDXFDocument_52334442174">
-			<CDXFEndorsementChangeType>
-				<id>1</id>
-				<value>Added</value>
-			</CDXFEndorsementChangeType>
-			<CDXFPackageFileName>Failed Pay Cancel Endt-52334442174.HTML
-			</CDXFPackageFileName>
-			<DocumentComponentOrder>1</DocumentComponentOrder>
-			<DocumentContentID>52334442274</DocumentContentID>
-			<DocumentContentType>
-				<id>20564</id>
-				<code>20564</code>
-				<value>Email</value>
-			</DocumentContentType>
-			<DocumentFileName>Failed Pay Cancel Endt</DocumentFileName>
-			<DocumentID>52334442174</DocumentID>
-			<DocumentRenderingType>
-				<id>12064</id>
-				<code>HTML</code>
-				<value>HTML</value>
-			</DocumentRenderingType>
-			<ReferenceCoveredObject>CDXFBillingTransaction_52334430574
-			</ReferenceCoveredObject>
-			<TemplateFileName>DPD_BILL_Email_Failed_Pay_Cancel_Endt
-			</TemplateFileName>
-		</CDXFDocument>
-		<CDXFEntity os_st_id="48372321774"
-			os_id="CDXFEntity_48372321774">
-			<BrokerNumber>83808200</BrokerNumber>
-			<BusinessLegalEntity>
-				<id>4</id>
-				<code>Corporation</code>
-				<value>Corporation</value>
-			</BusinessLegalEntity>
-			<EntityBusinessName>Partners R Us</EntityBusinessName>
-			<EntityID>48372321774</EntityID>
-			<UTemplateID>48372321774</UTemplateID>
-			<EntityRole>
-				<id>2946</id>
-				<code>Agent/Broker</code>
-				<value>Agent/Broker</value>
-			</EntityRole>
-			<EntityType>
-				<id>63</id>
-				<code>63</code>
-				<value>Partner</value>
-			</EntityType>
-			<PreferredMailingAddressPartnerRef>CDXFDeliveryMethod_48372324174
-			</PreferredMailingAddressPartnerRef>
-			<PreferredPrimaryAddressPartnerRef>CDXFDeliveryMethod_48372324174
-			</PreferredPrimaryAddressPartnerRef>
-			<ObjectLabel>Partners R Us</ObjectLabel>
-		</CDXFEntity>
-		<CDXFEntity os_st_id="118" os_id="CDXFEntity_118">
-			<BrokerNumber>0</BrokerNumber>
-			<BusinessLegalEntity>
-				<id>4</id>
-				<code>Corporation</code>
-				<value>Corporation</value>
-			</BusinessLegalEntity>
-			<EntityBusinessName>Hiscox Exchange Sponsor</EntityBusinessName>
-			<EntityID>118</EntityID>
-			<EntityRole>
-				<id>19864</id>
-				<code>Carrier</code>
-				<value>Carrier</value>
-			</EntityRole>
-			<EntityType>
-				<id>63</id>
-				<code>63</code>
-				<value>Partner</value>
-			</EntityType>
-			<PreferredPrimaryAddressPartnerRef>CDXFDeliveryMethod_36865253655
-			</PreferredPrimaryAddressPartnerRef>
-			<ObjectLabel>Hiscox Exchange Sponsor</ObjectLabel>
-		</CDXFEntity>
-		<CDXFEntity os_st_id="36875028555"
-			os_id="CDXFEntity_36875028555">
-			<EntityFirstName>lkj</EntityFirstName>
-			<EntityID>36875028555</EntityID>
-			<UTemplateID>36875028555</UTemplateID>
-			<EntityLastName>lkj</EntityLastName>
-			<EntityRole>
-				<id>10746</id>
-				<code>Billing CSR</code>
-				<value>Billing CSR</value>
-			</EntityRole>
-			<PreferredBillingAddressUserRef>CDXFDeliveryMethod_36875028755
-			</PreferredBillingAddressUserRef>
-			<PreferredMailingAddressUserRef>CDXFDeliveryMethod_36875028755
-			</PreferredMailingAddressUserRef>
-			<PreferredPrimaryAddressUserRef>CDXFDeliveryMethod_36875028755
-			</PreferredPrimaryAddressUserRef>
-			<PreferredPrimaryEmailUserRef>CDXFDeliveryMethod_36875029355
-			</PreferredPrimaryEmailUserRef>
-			<UserName>user</UserName>
-			<ObjectLabel>l@l.com</ObjectLabel>
-		</CDXFEntity>
-		<CDXFPolicyTransaction os_st_id="52334430574"
-			os_id="CDXFPolicyTransaction_52334430574">
-			<PolicyTrxnID>52334430574</PolicyTrxnID>
-			<PolicyTranPremiumCurrentTotal>0</PolicyTranPremiumCurrentTotal>
-			<TransactionCurrentStatus>
-				<id>39846</id>
-				<code>Processed</code>
-				<value>Processed</value>
-			</TransactionCurrentStatus>
-			<TransactionGenericInstanceNumber>5
-			</TransactionGenericInstanceNumber>
-		</CDXFPolicyTransaction>
-	</CDXFTransaction>
-</CDXFTransactionSet><!--OneShield Proprietary . Do Not Distribute --><!--Unreferenced Objects in this XML: 36865253655 -->
+<soap:Envelope
+	xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+	<env:Header
+		xmlns:env="http://www.w3.org/2003/05/soap-envelope" />
+	<soap:Body>
+		<ns1:generateDraft
+			xmlns:ns1="http://docgenerationservices.corehiscoxservices.com">
+			<request xmlns="http://io.service.oneshield.com/soa"
+				xmlns:ns2="http://io.common.integration.oneshield.com/xsd">
+				<dxfPayloadType>xml</dxfPayloadType>
+				<humanUserName>und5</humanUserName>
+				<operationLabel>generateDraft</operationLabel>
+				<payload>&lt;?xml version='1.0'
+					encoding='UTF-8'?&gt;&lt;CDXFTransactionSet os_st_id="56039187974"
+					os_id="CDXFTransactionSet_56039187974"
+					xmlns="http://www.oneshield.com/DragonSchema"
+					xmlns:xsi="http://www.w3.org/2001/XMLSchema"&gt;&lt;CDXFTransaction
+					os_st_id="56039188074"
+					os_id="CDXFTransaction_56039188074"&gt;&lt;GenericTransactionID&gt;56039188074&lt;/GenericTransactionID&gt;&lt;CDXFDeliveryMethod
+					os_st_id="55979241974"
+					os_id="CDXFDeliveryMethod_55979241974"&gt;&lt;AddressCity&gt;Bellevue&lt;/AddressCity&gt;&lt;AddressCountry&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;US&lt;/code&gt;&lt;value&gt;United
+					States&lt;/value&gt;&lt;/AddressCountry&gt;&lt;AddressCounty&gt;KING&lt;/AddressCounty&gt;&lt;AddressID&gt;55979241974&lt;/AddressID&gt;&lt;AddressLine1&gt;main
+					NOC
+					TestCase&lt;/AddressLine1&gt;&lt;AddressPostalCode&gt;98005&lt;/AddressPostalCode&gt;&lt;AddressStateProvince&gt;&lt;id&gt;48&lt;/id&gt;&lt;code&gt;WA&lt;/code&gt;&lt;value&gt;Washington&lt;/value&gt;&lt;/AddressStateProvince&gt;&lt;ContactMethod&gt;&lt;id&gt;2304114&lt;/id&gt;&lt;code&gt;2304114&lt;/code&gt;&lt;value&gt;CustomerAddress&lt;/value&gt;&lt;/ContactMethod&gt;&lt;ObjectLabel&gt;main
+					NOC TestCase | Bellevue | WA |
+					98005&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDeliveryMethod
+					os_st_id="55979241974"
+					os_id="CDXFDeliveryMethod_55979241974"&gt;&lt;AddressCity&gt;Bellevue&lt;/AddressCity&gt;&lt;AddressCountry&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;US&lt;/code&gt;&lt;value&gt;United
+					States&lt;/value&gt;&lt;/AddressCountry&gt;&lt;AddressCounty&gt;KING&lt;/AddressCounty&gt;&lt;AddressID&gt;55979241974&lt;/AddressID&gt;&lt;AddressLine1&gt;main
+					NOC
+					TestCase&lt;/AddressLine1&gt;&lt;AddressPostalCode&gt;98005&lt;/AddressPostalCode&gt;&lt;AddressStateProvince&gt;&lt;id&gt;48&lt;/id&gt;&lt;code&gt;WA&lt;/code&gt;&lt;value&gt;Washington&lt;/value&gt;&lt;/AddressStateProvince&gt;&lt;ContactMethod&gt;&lt;id&gt;2304114&lt;/id&gt;&lt;code&gt;2304114&lt;/code&gt;&lt;value&gt;CustomerAddress&lt;/value&gt;&lt;/ContactMethod&gt;&lt;ObjectLabel&gt;main
+					NOC TestCase | Bellevue | WA |
+					98005&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDeliveryMethod
+					os_st_id="55979241974"
+					os_id="CDXFDeliveryMethod_55979241974"&gt;&lt;AddressCity&gt;Bellevue&lt;/AddressCity&gt;&lt;AddressCountry&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;US&lt;/code&gt;&lt;value&gt;United
+					States&lt;/value&gt;&lt;/AddressCountry&gt;&lt;AddressCounty&gt;KING&lt;/AddressCounty&gt;&lt;AddressID&gt;55979241974&lt;/AddressID&gt;&lt;AddressLine1&gt;main
+					NOC
+					TestCase&lt;/AddressLine1&gt;&lt;AddressPostalCode&gt;98005&lt;/AddressPostalCode&gt;&lt;AddressStateProvince&gt;&lt;id&gt;48&lt;/id&gt;&lt;code&gt;WA&lt;/code&gt;&lt;value&gt;Washington&lt;/value&gt;&lt;/AddressStateProvince&gt;&lt;ContactMethod&gt;&lt;id&gt;2304114&lt;/id&gt;&lt;code&gt;2304114&lt;/code&gt;&lt;value&gt;CustomerAddress&lt;/value&gt;&lt;/ContactMethod&gt;&lt;ObjectLabel&gt;main
+					NOC TestCase | Bellevue | WA |
+					98005&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDeliveryMethod
+					os_st_id="55979241174"
+					os_id="CDXFDeliveryMethod_55979241174"&gt;&lt;PhoneID&gt;55979241174&lt;/PhoneID&gt;&lt;PhoneNumber&gt;8574545454&lt;/PhoneNumber&gt;&lt;PhoneType&gt;&lt;id&gt;7&lt;/id&gt;&lt;value&gt;Primary
+					Phone&lt;/value&gt;&lt;/PhoneType&gt;&lt;ObjectLabel&gt;8574545454&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDeliveryMethod
+					os_st_id="55979241274"
+					os_id="CDXFDeliveryMethod_55979241274"&gt;&lt;EmailAddress&gt;primary@os.com&lt;/EmailAddress&gt;&lt;EmailObjectID&gt;55979241274&lt;/EmailObjectID&gt;&lt;EmailType&gt;&lt;id&gt;20&lt;/id&gt;&lt;value&gt;Primary
+					Email&lt;/value&gt;&lt;/EmailType&gt;&lt;ObjectLabel&gt;primary@os.com&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDiary
+					os_st_id="56039185974"
+					os_id="CDXFDiary_56039185974"&gt;&lt;TaskID&gt;56039185974&lt;/TaskID&gt;&lt;TaskCategory&gt;&lt;id&gt;12064&lt;/id&gt;&lt;value&gt;Customer&lt;/value&gt;&lt;/TaskCategory&gt;&lt;TaskSubCategory&gt;&lt;id&gt;48964&lt;/id&gt;&lt;value&gt;Please
+					Call&lt;/value&gt;&lt;/TaskSubCategory&gt;&lt;TaskEmailTemplate&gt;&lt;id&gt;481764&lt;/id&gt;&lt;value&gt;Unable
+					to Reach
+					You&lt;/value&gt;&lt;/TaskEmailTemplate&gt;&lt;/CDXFDiary&gt;&lt;CDXFDocument
+					os_st_id="56039186974"
+					os_id="CDXFDocument_56039186974"&gt;&lt;CDXFEndorsementChangeType&gt;&lt;id&gt;1&lt;/id&gt;&lt;value&gt;Added&lt;/value&gt;&lt;/CDXFEndorsementChangeType&gt;&lt;CDXFPackageFileName&gt;Unable
+					to Reach
+					You-56039186974.HTML&lt;/CDXFPackageFileName&gt;&lt;DocumentCode&gt;EMAIL&lt;/DocumentCode&gt;&lt;DocumentComponentOrder&gt;1&lt;/DocumentComponentOrder&gt;&lt;DocumentContentID&gt;56039187074&lt;/DocumentContentID&gt;&lt;DocumentContentType&gt;&lt;id&gt;20564&lt;/id&gt;&lt;code&gt;20564&lt;/code&gt;&lt;value&gt;Email
+					-
+					Policy&lt;/value&gt;&lt;/DocumentContentType&gt;&lt;DocumentFileName&gt;Unable
+					to Reach
+					You&lt;/DocumentFileName&gt;&lt;DocumentID&gt;56039186974&lt;/DocumentID&gt;&lt;DocumentRenderingType&gt;&lt;id&gt;12064&lt;/id&gt;&lt;code&gt;HTML&lt;/code&gt;&lt;value&gt;HTML&lt;/value&gt;&lt;/DocumentRenderingType&gt;&lt;ReferenceCoveredObject&gt;CDXFNotes_56039185974&lt;/ReferenceCoveredObject&gt;&lt;TemplateFileName&gt;DPD_Email_Unable_to_Reach_You&lt;/TemplateFileName&gt;&lt;TemplateRequestType&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;DRAFT&lt;/code&gt;&lt;value&gt;DRAFT&lt;/value&gt;&lt;/TemplateRequestType&gt;&lt;TemplateID&gt;157936112&lt;/TemplateID&gt;&lt;/CDXFDocument&gt;&lt;CDXFEntity
+					os_st_id="55979241074"
+					os_id="CDXFEntity_55979241074"&gt;&lt;BusinessLegalEntity&gt;&lt;id&gt;4&lt;/id&gt;&lt;code&gt;Corporation&lt;/code&gt;&lt;value&gt;Corporation&lt;/value&gt;&lt;/BusinessLegalEntity&gt;&lt;EntityBusinessName&gt;NOC
+					TestCase&lt;/EntityBusinessName&gt;&lt;EntityID&gt;55979241074&lt;/EntityID&gt;&lt;UTemplateID&gt;55979241074&lt;/UTemplateID&gt;&lt;EntityRole&gt;&lt;id&gt;7&lt;/id&gt;&lt;code&gt;Primary
+					Entity/Customer&lt;/code&gt;&lt;value&gt;Primary
+					Entity/Customer&lt;/value&gt;&lt;/EntityRole&gt;&lt;EntityType&gt;&lt;id&gt;205&lt;/id&gt;&lt;code&gt;205&lt;/code&gt;&lt;value&gt;CustomerEntity&lt;/value&gt;&lt;/EntityType&gt;&lt;PreferredBillingAddressEntityRef&gt;CDXFDeliveryMethod_55979241974&lt;/PreferredBillingAddressEntityRef&gt;&lt;PreferredPrimaryAddressEntityRef&gt;CDXFDeliveryMethod_55979241974&lt;/PreferredPrimaryAddressEntityRef&gt;&lt;PreferredPrimaryEmailEntityRef&gt;CDXFDeliveryMethod_55979241274&lt;/PreferredPrimaryEmailEntityRef&gt;&lt;PreferredPrimaryPhoneNumberEntityRef&gt;CDXFDeliveryMethod_55979241174&lt;/PreferredPrimaryPhoneNumberEntityRef&gt;&lt;ObjectLabel&gt;NOC
+					TestCase
+					&lt;/ObjectLabel&gt;&lt;EntityNumberFormattedForDisplay&gt;100.004.395&lt;/EntityNumberFormattedForDisplay&gt;&lt;EntityNumber&gt;100004395&lt;/EntityNumber&gt;&lt;EntityIncludedBusinessName&gt;NOC
+					TestCase&lt;/EntityIncludedBusinessName&gt;&lt;EntityBusinessContactFirstName&gt;NOC&lt;/EntityBusinessContactFirstName&gt;&lt;EntityBusinessContactLastName&gt;TestCase&lt;/EntityBusinessContactLastName&gt;&lt;EntityBusinessFinancialSummary&gt;5252.0&lt;/EntityBusinessFinancialSummary&gt;&lt;EntitySystemIndicator&gt;&lt;id&gt;2&lt;/id&gt;&lt;value&gt;No&lt;/value&gt;&lt;/EntitySystemIndicator&gt;&lt;EntityIsBusinessOrPerson&gt;&lt;id&gt;2&lt;/id&gt;&lt;value&gt;Legal
+					Entity&lt;/value&gt;&lt;/EntityIsBusinessOrPerson&gt;&lt;EntityBusinessContactRole&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;1&lt;/code&gt;&lt;value&gt;Business
+					Owner&lt;/value&gt;&lt;/EntityBusinessContactRole&gt;&lt;EntityBusinessNoOfEmployees&gt;52&lt;/EntityBusinessNoOfEmployees&gt;&lt;EntityBusinessEstablishDate&gt;19630101000100&lt;/EntityBusinessEstablishDate&gt;&lt;/CDXFEntity&gt;&lt;CDXFPartner
+					os_st_id="55979241074"
+					os_id="CDXFPartner_55979241074"/&gt;&lt;/CDXFTransaction&gt;&lt;/CDXFTransactionSet&gt;&lt;!--OneShield
+					Proprietary . Do Not Distribute--&gt;</payload>
+				<processingDirectives>
+					<ns2:directive>
+						<ns2:name>STORE</ns2:name>
+						<ns2:value>F</ns2:value>
+					</ns2:directive>
+					<ns2:directive>
+						<ns2:name>RETURN</ns2:name>
+						<ns2:value>T</ns2:value>
+					</ns2:directive>
+					<ns2:directive>
+						<ns2:name>DOCUMENT_ID</ns2:name>
+						<ns2:value>56039187074</ns2:value>
+					</ns2:directive>
+					<ns2:directive>
+						<ns2:name>schemaVersion</ns2:name>
+						<ns2:value>19246</ns2:value>
+					</ns2:directive>
+				</processingDirectives>
+				<sessionId>56038979974</sessionId>
+				<systemId>Oneshield</systemId>
+				<transactionId>172069925</transactionId>
+			</request>
+		</ns1:generateDraft>
+	</soap:Body>
+</soap:Envelope>

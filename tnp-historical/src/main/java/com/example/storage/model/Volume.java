@@ -11,14 +11,17 @@ public class Volume {
 	private Double voumeChange;
 
 	private Long avgVolume10;
+	
+	private Long avgVolume30;
 
-	public Volume(Long obv, Double roc, Long volume, Double voumeChange, Long avgVolume10) {
+	public Volume(Long obv, Double roc, Long volume, Double voumeChange, Long avgVolume10, Long avgVolume30) {
 		super();
 		this.obv = obv != null ? obv : 1;
 		this.roc = roc != null ? roc : 0.00;
 		this.volume = volume != null ? volume : 0l;
 		this.voumeChange = voumeChange !=null ? voumeChange : 0.00 ;
 		this.avgVolume10 = avgVolume10 != null ? avgVolume10 : 0l;
+		this.avgVolume30 = avgVolume30 != null ? avgVolume30 : 0l;
 	}
 
 	public Long getObv() {
@@ -61,10 +64,18 @@ public class Volume {
 		this.avgVolume10 = avgVolume10;
 	}
 
+	public Long getAvgVolume30() {
+		return avgVolume30;
+	}
+
+	public void setAvgVolume30(Long avgVolume30) {
+		this.avgVolume30 = avgVolume30;
+	}
+
 	@Override
 	public String toString() {
-		return "PriceVolume [obv=" + obv + ", roc=" + roc + ", volume=" + volume + ", voumeChange=" + voumeChange
-				+ ", avgVolume10=" + avgVolume10 + "]";
+		return "Volume [obv=" + obv + ", roc=" + roc + ", volume=" + volume + ", voumeChange=" + voumeChange
+				+ ", avgVolume10=" + avgVolume10 + ", avgVolume30=" + avgVolume30 + "]";
 	}
 
 }

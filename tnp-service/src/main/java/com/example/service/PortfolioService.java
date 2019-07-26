@@ -317,4 +317,15 @@ public class PortfolioService {
 		return portfolioRepository.findIndicedAllocation(userProfile);
 	}
 	
+	public boolean isPortfolioStock(Stock stock) {
+		boolean isPortfolioStock = false;
+		
+		List<UserPortfolio> userPortfolioList =  portfolioRepository.findByPortfolioIdStock(stock);
+		
+		if(userPortfolioList != null && userPortfolioList.size() > 0) {
+			isPortfolioStock = true;
+		}
+		
+		return isPortfolioStock;
+	}
 }

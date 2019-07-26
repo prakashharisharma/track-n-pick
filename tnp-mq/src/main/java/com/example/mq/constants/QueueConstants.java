@@ -10,6 +10,8 @@ public interface QueueConstants {
 		
 		public static String UPDATE_BHAV_QUEUE = "queue.historical.bhav.update";
 		
+		public static String UPDATE_CANDLESTICK_QUEUE = "queue.historical.candlestick.update";
+		
 		public static String UPDATE_TECHNICALS_QUEUE = "queue.historical.technicals.update";
 		
 		public static String UPDATE_FACTORS_QUEUE = "queue.historical.factors.update";
@@ -50,6 +52,8 @@ public interface QueueConstants {
 		public static String RESEARCH_FUNDAMENTAL_QUEUE = "queue.mt.research.fundamental";
 		
 		public static String RESEARCH_TECHNICAL_QUEUE = "queue.mt.research.technical";
+		
+		public static String RESEARCH_BREAKOUT_QUEUE = "queue.mt.research.breakout";
 		
 		//public static String PORTFOLIO_NOTIFICATION_TRIGGER = "queue.mt.notification.portfolio";
 		

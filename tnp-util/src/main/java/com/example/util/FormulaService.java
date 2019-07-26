@@ -14,8 +14,12 @@ public class FormulaService {
 
 	public double calculateRsi(double rs) {
 
-		double rsi = (100 - (100 / (1 + rs)));
-
+		double rsi = 0.00;
+		try {
+			rsi = (100 - (100 / (1 + rs)));
+		}catch(Exception e) {
+			rsi = 1.00;
+		}
 		return rsi;
 	}
 

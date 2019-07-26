@@ -13,6 +13,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 import com.example.mq.constants.QueueConstants;
+import com.example.mq.producer.QueueService;
 import com.example.storage.model.DailyBhav;
 import com.example.storage.repo.BhavTemplate;
 import com.example.util.io.model.StockPriceIO;
@@ -25,6 +26,9 @@ public class BhavHistoryConsumer {
 	@Autowired
 	private BhavTemplate bhavTemplate;
 
+	@Autowired
+	private QueueService queueService;
+	
 	@JmsListener(destination = QueueConstants.HistoricalQueue.UPDATE_BHAV_QUEUE)
 	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
@@ -42,6 +46,7 @@ public class BhavHistoryConsumer {
 
 		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_BHAV_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : END");
 		
+		queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_CANDLESTICK_QUEUE);
 	}
 
 }

@@ -79,33 +79,47 @@ public class RuleService {
 
 					LOGGER.debug(stock.getNseSymbol() + " : " + stockPrice + " PE : " + pe + " PB : " + pb);
 
-					if (pb <= sectorPb) {
+					if (stock.getPrimaryIndice() == IndiceType.NIFTY50) {
 
-						if (stock.getPrimaryIndice() == IndiceType.NIFTY50) {
-							if (peDiff > 2.0) {
+						if (peDiff > 5.0) {
+							if (pb < 3.0) {
+								isUndervalued = true;
+							} else if (pb < sectorPb) {
 								isUndervalued = true;
 							}
-						} else if (stock.getPrimaryIndice() == IndiceType.NIFTY100) {
-							if (peDiff > 3.0) {
+
+						}
+					} else if (stock.getPrimaryIndice() == IndiceType.NIFTY100) {
+
+						if (peDiff > 5.0) {
+							if (pb < 2.5) {
+								isUndervalued = true;
+							} else if (pb < sectorPb) {
 								isUndervalued = true;
 							}
-						} else if (stock.getPrimaryIndice() == IndiceType.NIFTY250) {
-							if (peDiff > 4.0) {
-								isUndervalued = true;
-							}
-						} else if (stock.getPrimaryIndice() == IndiceType.NIFTY500) {
+						}
+					} else if (stock.getPrimaryIndice() == IndiceType.NIFTY250) {
+						if (pb < sectorPb) {
 							if (peDiff > 5.0) {
 								isUndervalued = true;
 							}
 						}
-
+					} else if (stock.getPrimaryIndice() == IndiceType.NIFTY500) {
+						if (pb < sectorPb) {
+							if (peDiff > 5.0) {
+								isUndervalued = true;
+							}
+						}
 					}
+
+					// }
 				}
 			}
 
 		}
 
 		return isUndervalued;
+
 	}
 
 	public boolean isOvervalued(Stock stock) {

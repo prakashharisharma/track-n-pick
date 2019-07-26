@@ -12,15 +12,14 @@ import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import com.example.model.ledger.BreakoutLedger;
 import com.example.model.ledger.CrossOverLedger;
 import com.example.model.ledger.CrossOverLedger.CrossOverCategory;
 import com.example.model.master.Stock;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
-import com.example.service.BreakoutLedgerService;
 import com.example.service.CrossOverLedgerService;
 import com.example.service.ResearchLedgerTechnicalService;
+import com.example.service.RuleService;
 import com.example.service.StockService;
 import com.example.service.TechnicalsResearchService;
 import com.example.util.io.model.ResearchIO;
@@ -45,10 +44,10 @@ public class ResearchTechnicalConsumer {
 	private ResearchLedgerTechnicalService researchLedgerService;
 
 	@Autowired
-	private BreakoutLedgerService breakoutLedgerService;
+	private QueueService queueService;
 
 	@Autowired
-	private QueueService queueService;
+	private RuleService ruleService;
 
 	@JmsListener(destination = QueueConstants.MTQueue.RESEARCH_TECHNICAL_QUEUE)
 	public void receiveMessage(@Payload ResearchIO researchIO, @Headers MessageHeaders headers, Message message,
@@ -62,10 +61,6 @@ public class ResearchTechnicalConsumer {
 
 			this.researchTechnical(stock, researchIO.getResearchTrigger());
 
-			this.researchPositiveBreakout(stock);
-
-			this.researchNegativeBreakout(stock);
-
 		} else {
 			LOGGER.info("INVALID RESEARCH TYPE");
 		}
@@ -74,16 +69,21 @@ public class ResearchTechnicalConsumer {
 	private void researchTechnical(Stock stock, ResearchTrigger researchTrigger) {
 
 		if (researchTrigger == ResearchTrigger.BUY) {
+			if (ruleService.isUndervalued(stock)) {
+				if (technicalsResearchService.isBullishCrossOver200(stock)) {
 
-			if (technicalsResearchService.isBullishCrossOver200(stock)) {
+					this.addBullishCrossOverLedger(stock, CrossOverCategory.CROSS200);
 
-				this.addBullishCrossOverLedger(stock, CrossOverCategory.CROSS200);
+				} else if (technicalsResearchService.isPriceVolumeBullish(stock)) {
+					this.addBullishCrossOverLedger(stock, CrossOverCategory.VIPR);
+				}
 
-			}else if(technicalsResearchService.isPriceVolumeBullish(stock)) {
-				this.addBullishCrossOverLedger(stock, CrossOverCategory.VIPR);
+				else if (technicalsResearchService.isBreakOut50Bullish(stock)) {
+					this.addBullishCrossOverLedger(stock, CrossOverCategory.BO50BULLISH);
+				} else if (technicalsResearchService.isBreakOut200HighVolumeBullish(stock)) {
+					this.addBullishCrossOverLedger(stock, CrossOverCategory.BO200BULLISH);
+				}
 			}
-			
-			
 
 		} else if (researchTrigger == ResearchTrigger.SELL) {
 
@@ -91,8 +91,12 @@ public class ResearchTechnicalConsumer {
 
 				this.addBearishCrossOverLedger(stock, CrossOverCategory.CROSS100);
 
-			}else if(technicalsResearchService.isPriceVolumeBearish(stock)) {
+			} else if (technicalsResearchService.isPriceVolumeBearish(stock)) {
 				this.addBearishCrossOverLedger(stock, CrossOverCategory.VIPF);
+			} else if (technicalsResearchService.isBreakOut50Bearish(stock)) {
+				this.addBearishCrossOverLedger(stock, CrossOverCategory.BO50BEARISH);
+			} else if (technicalsResearchService.isBreakOut200HighVolumeBearish(stock)) {
+				this.addBearishCrossOverLedger(stock, CrossOverCategory.BO200BEARISH);
 			}
 
 		} else {
@@ -120,47 +124,15 @@ public class ResearchTechnicalConsumer {
 				this.addBearishCrossOverLedger(stock, CrossOverCategory.CROSS100);
 
 			}
-			
-			if(technicalsResearchService.isPriceVolumeBullish(stock)) {
+
+			if (technicalsResearchService.isPriceVolumeBullish(stock)) {
 				this.addBullishCrossOverLedger(stock, CrossOverCategory.VIPR);
 			}
 
-			if(technicalsResearchService.isPriceVolumeBearish(stock)) {
+			if (technicalsResearchService.isPriceVolumeBearish(stock)) {
 				this.addBearishCrossOverLedger(stock, CrossOverCategory.VIPF);
 			}
-			
-		}
 
-	}
-
-	private void researchPositiveBreakout(Stock stock) {
-
-		LOGGER.info("RESEARCH_CONSUMER researchPositiveBreakout " + stock.getNseSymbol());
-
-		if (technicalsResearchService.isPositiveBreakout200(stock)) {
-			breakoutLedgerService.addPositive(stock, BreakoutLedger.BreakoutCategory.CROSS200);
-		}
-		if (technicalsResearchService.isPositiveBreakout100(stock)) {
-			breakoutLedgerService.addPositive(stock, BreakoutLedger.BreakoutCategory.CROSS100);
-		}
-		if (technicalsResearchService.isPositiveBreakout50(stock)) {
-			breakoutLedgerService.addPositive(stock, BreakoutLedger.BreakoutCategory.CROSS50);
-		}
-
-	}
-
-	private void researchNegativeBreakout(Stock stock) {
-
-		LOGGER.info("RESEARCH_CONSUMER researchNegativeBreakout " + stock.getNseSymbol());
-
-		if (technicalsResearchService.isNegativeBreakout50(stock)) {
-			breakoutLedgerService.addNegative(stock, BreakoutLedger.BreakoutCategory.CROSS50);
-		}
-		if (technicalsResearchService.isNegativeBreakout100(stock)) {
-			breakoutLedgerService.addNegative(stock, BreakoutLedger.BreakoutCategory.CROSS100);
-		}
-		if (technicalsResearchService.isNegativeBreakout200(stock)) {
-			breakoutLedgerService.addNegative(stock, BreakoutLedger.BreakoutCategory.CROSS200);
 		}
 
 	}
@@ -173,8 +145,10 @@ public class ResearchTechnicalConsumer {
 
 		CrossOverLedger entryCrossOver = crossOverLedgerService.addBullish(stock, crossOverCategory);
 
-		if (crossOverCategory == CrossOverCategory.CROSS200 || crossOverCategory == CrossOverCategory.VIPR) {
-			
+		if (crossOverCategory == CrossOverCategory.CROSS200 || crossOverCategory == CrossOverCategory.VIPR
+				|| crossOverCategory == CrossOverCategory.BO50BULLISH
+				|| crossOverCategory == CrossOverCategory.BO200BULLISH) {
+
 			this.addToResearchLedgerTechnical(stock, entryCrossOver);
 		}
 
@@ -186,7 +160,9 @@ public class ResearchTechnicalConsumer {
 
 		CrossOverLedger exitCrossOver = crossOverLedgerService.addBearish(stock, crossOverCategory);
 
-		if (crossOverCategory == CrossOverCategory.CROSS100 || crossOverCategory == CrossOverCategory.VIPF) {
+		if (crossOverCategory == CrossOverCategory.CROSS100 || crossOverCategory == CrossOverCategory.VIPF
+				|| crossOverCategory == CrossOverCategory.BO50BEARISH
+				|| crossOverCategory == CrossOverCategory.BO200BEARISH) {
 			this.updateResearchLedgerTechnical(stock, exitCrossOver);
 		}
 	}
@@ -212,6 +188,8 @@ public class ResearchTechnicalConsumer {
 
 		queueService.send(researchIO, QueueConstants.HistoricalQueue.UPDATE_RESEARCH_QUEUE);
 
-
 	}
+
+	
+
 }

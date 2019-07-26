@@ -35,8 +35,8 @@ public class TechnicalsHistoryConsumer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TechnicalsHistoryConsumer.class);
 
-	@Autowired
-	private StorageService storageService;
+	//@Autowired
+	//private StorageService storageService;
 
 	@Autowired
 	private TechnicalsTemplate technicalsTemplate;
@@ -198,9 +198,9 @@ public class TechnicalsHistoryConsumer {
 
 		double sma50 = priceTemplate.getAveragePrice(stockPriceIO.getNseSymbol(), 50);
 
-		double sma100 = storageService.getSMA(stockPriceIO.getNseSymbol(), 100);
+		double sma100 = priceTemplate.getAveragePrice(stockPriceIO.getNseSymbol(), 100);
 
-		double sma200 = storageService.getSMA(stockPriceIO.getNseSymbol(), 200);
+		double sma200 = priceTemplate.getAveragePrice(stockPriceIO.getNseSymbol(), 200);
 
 		Simple simple = new Simple(sma50, sma100, sma200);
 
@@ -264,8 +264,10 @@ public class TechnicalsHistoryConsumer {
 		double voumeChange = 0.00;
 
 		Long avgVolume10 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 10);
+		
+		Long avgVolume30 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 30);
 
-		Volume priceVolume = new Volume(OBV, roc, volume, voumeChange, avgVolume10);
+		Volume priceVolume = new Volume(OBV, roc, volume, voumeChange, avgVolume10,avgVolume30);
 
 		return priceVolume;
 	}
@@ -308,8 +310,8 @@ public class TechnicalsHistoryConsumer {
 		stockTechnicalsIO.setPrevSma100(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg100());
 		stockTechnicalsIO.setPrevSma200(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg200());
 
-		//stockTechnicalsIO.setRsi(momentum.getRsi().getSmoothedRsi());
-		stockTechnicalsIO.setRsi(0.00);
+		stockTechnicalsIO.setRsi(momentum.getRsi().getSmoothedRsi());
+		//stockTechnicalsIO.setRsi(0.00);
 
 		stockTechnicalsIO.setSok(momentum.getStochasticOscillator().getK());
 		stockTechnicalsIO.setSod(momentum.getStochasticOscillator().getD());

@@ -44,6 +44,9 @@ public class StockPrice implements Serializable{
 	@Column(name = "PREV_CLOSE", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevClose;
 	
+	@Column(name = "OPEN", columnDefinition="Decimal(10,2) default '0.00'")
+	double openPrice;
+	
 	@JsonProperty("FiftyTwoWeekLow")
 	@Column(name = "YEAR_LOW", columnDefinition="Decimal(10,2) default '0.00'")
 	double yearLow;
@@ -88,6 +91,14 @@ public class StockPrice implements Serializable{
 
 	public void setPrevClose(double prevClose) {
 		this.prevClose = prevClose;
+	}
+
+	public double getOpenPrice() {
+		return openPrice;
+	}
+
+	public void setOpenPrice(double openPrice) {
+		this.openPrice = openPrice;
 	}
 
 	public double getYearLow() {
