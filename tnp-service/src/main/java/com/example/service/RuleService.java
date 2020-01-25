@@ -52,7 +52,18 @@ public class RuleService {
 					&& stock.getStockPrice().getCurrentPrice() < rules.getPricelt500()) {
 				isPriceInRange = true;
 			}
+		} else if (stock.getPrimaryIndice() == IndiceType.NIFTY750) {
+			if (stock.getStockPrice().getCurrentPrice() > rules.getPricegt750()
+					&& stock.getStockPrice().getCurrentPrice() < rules.getPricelt750()) {
+				isPriceInRange = true;
+			}
+		}else if (stock.getPrimaryIndice() == IndiceType.NIFTY1000) {
+			if (stock.getStockPrice().getCurrentPrice() > rules.getPricegt1000()
+					&& stock.getStockPrice().getCurrentPrice() < rules.getPricelt1000()) {
+				isPriceInRange = true;
+			}
 		}
+		
 		return isPriceInRange;
 	}
 
@@ -73,6 +84,8 @@ public class RuleService {
 
 				double sectorPe = stock.getSector().getSectorPe();
 
+				double pbDiff = sectorPb - pb;
+				
 				double peDiff = sectorPe - pe;
 
 				if (pe > 0.0) {
@@ -82,31 +95,43 @@ public class RuleService {
 					if (stock.getPrimaryIndice() == IndiceType.NIFTY50) {
 
 						if (peDiff > 5.0) {
-							if (pb < 3.0) {
+							if (pb < 2.5) {
 								isUndervalued = true;
-							} else if (pb < sectorPb) {
+							} else if (pbDiff > 0.20) {
 								isUndervalued = true;
 							}
 
 						}
 					} else if (stock.getPrimaryIndice() == IndiceType.NIFTY100) {
 
-						if (peDiff > 5.0) {
+						if (peDiff > 6.0) {
 							if (pb < 2.5) {
 								isUndervalued = true;
-							} else if (pb < sectorPb) {
+							} else if (pbDiff > 0.2) {
 								isUndervalued = true;
 							}
 						}
 					} else if (stock.getPrimaryIndice() == IndiceType.NIFTY250) {
-						if (pb < sectorPb) {
-							if (peDiff > 5.0) {
+						if (pbDiff > 0.5) {
+							if (peDiff > 7.0) {
 								isUndervalued = true;
 							}
 						}
 					} else if (stock.getPrimaryIndice() == IndiceType.NIFTY500) {
-						if (pb < sectorPb) {
-							if (peDiff > 5.0) {
+						if (pbDiff > 1.0) {
+							if (peDiff > 8.0) {
+								isUndervalued = true;
+							}
+						}
+					}else if (stock.getPrimaryIndice() == IndiceType.NIFTY750) {
+						if (pbDiff > 1.0) {
+							if (peDiff > 10.0) {
+								isUndervalued = true;
+							}
+						}
+					}else if (stock.getPrimaryIndice() == IndiceType.NIFTY1000) {
+						if (pbDiff > 1.0) {
+							if (peDiff > 12.0) {
 								isUndervalued = true;
 							}
 						}
@@ -144,7 +169,10 @@ public class RuleService {
 					LOGGER.debug(" RULE 4 ");
 					isOvervalued = true;
 
-				}
+				}/*else if(pb > sectorPb) {
+					LOGGER.debug(" RULE 4 ");
+					isOvervalued = true;
+				}*/
 			}
 
 		}
@@ -166,6 +194,10 @@ public class RuleService {
 				isUndervalued = this.isUndervaluedPre250(stock);
 			} else if (stock.getPrimaryIndice() == IndiceType.NIFTY500) {
 				isUndervalued = this.isUndervaluedPre500(stock);
+			} else if (stock.getPrimaryIndice() == IndiceType.NIFTY750) {
+				isUndervalued = this.isUndervaluedPre750(stock);
+			}else if (stock.getPrimaryIndice() == IndiceType.NIFTY1000) {
+				isUndervalued = this.isUndervaluedPre1000(stock);
 			}
 
 		}
@@ -332,7 +364,7 @@ public class RuleService {
 					} else {
 						if (stock.getStockFactor().getMarketCap() >= rules.getMcap()
 								&& stock.getStockFactor().getDebtEquity() < rules.getDebtEquity()
-								&& stock.getStockFactor().getDividend() >= rules.getDividend()
+								&& stock.getStockFactor().getDividend() > rules.getDividend()
 								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoe500()
 								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoce500()
 								&& stock.getStockFactor().getCurrentRatio() >= rules.getCurrentRatio500()
@@ -347,5 +379,90 @@ public class RuleService {
 		}
 		return isUndervalued;
 	}
+	private boolean isUndervaluedPre750(Stock stock) {
 
+		boolean isUndervalued = false;
+
+		Sector sector = stock.getSector();
+
+		if (stock != null) {
+
+			if (sector != null) {
+
+				String sectorName = sector.getSectorName();
+
+				if (sectorName != null && !sectorName.isEmpty()) {
+
+					if (stock.getSector().getSectorName().equalsIgnoreCase("FINANCIAL SERVICES")) {
+
+						if (stock.getStockFactor().getMarketCap() >= rules.getMcap()
+								&& stock.getStockFactor().getDividend() > rules.getDividend()
+								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoe750()
+								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoce750()
+								&& stock.getStockFactor().getCurrentRatio() >= rules.getCurrentRatio750()
+								&& stock.getStockFactor().getQuickRatio() >= rules.getQuickRatioBanks()) {
+							isUndervalued = true;
+						}
+
+					} else {
+						if (stock.getStockFactor().getMarketCap() >= rules.getMcap()
+								&& stock.getStockFactor().getDebtEquity() < rules.getDebtEquity()
+								&& stock.getStockFactor().getDividend() > rules.getDividend()
+								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoe750()
+								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoce750()
+								&& stock.getStockFactor().getCurrentRatio() >= rules.getCurrentRatio750()
+
+						) {
+
+							isUndervalued = true;
+						}
+					}
+				}
+			}
+		}
+		return isUndervalued;
+	}
+	private boolean isUndervaluedPre1000(Stock stock) {
+
+		boolean isUndervalued = false;
+
+		Sector sector = stock.getSector();
+
+		if (stock != null) {
+
+			if (sector != null) {
+
+				String sectorName = sector.getSectorName();
+
+				if (sectorName != null && !sectorName.isEmpty()) {
+
+					if (stock.getSector().getSectorName().equalsIgnoreCase("FINANCIAL SERVICES")) {
+
+						if (stock.getStockFactor().getMarketCap() >= rules.getMcap()
+								&& stock.getStockFactor().getDividend() > rules.getDividend()
+								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoe1000()
+								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoce1000()
+								&& stock.getStockFactor().getCurrentRatio() >= rules.getCurrentRatio1000()
+								&& stock.getStockFactor().getQuickRatio() >= rules.getQuickRatioBanks()) {
+							isUndervalued = true;
+						}
+
+					} else {
+						if (stock.getStockFactor().getMarketCap() >= rules.getMcap()
+								&& stock.getStockFactor().getDebtEquity() < rules.getDebtEquity()
+								&& stock.getStockFactor().getDividend() > rules.getDividend()
+								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoe1000()
+								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoce1000()
+								&& stock.getStockFactor().getCurrentRatio() >= rules.getCurrentRatio1000()
+
+						) {
+
+							isUndervalued = true;
+						}
+					}
+				}
+			}
+		}
+		return isUndervalued;
+	}
 }

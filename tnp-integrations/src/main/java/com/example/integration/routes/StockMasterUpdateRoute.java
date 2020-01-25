@@ -7,10 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.example.integration.model.StockMasterIN;
+import com.example.integration.model.StockPriceIN;
 import com.example.mq.constants.QueueConstants;
+import com.example.integration.processors.master.UpdateNifty1000Processor;
 import com.example.integration.processors.master.UpdateNifty100Processor;
 import com.example.integration.processors.master.UpdateNifty250Processor;
 import com.example.integration.processors.master.UpdateNifty50Processor;
+import com.example.integration.processors.master.UpdateNifty750Processor;
 import com.example.integration.processors.master.UpdateNifty500Processor;
 import com.example.util.FileLocationConstants;
 
@@ -18,7 +21,13 @@ import com.example.util.FileLocationConstants;
 public class StockMasterUpdateRoute extends RouteBuilder {
 
 	@Autowired
-	private UpdateNifty500Processor updateStockMasterProcessor;
+	private UpdateNifty1000Processor updateNifty1000Processor;
+	
+	@Autowired
+	private UpdateNifty750Processor updateNifty750Processor;
+	
+	@Autowired
+	private UpdateNifty500Processor updateNifty500Processor;
 
 	@Autowired
 	private UpdateNifty50Processor updateNifty50Processor;
@@ -29,17 +38,41 @@ public class StockMasterUpdateRoute extends RouteBuilder {
 	@Autowired
 	private UpdateNifty100Processor updateNifty100Processor;
 
+	
 	@Override
 	public void configure() throws Exception {
+		
 		final DataFormat stockMasterBindy = new BindyCsvDataFormat(StockMasterIN.class);
 
+		final DataFormat stockPriceBindy = new BindyCsvDataFormat(StockPriceIN.class);
+
+		// parse the csv file and push list to jmsqueue
+		from("file:"+FileLocationConstants.NIFTY_1000_DOWNLOAD_LOCATION+"?noop=false").unmarshal(stockPriceBindy)
+		.to("jms:"+QueueConstants.IntegrationQueue.UPDATE_NIFTY1000_QUEUE);
+
+		// parse the records queue and retain all the records that are in master and
+		// push to processedrecords queue
+		from("jms:" + QueueConstants.IntegrationQueue.UPDATE_NIFTY1000_QUEUE).process(updateNifty1000Processor)
+			.log("${body}");
+		
+		
+		// parse the csv file and push list to jmsqueue
+		from("file:"+FileLocationConstants.NIFTY_750_DOWNLOAD_LOCATION+"?noop=false").unmarshal(stockPriceBindy)
+		.to("jms:"+QueueConstants.IntegrationQueue.UPDATE_NIFTY750_QUEUE);
+
+		// parse the records queue and retain all the records that are in master and
+		// push to processedrecords queue
+		from("jms:" + QueueConstants.IntegrationQueue.UPDATE_NIFTY750_QUEUE).process(updateNifty750Processor)
+			.log("${body}");
+		
+		
 		// parse the csv file and push list to jmsqueue
 		from("file:" + FileLocationConstants.NIFTY_500_DOWNLOAD_LOCATION + "?noop=false").unmarshal(stockMasterBindy)
 				.to("jms:" + QueueConstants.IntegrationQueue.UPDATE_NIFTY500_QUEUE);
 
 		// parse the records queue and retain all the records that are in master and
 		// push to processedrecords queue
-		from("jms:" + QueueConstants.IntegrationQueue.UPDATE_NIFTY500_QUEUE).process(updateStockMasterProcessor)
+		from("jms:" + QueueConstants.IntegrationQueue.UPDATE_NIFTY500_QUEUE).process(updateNifty500Processor)
 				.log("${body}");
 
 		// NIFTY50 START

@@ -46,9 +46,12 @@ public class FundsLedgerService {
 	public void addCYROFund(UserProfile user) {
 
 		Broker broker = userBrokerageRepository.findByBrokerageIdUserAndActive(user, true).getBrokerageId().getBroker();
-
-		double currentValue = portfolioService.currentValue(user);
-
+		
+		double currentValue = 0.00;
+		
+		if(broker != null) {
+			currentValue = portfolioService.currentValue(user);
+		}
 		FundsLedger fundLedger = new FundsLedger(user, broker, currentValue, miscUtil.currentYearFirstDay(),
 				FundTransactionType.CYRO);
 		fundsLedgerRepository.save(fundLedger);

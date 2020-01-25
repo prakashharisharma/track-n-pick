@@ -1,18 +1,30 @@
 package com.example.test;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import com.example.external.bhav.service.DownloadBhavService;
 import com.example.external.dylh.service.DylhService;
+import com.example.integration.service.RestClientService;
 import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.master.Stock;
+import com.example.model.um.UserProfile;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.repo.master.HolidayCalendarRepository;
@@ -20,10 +32,12 @@ import com.example.repo.stocks.PortfolioRepository;
 import com.example.service.CalendarService;
 import com.example.service.DividendLedgerService;
 import com.example.service.ExpenseService;
+import com.example.service.FileNameService;
 import com.example.service.FundsLedgerService;
 import com.example.service.PortfolioService;
 import com.example.service.ResearchLedgerTechnicalService;
 import com.example.service.SectorService;
+import com.example.service.StockFactorService;
 import com.example.service.StockService;
 import com.example.service.TechnicalsResearchService;
 import com.example.service.UserService;
@@ -38,6 +52,7 @@ import com.example.util.MiscUtil;
 import com.example.util.io.model.ResearchIO;
 import com.example.util.io.model.ResearchIO.ResearchTrigger;
 import com.example.util.io.model.ResearchIO.ResearchType;
+import com.example.util.io.model.StockPriceIO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -47,9 +62,16 @@ public class AppRunner implements CommandLineRunner {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AppRunner.class);
 
+	
+	@Autowired
+	private RestClientService restClientService;
+	
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private FileNameService fileNameService;
+	
 	@Autowired
 	private PortfolioService portfolioService;
 
@@ -81,7 +103,7 @@ public class AppRunner implements CommandLineRunner {
 
 	@Autowired
 	private WatchListService watchListService;
-
+	
 	@Autowired
 	private StorageService storageService;
 
@@ -113,6 +135,11 @@ public class AppRunner implements CommandLineRunner {
 	
 	@Autowired
 	private TechnicalsResearchService technicalsResearchService;
+	
+	@Autowired
+	private StockFactorService stockFactorService;
+
+	
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
 
@@ -143,8 +170,20 @@ public class AppRunner implements CommandLineRunner {
 		System.out.println("BHAV_DATE : " + prevStockTechnicals.getBhavDate());
 		this.printJson(prevStockTechnicals);
 
+		//List<Stock> sl = stockFactorService.stocksToUpdateFactor();
+		
+		//sl.forEach(System.out::println);
+		
 		List<Stock> stocksList = stockService.activeStocks();
 
+		
+		List<UserProfile> allActiveUsers = userService.subsribedCurrentUnderValueUsers();
+		
+		//allActiveUsers.forEach(System.out::println);
+		
+		//sectorService.updateSectorPEPB();
+		
+		//restTemplate();
 		
 		/*List<ResearchLedgerTechnical> buyResearchTechnicalLedgerList = tecnicalLedger.buyNotificationPending();
 		
@@ -160,8 +199,8 @@ public class AppRunner implements CommandLineRunner {
 			// this.processFundamental(researchIO);
 
 			queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
-		});*/
-
+		});
+*/
 		// Buy Research Technical
 
 		/*stocksList.forEach(stock -> {
@@ -286,16 +325,36 @@ public class AppRunner implements CommandLineRunner {
 		 * });
 		 */
 
-		/*
-		 * UserProfile user1 = userService.getUserById(1); UserProfile user2 =
-		 * userService.getUserById(2);
-		 * 
-		 * Stock stock = stockService.getStockByNseSymbol("NTPC");
-		 * 
-		 * portfolioService.addBonus(user1, stock, 5, 1);
-		 * portfolioService.addBonus(user2, stock, 5, 1);
+		
+		 /* UserProfile user1 = userService.getUserById(1); 
+		  UserProfile user2 = userService.getUserById(2);
+		  
+		  Stock stock = stockService.getStockByNseSymbol("RITES");
+		  
+		  portfolioService.addBonus(user1, stock, 4, 1);
+		  portfolioService.addBonus(user2, stock, 4, 1);
 		 */
+		//testDownLoad();
+	}
+	
+	private void testDownLoad() {
+		String referrerURI = fileNameService.getNSEBhavReferrerURI(LocalDate.now().minusDays(3));
+		
+		System.out.println(referrerURI);
 
+		String fileURI = fileNameService.getNSEBhavDownloadURI(LocalDate.now().minusDays(3));
+		
+		System.out.println(fileURI);
+		String fileName = "D:/cm13JAN2020bhav.zip";
+		System.out.println(fileName);
+		
+		try {
+			downloadBhavService.downloadFile(referrerURI, fileURI, fileName);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	private void printJson(Object stockTechnicals) {
@@ -312,5 +371,18 @@ public class AppRunner implements CommandLineRunner {
 			e.printStackTrace();
 		}
 
+	}
+	
+	private void restTemplate() {
+		
+		/*String quote = restTemplate.getForObject("http://localhost:8081/public/api/stocks/active/nifty500", String.class);
+		
+	      System.out.println(quote);*/
+		 
+		
+		List<StockPriceIO> stocks = restClientService.getNift500();
+		
+		stocks.forEach(System.out::println);
+		
 	}
 }

@@ -40,7 +40,6 @@ public class BhavUpdateProcessor implements Processor {
 
 		dailyStockPriceSet.stream().filter(sp -> sp.getSeries().equalsIgnoreCase("EQ")).forEach( sp -> {
 			
-			
 			StockPriceIO stockPriceIO = new StockPriceIO(sp.getNseSymbol(), sp.getSeries(), sp.getOpen(), sp.getHigh(), sp.getLow(), sp.getClose(), sp.getLast(), sp.getPrevClose(), sp.getTottrdqty(), sp.getTottrdval(), sp.getTimestamp(), sp.getTotaltrades(), sp.getIsin());
 			
 			LOGGER.trace("BHAV UPDATE PROCESSOR : Queuing to Update Price Queue..." + stockPriceIO);

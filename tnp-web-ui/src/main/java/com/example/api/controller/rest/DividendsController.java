@@ -54,8 +54,6 @@ public class DividendsController {
 	@PostMapping(value = "/adddividend", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> addStock(@RequestBody UIDividend dividend) {
 
-
-		
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         LocalDate transactionDate = LocalDate.parse(dividend.getTransactionDate(), formatter);

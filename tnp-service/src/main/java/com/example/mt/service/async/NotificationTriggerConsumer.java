@@ -1,5 +1,7 @@
 package com.example.mt.service.async;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +30,12 @@ import com.example.service.PortfolioService;
 import com.example.service.PrettyPrintService;
 import com.example.service.ResearchLedgerFundamentalService;
 import com.example.service.ResearchLedgerTechnicalService;
+import com.example.service.RuleService;
+import com.example.service.StockFactorService;
 import com.example.service.UserService;
 import com.example.util.MiscUtil;
 import com.example.util.io.model.EmailIO;
 import com.example.util.io.model.NotificationTriggerIO;
-import com.example.util.io.model.ResearchIO.ResearchType;
 
 @Component
 public class NotificationTriggerConsumer {
@@ -56,7 +59,10 @@ public class NotificationTriggerConsumer {
 
 	@Autowired
 	private PortfolioService portfolioService;
-
+	
+	@Autowired
+	private RuleService ruleService;
+	
 	private static final Logger LOGGER = LoggerFactory.getLogger(NotificationTriggerConsumer.class);
 
 	@JmsListener(destination = QueueConstants.MTQueue.NOTIFICATION_SEND_MAIL_TRIGGER)
@@ -70,15 +76,19 @@ public class NotificationTriggerConsumer {
 			this.processResearchNotification();
 		} else if (notificationTriggerIO.getTriggerType() == NotificationTriggerIO.TriggerType.PORTFOLIO) {
 			this.processPortfolioNotification();
+		} else if (notificationTriggerIO.getTriggerType() == NotificationTriggerIO.TriggerType.CURRENT_UNDERVALUE) {
+			this.processResearchCurrentUndervalueNotification();
 		}
 
 		LOGGER.debug(QueueConstants.MTQueue.NOTIFICATION_SEND_MAIL_TRIGGER.toUpperCase() + " : " + notificationTriggerIO
 				+ " : END");
 	}
 
+	
+	
 	private void processPortfolioNotification() throws InterruptedException {
 
-		List<UserProfile> userList = userService.activeUsers();
+		List<UserProfile> userList = userService.subsribedPortfolioUsers();
 
 		for (UserProfile user : userList) {
 
@@ -106,7 +116,7 @@ public class NotificationTriggerConsumer {
 
 		List<ResearchLedgerTechnical> sellResearchTechnicalLedgerList = tecnicalLedger.sellNotificationPending();
 
-		List<UserProfile> allActiveUsers = userService.activeUsers();
+		List<UserProfile> allActiveUsers = userService.subsribedResearchUsers();
 
 		String emailSubject = "Stocks Research Report - " + LocalDate.now() + "!";
 
@@ -238,6 +248,59 @@ public class NotificationTriggerConsumer {
 		}
 	}
 
+	private void processResearchCurrentUndervalueNotification() throws InterruptedException {
+
+		List<ResearchLedgerFundamental> buyResearchLedgerList = fundamentalLedger.allActiveResearch();
+
+		List<UserProfile> allActiveUsers = userService.subsribedCurrentUnderValueUsers();
+
+		String emailSubject = "Current Undervalue Stocks - " + LocalDate.now() + "!";
+
+		String formatedCurrentUnderValueList = null;
+		System.out.println("1");
+
+		List<Stock> currentReseachList = new ArrayList<>();
+		List<Stock> currentUnderValue = new ArrayList<>();
+		
+		if (buyResearchLedgerList != null && !buyResearchLedgerList.isEmpty()) {
+
+			currentReseachList = buyResearchLedgerList.stream().map(rl -> rl.getStock()).collect(Collectors.toList());
+
+			currentReseachList.forEach( stk -> {
+				if (ruleService.isUndervalued(stk)) {
+					currentUnderValue.add(stk);
+				}
+			});
+			
+			System.out.println("2");
+			
+			if (currentUnderValue != null && !currentUnderValue.isEmpty()) {
+				
+				formatedCurrentUnderValueList = prettyPrintService.formatCurrentUndervalueListHTML(currentUnderValue);
+				
+				String disclaimer = prettyPrintService.getDisclaimer();
+
+				String formatedResearchList = null;
+				
+				formatedResearchList = formatedCurrentUnderValueList + disclaimer;
+				
+				if (formatedResearchList != null) {
+					
+					for (UserProfile user : allActiveUsers) {
+						
+						this.prepareWatchListReportAndSendMail(user, formatedResearchList, emailSubject);
+
+						Thread.sleep(miscUtil.getInterval());
+						
+					}
+				} 
+			}
+
+		}
+
+	}
+	
+	
 	private void preparePortfolioReportAndSendMail(UserProfile user) throws Exception {
 
 		LOGGER.info("prepareReportAndSendMail START" + user.getFirstName());

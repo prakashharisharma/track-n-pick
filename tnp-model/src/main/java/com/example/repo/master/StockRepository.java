@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.model.master.Sector;
 import com.example.model.master.Stock;
+import com.example.util.io.model.StockIO.IndiceType;
 
 @Transactional
 @Repository
@@ -29,5 +30,8 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 	List<Stock> findByActive(boolean isActive);
 
 	public List<Stock> findAll();
+	
+	public List<Stock> findByActiveAndPrimaryIndice(boolean isActive, IndiceType primaryIndice);
+	public List<Stock> findByActiveAndPrimaryIndiceIn(boolean isActive, List<IndiceType> primaryIndiceList);
 	
 }

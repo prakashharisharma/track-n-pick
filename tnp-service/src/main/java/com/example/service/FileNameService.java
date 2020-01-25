@@ -18,7 +18,9 @@ public class FileNameService {
 	private CalendarService calendarService;
 	
 	// https://www.nseindia.com/content/historical/EQUITIES/2018/OCT/cm01OCT2018bhav.csv.zip
-	private static String base_nse_bhav_url = "https://www.nseindia.com/content/historical/EQUITIES/";// 2018/OCT/cm01OCT2018bhav.csv.zip";
+	private static String base_nse_bhav_url = "https://www1.nseindia.com/content/historical/EQUITIES/";// 2018/OCT/cm01OCT2018bhav.csv.zip";
+	
+	private static String base_nse_ReferrerURI = "https://www1.nseindia.com/ArchieveSearch?h_filetype=eqbhav&date=";
 
 	// ./src/data/inbox/zip/cm19SEP2018bhav.zip
 	private static String base_nse_bhav_downloaded_filename = "./" + FileLocationConstants.BHAV_ZIP_LOCATION+"/";
@@ -85,7 +87,7 @@ public class FileNameService {
 	}
 	
 	public String getNSEBhavReferrerURI(LocalDate downloadDate) {
-		String urlpre= "https://www.nseindia.com/ArchieveSearch?h_filetype=eqbhav&date=";
+		String urlpre= base_nse_ReferrerURI;
 		String urlpost = "&section=EQ";
 		
 		LocalDate date = downloadDate;
@@ -99,7 +101,7 @@ public class FileNameService {
 	
 	
 	public String getNSEBhavReferrerURI() {
-		String urlpre= "https://www.nseindia.com/ArchieveSearch?h_filetype=eqbhav&date=";
+		String urlpre= base_nse_ReferrerURI;
 		String urlpost = "&section=EQ";
 		
 		LocalDate date = calendarService.previousWorkingDay();

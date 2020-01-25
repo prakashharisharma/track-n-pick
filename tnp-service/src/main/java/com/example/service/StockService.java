@@ -3,6 +3,7 @@ package com.example.service;
 import static java.time.temporal.ChronoUnit.DAYS;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -104,6 +105,43 @@ public class StockService {
 		stockPriceRepository.save(stockPrice);
 	}
 
+	public List<Stock> nifty500(){
+		
+		List<StockIO.IndiceType> indiceList = new ArrayList<>();
+		
+		indiceList.add(StockIO.IndiceType.NIFTY50);
+		indiceList.add(StockIO.IndiceType.NIFTY100);
+		indiceList.add(StockIO.IndiceType.NIFTY250);
+		indiceList.add(StockIO.IndiceType.NIFTY500);
+		
+		List<Stock> stockList = stockRepository.findByActiveAndPrimaryIndiceIn(true, indiceList);
+		
+		return stockList;
+	}
+	
+	public List<Stock> nifty50(){
+		
+		List<StockIO.IndiceType> indiceList = new ArrayList<>();
+		
+		indiceList.add(StockIO.IndiceType.NIFTY50);
+		
+		List<Stock> stockList = stockRepository.findByActiveAndPrimaryIndiceIn(true, indiceList);
+		
+		return stockList;
+	}
+	
+	public List<Stock> nifty100(){
+		
+		List<StockIO.IndiceType> indiceList = new ArrayList<>();
+		
+		indiceList.add(StockIO.IndiceType.NIFTY50);
+		indiceList.add(StockIO.IndiceType.NIFTY100);
+		
+		List<Stock> stockList = stockRepository.findByActiveAndPrimaryIndiceIn(true, indiceList);
+		
+		return stockList;
+	}
+	
 	public List<Stock> activeStocks() {
 
 		if (allstocks == null) {
@@ -125,8 +163,7 @@ public class StockService {
 		List<Stock> stocksList = stockRepository.findByActive(true);
 		for (Stock stock : stocksList) {
 			stock.setActive(false);
-			stock.setPrimaryIndice(StockIO.IndiceType.NIFTY1000);
-			
+			stock.setPrimaryIndice(StockIO.IndiceType.NIFTY1500);
 			stockRepository.save(stock);
 		}
 	}
@@ -158,6 +195,7 @@ public class StockService {
 			Sector sectorName) {
 
 		Stock stock = new Stock(isinCode, companyName, nseSymbol, primaryIndice, sectorName);
+		
 		stock = stockRepository.save(stock);
 
 		this.updatePrice(stock);
@@ -206,7 +244,13 @@ public class StockService {
 			if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > notificationRules.getFactorIntervalDays()) {
 
 				try {
-					Thread.sleep(miscUtil.getInterval());
+					
+					long interval = miscUtil.getInterval();
+					
+					System.out.println("interval : " + interval);
+					
+					Thread.sleep(interval);
+					
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -257,4 +301,6 @@ public class StockService {
 		return pb;
 	}
 
+	
+	
 }

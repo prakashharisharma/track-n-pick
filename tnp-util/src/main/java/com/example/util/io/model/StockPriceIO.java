@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.Locale;
 
+
 public class StockPriceIO implements Serializable {
 
 	/**
@@ -50,9 +51,18 @@ public class StockPriceIO implements Serializable {
 	private double low14;
 	private double high14;
 	
+	
+	
+	
 	public StockPriceIO() {
 		super();
 		// TODO Auto-generated constructor stub
+	}
+
+	public StockPriceIO(String nseSymbol, String isin) {
+		super();
+		this.nseSymbol = nseSymbol;
+		this.isin = isin;
 	}
 
 	public StockPriceIO(String nseSymbol, String series, double open, double high, double low, double close,
@@ -271,5 +281,28 @@ public class StockPriceIO implements Serializable {
 				+ tottrdqty + ", tottrdval=" + tottrdval + ", timestamp=" + timestamp + ", totaltrades=" + totaltrades
 				+ ", isin=" + isin + ", change=" + change + ", yearLow=" + yearLow + ", yearHigh=" + yearHigh + "]";
 	}
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((nseSymbol == null) ? 0 : nseSymbol.hashCode());
+		return result;
+	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		StockPriceIO other = (StockPriceIO) obj;
+		if (nseSymbol == null) {
+			if (other.nseSymbol != null)
+				return false;
+		} else if (!nseSymbol.equals(other.nseSymbol))
+			return false;
+		return true;
+	}
 }

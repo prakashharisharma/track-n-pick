@@ -12,6 +12,7 @@ import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+import com.example.model.master.Sector;
 import com.example.model.master.Stock;
 import com.example.mq.constants.QueueConstants;
 import com.example.service.SectorService;
@@ -36,6 +37,7 @@ public class UpdateStockMasterConsumer {
 		LOGGER.debug("PROCESSING  " + stockIO.getNseSymbol() + " : " + stockIO.getIndice());
 		
 			Thread.sleep(50);
+			
 			this.process(stockIO);
 	}
 	
@@ -46,10 +48,24 @@ public class UpdateStockMasterConsumer {
 		if(stock!=null) {
 			
 			stock.setPrimaryIndice(stockIO.getIndice());
+			
 			stock.setActive(true);
 			
+			if(stock.getSector().getSectorName().equalsIgnoreCase("NSE750") || stock.getSector().getSectorName().equalsIgnoreCase("NSE1000")) {
+				
+				Sector sector = sectorService.getOrAddSectorByName(stockIO.getSector());
+			
+				stock.setSector(sector);
+			
+				stock.setSectorName(sector.getSectorName());
+				
+				LOGGER.debug("UPDATED SECTOR" + stockIO.getNseSymbol() + " : "  + sector.getSectorName());
+			}
+			
 			stockService.save(stock);
+			
 			LOGGER.debug("UPDATED " + stockIO.getNseSymbol() + " : " + stockIO.getIndice());
+			
 		}else {
 			stock = stockService.add(stockIO.getIsin(), stockIO.getCompanyName(), stockIO.getNseSymbol(),stockIO.getIndice(), sectorService.getOrAddSectorByName(stockIO.getSector()));
 			LOGGER.debug("ADDED " + stockIO.getNseSymbol() + " : " + stockIO.getIndice());

@@ -22,6 +22,7 @@ import com.example.service.StockService;
 import com.example.ui.model.StockDetailsIO;
 import com.example.ui.model.StockSearch;
 import com.example.util.FormulaService;
+import com.example.util.io.model.StockIO;
 
 @RestController
 @RequestMapping("/api/stocks")

@@ -14,11 +14,13 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.external.common.FactorProvider;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockFactor;
+import com.example.util.MiscUtil;
 
 @Service
 public class FactorRediff implements FactorBaseService {
@@ -33,6 +35,9 @@ public class FactorRediff implements FactorBaseService {
 
 	static Map<String, String> resultQuarterMap = new HashMap<>();
 
+	@Autowired
+	private MiscUtil miscUtil;
+	
 	static {
 		dateMap.put("JAN", "31");
 		dateMap.put("FEB", "28");
@@ -403,7 +408,7 @@ public class FactorRediff implements FactorBaseService {
 
 		}
 
-		if (stock.getStockFactor() == null || remoteCallCounter < 25) {
+		if (stock.getStockFactor() == null || remoteCallCounter <= 20) {
 
 			try {
 				stockFactor.setLastModified(LocalDate.now());
@@ -413,10 +418,13 @@ public class FactorRediff implements FactorBaseService {
 				// increment thye remoteCallCounter
 				remoteCallCounter++;
 
+				System.out.println("Remote Call counter : " + remoteCallCounter);
+				
+				
 			} catch (IOException e) {
 				
 				e.printStackTrace();
-			}
+			} 
 
 			stockFactor.setStock(stock);
 		}

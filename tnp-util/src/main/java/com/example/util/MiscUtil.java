@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class MiscUtil {
 
-	private static int times[] = { 1000,1200,1500,1700,1750,1800,  2000,  2100, 2200,2400, 2500, 2900,  3000, 3500, 3300, 4250,   4700,
-			5000, 6500, 7000, };
+	private static int times[] = { 1000,2000,3000,3100,3500,3680,  4000,  4129, 4270,4350, 4589, 4600,  4700, 4852, 4967, 5000, 5100,
+			5200, 5300, 5450, };
 
 	public String formatDouble(double value) {
 

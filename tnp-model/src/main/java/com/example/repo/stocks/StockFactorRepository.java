@@ -17,4 +17,6 @@ public interface StockFactorRepository extends JpaRepository<StockFactor, Long> 
 	
 	public List<StockFactor> findTop250AllByOrderByMarketCapDesc();
 	
+	public List<StockFactor> findAllByOrderByLastModifiedAsc();
+	
 }

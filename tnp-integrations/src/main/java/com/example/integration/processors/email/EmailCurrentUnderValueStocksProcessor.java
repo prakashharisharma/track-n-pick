@@ -12,26 +12,27 @@ import com.example.mq.producer.QueueService;
 import com.example.util.io.model.NotificationTriggerIO;
 
 @Service
-public class EmailResearchProcessor implements Processor {
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(EmailResearchProcessor.class);
+public class EmailCurrentUnderValueStocksProcessor implements Processor {
 
-	
+	private static final Logger LOGGER = LoggerFactory.getLogger(EmailCurrentUnderValueStocksProcessor.class);
+
 	@Autowired
 	private QueueService queueService;
 	
 	@Override
 	public void process(Exchange arg0) throws Exception {
 
-		LOGGER.info("EmailResearchProcessor START");
-
-		NotificationTriggerIO notificationTriggerIO = new NotificationTriggerIO(NotificationTriggerIO.TriggerType.RESEARCH);
+		LOGGER.info("EmailCurrentUnderValueStocksProcessor START");
+	
+		NotificationTriggerIO notificationTriggerIO = new NotificationTriggerIO(NotificationTriggerIO.TriggerType.CURRENT_UNDERVALUE);
 		
-		LOGGER.debug("EmailResearchProcessor : Queuinh to Notification ... " + notificationTriggerIO);
+		LOGGER.debug("EmailCurrentUnderValueStocksProcessor : Queuing to Notification ... " + notificationTriggerIO);
 		
 		queueService.send(notificationTriggerIO, QueueConstants.MTQueue.NOTIFICATION_SEND_MAIL_TRIGGER);
 		
-		LOGGER.info("EmailResearchProcessor END");
-		
+		LOGGER.info("EmailCurrentUnderValueStocksProcessor END");
+
 	}
+
+
 }

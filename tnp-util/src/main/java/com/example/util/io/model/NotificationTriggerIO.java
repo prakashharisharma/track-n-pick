@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class NotificationTriggerIO implements Serializable{
 
 	public enum TriggerType {
-		PORTFOLIO, RESEARCH
+		PORTFOLIO, RESEARCH, CURRENT_UNDERVALUE
 	}
 	
 	/**

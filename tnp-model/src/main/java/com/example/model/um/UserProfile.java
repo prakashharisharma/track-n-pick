@@ -50,6 +50,15 @@ public class UserProfile implements Serializable{
 	@Column(name = "IS_ACTIVE")
 	boolean active;
 	
+	@Column(name = "SUBSCRIBE_PORTFOLOIO")
+	boolean subscribePortfolio = false;
+	
+	@Column(name = "SUBSCRIBE_RESEARCH")
+	boolean subscribeResearch = false;
+	
+	@Column(name = "SUBSCRIBE_CURRENT_UNDERVALUE")
+	boolean subscribeCurrentUndervalue = false;
+	
 	@ManyToMany(fetch = FetchType.LAZY,
             cascade = {
                 CascadeType.PERSIST,
@@ -151,6 +160,31 @@ public class UserProfile implements Serializable{
 
 	public void setRoles(Set<Role> roles) {
 		this.roles = roles;
+	}
+
+	
+	public boolean isSubscribePortfolio() {
+		return subscribePortfolio;
+	}
+
+	public void setSubscribePortfolio(boolean subscribePortfolio) {
+		this.subscribePortfolio = subscribePortfolio;
+	}
+
+	public boolean isSubscribeResearch() {
+		return subscribeResearch;
+	}
+
+	public void setSubscribeResearch(boolean subscribeResearch) {
+		this.subscribeResearch = subscribeResearch;
+	}
+
+	public boolean isSubscribeCurrentUndervalue() {
+		return subscribeCurrentUndervalue;
+	}
+
+	public void setSubscribeCurrentUndervalue(boolean subscribeCurrentUndervalue) {
+		this.subscribeCurrentUndervalue = subscribeCurrentUndervalue;
 	}
 
 	@Override

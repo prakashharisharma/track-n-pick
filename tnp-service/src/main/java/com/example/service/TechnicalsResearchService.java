@@ -236,13 +236,13 @@ public class TechnicalsResearchService {
 
 		if (volume > (avgVolume * 2)) {
 			if (stock.getTechnicals().getSma50() > stock.getTechnicals().getSma200()) {
-				if (volume > 250) {
+				if (volume > 500) {
 					if (openPrice > prevClose) {
 						isPriceVolumeBullish = true;
 					}
 				}
 			}else if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma50()) {
-				if (volume > 500) {
+				if (volume > 750) {
 					if (openPrice > prevClose) {
 						isPriceVolumeBullish = true;
 					}
@@ -278,7 +278,7 @@ public class TechnicalsResearchService {
 					}
 				}
 			}else if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma50()) {
-				if (volume > 500) {
+				if (volume > 750) {
 					if (openPrice < prevClose) {
 						isPriceVolumeBearish = true;
 					}
@@ -286,7 +286,7 @@ public class TechnicalsResearchService {
 			}
 			
 			else {
-				if (volume > 250) {
+				if (volume > 500) {
 					if (openPrice < prevClose) {
 						isPriceVolumeBearish = true;
 					}

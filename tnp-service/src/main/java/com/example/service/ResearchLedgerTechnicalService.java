@@ -39,7 +39,7 @@ public class ResearchLedgerTechnicalService {
 			
 			researchLedger.setNotified(false);
 			
-			researchLedger.setNotifiedStorage(false);
+			//researchLedger.setNotifiedStorage(false);
 			
 			researchLedger.setEntryCrossOver(entryCrossOver);
 			
@@ -60,7 +60,7 @@ public class ResearchLedgerTechnicalService {
 			researchLedger.setResearchStatus(ResearchTrigger.SELL);
 			
 			researchLedger.setNotified(false);
-			researchLedger.setNotifiedStorage(false);
+			//researchLedger.setNotifiedStorage(false);
 			
 			researchLedger.setExitCrossOver(exitCrossOver);
 			
@@ -70,7 +70,7 @@ public class ResearchLedgerTechnicalService {
 		
 	}
 
-	public boolean isResearchStorageNotified(Stock stock, ResearchTrigger researchTrigger) {
+	/*public boolean isResearchStorageNotified(Stock stock, ResearchTrigger researchTrigger) {
 		boolean isResearchStorageNotified = true;
 		ResearchLedgerTechnical researchLedger = researchLedgerRepository.findByStockAndResearchStatusAndNotifiedStorage(stock, researchTrigger, false);
 		
@@ -80,7 +80,7 @@ public class ResearchLedgerTechnicalService {
 		}
 		
 		return isResearchStorageNotified;
-	}
+	}*/
 
 
 	public void updateResearchNotified(ResearchLedgerTechnical researchLedger) {
@@ -103,7 +103,7 @@ public class ResearchLedgerTechnicalService {
 		
 		if (researchLedger1 != null) {
 
-			researchLedger1.setNotifiedStorage(true);
+			//researchLedger1.setNotifiedStorage(true);
 			
 			researchLedgerRepository.save(researchLedger1);
 		}

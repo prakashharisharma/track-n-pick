@@ -27,6 +27,19 @@ public class UserService {
 		return userRepository.findByActive(true);
 	}
 	
+	public List<UserProfile> subsribedPortfolioUsers(){
+		return userRepository.findByActiveAndSubscribePortfolio(true, true);
+	}
+	
+	public List<UserProfile> subsribedResearchUsers(){
+		return userRepository.findByActiveAndSubscribeResearch(true, true);
+	}
+	
+	public List<UserProfile> subsribedCurrentUnderValueUsers(){
+		return userRepository.findByActiveAndSubscribeCurrentUndervalue(true, true);
+	}
+	
+	
 	public List<UserProfile> allUsers(){
 		return userRepository.findAll();
 	}

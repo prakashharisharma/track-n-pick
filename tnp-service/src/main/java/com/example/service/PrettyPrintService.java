@@ -122,6 +122,49 @@ public class PrettyPrintService {
 	
 	}
 	
+	public String formatCurrentUndervalueListHTML(List<Stock> currentUnderValue) {
+
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div><h3>Current Undervalue Stocks List</h3></div>");
+		if(!currentUnderValue.isEmpty()) {
+			sb.append("<p>Fundamental </p>");
+		
+		sb.append("<div><table><thead><tr><th>SYMBOL</th><th>INDICE</th><th>CMP</th><th>PE</th><th>SPE</th><th>PB</th><th>ROE</th><th>ROCE</th></tr></thead>");
+
+		sb.append("<tbody>");
+
+		currentUnderValue.forEach((s) -> {
+
+			double currentPrice = s.getStockPrice().getCurrentPrice();
+			
+			double eps = s.getStockFactor().getEps();
+			double bookValue = s.getStockFactor().getBookValue();
+			
+			double pe = formulaService.calculatePe(currentPrice, eps);
+			double pb= formulaService.calculatePb(currentPrice, bookValue);
+			
+			sb.append("<tr><td>" + s.getNseSymbol() + "</td><td>" 
+					+ s.getPrimaryIndice()+ "</td><td>"
+					+ formatDouble(s.getStockPrice().getCurrentPrice()) + "</td><td>" 
+					+ formatDouble(pe) + "</td><td>"
+					+ formatDouble(s.getSector().getSectorPe()) + "</td><td>"
+					+ formatDouble(pb) + "</td><td>"
+					+ s.getStockFactor().getReturnOnEquity() + "</td><td>" 
+					+ s.getStockFactor().getReturnOnCapital()
+					+ "</td></tr>");
+		});
+
+		sb.append("</tbody></table></div>");
+
+		}
+	
+		return sb.toString();
+	
+	}
+	
+	
+	
 	public String formatSellListHTML(List<Stock> fundamentalList, List<Stock> technicalsList) {
 
 

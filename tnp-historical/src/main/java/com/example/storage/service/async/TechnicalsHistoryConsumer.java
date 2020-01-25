@@ -321,7 +321,7 @@ public class TechnicalsHistoryConsumer {
 		stockTechnicalsIO.setRocv(volume.getRoc());
 
 		stockTechnicalsIO.setVolume(volume.getVolume());
-		stockTechnicalsIO.setAvgVolume(volume.getAvgVolume10());
+		stockTechnicalsIO.setAvgVolume(volume.getAvgVolume30());
 		
 		return stockTechnicalsIO;
 	}

@@ -26,9 +26,9 @@ public interface ResearchLedgerFundamentalRepository extends JpaRepository<Resea
 	
 	ResearchLedgerFundamental findByStockAndNotified(Stock stock, ResearchType researchType,boolean isNotified);
 	
-	ResearchLedgerFundamental findByStockAndNotifiedStorage(Stock stock, ResearchType researchType, boolean notifiedStorage);
+	//ResearchLedgerFundamental findByStockAndNotifiedStorage(Stock stock, ResearchType researchType, boolean notifiedStorage);
 	
-	ResearchLedgerFundamental findByStockAndResearchStatusAndNotifiedStorage(Stock stock,  ResearchTrigger researchStatus, boolean notifiedStorage);
+	//ResearchLedgerFundamental findByStockAndResearchStatusAndNotifiedStorage(Stock stock,  ResearchTrigger researchStatus, boolean notifiedStorage);
 	
 	List<ResearchLedgerFundamental> findByResearchStatus(ResearchTrigger researchStatus);
 

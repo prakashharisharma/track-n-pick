@@ -23,6 +23,10 @@ MIDCAP150
 https://www.nseindia.com/products/content/equities/indices/nifty_midcap_150.htm
 https://www.nseindia.com/content/indices/ind_niftymidcap150list.csv
 
+SMALLCAP100
+https://www.nseindia.com/products/content/equities/indices/nifty_smallcap_100.htm
+https://www.nseindia.com/content/indices/ind_niftysmallcap100list.csv
+
 SMALLCAP150
 https://www.nseindia.com/products/content/equities/indices/nifty_Smallcap_250.htm
 https://www.nseindia.com/content/indices/ind_niftysmallcap250list.csv
@@ -215,7 +219,8 @@ order by PERFORMANCE
 
 -- SELL RESEARCH PERFORMANCE TECHNICAL
 SELECT 
-	sm.NSE_SYMBOL, cl.RESEARCH_DATE, srl.RESEARCH_STATUS, cl.CATEGORY As ENTRYCATEGORY, c2.RESEARCH_DATE, c2.CATEGORY AS EXITCATEGORY, sm.INDICe, cl.PRICE AS ENTRY_PRICE, c2.PRICE As EXIT_PRICE, sp.CURRENT_PRICE , ( (sp.CURRENT_PRICE - cl.PRICE) / cl.PRICE ) * 100 AS PERFORMANCE 
+	sm.NSE_SYMBOL, cl.RESEARCH_DATE, srl.RESEARCH_STATUS, cl.CATEGORY As ENTRYCATEGORY, c2.RESEARCH_DATE, c2.CATEGORY AS EXITCATEGORY, 
+	sm.INDICe, cl.PRICE AS ENTRY_PRICE, c2.PRICE As EXIT_PRICE, sp.CURRENT_PRICE , ( (sp.CURRENT_PRICE - c2.PRICE) / c2.PRICE ) * 100 AS PERFORMANCE 
 FROM 
 	STOCK_RESEARCH_LEDGER_TECHNICAL  srl, STOCK_MASTER sm, STOCK_PRICE sp , CROSSOVER_LEDGER cl,CROSSOVER_LEDGER c2
 WHERE 
@@ -228,11 +233,12 @@ order by PERFORMANCE desc
 
 -- BUY RESEARCH PERFORMANCE FUNDAMENTAL
 SELECT 
-	sm.NSE_SYMBOL,vl.RESEARCH_DATE, srl.RESEARCH_STATUS, sm.INDICe,vl.PE,vl.SECTOR_PE, vl.PB,vl.SECTOR_PB, vl.DEBT_EQUITY, vl.CURRENT_RATIO,  vl.PRICE,sp.CURRENT_PRICE , ( (sp.CURRENT_PRICE - vl.PRICE) / vl.PRICE ) * 100 AS PERFORMANCE 
+	sm.NSE_SYMBOL,vl.RESEARCH_DATE, srl.RESEARCH_STATUS, sm.INDICe,vl.PE,vl.SECTOR_PE, (sp.CURRENT_PRICE / sf.EPS) as CURR_PE,  vl.PB,vl.SECTOR_PB,(sp.CURRENT_PRICE / sf.BOOK_VALUE) as CURR_PB, vl.DEBT_EQUITY, vl.CURRENT_RATIO,  vl.PRICE,sp.CURRENT_PRICE , ( (sp.CURRENT_PRICE - vl.PRICE) / vl.PRICE ) * 100 AS PERFORMANCE 
 FROM 
-	STOCK_RESEARCH_LEDGER_FUNDAMENTAL  srl, STOCK_MASTER sm, STOCK_PRICE sp , VALUATION_LEDGER vl
+	STOCK_RESEARCH_LEDGER_FUNDAMENTAL  srl, STOCK_MASTER sm, STOCK_PRICE sp , STOCK_FACTORS sf, VALUATION_LEDGER vl
 WHERE 
 	srl.STOCK_ID=sm.STOCK_ID 
+	AND sm.STOCK_ID=sf.STOCK_ID
 	AND sm.STOCK_ID=sp.STOCK_ID
 	AND srl.RESEARCH_STATUS='BUY'
 	AND srl.ENTRY_VALUATION = vl.UNDERVALUE_ID
@@ -241,7 +247,7 @@ order by PERFORMANCE desc
 
 -- BUY RESEARCH PERFORMANCE TECHNICAL
 SELECT 
-	sm.NSE_SYMBOL, cl.RESEARCH_DATE, srl.RESEARCH_STATUS, sm.INDICe, cl.PRICE, sp.CURRENT_PRICE , ( (sp.CURRENT_PRICE - cl.PRICE) / cl.PRICE ) * 100 AS PERFORMANCE 
+	sm.NSE_SYMBOL, cl.RESEARCH_DATE, cl.CATEGORY, srl.RESEARCH_STATUS, sm.INDICe, cl.PRICE, sp.CURRENT_PRICE , ( (sp.CURRENT_PRICE - cl.PRICE) / cl.PRICE ) * 100 AS PERFORMANCE 
 FROM 
 	STOCK_RESEARCH_LEDGER_TECHNICAL  srl, STOCK_MASTER sm, STOCK_PRICE sp , CROSSOVER_LEDGER cl
 WHERE 
@@ -436,7 +442,8 @@ AND  st.VOLUME > st.AVG_VOLUME	* 2
 
 -- Current Uptrend >200 and > 50
 select * from (
-select sm.NSE_SYMBOL, sm.INDICe, s.SECTOR_NAME, sp.CURRENT_PRICE, st.SMA_50,st.SMA_200,sf.CURRENT_RATIO,sf.DEBT_EQUITY, sf.ROE, sf.ROCE, (sp.CURRENT_PRICE / sf.EPS) AS PE, s.SECTOR_PE from STOCK_MASTER sm, STOCK_TECHNICALS st,STOCK_PRICE sp,STOCK_FACTORS sf, SECTORS s
+select sm.NSE_SYMBOL, sm.INDICe, s.SECTOR_NAME, sp.CURRENT_PRICE, st.SMA_50,st.SMA_200,sf.CURRENT_RATIO,sf.DEBT_EQUITY, sf.ROE, sf.ROCE, (sp.CURRENT_PRICE / sf.EPS) AS PE, s.SECTOR_PE 
+from STOCK_MASTER sm, STOCK_TECHNICALS st,STOCK_PRICE sp,STOCK_FACTORS sf, SECTORS s
 where sm.STOCK_ID = st.STOCK_ID
 and sm.STOCK_ID = sp.STOCK_ID
 and sm.STOCK_ID = sf.STOCK_ID
@@ -455,7 +462,8 @@ order by cq.INDICE
 
 -- Current Uptrend >200 and < 50
 select * from (
-select sm.NSE_SYMBOL, sm.INDICe, s.SECTOR_NAME, sp.CURRENT_PRICE, st.SMA_50,st.SMA_200,sf.CURRENT_RATIO,sf.DEBT_EQUITY, sf.ROE, sf.ROCE, (sp.CURRENT_PRICE / sf.EPS) AS PE, s.SECTOR_PE from STOCK_MASTER sm, STOCK_TECHNICALS st,STOCK_PRICE sp,STOCK_FACTORS sf, SECTORS s
+select sm.NSE_SYMBOL, sm.INDICe, s.SECTOR_NAME, sp.CURRENT_PRICE, st.SMA_50,st.SMA_200,sf.CURRENT_RATIO,sf.DEBT_EQUITY, sf.ROE, sf.ROCE, (sp.CURRENT_PRICE / sf.EPS) AS PE, s.SECTOR_PE 
+from STOCK_MASTER sm, STOCK_TECHNICALS st,STOCK_PRICE sp,STOCK_FACTORS sf, SECTORS s
 where sm.STOCK_ID = st.STOCK_ID
 and sm.STOCK_ID = sp.STOCK_ID
 and sm.STOCK_ID = sf.STOCK_ID
@@ -501,27 +509,23 @@ from STOCK_MASTER sm, SECTORS s, STOCK_FACTORS sf, STOCK_PRICE sp
 where sm.SECTOR_ID=s.SECTOR_ID
 AND sm.STOCK_ID=sf.STOCK_ID
 AND sm.STOCK_ID=sp.STOCK_ID
-AND sm.NSE_SYMBOL in ('SBIN',
-'M&M',
-'GAIL',
-'TECHM',
-'NBCC',
-'AUROPHARMA',
-'HINDZINC',
-'KRBL',
-'RECLTD',
-'FINCABLES',
-'SUVEN',
-'PERSISTENT',
-'AVANTIFEED',
-'ORIENTBANK',
-'BANKINDIA',
-'INDIANB'
+AND sm.NSE_SYMBOL in (
+'HCLTECH',
+'TVTODAY',
+'HSCL',
+'NATCOPHARM',
+'GRAPHITE'
 )
 )q
 order by q.INDICE,q.SECTOR_NAME
 
-
+HCLTECH++
+TVTODAY++
+HSCL++
+NATCOPHARM++
+SUNTV++
+GRAPHITE++
+KSCL +
 
 https://rubygarage.org/blog/neo4j-database-guide-with-use-cases
 https://medium.com/neo4j/how-do-you-know-if-a-graph-database-solves-the-problem-a7da10393f5
@@ -545,13 +549,62 @@ AND sm.INDICE in ('NIFTY50','NIFTY100')
 AND sf.DEBT_EQUITY < 0.50
 )q
 where q.PE < q.SECTOR_PE
-AND q.CURRENT_PRICE < 1500.0
+--AND q.CURRENT_PRICE < 1500.0
 AND  (q.PB < 3.0  OR q.PB <q.SECTOR_PB ) 
 AND q.ROE > 10.0
 order by q.INDICE, q.SECTOR_NAME
 
+--PORTFOLIO AVERAGING
+select  * from (
+select sm.NSE_SYMBOL, up.USER_ID, sm.INDICE, s.SECTOR_NAME, sf.CURRENT_RATIO, S.SECTOR_CURR_RATIO, sf.DEBT_EQUITY, sp.CURRENT_PRICE , ROUND(up.PRICE,2), 
+ROUND((((up.PRICE - sp.CURRENT_PRICE)*100) /up.PRICE),2) PER, ROUND((up.PRICE * up.QUANTITY),2) VAL    , (sp.CURRENT_PRICE / sf.EPS) as PE, 
+s.SECTOR_PE,(sp.CURRENT_PRICE / sf.BOOK_VALUE) as PB,s.SECTOR_PB, sf.ROE, sf.ROCE
+from USER_PORTFOLIO up, STOCK_MASTER sm, SECTORS s, STOCK_FACTORS sf, STOCK_PRICE sp
+where
+up.STOCK_ID = sm.STOCK_ID
+AND sm.SECTOR_ID=s.SECTOR_ID
+AND sm.STOCK_ID=sf.STOCK_ID
+AND sm.STOCK_ID=sp.STOCK_ID
+--AND sm.INDICE in ('NIFTY50','NIFTY100')
+AND sf.CURRENT_RATIO > 0.80
+AND sf.DEBT_EQUITY < 0.50
+--AND up.USER_ID=1
+)q
+where q.PE < q.SECTOR_PE
+AND q.CURRENT_PRICE < 1500.0
+AND  (q.PB < 3.0  OR q.PB <q.SECTOR_PB ) 
+AND q.ROE > 10.0
+AND q.PER > 5.0
+--AND q.VAL < 25000.0
+order by q.NSE_SYMBOL
 
 Hammer - > Confirmation occurs if the candle following the hammer closes above the closing price of the hammer. Ideally, this confirmation candle shows strong buying. 
 
 
 https://codeburst.io/i-believe-it-really-depends-on-your-environment-and-how-well-protected-the-different-pieces-are-7919bfa6bc86
+
+
+db.getCollection('candlesticks_history').find({pattern:'HAMMER',bhavDate: ISODate('2019-07-26T00:00:00.000Z'),close:{$gte:50.0}})
+
+http://blog.arungupta.me/microservice-design-patterns/
+https://dzone.com/articles/design-patterns-for-microservices
+
+
+
+
+select * from (
+select sm.NSE_SYMBOL, sm.INDICE, s.SECTOR_NAME, sf.CURRENT_RATIO, S.SECTOR_CURR_RATIO, sf.DEBT_EQUITY, sp.CURRENT_PRICE, (sp.CURRENT_PRICE / sf.EPS) as PE, s.SECTOR_PE,(sp.CURRENT_PRICE / sf.BOOK_VALUE) as PB,s.SECTOR_PB, sf.ROE, sf.ROCE
+from STOCK_MASTER sm, SECTORS s, STOCK_FACTORS sf, STOCK_PRICE sp
+where sm.SECTOR_ID=s.SECTOR_ID
+AND sm.STOCK_ID=sf.STOCK_ID
+AND sm.STOCK_ID=sp.STOCK_ID
+AND sm.NSE_SYMBOL in (
+'AUROPHARMA',
+'BDL',
+'HSCL',
+'ITC'
+)
+)q
+order by q.INDICE,q.SECTOR_NAME
+
+

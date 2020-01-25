@@ -34,9 +34,6 @@ public class ResearchLedgerTechnical {
 	@Column(name = "IS_NOTIFIED")
 	boolean notified = false;
 	
-	@Column(name = "IS_NOTIFIED_STORAGE")
-	boolean notifiedStorage = false;
-	
 	@ManyToOne
 	@JoinColumn(name = "ENTRY_CROSS")
 	CrossOverLedger entryCrossOver;
@@ -69,14 +66,6 @@ public class ResearchLedgerTechnical {
 		this.researchStatus = researchStatus;
 	}
 
-	public boolean isNotifiedStorage() {
-		return notifiedStorage;
-	}
-
-	public void setNotifiedStorage(boolean notifiedStorage) {
-		this.notifiedStorage = notifiedStorage;
-	}
-
 	public boolean isNotified() {
 		return notified;
 	}
@@ -106,7 +95,7 @@ public class ResearchLedgerTechnical {
 	@Override
 	public String toString() {
 		return "ResearchLedgerTechnical [srlId=" + srlId + ", stock=" + stock + ", researchStatus=" + researchStatus
-				+ ", notified=" + notified + ", notifiedStorage=" + notifiedStorage + ", entryCrossOver="
+				+ ", notified=" + notified  + ", entryCrossOver="
 				+ entryCrossOver + ", exitCrossOver=" + exitCrossOver + "]";
 	}
 

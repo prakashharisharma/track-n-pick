@@ -35,7 +35,7 @@ public class ResearchLedgerFundamentalService {
 			researchLedger.setResearchStatus(ResearchTrigger.BUY);
 			
 			researchLedger.setNotified(false);
-			researchLedger.setNotifiedStorage(false);
+			//researchLedger.setNotifiedStorage(false);
 			
 			researchLedger.setEntryValuation(entryValuation);
 			
@@ -59,7 +59,7 @@ public class ResearchLedgerFundamentalService {
 			researchLedger.setResearchStatus(ResearchTrigger.SELL);
 			
 			researchLedger.setNotified(false);
-			researchLedger.setNotifiedStorage(false);
+		//	researchLedger.setNotifiedStorage(false);
 			researchLedger.setExitValuation(exitValuation);
 			
 			researchLedgerRepository.save(researchLedger);	
@@ -68,7 +68,7 @@ public class ResearchLedgerFundamentalService {
 		
 	}
 
-	public boolean isResearchStorageNotified(Stock stock, ResearchTrigger researchTrigger) {
+	/*public boolean isResearchStorageNotified(Stock stock, ResearchTrigger researchTrigger) {
 		boolean isResearchStorageNotified = true;
 		ResearchLedgerFundamental researchLedger = researchLedgerRepository.findByStockAndResearchStatusAndNotifiedStorage(stock, researchTrigger, false);
 		
@@ -77,7 +77,7 @@ public class ResearchLedgerFundamentalService {
 		}
 		
 		return isResearchStorageNotified;
-	}
+	}*/
 
 
 	public void updateResearchNotified(ResearchLedgerFundamental researchLedger) {
@@ -100,7 +100,7 @@ public class ResearchLedgerFundamentalService {
 		
 		if (researchLedger1 != null) {
 
-			researchLedger1.setNotifiedStorage(true);
+			//researchLedger1.setNotifiedStorage(true);
 			
 			researchLedgerRepository.save(researchLedger1);
 		}

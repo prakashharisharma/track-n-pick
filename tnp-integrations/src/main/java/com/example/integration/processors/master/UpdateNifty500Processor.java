@@ -13,9 +13,9 @@ import com.example.integration.model.StockMasterIN;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.util.io.model.StockIO.IndiceType;
+import com.example.util.io.model.UpdateTriggerIO.TriggerType;
 import com.example.util.io.model.StockIO;
 import com.example.util.io.model.UpdateTriggerIO;
-import com.example.util.io.model.UpdateTriggerIO.TriggerType;
 
 @Service
 public class UpdateNifty500Processor implements Processor{
@@ -28,15 +28,16 @@ public class UpdateNifty500Processor implements Processor{
 	
 	@Override
 	public void process(Exchange exchange) throws Exception {
+		
 		LOGGER.info("UpdateNifty500Processor : START");
 		
 		UpdateTriggerIO updateTriggerIO = new UpdateTriggerIO(TriggerType.RESET_MASTER);
 		
-		LOGGER.debug("UpdateNifty200Processor : Queuing to reset master ");
+		LOGGER.debug("UpdateNifty750Processor : Queuing to reset master ");
 		
 		queueService.send(updateTriggerIO, QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE);
 		
-		Thread.sleep(5000);
+		Thread.sleep(2000);
 		
 		//ADD TO NIFTY 500
 		
@@ -45,9 +46,10 @@ public class UpdateNifty500Processor implements Processor{
 
 		
 		nseMasterList.forEach(stockIn -> {
+			
 			StockIO stockIO = new StockIO(stockIn.getCompanyName(), stockIn.getSector(), stockIn.getNseSymbol(), stockIn.getSeries(), stockIn.getIsin(), IndiceType.NIFTY500);
 			
-			LOGGER.debug("UpdateNifty200Processor : Queuing to update master " + stockIO);
+			LOGGER.debug("UpdateNifty500Processor : Queuing to update master " + stockIO);
 			
 			queueService.send(stockIO, QueueConstants.MTQueue.UPDATE_MASTER_STOCK_QUEUE);
 			

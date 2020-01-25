@@ -21,11 +21,19 @@ public class RulesFundamental {
 	private double pricegt500;
 	private double pricelt500;
 	
+	private double pricegt750;
+	private double pricelt750;
+	
+	private double pricegt1000;
+	private double pricelt1000;
+	
 	private double mcap;
 	private double debtEquity;
 	private double debtEquity100;
 	private double debtEquity250;
 	private double debtEquity500;
+	private double debtEquity750;
+	private double debtEquity1000;
 	private double debtEquityTweaked;
 	
 	private double dividend;
@@ -41,6 +49,11 @@ public class RulesFundamental {
 	private double roe500;
 	private double roce500;
 	
+	private double roe750;
+	private double roce750;
+	private double roe1000;
+	private double roce1000;
+	
 	private double roeTweaked;
 	private double roceTweaked;
 	
@@ -48,6 +61,8 @@ public class RulesFundamental {
 	private double currentRatio100;
 	private double currentRatio250;
 	private double currentRatio500;
+	private double currentRatio750;
+	private double currentRatio1000;
 	private double quickRatioBanks;
 
 	private double currentRatioTweaked;
@@ -307,6 +322,102 @@ public class RulesFundamental {
 
 	public void setCurrentRatio500(double currentRatio500) {
 		this.currentRatio500 = currentRatio500;
+	}
+
+	public double getPricegt750() {
+		return pricegt750;
+	}
+
+	public void setPricegt750(double pricegt750) {
+		this.pricegt750 = pricegt750;
+	}
+
+	public double getPricelt750() {
+		return pricelt750;
+	}
+
+	public void setPricelt750(double pricelt750) {
+		this.pricelt750 = pricelt750;
+	}
+
+	public double getDebtEquity750() {
+		return debtEquity750;
+	}
+
+	public void setDebtEquity750(double debtEquity750) {
+		this.debtEquity750 = debtEquity750;
+	}
+
+	public double getRoe750() {
+		return roe750;
+	}
+
+	public void setRoe750(double roe750) {
+		this.roe750 = roe750;
+	}
+
+	public double getRoce750() {
+		return roce750;
+	}
+
+	public void setRoce750(double roce750) {
+		this.roce750 = roce750;
+	}
+
+	public double getCurrentRatio750() {
+		return currentRatio750;
+	}
+
+	public void setCurrentRatio750(double currentRatio750) {
+		this.currentRatio750 = currentRatio750;
+	}
+
+	public double getPricegt1000() {
+		return pricegt1000;
+	}
+
+	public void setPricegt1000(double pricegt1000) {
+		this.pricegt1000 = pricegt1000;
+	}
+
+	public double getPricelt1000() {
+		return pricelt1000;
+	}
+
+	public void setPricelt1000(double pricelt1000) {
+		this.pricelt1000 = pricelt1000;
+	}
+
+	public double getDebtEquity1000() {
+		return debtEquity1000;
+	}
+
+	public void setDebtEquity1000(double debtEquity1000) {
+		this.debtEquity1000 = debtEquity1000;
+	}
+
+	public double getRoe1000() {
+		return roe1000;
+	}
+
+	public void setRoe1000(double roe1000) {
+		this.roe1000 = roe1000;
+	}
+
+	public double getRoce1000() {
+		return roce1000;
+	}
+
+	public void setRoce1000(double roce1000) {
+		this.roce1000 = roce1000;
+	}
+
+	public double getCurrentRatio1000() {
+		return currentRatio1000;
+	}
+
+	public void setCurrentRatio1000(double currentRatio1000) {
+		this.currentRatio1000 = currentRatio1000;
 	}
 
 }

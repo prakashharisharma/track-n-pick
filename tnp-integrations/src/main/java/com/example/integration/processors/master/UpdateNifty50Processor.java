@@ -29,6 +29,7 @@ public class UpdateNifty50Processor implements Processor {
 
 		@SuppressWarnings("unchecked")
 		List<StockMasterIN> nseNifty50List = (List<StockMasterIN>) exchange.getIn().getBody();
+		
 		nseNifty50List.forEach(stockIn -> {
 			StockIO stockIO = new StockIO(stockIn.getCompanyName(), stockIn.getSector(), stockIn.getNseSymbol(),
 					stockIn.getSeries(), stockIn.getIsin(), IndiceType.NIFTY50);

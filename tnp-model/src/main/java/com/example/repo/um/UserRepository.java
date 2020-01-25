@@ -18,6 +18,9 @@ public interface UserRepository extends JpaRepository<UserProfile, Long> {
 	UserProfile findByUserId(long userId);
 	UserProfile findByUserEmail(String userEmail);
 	List<UserProfile> findByActive(boolean isActive);
+	List<UserProfile> findByActiveAndSubscribePortfolio(boolean isActive, boolean subscribePortfolio);
+	List<UserProfile> findByActiveAndSubscribeResearch(boolean isActive, boolean subscribeResearch);
+	List<UserProfile> findByActiveAndSubscribeCurrentUndervalue(boolean isActive, boolean subscribeCurrentUndervalue);
 	List<UserProfile> findAll();
 	
 	@Query(value = "select u from UserProfile u "

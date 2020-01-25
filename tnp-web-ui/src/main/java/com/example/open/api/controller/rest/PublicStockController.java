@@ -27,6 +27,8 @@ import com.example.ui.model.RecentCrossOverIO;
 import com.example.ui.model.StockDetailsIO;
 import com.example.ui.model.StockSearch;
 import com.example.util.FormulaService;
+import com.example.util.io.model.StockIO;
+import com.example.util.io.model.StockPriceIO;
 
 @RestController
 @RequestMapping("/public/api/stocks")
@@ -226,4 +228,17 @@ public class PublicStockController {
 		return recentHtml.toString();
 	}
 	
+	@GetMapping(value = "/active/nifty500", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<StockPriceIO>> getStocksMasterNifty500() {
+
+		List<StockPriceIO> stockSearchList = new ArrayList<>();
+		
+		List<Stock> stockList = stockService.nifty500();
+		
+		stockList.forEach(s -> {
+			stockSearchList.add(new StockPriceIO(s.getNseSymbol(), s.getIsinCode()));
+		});
+		
+		return ResponseEntity.ok(stockSearchList);
+	}
 }

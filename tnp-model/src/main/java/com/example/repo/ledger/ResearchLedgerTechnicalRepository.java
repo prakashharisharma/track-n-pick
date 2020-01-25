@@ -24,9 +24,9 @@ public interface ResearchLedgerTechnicalRepository extends JpaRepository<Researc
 	
 	ResearchLedgerTechnical findByStockAndNotified(Stock stock, ResearchType researchType,boolean isNotified);
 	
-	ResearchLedgerTechnical findByStockAndNotifiedStorage(Stock stock, ResearchType researchType, boolean notifiedStorage);
+	//ResearchLedgerTechnical findByStockAndNotifiedStorage(Stock stock, ResearchType researchType, boolean notifiedStorage);
 	
-	ResearchLedgerTechnical findByStockAndResearchStatusAndNotifiedStorage(Stock stock,  ResearchTrigger researchStatus, boolean notifiedStorage);
+	//ResearchLedgerTechnical findByStockAndResearchStatusAndNotifiedStorage(Stock stock,  ResearchTrigger researchStatus, boolean notifiedStorage);
 	
 	List<ResearchLedgerTechnical> findByResearchStatus(ResearchTrigger researchStatus);
 

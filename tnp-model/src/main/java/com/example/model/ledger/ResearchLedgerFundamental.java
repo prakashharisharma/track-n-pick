@@ -35,9 +35,6 @@ public class ResearchLedgerFundamental {
 	@Column(name = "IS_NOTIFIED")
 	boolean notified = false;
 	
-	@Column(name = "IS_NOTIFIED_STORAGE")
-	boolean notifiedStorage = false;
-	
 	@ManyToOne
 	@JoinColumn(name = "ENTRY_VALUATION")
 	ValuationLedger entryValuation;
@@ -70,13 +67,6 @@ public class ResearchLedgerFundamental {
 		this.researchStatus = researchStatus;
 	}
 
-	public boolean isNotifiedStorage() {
-		return notifiedStorage;
-	}
-
-	public void setNotifiedStorage(boolean notifiedStorage) {
-		this.notifiedStorage = notifiedStorage;
-	}
 
 	public boolean isNotified() {
 		return notified;
@@ -106,7 +96,7 @@ public class ResearchLedgerFundamental {
 	@Override
 	public String toString() {
 		return "ResearchLedgerFundamental [srlId=" + srlId + ", stock=" + stock + ", researchStatus=" + researchStatus
-				+ ", notified=" + notified + ", notifiedStorage=" + notifiedStorage + ", entryValuation="
+				+ ", notified=" + notified  + ", entryValuation="
 				+ entryValuation + ", exitValuation=" + exitValuation + "]";
 	}
 

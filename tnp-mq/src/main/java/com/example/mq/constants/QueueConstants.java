@@ -23,6 +23,8 @@ public interface QueueConstants {
 		public static String PROCESS_BHAV_QUEUE = "queue.integration.stocks.bhav";
 		public static String UPDATE_SECTORS_QUEUE = "queue.integration.update.sectors";
 		
+		public static String UPDATE_NIFTY1000_QUEUE = "queue.integration.update.nifty1000";
+		public static String UPDATE_NIFTY750_QUEUE = "queue.integration.update.nifty750";
 		public static String UPDATE_NIFTY500_QUEUE = "queue.integration.update.nifty500";
 		public static String UPDATE_NIFTY250_QUEUE = "queue.integration.update.nifty250";
 		public static String UPDATE_NIFTY100_QUEUE = "queue.integration.update.nifty100";
@@ -64,6 +66,9 @@ public interface QueueConstants {
 		public static String UPDATE_MASTER_SECTOR_QUEUE = "queue.mt.master.update.sector";
 		
 		public static String UPDATE_MASTER_STOCK_QUEUE = "queue.mt.master.update.stock";
+		
+		public static String UPDATE_MASTER_FACTOR_QUEUE = "queue.mt.master.update.factor";
+		
 		
 	}
 	public interface ExternalQueue{
