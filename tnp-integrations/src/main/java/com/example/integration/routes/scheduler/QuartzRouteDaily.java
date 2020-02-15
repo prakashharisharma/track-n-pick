@@ -37,7 +37,7 @@ public class QuartzRouteDaily extends RouteBuilder{
 		.to("log:everyDayAt_11_00");*/
 		
 		//0 10 10 ? * MON,TUE,WED,THU,FRI * // 0+10+10+?+*+MON,TUE,WED,THU,FRI+*
-		from("quartz2://everyDayAt_9_30?cron=0+46+10+?+*+MON,TUE,WED,THU,FRI+*").process(downloadNSEBhavProcessor)
+		from("quartz2://everyDayAt_9_30?cron=0+29+10+?+*+MON,TUE,WED,THU,FRI+*").process(downloadNSEBhavProcessor)
 		.to("log:everyDayAt_10_30");
 
 		from("quartz2://everyDayAt_16_45?cron=0+40+11+?+*+MON,TUE,WED,THU,FRI+*").process(researchUpdateProcessor)

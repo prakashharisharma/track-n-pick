@@ -1,0 +1,26 @@
+07-02-2020 10:29:00.025 [DefaultQuartzScheduler-camel-1_Worker-1] INFO 
+				c.e.i.p.d.DownloadNSEBhavProcessor.process - DOWNLOAD FILE PROCESSOR START ...
+07-02-2020 10:29:00.047 [DefaultQuartzScheduler-camel-1_Worker-1] INFO 
+				c.e.i.p.d.DownloadNSEBhavProcessor.process - DOWNLOAD FILE PROCESSOR END ...
+07-02-2020 10:29:05.475 [Camel (camel-1) thread #1 - JmsConsumer[queue.integration.stocks.bhav]] INFO 
+				c.e.i.p.bhav.BhavUpdateProcessor.process - BHAV UPDATE PROCESSOR : START
+07-02-2020 10:30:09.224 [Camel (camel-1) thread #1 - JmsConsumer[queue.integration.stocks.bhav]] INFO 
+				c.e.i.p.bhav.BhavUpdateProcessor.process - BHAV UPDATE PROCESSOR : END
+07-02-2020 11:40:00.004 [DefaultQuartzScheduler-camel-1_Worker-2] INFO 
+				c.e.i.p.u.UpdateResearchProcessor.process - UpdateResearchProcessor : START
+07-02-2020 11:40:00.006 [DefaultQuartzScheduler-camel-1_Worker-2] DEBUG
+				c.e.i.p.u.UpdateResearchProcessor.process - UpdateResearchProcessor : Queuinh to Update ... UpdateTriggerIO [trigger=UPDATE_RESEARCH]
+07-02-2020 11:40:00.013 [DefaultQuartzScheduler-camel-1_Worker-2] INFO 
+				c.e.i.p.u.UpdateResearchProcessor.process - UpdateResearchProcessor : END
+07-02-2020 11:42:00.001 [DefaultQuartzScheduler-camel-1_Worker-3] INFO 
+				c.e.i.p.e.EmailPortfolioProcessor.process - EmailPortfolioResearchProcessor START
+07-02-2020 11:42:00.002 [DefaultQuartzScheduler-camel-1_Worker-3] DEBUG
+				c.e.i.p.e.EmailPortfolioProcessor.process - EmailPortfolioResearchProcessor : Queuinh to Notification ... NotificationTriggerIO [triggerType=PORTFOLIO]
+07-02-2020 11:42:00.010 [DefaultQuartzScheduler-camel-1_Worker-3] INFO 
+				c.e.i.p.e.EmailPortfolioProcessor.process - EmailPortfolioResearchProcessor END
+07-02-2020 11:45:00.001 [DefaultQuartzScheduler-camel-1_Worker-4] INFO 
+				c.e.i.p.email.EmailResearchProcessor.process - EmailResearchProcessor START
+07-02-2020 11:45:00.002 [DefaultQuartzScheduler-camel-1_Worker-4] DEBUG
+				c.e.i.p.email.EmailResearchProcessor.process - EmailResearchProcessor : Queuinh to Notification ... NotificationTriggerIO [triggerType=RESEARCH]
+07-02-2020 11:45:00.007 [DefaultQuartzScheduler-camel-1_Worker-4] INFO 
+				c.e.i.p.email.EmailResearchProcessor.process - EmailResearchProcessor END

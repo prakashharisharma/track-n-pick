@@ -1,0 +1,26 @@
+13-02-2020 10:14:21.377 [restartedMain] INFO 
+				com.example.test.AppRunner.run - PREV50 275.20799999999997
+13-02-2020 10:14:21.543 [restartedMain] INFO 
+				com.example.test.AppRunner.run - PREV200 318.13975
+13-02-2020 10:14:21.739 [restartedMain] INFO 
+				com.example.test.AppRunner.run - SMA50 0.0
+13-02-2020 10:14:21.767 [restartedMain] INFO 
+				com.example.test.AppRunner.run - SMA200 361.36209677419356
+13-02-2020 10:14:21.772 [restartedMain] INFO 
+				com.example.test.AppRunner.run - LOw 309.35
+13-02-2020 10:14:22.081 [restartedMain] INFO 
+				com.example.test.AppRunner.run - LOW1 199.15
+13-02-2020 10:14:22.085 [restartedMain] INFO 
+				com.example.test.AppRunner.run - HIgh 488.95
+13-02-2020 10:14:22.230 [restartedMain] INFO 
+				com.example.test.AppRunner.run - HIgh 488.95
+13-02-2020 10:14:22.264 [restartedMain] INFO 
+				com.example.test.AppRunner.run - RSI NaN
+13-02-2020 10:14:22.423 [restartedMain] INFO 
+				com.example.test.AppRunner.run - RSI1 28.660436137071656
+13-02-2020 10:14:22.584 [restartedMain] INFO 
+				com.example.test.AppRunner.run - RSI2 24.16604251886848
+13-02-2020 10:14:22.746 [restartedMain] INFO 
+				com.example.test.AppRunner.run - PREV OBV -33643
+13-02-2020 10:14:22.890 [restartedMain] INFO 
+				com.example.test.AppRunner.run - PREV OBV 0
