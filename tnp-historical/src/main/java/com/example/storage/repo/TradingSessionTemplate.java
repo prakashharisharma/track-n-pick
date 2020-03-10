@@ -60,7 +60,7 @@ public class TradingSessionTemplate {
 	public List<TradingSession> getTradingSessions(int days) {
 		Query query = new Query();
 
-		query.with(new Sort(Sort.Direction.DESC, "tradingDate"));
+		query.with(Sort.by(Sort.Direction.DESC, "tradingDate"));
 		query.limit(days);
 
 		return (List<TradingSession>) mongoTemplate.find(query, TradingSession.class);
@@ -69,7 +69,7 @@ public class TradingSessionTemplate {
 	public TradingSession currentTradingSession() {
 		Query query = new Query();
 
-		query.with(new Sort(Sort.Direction.DESC, "tradingDate"));
+		query.with(Sort.by(Sort.Direction.DESC, "tradingDate"));
 
 		query.limit(1);
 
@@ -81,11 +81,13 @@ public class TradingSessionTemplate {
 	public TradingSession getTradingSessionBeforeDays(int days) {
 		Query query = new Query();
 
-		query.with(new Sort(Sort.Direction.DESC, "tradingDate"));
+		query.with(Sort.by(Sort.Direction.DESC, "tradingDate"));
 		query.limit(days);
 
 		List<TradingSession> tsList = mongoTemplate.find(query, TradingSession.class);
-
+		
+		
+		
 		return tsList.get(tsList.size() - 1);
 	}
 
@@ -173,7 +175,7 @@ public class TradingSessionTemplate {
 /*		MatchOperation matchPrices = Aggregation
 				.match(new Criteria("stockPrices.bhavDate").gte(Date.from(ts.getTradingDate())));*/
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "stockPrices.bhavDate"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "stockPrices.bhavDate"));
 		
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(2);
 		
@@ -385,7 +387,7 @@ public class TradingSessionTemplate {
 /*		MatchOperation matchPrices = Aggregation
 				.match(new Criteria("stockPrices.bhavDate").gte(Date.from(ts.getTradingDate())));*/
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "stockPrices.bhavDate"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "stockPrices.bhavDate"));
 		
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);
 		

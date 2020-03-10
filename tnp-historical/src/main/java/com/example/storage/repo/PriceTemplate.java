@@ -51,7 +51,7 @@ public class PriceTemplate {
 
 		MatchOperation matchSymbol = Aggregation.match(criteriaYearLow);
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.ASC, "nseSymbol"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.ASC, "nseSymbol"));
 
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("_id").as("_id").andExpression("nseSymbol").as("nseSymbol")
@@ -90,7 +90,7 @@ public class PriceTemplate {
 
 		MatchOperation matchSymbol = Aggregation.match(criteriaYearLow);
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.ASC, "nseSymbol"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.ASC, "nseSymbol"));
 
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("_id").as("_id").andExpression("nseSymbol").as("nseSymbol")
@@ -123,7 +123,7 @@ public class PriceTemplate {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
 
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);
 
@@ -151,7 +151,7 @@ public class PriceTemplate {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
 
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
 
@@ -182,7 +182,7 @@ public class PriceTemplate {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
 
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
 
@@ -212,7 +212,7 @@ public class PriceTemplate {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
 
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
 
@@ -276,7 +276,7 @@ public class PriceTemplate {
 		MatchOperation matchPrices = Aggregation
 				.match(new Criteria("bhavDate").gte(Date.from(yearBackInstant)));
 
-/*		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.ASC, "low"));
+/*		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.ASC, "low"));
 		
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);*/
 		
@@ -343,7 +343,7 @@ public class PriceTemplate {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
 
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);
 
@@ -371,7 +371,7 @@ public class PriceTemplate {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
 
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(1);
 
@@ -400,7 +400,7 @@ public class PriceTemplate {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
 		
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
 		
@@ -432,7 +432,7 @@ public class PriceTemplate {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
 		
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
 		
@@ -472,7 +472,7 @@ public class PriceTemplate {
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
 
-		SortOperation sortByAvgPopAsc = Aggregation.sort(new Sort(Direction.DESC, "bhavDate"));
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
 		
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
 		

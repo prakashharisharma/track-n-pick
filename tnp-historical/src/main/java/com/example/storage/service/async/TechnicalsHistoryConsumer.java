@@ -35,8 +35,8 @@ public class TechnicalsHistoryConsumer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TechnicalsHistoryConsumer.class);
 
-	//@Autowired
-	//private StorageService storageService;
+	// @Autowired
+	// private StorageService storageService;
 
 	@Autowired
 	private TechnicalsTemplate technicalsTemplate;
@@ -51,45 +51,53 @@ public class TechnicalsHistoryConsumer {
 	private PriceTemplate priceTemplate;
 
 	@JmsListener(destination = QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE)
-	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers, Message message,Session session) throws InterruptedException {
+	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers, Message message,
+			Session session) throws InterruptedException {
 
-		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : " + stockPriceIO.getNseSymbol() + " : START");
+		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : "
+				+ stockPriceIO.getNseSymbol() + " : START");
 		StockTechnicals prevStockTechnicals = null;
-		
+
 		// Get Technicals
 		try {
 			prevStockTechnicals = technicalsTemplate.getPrevTechnicals(stockPriceIO.getNseSymbol(), 1);
-		}catch(Exception e) {
-			LOGGER.error(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : Error in Getting PREV Technicals "
-					+ stockPriceIO.getNseSymbol());
+		} catch (Exception e) {
+			LOGGER.error(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase()
+					+ " : Error in Getting PREV Technicals " + stockPriceIO.getNseSymbol());
 		}
-		
-		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : PREV TECHNICALS "+ prevStockTechnicals);
+
+		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : PREV TECHNICALS "
+				+ prevStockTechnicals);
 
 		Volume volume = this.getVolume(stockPriceIO, prevStockTechnicals);
 
-		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : NEW PRICEVOLUME " + volume);
+		LOGGER.trace(
+				QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : NEW PRICEVOLUME " + volume);
 
 		Trend trend = this.getTrend(stockPriceIO, prevStockTechnicals);
 
 		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : NEW MA " + trend);
-		
+
 		Momentum momentum = this.getMomentum(stockPriceIO, prevStockTechnicals);
 
-		StockTechnicals stockTechnicals = new StockTechnicals(stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate(),volume, trend, momentum);
+		StockTechnicals stockTechnicals = new StockTechnicals(stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate(),
+				volume, trend, momentum);
 
 		technicalsTemplate.create(stockTechnicals);
 
-		Thread.sleep(70);
+		Thread.sleep(50);
 
 		//
-		StockTechnicalsIO stockTechnicalsIO = this.createStockTechnicalsIO(stockPriceIO, prevStockTechnicals, volume,trend,momentum);
+		StockTechnicalsIO stockTechnicalsIO = this.createStockTechnicalsIO(stockPriceIO, prevStockTechnicals, volume,
+				trend, momentum);
 
-		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : "+ stockPriceIO.getNseSymbol() + " : Queuing to update Transactional Technicals.. ");
+		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : "
+				+ stockPriceIO.getNseSymbol() + " : Queuing to update Transactional Technicals.. ");
 		// Save
 		queueService.send(stockTechnicalsIO, QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE);
 
-		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : "+ stockPriceIO.getNseSymbol() + " : START");
+		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : "
+				+ stockPriceIO.getNseSymbol() + " : START");
 	}
 
 	private double getPriceChange(StockPriceIO stockPriceIO) {
@@ -162,7 +170,7 @@ public class TechnicalsHistoryConsumer {
 
 		double smoothedRsi = formulaService.calculateSmoothedRsi(smoothedRs);
 
-		RSI rsiObj = new RSI(rs, rsi, smoothedRs, smoothedRsi,currentAverageGain,currentAverageLoss);
+		RSI rsiObj = new RSI(rs, rsi, smoothedRs, smoothedRsi, currentAverageGain, currentAverageLoss);
 
 		return rsiObj;
 	}
@@ -264,10 +272,10 @@ public class TechnicalsHistoryConsumer {
 		double voumeChange = 0.00;
 
 		Long avgVolume10 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 10);
-		
+
 		Long avgVolume30 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 30);
 
-		Volume priceVolume = new Volume(OBV, roc, volume, voumeChange, avgVolume10,avgVolume30);
+		Volume priceVolume = new Volume(OBV, roc, volume, voumeChange, avgVolume10, avgVolume30);
 
 		return priceVolume;
 	}
@@ -290,39 +298,82 @@ public class TechnicalsHistoryConsumer {
 
 		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase()
 				+ " : NEW StochasticOscillator " + stochasticOscillator);
-		
+
 		Momentum momentum = new Momentum(rsiObj, stochasticOscillator);
-		
+
 		return momentum;
 	}
-	
-	private StockTechnicalsIO createStockTechnicalsIO(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals, Volume volume,
-			Trend trend, Momentum momentum) {
+
+	private StockTechnicalsIO createStockTechnicalsIO(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals,
+			Volume volume, Trend trend, Momentum momentum) {
 		StockTechnicalsIO stockTechnicalsIO = new StockTechnicalsIO();
+
 		stockTechnicalsIO.setNseSymbol(stockPriceIO.getNseSymbol());
 
+		if (trend.getMovingAverage() != null) {
+			stockTechnicalsIO.setSma50(trend.getMovingAverage().getSimple().getAvg50());
+			stockTechnicalsIO.setSma100(trend.getMovingAverage().getSimple().getAvg100());
+			stockTechnicalsIO.setSma200(trend.getMovingAverage().getSimple().getAvg200());
+			if (prevStockTechnicals != null) {
+				stockTechnicalsIO
+						.setPrevSma50(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg50());
+				stockTechnicalsIO
+						.setPrevSma100(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg100());
+				stockTechnicalsIO
+						.setPrevSma200(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg200());
+			} else {
+				stockTechnicalsIO.setPrevSma50(stockPriceIO.getClose());
+				stockTechnicalsIO.setPrevSma100(stockPriceIO.getClose());
+				stockTechnicalsIO.setPrevSma200(stockPriceIO.getClose());
+			}
+		} else {
+			stockTechnicalsIO.setSma50(stockPriceIO.getClose());
+			stockTechnicalsIO.setSma100(stockPriceIO.getClose());
+			stockTechnicalsIO.setSma200(stockPriceIO.getClose());
 
-		stockTechnicalsIO.setSma50(trend.getMovingAverage().getSimple().getAvg50());
-		stockTechnicalsIO.setSma100(trend.getMovingAverage().getSimple().getAvg100());
-		stockTechnicalsIO.setSma200(trend.getMovingAverage().getSimple().getAvg200());
+			stockTechnicalsIO.setPrevSma50(stockPriceIO.getClose());
+			stockTechnicalsIO.setPrevSma100(stockPriceIO.getClose());
+			stockTechnicalsIO.setPrevSma200(stockPriceIO.getClose());
+		}
 
-		stockTechnicalsIO.setPrevSma50(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg50());
-		stockTechnicalsIO.setPrevSma100(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg100());
-		stockTechnicalsIO.setPrevSma200(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg200());
+		if (momentum != null) {
+			if(momentum.getRsi().getSmoothedRsi()!=null) {
+				stockTechnicalsIO.setRsi(momentum.getRsi().getSmoothedRsi());
+			}else {
+				stockTechnicalsIO.setRsi(1.0);
+			}
+			// stockTechnicalsIO.setRsi(0.00);
 
-		stockTechnicalsIO.setRsi(momentum.getRsi().getSmoothedRsi());
-		//stockTechnicalsIO.setRsi(0.00);
+			stockTechnicalsIO.setSok(momentum.getStochasticOscillator().getK());
+			stockTechnicalsIO.setSod(momentum.getStochasticOscillator().getD());
+		}else {
+			stockTechnicalsIO.setRsi(1.00);
+			// stockTechnicalsIO.setRsi(0.00);
 
-		stockTechnicalsIO.setSok(momentum.getStochasticOscillator().getK());
-		stockTechnicalsIO.setSod(momentum.getStochasticOscillator().getD());
+			stockTechnicalsIO.setSok(1.00);
+			stockTechnicalsIO.setSod(1.00);
+		}
+		if (volume != null) {
+			stockTechnicalsIO.setObv(volume.getObv());
+			if(volume.getRoc()!=null) {
+			stockTechnicalsIO.setRocv(volume.getRoc());
+			}else {
+				stockTechnicalsIO.setRocv(1.0);
+			}
+			if(volume.getVolume()!=null) {
+			stockTechnicalsIO.setVolume(volume.getVolume());
+			}else {
+				stockTechnicalsIO.setVolume(1);
+			}
+			stockTechnicalsIO.setAvgVolume(volume.getAvgVolume30());
+		}else {
+			stockTechnicalsIO.setObv(1);
 
-		stockTechnicalsIO.setObv(volume.getObv());
+			stockTechnicalsIO.setRocv(1);
 
-		stockTechnicalsIO.setRocv(volume.getRoc());
-
-		stockTechnicalsIO.setVolume(volume.getVolume());
-		stockTechnicalsIO.setAvgVolume(volume.getAvgVolume30());
-		
+			stockTechnicalsIO.setVolume(1);
+			stockTechnicalsIO.setAvgVolume(1);
+		}
 		return stockTechnicalsIO;
 	}
 

@@ -247,9 +247,9 @@ public class StockService {
 					
 					long interval = miscUtil.getInterval();
 					
-					System.out.println("interval : " + interval);
+					System.out.println("interval : " + interval +" : " + stock.getNseSymbol());
 					
-					Thread.sleep(interval);
+					Thread.sleep(10);
 					
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block

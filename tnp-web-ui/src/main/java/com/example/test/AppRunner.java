@@ -143,32 +143,35 @@ public class AppRunner implements CommandLineRunner {
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
 
-		LOGGER.info("PREV50 " + technicalsTemplate.getPrevSessionSma50("ZEEL"));
-		LOGGER.info("PREV200 " + technicalsTemplate.getPrevSessionSma200("ZEEL"));
-		LOGGER.info("SMA50 " + storageService.getSMA("ZEEL", 50));
-		LOGGER.info("SMA200 " + storageService.getSMA("ZEEL", 200));
-
-		LOGGER.info("LOw " + storageService.getyearLow("ZEEL"));
-
-		LOGGER.info("LOW1 " + priceTemplate.getyearLow("ZEEL"));
-
-		LOGGER.info("HIgh " + storageService.getyearHigh("ZEEL"));
-
-		LOGGER.info("HIgh " + priceTemplate.getyearHigh("ZEEL"));
-
-		LOGGER.info("RSI " + storageService.getRSI("ZEEL", 14));
-
-		LOGGER.info("RSI1 " + technicalsTemplate.getCurrentRSI("ZEEL"));
-
-		LOGGER.info("RSI2 " + technicalsTemplate.getCurrentSmoothedRSI("ZEEL"));
-
-		LOGGER.info("PREV OBV " + technicalsTemplate.getOBV("ZEEL"));
-
-		LOGGER.info("PREV OBV " + priceTemplate.getTotalTradedQuantity("ZEEL"));
-
-		StockTechnicals prevStockTechnicals = technicalsTemplate.getPrevTechnicals("ZEEL", 1);
-		System.out.println("BHAV_DATE : " + prevStockTechnicals.getBhavDate());
-		this.printJson(prevStockTechnicals);
+		/*
+		 * LOGGER.info("PREV50 " + technicalsTemplate.getPrevSessionSma50("ZEEL"));
+		 * LOGGER.info("PREV200 " + technicalsTemplate.getPrevSessionSma200("ZEEL"));
+		 * LOGGER.info("SMA50 " + storageService.getSMA("ZEEL", 50));
+		 * LOGGER.info("SMA200 " + storageService.getSMA("ZEEL", 200));
+		 * 
+		 * LOGGER.info("LOw " + storageService.getyearLow("ZEEL"));
+		 * 
+		 * LOGGER.info("LOW1 " + priceTemplate.getyearLow("ZEEL"));
+		 * 
+		 * LOGGER.info("HIgh " + storageService.getyearHigh("ZEEL"));
+		 * 
+		 * LOGGER.info("HIgh " + priceTemplate.getyearHigh("ZEEL"));
+		 * 
+		 * LOGGER.info("RSI " + storageService.getRSI("ZEEL", 14));
+		 * 
+		 * LOGGER.info("RSI1 " + technicalsTemplate.getCurrentRSI("ZEEL"));
+		 * 
+		 * LOGGER.info("RSI2 " + technicalsTemplate.getCurrentSmoothedRSI("ZEEL"));
+		 * 
+		 * LOGGER.info("PREV OBV " + technicalsTemplate.getOBV("ZEEL"));
+		 * 
+		 * LOGGER.info("PREV OBV " + priceTemplate.getTotalTradedQuantity("ZEEL"));
+		 * 
+		 * StockTechnicals prevStockTechnicals =
+		 * technicalsTemplate.getPrevTechnicals("ZEEL", 1);
+		 * System.out.println("BHAV_DATE : " + prevStockTechnicals.getBhavDate());
+		 * this.printJson(prevStockTechnicals);
+		 */
 
 		//List<Stock> sl = stockFactorService.stocksToUpdateFactor();
 		

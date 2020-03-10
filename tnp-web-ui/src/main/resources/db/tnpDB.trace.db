@@ -1916,3 +1916,706 @@ org.h2.message.DbException: The connection was not closed by the application and
 Caused by: org.h2.jdbc.JdbcSQLException: The connection was not closed by the application and is garbage collected [90018-197]
 	at org.h2.message.DbException.getJdbcSQLException(DbException.java:357)
 	... 88 more
+2020-03-09 10:43:58 jdbc[17]: null
+org.h2.message.DbException: The connection was not closed by the application and is garbage collected [90018-199]
+	at org.h2.message.DbException.get(DbException.java:205)
+	at org.h2.message.DbException.get(DbException.java:181)
+	at org.h2.message.DbException.get(DbException.java:170)
+	at org.h2.jdbc.JdbcConnection.closeOld(JdbcConnection.java:242)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:182)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:148)
+	at org.h2.Driver.connect(Driver.java:69)
+	at org.h2.util.JdbcUtils.getConnection(JdbcUtils.java:299)
+	at org.h2.server.web.WebServer.getConnection(WebServer.java:782)
+	at org.h2.server.web.WebApp.login(WebApp.java:1004)
+	at org.h2.server.web.WebApp.process(WebApp.java:219)
+	at org.h2.server.web.WebApp.processRequest(WebApp.java:169)
+	at org.h2.server.web.WebServlet.doGet(WebServlet.java:121)
+	at org.h2.server.web.WebServlet.doPost(WebServlet.java:158)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:660)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:741)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:231)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:320)
+	at org.springframework.security.web.access.intercept.FilterSecurityInterceptor.invoke(FilterSecurityInterceptor.java:126)
+	at org.springframework.security.web.access.intercept.FilterSecurityInterceptor.doFilter(FilterSecurityInterceptor.java:90)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:118)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:137)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:111)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:158)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:200)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:92)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:77)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.context.SecurityContextPersistenceFilter.doFilter(SecurityContextPersistenceFilter.java:105)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:56)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:215)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:178)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:358)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:271)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.springframework.session.web.http.SessionRepositoryFilter.doFilterInternal(SessionRepositoryFilter.java:171)
+	at org.springframework.session.web.http.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:80)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:202)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:96)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:526)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:139)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:92)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:408)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:66)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:861)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1579)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:49)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientConnectionException: The connection was not closed by the application and is garbage collected [90018-199]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:617)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:427)
+	... 86 more
+2020-03-09 10:45:06 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:06 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:07 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:08 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:09 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:10 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:11 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:11 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:11 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:12 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:13 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:14 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:15 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:16 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:16 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:16 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:17 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:45:18 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:53:16 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:53:16 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:53:17 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:53:18 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:53:19 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:53:20 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 10:53:21 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:01:54 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:01:54 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:01:55 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:01:56 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:01:57 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:01:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:01:59 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:03 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:03 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:04 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:05 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:06 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:07 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:08 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:08 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:08 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:09 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:10 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:11 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:12 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:13 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:13 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:13 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:14 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:15 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:16 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:17 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:18 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:19 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:19 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:20 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:02:21 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:04:02 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:04:02 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:04:03 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:04:04 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:04:05 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:04:06 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:04:07 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:04:08 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:04:08 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:04:09 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:32 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:32 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:33 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:34 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:35 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:36 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:37 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:38 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:38 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:39 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:40 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:41 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:42 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:43 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:51 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:51 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:52 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:53 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:54 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:55 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:05:56 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:06:05 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:06:05 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:06:06 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:06:07 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:06:08 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:08:55 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:08:56 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:08:57 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:08:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:08:59 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:09:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:09:01 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:09:01 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:09:01 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:09:02 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:09:03 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:09:04 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:09:05 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:09:06 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:09:06 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column """ROCV"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 79": "-141865200.00 (11)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22001-199]
+2020-03-09 11:09:06 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column """ROCV"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 79": "-141865200.00 (11)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22001-199]
+2020-03-09 11:09:07 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column """ROCV"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 79": "-141865200.00 (11)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22001-199]
+2020-03-09 11:09:08 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column """ROCV"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 79": "-141865200.00 (11)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22001-199]
+2020-03-09 11:09:09 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column """ROCV"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 79": "-141865200.00 (11)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22001-199]
+2020-03-09 11:09:10 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column """ROCV"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 79": "-141865200.00 (11)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22001-199]
+2020-03-09 11:09:11 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column """ROCV"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 79": "-141865200.00 (11)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22001-199]
+2020-03-09 11:09:12 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:09:12 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:20 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:20 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:21 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:22 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:23 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:24 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:25 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:25 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:25 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:26 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:27 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:28 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:29 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:11:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 11:20:30 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "LAST_MODIFIED_DATE" not found; SQL statement:
+SELECT * FROM STOCK_PRICE order by LAST_MODIFIED_DATE desc [42122-199]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:451)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:427)
+	at org.h2.message.DbException.get(DbException.java:205)
+	at org.h2.message.DbException.get(DbException.java:181)
+	at org.h2.expression.ExpressionColumn.getColumnException(ExpressionColumn.java:176)
+	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:158)
+	at org.h2.command.dml.Select.prepare(Select.java:1245)
+	at org.h2.command.Parser.prepareCommand(Parser.java:689)
+	at org.h2.engine.Session.prepareLocal(Session.java:627)
+	at org.h2.engine.Session.prepareCommand(Session.java:565)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1292)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:217)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:1113)
+	at org.h2.server.web.WebApp.getResult(WebApp.java:1436)
+	at org.h2.server.web.WebApp.query(WebApp.java:1111)
+	at org.h2.server.web.WebApp.query(WebApp.java:1087)
+	at org.h2.server.web.WebApp.process(WebApp.java:237)
+	at org.h2.server.web.WebApp.processRequest(WebApp.java:169)
+	at org.h2.server.web.WebServlet.doGet(WebServlet.java:121)
+	at org.h2.server.web.WebServlet.doPost(WebServlet.java:158)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:660)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:741)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:231)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:320)
+	at org.springframework.security.web.access.intercept.FilterSecurityInterceptor.invoke(FilterSecurityInterceptor.java:126)
+	at org.springframework.security.web.access.intercept.FilterSecurityInterceptor.doFilter(FilterSecurityInterceptor.java:90)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:118)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:137)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:111)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:158)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:200)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:92)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:77)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.context.SecurityContextPersistenceFilter.doFilter(SecurityContextPersistenceFilter.java:105)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:56)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:334)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:215)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:178)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:358)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:271)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.springframework.session.web.http.SessionRepositoryFilter.doFilterInternal(SessionRepositoryFilter.java:171)
+	at org.springframework.session.web.http.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:80)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:202)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:96)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:526)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:139)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:92)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:408)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:66)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:861)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1579)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:49)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.lang.Thread.run(Thread.java:748)
+2020-03-09 13:37:16 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:16 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:17 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:18 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:19 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:20 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:21 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:21 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:21 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:22 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:23 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:24 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:25 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:26 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:45 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:45 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:46 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:47 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:48 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:49 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:37:50 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:39:26 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:39:26 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:39:27 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:39:28 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:39:29 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:39:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 13:39:31 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:13:48 jdbc[34]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:13:48 jdbc[34]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:13:49 jdbc[34]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:13:50 jdbc[34]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:13:51 jdbc[34]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:13:52 jdbc[34]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:13:53 jdbc[34]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:14:16 jdbc[35]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:14:16 jdbc[35]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:14:17 jdbc[35]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:14:18 jdbc[35]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:14:19 jdbc[35]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:14:20 jdbc[35]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]
+2020-03-09 15:14:21 jdbc[35]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "SQRT(-1) (STOCK_TECHNICALS: ""RSI"" DECIMAL(10, 2) DEFAULT '0.00' SELECTIVITY 90)"; SQL statement:
+update stock_technicals set avg_volume=?, last_modified=?, obv=?, prev_sma_100=?, prev_sma_200=?, prev_sma_21=?, prev_sma_50=?, rocv=?, rsi=?, sma_100=?, sma_200=?, sma_21=?, sma_50=?, sod=?, sok=?, stock_id=?, volume=? where stock_technicals_id=? [22018-199]

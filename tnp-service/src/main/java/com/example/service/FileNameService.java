@@ -1,5 +1,6 @@
 package com.example.service;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
@@ -23,15 +24,15 @@ public class FileNameService {
 	private static String base_nse_ReferrerURI = "https://www1.nseindia.com/ArchieveSearch?h_filetype=eqbhav&date=";
 
 	// ./src/data/inbox/zip/cm19SEP2018bhav.zip
-	private static String base_nse_bhav_downloaded_filename = "./" + FileLocationConstants.BHAV_ZIP_LOCATION+"/";
+	private static String base_nse_bhav_downloaded_filename = FileLocationConstants.BHAV_ZIP_LOCATION+ File.separator;
 	
-	private static String base_nse_master500_downloaded_filename = "./"+FileLocationConstants.NIFTY_500_DOWNLOAD_LOCATION+"/nifty500Stockslist.csv";
+	private static String base_nse_master500_downloaded_filename = FileLocationConstants.NIFTY_500_DOWNLOAD_LOCATION+File.separator+"nifty500Stockslist.csv";
 	
-	private static String base_nse_nifty50_downloaded_filename = "./"+FileLocationConstants.NIFTY_50_DOWNLOAD_LOCATION+"/nifty50Stockslist.csv";
+	private static String base_nse_nifty50_downloaded_filename = FileLocationConstants.NIFTY_50_DOWNLOAD_LOCATION+File.separator+"nifty50Stockslist.csv";
 	
-	private static String base_nse_nifty100_downloaded_filename = "./"+FileLocationConstants.NIFTY_100_DOWNLOAD_LOCATION+"/nifty100Stockslist.csv";
+	private static String base_nse_nifty100_downloaded_filename = FileLocationConstants.NIFTY_100_DOWNLOAD_LOCATION+File.separator+"nifty100Stockslist.csv";
 	
-	private static String base_nse_nifty250_downloaded_filename = "./"+FileLocationConstants.NIFTY_250_DOWNLOAD_LOCATION+"/nifty250Stockslist.csv";
+	private static String base_nse_nifty250_downloaded_filename = FileLocationConstants.NIFTY_250_DOWNLOAD_LOCATION+File.separator+"nifty250Stockslist.csv";
 
 	
 	public String getNSEBhavFileName() {

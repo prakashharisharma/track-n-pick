@@ -15,10 +15,10 @@
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../</relativePath>
 	</parent>
-<!-- 
+
 	<properties>
 		<java.version>1.8</java.version>
-	</properties> -->
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -37,8 +37,7 @@
 		<dependency>
 			<groupId>com.example</groupId>
 			<artifactId>tnp-mq</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-			
+			<version>0.0.1-SNAPSHOT</version>		
 		</dependency>
 
 <!-- 		<dependency>
