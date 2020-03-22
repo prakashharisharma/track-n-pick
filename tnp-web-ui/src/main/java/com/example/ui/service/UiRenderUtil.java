@@ -65,6 +65,8 @@ public class UiRenderUtil {
 	@Autowired
 	private RuleService ruleService;
 	
+	
+	
 	public List<UIRenderStock> renderPortfolio(List<UserPortfolio> userPortfolioList) {
 
 		List<UIRenderStock> portfolioList = new ArrayList<>();
