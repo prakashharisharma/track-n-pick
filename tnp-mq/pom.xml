@@ -4,9 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 
-	<groupId>com.example</groupId>
+	<!-- <groupId>com.example</groupId> -->
 	<artifactId>tnp-mq</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<!-- <version>0.0.1-SNAPSHOT</version> -->
 	<name>tnp-mq</name>
 	<description>tnp-mq</description>
 	<packaging>jar</packaging>
@@ -45,7 +45,7 @@
 		<dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-kahadb-store</artifactId>
-			<version>5.14.5</version>
+			<!-- <version>5.14.5</version> -->
 			<scope>compile</scope>
 		</dependency>
 
