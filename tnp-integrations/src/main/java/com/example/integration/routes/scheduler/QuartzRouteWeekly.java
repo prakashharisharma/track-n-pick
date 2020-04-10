@@ -15,7 +15,7 @@ public class QuartzRouteWeekly extends RouteBuilder {
 	public void configure() throws Exception {
 		
 		//0 10 10 ? * MON,WED,FRI * // 0+10+10+?+*+MON,WED,FRI+*
-		from("quartz2://everyWednesDayAt_11_15?cron=0+30+07+?+*+WED+*").process(emailCurrentUnderValueStocksProcessor)
+		from("quartz2://everyWednesDayAt_11_15?cron=0+05+09+?+*+WED+*").process(emailCurrentUnderValueStocksProcessor)
 		.to("log:everyWednesDayAt_11_15");
 
 	}

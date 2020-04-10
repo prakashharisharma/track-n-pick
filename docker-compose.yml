@@ -1,0 +1,74 @@
+version: '3'
+networks:
+  tnp-net:
+    driver: bridge
+
+services:
+  mongodb-server:
+    image: 'prakashharisharma/tnp-repo:mongodb'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: '256M'
+    restart: always
+    networks:
+      - tnp-net
+    ports:
+      - '27017-27019:27017-27019'
+    volumes:
+      - '/opt/tnp/db/mongo/data:/data/db'
+       
+  redis-server:
+    image: 'redis'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: '256M'
+    networks:
+      - tnp-net    
+    ports:
+      - '6379:6379'
+    depends_on:
+      - mongodb-server
+
+  activemq-server:
+    image: 'prakashharisharma/tnp-repo:activemq'
+    environment:
+      - ACTIVEMQ_CONFIG_MINMEMORY=128
+      - ACTIVEMQ_CONFIG_MAXMEMORY=256
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: '256M'
+    networks:
+      - tnp-net    
+    ports:
+      - '8161:8161'
+      - '61616:61616'
+      - '61613:61613'
+    volumes:
+      - '/opt/tnp/data/activemq:/data'
+
+  tnp-server:
+    image: 'prakashharisharma/tnp-repo:app-latest'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: '256M'
+    networks:
+      - tnp-net  
+    ports:
+      - '8080:8080'
+    links:
+      - mongodb-server
+      - redis-server
+      - activemq-server
+    volumes:
+      - '/opt/tnp:/opt/tnp'
+    depends_on:
+      - activemq-server
+

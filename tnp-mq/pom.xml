@@ -4,9 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 
-	<!-- <groupId>com.example</groupId> -->
+	<groupId>com.example</groupId>
 	<artifactId>tnp-mq</artifactId>
-	<!-- <version>0.0.1-SNAPSHOT</version> -->
+	<version>0.0.1-SNAPSHOT</version>
 	<name>tnp-mq</name>
 	<description>tnp-mq</description>
 	<packaging>jar</packaging>
@@ -28,11 +28,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-activemq</artifactId>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-broker</artifactId>
-			<!-- <version>5.3.2</version> -->
-		</dependency>
+			<version>5.3.2</version>
+		</dependency> -->
 
 
 
@@ -42,12 +42,12 @@
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.apache.activemq/activemq-kahadb-store -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-kahadb-store</artifactId>
-			<!-- <version>5.14.5</version> -->
+			<version>5.14.5</version>
 			<scope>compile</scope>
-		</dependency>
+		</dependency> -->
 
 		<!-- <dependency> <groupId>org.springframework.boot</groupId> <artifactId>spring-boot-starter-test</artifactId> 
 			<scope>test</scope> </dependency> -->

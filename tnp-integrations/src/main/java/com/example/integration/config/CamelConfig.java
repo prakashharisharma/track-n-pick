@@ -24,7 +24,8 @@ public class CamelConfig {
 	@Bean
 	ConnectionFactory connectionFactory() {
 		//return new ActiveMQConnectionFactory("tcp://localhost:61616");
-		return new ActiveMQConnectionFactory("vm://localhost");
+		return new ActiveMQConnectionFactory("tcp://activemq-server:61616");
+		//return new ActiveMQConnectionFactory("vm://localhost");
 	}
 	
 	@PostConstruct

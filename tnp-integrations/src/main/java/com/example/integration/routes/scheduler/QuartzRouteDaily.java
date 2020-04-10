@@ -37,16 +37,16 @@ public class QuartzRouteDaily extends RouteBuilder{
 		.to("log:everyDayAt_11_00");*/
 		
 		//0 10 10 ? * MON,TUE,WED,THU,FRI * // 0+10+10+?+*+MON,TUE,WED,THU,FRI+*
-		from("quartz2://everyDayAt_9_30?cron=0+08+07+?+*+MON,TUE,WED,THU,FRI+*").process(downloadNSEBhavProcessor)
+		from("quartz2://everyDayAt_9_30?cron=0+30+08+?+*+MON,TUE,WED,THU,FRI+*").process(downloadNSEBhavProcessor)
 		.to("log:everyDayAt_10_30");
 
-		from("quartz2://everyDayAt_16_45?cron=0+18+07+?+*+MON,TUE,WED,THU,FRI+*").process(researchUpdateProcessor)
+		from("quartz2://everyDayAt_16_45?cron=0+45+08+?+*+MON,TUE,WED,THU,FRI+*").process(researchUpdateProcessor)
 		.to("log:everyDayAt_16_45");
 		
-		from("quartz2://everyDayAt_9_45?cron=0+22+07+?+*+MON,TUE,WED,THU,FRI+*").process(emailPortfolioProcessor)
+		from("quartz2://everyDayAt_9_45?cron=0+50+08+?+*+MON,TUE,WED,THU,FRI+*").process(emailPortfolioProcessor)
 		.to("log:everyDayAt_10_45");
 		
-		from("quartz2://everyDayAt_11_00?cron=0+25+07+?+*+MON,TUE,WED,THU,FRI+*").process(emailResearchProcessor)
+		from("quartz2://everyDayAt_11_00?cron=0+55+08+?+*+MON,TUE,WED,THU,FRI+*").process(emailResearchProcessor)
 		.to("log:everyDayAt_11_00");
 		
 		
