@@ -19,7 +19,7 @@ public class FileNameService {
 	private CalendarService calendarService;
 	
 	// https://www.nseindia.com/content/historical/EQUITIES/2018/OCT/cm01OCT2018bhav.csv.zip
-	private static String base_nse_bhav_url = "https://www1.nseindia.com/content/historical/EQUITIES/";// 2018/OCT/cm01OCT2018bhav.csv.zip";
+	private static String base_nse_bhav_url = "https://archives.nseindia.com/content/historical/EQUITIES/";// 2018/OCT/cm01OCT2018bhav.csv.zip";
 	
 	private static String base_nse_ReferrerURI = "https://www1.nseindia.com/ArchieveSearch?h_filetype=eqbhav&date=";
 

@@ -71,6 +71,11 @@ public class DownloadTriggerConsumer {
 			fileName = fileNameService.getNSEBhavFileName(downloadTriggerIO.getDownloadDate());
 
 			try {
+				
+				System.out.println(referrerURI);
+				System.out.println(fileURI);
+				System.out.println(fileName);
+				
 				if (downloadLedgerService.isBhavDownloadExist(downloadTriggerIO.getDownloadDate())) {
 					LOGGER.info("NOT DOWNLOADING for  " + downloadTriggerIO.getDownloadDate().getDayOfWeek().name()
 							+ " BHAV ALREADY DOWNLOADED");

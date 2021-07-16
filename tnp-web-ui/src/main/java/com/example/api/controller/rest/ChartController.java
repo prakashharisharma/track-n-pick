@@ -16,6 +16,9 @@ import com.example.ui.model.RenderIndiceAllocation;
 import com.example.ui.model.RenderSectorWiseValue;
 import com.example.ui.service.UiRenderUtil;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/chart")
 public class ChartController {
@@ -28,7 +31,6 @@ public class ChartController {
 	
 	@GetMapping(value="/performance/currentvalue", produces = MediaType.APPLICATION_JSON_VALUE )
 	public ResponseEntity<List<ChartPerformance>> getCurrentValue() {
-
 
 		return ResponseEntity.ok(uiRenderUtil.yearlyPerformance(loginService.getLoginUserProfile(), ChartType.PERFORMANCE_CV));
 	}

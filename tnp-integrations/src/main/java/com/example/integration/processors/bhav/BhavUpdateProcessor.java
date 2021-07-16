@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +15,13 @@ import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.util.io.model.StockPriceIO;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class BhavUpdateProcessor implements Processor {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(BhavUpdateProcessor.class);
+	//private static final Logger LOGGER = LoggerFactory.getLogger(BhavUpdateProcessor.class);
 
 	@Autowired
 	private QueueService queueService;
@@ -28,7 +29,7 @@ public class BhavUpdateProcessor implements Processor {
 	@Override
 	public void process(Exchange exchange) throws Exception {
 
-		LOGGER.info("BHAV UPDATE PROCESSOR : START");
+		log.info("Starting Bhav Processor");
 		
 		@SuppressWarnings("unchecked")
 		List<StockPriceIN> dailyStockPriceList = (List<StockPriceIN>) exchange.getIn().getBody();
@@ -42,7 +43,7 @@ public class BhavUpdateProcessor implements Processor {
 			
 			StockPriceIO stockPriceIO = new StockPriceIO(sp.getNseSymbol(), sp.getSeries(), sp.getOpen(), sp.getHigh(), sp.getLow(), sp.getClose(), sp.getLast(), sp.getPrevClose(), sp.getTottrdqty(), sp.getTottrdval(), sp.getTimestamp(), sp.getTotaltrades(), sp.getIsin());
 			
-			LOGGER.trace("BHAV UPDATE PROCESSOR : Queuing to Update Price Queue..." + stockPriceIO);
+			log.debug("Queuing to update price Stock:{}" + stockPriceIO.getNseSymbol());
 			
 			queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_BHAV_QUEUE);
 			
@@ -50,8 +51,7 @@ public class BhavUpdateProcessor implements Processor {
 			
 		});
 		
-		
-		LOGGER.info("BHAV UPDATE PROCESSOR : END");
+		log.info("Completed Bhav Processor");
 		
 	}
 }

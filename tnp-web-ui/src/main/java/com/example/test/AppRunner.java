@@ -2,30 +2,19 @@ package com.example.test;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import com.example.external.bhav.service.DownloadBhavService;
 import com.example.external.dylh.service.DylhService;
 import com.example.integration.service.RestClientService;
-import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.master.Stock;
 import com.example.model.um.UserProfile;
-import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.repo.master.HolidayCalendarRepository;
 import com.example.repo.stocks.PortfolioRepository;
@@ -42,16 +31,12 @@ import com.example.service.StockService;
 import com.example.service.TechnicalsResearchService;
 import com.example.service.UserService;
 import com.example.service.WatchListService;
-import com.example.storage.model.StockTechnicals;
 import com.example.storage.repo.PriceTemplate;
 import com.example.storage.repo.TechnicalsTemplate;
 import com.example.storage.repo.TradingSessionTemplate;
 import com.example.storage.service.StorageService;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
-import com.example.util.io.model.ResearchIO;
-import com.example.util.io.model.ResearchIO.ResearchTrigger;
-import com.example.util.io.model.ResearchIO.ResearchType;
 import com.example.util.io.model.StockPriceIO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -144,6 +129,9 @@ public class AppRunner implements CommandLineRunner {
 	public void run(String... arg0) throws InterruptedException, IOException {
 
 		
+		
+		downloadBhavService.downloadFile("https://www1.nseindia.com/ArchieveSearch?h_filetype=eqbhav&date=14-07-2021&section=EQ", "https://archives.nseindia.com/content/historical/EQUITIES/2021/JUL/cm14JUL2021bhav.csv.zip", "/opt/tnp/data/bhav/nse/zip/cm09JUL2021bhav.zip");
+		/*
 		  LOGGER.info("PREV50 " + technicalsTemplate.getPrevSessionSma50("ZEEL"));
 		  LOGGER.info("PREV200 " + technicalsTemplate.getPrevSessionSma200("ZEEL"));
 		  LOGGER.info("SMA50 " + storageService.getSMA("ZEEL", 50));
@@ -171,7 +159,7 @@ public class AppRunner implements CommandLineRunner {
 		  technicalsTemplate.getPrevTechnicals("ZEEL", 1);
 		  System.out.println("BHAV_DATE : " + prevStockTechnicals.getBhavDate());
 		  this.printJson(prevStockTechnicals);
-		 
+		 */
 
 		//List<Stock> sl = stockFactorService.stocksToUpdateFactor();
 		
@@ -338,6 +326,7 @@ public class AppRunner implements CommandLineRunner {
 		  portfolioService.addBonus(user2, stock, 4, 1);
 		 */
 		//testDownLoad();
+		System.out.println("STARTED");
 	}
 	
 	private void testDownLoad() {

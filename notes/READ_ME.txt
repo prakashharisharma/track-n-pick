@@ -1,3 +1,23 @@
+
+sudo mkdir /opt/tnp
+sudo mkdir /opt/tnp/logs
+sudo mkdir /opt/tnp/data
+sudo mkdir /opt/tnp/master
+
+sudo chmod a+rwx /opt/tnp/logs/
+sudo chmod a+rwx /opt/tnp/data/
+sudo chmod a+rwx /opt/tnp/data/bhav/nse/zip/
+sudo chmod a+rwx /opt/tnp/data/bhav/nse/csv/
+sudo chmod a+rwx /opt/tnp/data/master/nifty50/csv/
+sudo chmod a+rwx /opt/tnp/data/master/nifty100/csv/
+sudo chmod a+rwx /opt/tnp/data/master/nifty250/csv/
+sudo chmod a+rwx /opt/tnp/data/master/nifty500/csv/
+sudo chmod a+rwx /opt/tnp/data/master/nifty750/csv/
+sudo chmod a+rwx /opt/tnp/data/master/nifty1000/csv/
+sudo chmod a+rwx /opt/tnp/data/master/sectors/csv/
+
+
+
 http://localhost:8081/h2-console/login.do?jsessionid=d3567d9c136e33ecb44d94743a6fa960
 
 --HOLIDAY
