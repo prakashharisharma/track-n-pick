@@ -1,4 +1,4 @@
-package com.example.test;
+package com.example;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -128,9 +128,6 @@ public class AppRunner implements CommandLineRunner {
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
 
-		
-		
-		downloadBhavService.downloadFile("https://www1.nseindia.com/ArchieveSearch?h_filetype=eqbhav&date=14-07-2021&section=EQ", "https://archives.nseindia.com/content/historical/EQUITIES/2021/JUL/cm14JUL2021bhav.csv.zip", "/opt/tnp/data/bhav/nse/zip/cm09JUL2021bhav.zip");
 		/*
 		  LOGGER.info("PREV50 " + technicalsTemplate.getPrevSessionSma50("ZEEL"));
 		  LOGGER.info("PREV200 " + technicalsTemplate.getPrevSessionSma200("ZEEL"));

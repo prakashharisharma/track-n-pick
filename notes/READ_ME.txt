@@ -2,10 +2,15 @@
 sudo mkdir /opt/tnp
 sudo mkdir /opt/tnp/logs
 sudo mkdir /opt/tnp/data
+sudo mkdir /opt/tnp/data/db
+sudo mkdir /opt/tnp/data/db/h2
 sudo mkdir /opt/tnp/master
+sudo mkdir /opt/tnp/boot
 
 sudo chmod a+rwx /opt/tnp/logs/
 sudo chmod a+rwx /opt/tnp/data/
+sudo chmod a+rwx /opt/tnp/boot/
+sudo chmod a+rwx /opt/tnp/data/db/h2/
 sudo chmod a+rwx /opt/tnp/data/bhav/nse/zip/
 sudo chmod a+rwx /opt/tnp/data/bhav/nse/csv/
 sudo chmod a+rwx /opt/tnp/data/master/nifty50/csv/
@@ -17,6 +22,24 @@ sudo chmod a+rwx /opt/tnp/data/master/nifty1000/csv/
 sudo chmod a+rwx /opt/tnp/data/master/sectors/csv/
 
 
+chmod 400 track-n-pick.pem
+
+ssh -i /home/prakash/mydrive/aws/track-n-pick.pem ubuntu@ec2-65-2-31-82.ap-south-1.compute.amazonaws.com
+
+scp -i /home/prakash/mydrive/aws/track-n-pick.pem /home/prakash/mydrive/repo/track-n-pick/tnp-web-ui/target/tnp.war ubuntu@ec2-65-2-31-82.ap-south-1.compute.amazonaws.com:/opt/tnp/boot/tnp.war
+scp -i /home/prakash/mydrive/aws/track-n-pick.pem /opt/tnp/data/db/h2/tnpDB.mv.db ubuntu@ec2-65-2-31-82.ap-south-1.compute.amazonaws.com:/opt/tnp/data/db/h2/tnpDB.mv.db
+
+java -jar /opt/tnp/boot/tnp.war & exit
+
+http://ec2-65-2-31-82.ap-south-1.compute.amazonaws.com:8080
+http://65.2.31.82:8080
+65.2.31.82
+
+https://track-n-pick-lb-1069488515.ap-south-1.elb.amazonaws.com
+
+https://track-n-pick-2115903799.ap-south-1.elb.amazonaws.com
+
+https://tracknpick.com
 
 http://localhost:8081/h2-console/login.do?jsessionid=d3567d9c136e33ecb44d94743a6fa960
 
