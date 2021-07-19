@@ -1,4 +1,9 @@
 
+https://215538505556.signin.aws.amazon.com/console
+user  : tnp
+Access key : AKIATELYYS5KAMTDE5L6
+secret Key : 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
+
 sudo mkdir /opt/tnp
 sudo mkdir /opt/tnp/logs
 sudo mkdir /opt/tnp/data
@@ -42,6 +47,10 @@ https://track-n-pick-2115903799.ap-south-1.elb.amazonaws.com
 https://tracknpick.com
 
 http://localhost:8081/h2-console/login.do?jsessionid=d3567d9c136e33ecb44d94743a6fa960
+
+wget https://aws-codedeploy-ap-south-1.s3.ap-south-1.amazonaws.com/latest/install
+
+
 
 --HOLIDAY
 https://www.nseindia.com/global/content/market_timings_holidays/market_timings_holidays.htm
