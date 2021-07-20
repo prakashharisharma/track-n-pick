@@ -1,8 +1,6 @@
 
 https://215538505556.signin.aws.amazon.com/console
 user  : tnp
-Access key : AKIATELYYS5KAMTDE5L6
-secret Key : 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
 
 sudo mkdir /opt/tnp
 sudo mkdir /opt/tnp/logs
