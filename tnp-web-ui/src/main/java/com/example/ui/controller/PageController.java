@@ -30,6 +30,12 @@ public class PageController {
 		return "research";
 	}
 
+	@GetMapping(value = "/screener.html")
+	public String screener(Model model) {
+		model.addAttribute("classActiveScreener", "active");
+		return "screener";
+	}	
+	
 	@GetMapping(value = "/funds.html")
 	public String funds(Model model) {
 		model.addAttribute("classActiveFunds", "active");

@@ -63,7 +63,7 @@ public class StockService {
 	}
 
 	public Stock getStockByNseSymbol(String nseSymbol) {
-		return stockRepository.findByNseSymbol(nseSymbol);
+		return stockRepository.findFirstByNseSymbol(nseSymbol);
 	}
 
 	public Stock getStockById(long stockId) {

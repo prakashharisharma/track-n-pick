@@ -19,7 +19,7 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 	
 	Stock findByStockId(long stockId);
 	
-	Stock findByNseSymbol(String nseSymbol);
+	Stock findFirstByNseSymbol(String nseSymbol);
 	
 	List<Stock> findByCompanyNameContainingIgnoreCase(String companyName);
 	

@@ -128,6 +128,10 @@ public class AppRunner implements CommandLineRunner {
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
 
+		Stock stock = stockService.getStockByNseSymbol("KRBL");
+		
+	System.out.println(stock);
+		
 		/*
 		  LOGGER.info("PREV50 " + technicalsTemplate.getPrevSessionSma50("ZEEL"));
 		  LOGGER.info("PREV200 " + technicalsTemplate.getPrevSessionSma200("ZEEL"));

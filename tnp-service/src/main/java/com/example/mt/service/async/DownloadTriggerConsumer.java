@@ -168,7 +168,7 @@ public class DownloadTriggerConsumer {
 			}
 
 		} else if (downloadType == DownloadType.NIFTY500) {
-
+			LOGGER.info("Downloading Nifty500");
 			fileURI = fileNameService.getNSEIndex500StocksURI();
 
 			fileName = fileNameService.getNSEIndex500StocksFileName();

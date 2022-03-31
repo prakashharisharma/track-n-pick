@@ -19,8 +19,9 @@ public class FileNameService {
 	private CalendarService calendarService;
 	
 	// https://www.nseindia.com/content/historical/EQUITIES/2018/OCT/cm01OCT2018bhav.csv.zip
-	private static String base_nse_bhav_url = "https://archives.nseindia.com/content/historical/EQUITIES/";// 2018/OCT/cm01OCT2018bhav.csv.zip";
-	
+	//private static String base_nse_bhav_url = "https://archives.nseindia.com/content/historical/EQUITIES/";// 2018/OCT/cm01OCT2018bhav.csv.zip";
+	private static String base_nse_bhav_url = "https://www1.nseindia.com/content/historical/EQUITIES/";// 2018/OCT/cm01OCT2018bhav.csv.zip";
+		
 	private static String base_nse_ReferrerURI = "https://www1.nseindia.com/ArchieveSearch?h_filetype=eqbhav&date=";
 
 	// ./src/data/inbox/zip/cm19SEP2018bhav.zip
@@ -167,7 +168,7 @@ public class FileNameService {
 	}
 
 	public String getNSEIndex500StocksURI() {
-		return "https://www.nseindia.com/content/indices/ind_nifty500list.csv";
+		return "https://www1.nseindia.com/content/indices/ind_nifty500list.csv";
 	}
 	
 	public String getNSEIndex500StocksFileName() {
@@ -175,7 +176,7 @@ public class FileNameService {
 	}
 	
 	public String getNSENifty50StocksURI() {
-		return "https://www.nseindia.com/content/indices/ind_nifty50list.csv";
+		return "https://www1.nseindia.com/content/indices/ind_nifty50list.csv";
 	}
 	
 	public String getNSENifty50StocksFileName() {
@@ -183,7 +184,7 @@ public class FileNameService {
 	}
 	
 	public String getNSENifty100StocksURI() {
-		return "https://www.nseindia.com/content/indices/ind_nifty100list.csv";
+		return "https://www1.nseindia.com/content/indices/ind_nifty100list.csv";
 	}
 	
 	public String getNSENifty100StocksFileName() {
@@ -191,7 +192,7 @@ public class FileNameService {
 	}
 	
 	public String getNSENifty250StocksURI() {
-		return "https://www.nseindia.com/content/indices/ind_niftymidcap150list.csv";
+		return "https://www1.nseindia.com/content/indices/ind_niftymidcap150list.csv";
 	}
 	
 	public String getNSENifty250StocksFileName() {
