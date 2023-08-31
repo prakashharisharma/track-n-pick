@@ -44,9 +44,11 @@ public class BhavUpdateProcessor implements Processor {
 			StockPriceIO stockPriceIO = new StockPriceIO(sp.getNseSymbol(), sp.getSeries(), sp.getOpen(), sp.getHigh(), sp.getLow(), sp.getClose(), sp.getLast(), sp.getPrevClose(), sp.getTottrdqty(), sp.getTottrdval(), sp.getTimestamp(), sp.getTotaltrades(), sp.getIsin());
 			
 			log.debug("Queuing to update price Stock:{}" + stockPriceIO.getNseSymbol());
-			
+
+			/* Store Bhav for analytics purpose, Not needed for now
 			queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_BHAV_QUEUE);
-			
+			*/
+
 			queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE);
 			
 		});

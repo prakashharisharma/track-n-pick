@@ -19,28 +19,30 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class CamelConfig {
+	/*
 
 	@Autowired
-	CamelContext camelContext;
+	private CamelContext camelContext;
 
 	@Bean
-	ConnectionFactory connectionFactory() {
+	public ConnectionFactory connectionFactory() {
 		//return new ActiveMQConnectionFactory("tcp://localhost:61616");
 		//return new ActiveMQConnectionFactory("tcp://activemq-server:61616");
 		//return new ActiveMQConnectionFactory("vm://localhost");
-		
-		
-		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory("vm://localhost:61616");
+
+
+		//ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory("vm://localhost");
+		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory("tcp://localhost:61616");
 	    factory.setTrustedPackages(Arrays.asList("com.example.util.io.model"));
 	    factory.setTrustAllPackages(true);
-	    
+	    System.out.println("Connecting.......");
 	    return factory;
-	    
+
 	}
 	
 	@PostConstruct
 	public void afterPropertiesSet() {
 		camelContext.addComponent("jms",JmsComponent.jmsComponentAutoAcknowledge(connectionFactory()));
 	}
-	
+	*/
 }

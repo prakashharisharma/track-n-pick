@@ -142,9 +142,9 @@ public class PriceHistoryConsumer {
 
 		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : Queuing to update Technicals..");
 		
-		Thread.sleep(50);
+		///Thread.sleep(50);
 		
-		queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE);
+		//queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE);
 		
 		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : Queuing to update Transactional Price.. ");
 		

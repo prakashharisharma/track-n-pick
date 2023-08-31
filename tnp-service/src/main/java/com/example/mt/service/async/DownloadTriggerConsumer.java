@@ -54,6 +54,8 @@ public class DownloadTriggerConsumer {
 	public void receiveMessage(@Payload DownloadTriggerIO downloadTriggerIO, @Headers MessageHeaders headers,
 			Message message, Session session) throws InterruptedException {
 
+		System.out.println("Received " + QueueConstants.MTQueue.DOWNLOAD_TRIGGER_QUEUE);
+
 		LOGGER.debug(QueueConstants.MTQueue.DOWNLOAD_TRIGGER_QUEUE.toUpperCase() +" : " + downloadTriggerIO + " : START");
 
 		DownloadType downloadType = downloadTriggerIO.getDownloadType();
@@ -63,7 +65,7 @@ public class DownloadTriggerConsumer {
 		String fileURI = null;
 
 		String fileName = null;
-
+		System.out.println("Received " + downloadType);
 		if (downloadType == DownloadType.BHAV) {
 
 			referrerURI = fileNameService.getNSEBhavReferrerURI(downloadTriggerIO.getDownloadDate());

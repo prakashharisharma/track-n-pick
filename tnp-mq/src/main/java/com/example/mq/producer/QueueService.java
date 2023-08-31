@@ -15,6 +15,8 @@ public class QueueService {
     private JmsTemplate jmsTemplate;
 
     public void send(Object object, String queueName) {
+
+        System.out.println("Sending ...." + queueName);
         jmsTemplate.convertAndSend(queueName, object);
     }
     

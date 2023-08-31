@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import com.example.util.rules.RulesFundamental;
 
 @Transactional
 @Service
+@Slf4j
 public class SectorService {
 
 	@Autowired
@@ -118,102 +120,46 @@ public Sector add(String sectorName) {
 			double sectorCurrentRatio = 0.00;
 			
 			System.out.println(sector.getSectorName());
+
 			
-			if(sector.getSectorName().equalsIgnoreCase("NSE750")) {
-				
-				List<Stock> activeNifty100StockList= stockService.nifty100();
-				
-				List<Stock> activeStockList =  activeNifty100StockList.stream().filter(stock -> (stock.isActive() && ruleService.isPriceInRange(stock) )).collect(Collectors.toList());
-				
-				avgCmp = activeStockList.stream().map(stock -> stock.getStockPrice()).mapToDouble(sp -> sp.getCurrentPrice()).average().orElse(0.00);
-				avgEps = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getEps()).average().orElse(0.00);
-				
-				//System.out.println("AVERAGE_EPS : " + avgEps);
-				
-				sectorPe = formulaService.calculatePe(avgCmp, avgEps);
-				
-				variationPe = formulaService.calculatePercentage(sectorPe, 5);
-				
-				System.out.println("NIFTY 100 PE : " + sectorPe);
-				
-				avgBookValue= activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getBookValue()).average().orElse(0.00);
-				
-				//System.out.println("AVERAGE_BV : " + avgBookValue);
-				
-				sectorPb = formulaService.calculatePb(avgCmp, avgBookValue);
-				
-				variationPb= formulaService.calculatePercentage(sectorPb, 10);
-				
-				sectorCurrentRatio = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getCurrentRatio()).average().orElse(0.00);
-				
-				System.out.println("NIFTY 100 PB : " + sectorPb);
-			}
-			else if(sector.getSectorName().equalsIgnoreCase("NSE1000")) {
-				
-				List<Stock> activeNifty50StockList = stockService.nifty50();
-				
-				List<Stock> activeStockList =  activeNifty50StockList.stream().filter(stock -> (stock.isActive() && ruleService.isPriceInRange(stock) )).collect(Collectors.toList());
-				
-				avgCmp = activeStockList.stream().map(stock -> stock.getStockPrice()).mapToDouble(sp -> sp.getCurrentPrice()).average().orElse(0.00);
-				avgEps = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getEps()).average().orElse(0.00);
-				
-				//System.out.println("AVERAGE_EPS : " + avgEps);
-				
-				sectorPe = formulaService.calculatePe(avgCmp, avgEps);
-				
-				variationPe = formulaService.calculatePercentage(sectorPe, 5);
-				
-				System.out.println("NIFTY 50 PE : " + sectorPe);
-				
-				avgBookValue= activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getBookValue()).average().orElse(0.00);
-				
-				//System.out.println("AVERAGE_BV : " + avgBookValue);
-				
-				sectorPb = formulaService.calculatePb(avgCmp, avgBookValue);
-				
-				variationPb= formulaService.calculatePercentage(sectorPb, 10);
-				
-				sectorCurrentRatio = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getCurrentRatio()).average().orElse(0.00);
-				
-				System.out.println("NIFTY 50 PB : " + sectorPb);
-			}
-			
-			else{
-			
+			//else{
+			try {
 				Set<Stock> stocks = sector.getStocks();
-				
-				List<Stock> activeStockList =  stocks.stream().filter(stock -> (stock.isActive() && ruleService.isPriceInRange(stock) )).collect(Collectors.toList());
-				
+
+				List<Stock> activeStockList = stocks.stream().filter(stock -> (stock.isActive() && ruleService.isPriceInRange(stock))).collect(Collectors.toList());
+
 				avgCmp = activeStockList.stream().map(stock -> stock.getStockPrice()).mapToDouble(sp -> sp.getCurrentPrice()).average().orElse(0.00);
-				
+
 				//activeStockList.forEach(System.out::println);
-				
+
 				//System.out.println("AVERAGE_CMP : " + avgCmp);
-				
+
 				avgEps = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getEps()).average().orElse(0.00);
-				
+
 				//System.out.println("AVERAGE_EPS : " + avgEps);
-				
+
 				sectorPe = formulaService.calculatePe(avgCmp, avgEps);
-				
+
 				variationPe = formulaService.calculatePercentage(sectorPe, 5);
-				
+
 				System.out.println(sector.getSectorName() + " : PE : " + sectorPe);
-				
-				avgBookValue= activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getBookValue()).average().orElse(0.00);
-				
+
+				avgBookValue = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getBookValue()).average().orElse(0.00);
+
 				//System.out.println("AVERAGE_BV : " + avgBookValue);
-				
+
 				sectorPb = formulaService.calculatePb(avgCmp, avgBookValue);
-				
-				variationPb= formulaService.calculatePercentage(sectorPb, 10);
-				
+
+				variationPb = formulaService.calculatePercentage(sectorPb, 10);
+
 				sectorCurrentRatio = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getCurrentRatio()).average().orElse(0.00);
-				
+
 				System.out.println(sector.getSectorName() + " : PB : " + sectorPb);
-			
+
+				//}
+			}catch (Exception e){
+				log.warn("An error occured ", e);
 			}
-			
 			sector.setSectorPe(sectorPe);
 			sector.setSectorPb(sectorPb);
 			sector.setVariationPe(variationPe);
