@@ -195,7 +195,9 @@ public class StockService {
 			Sector sectorName) {
 
 		Stock stock = new Stock(isinCode, companyName, nseSymbol, primaryIndice, sectorName);
-		
+
+		stock.setActive(Boolean.TRUE);
+
 		stock = stockRepository.save(stock);
 
 		this.updatePrice(stock);

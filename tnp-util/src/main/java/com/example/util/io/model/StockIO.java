@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class StockIO implements Serializable {
 
 	public enum IndiceType implements Serializable{
-		NIFTY50, NIFTY100, NIFTY250, NIFTY500, NIFTY750, NIFTY1000, NIFTY1500
+		NIFTY50, NIFTY100, NIFTY250, NIFTY500, NIFTY750, NIFTY1000, NIFTY1500, NSE
 	}
 	
 	/**

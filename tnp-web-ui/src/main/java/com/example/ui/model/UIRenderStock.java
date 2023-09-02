@@ -151,9 +151,9 @@ public class UIRenderStock {
 		this.debtEquity = researchLedger.getStock().getStockFactor().getDebtEquity();
 		this.roe = researchLedger.getStock().getStockFactor().getReturnOnEquity();
 		this.roc = researchLedger.getStock().getStockFactor().getReturnOnCapital();
-		this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
-		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
-		this.rsi = researchLedger.getStock().getTechnicals().getRsi();
+		//this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
+		//this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
+		//this.rsi = researchLedger.getStock().getTechnicals().getRsi();
 		this.peDifference = peDifference;
 	}
 

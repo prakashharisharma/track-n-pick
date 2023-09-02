@@ -4,6 +4,8 @@ import java.time.LocalDate;
 
 import javax.jms.Session;
 
+import com.example.service.SectorService;
+import com.example.util.io.model.StockIO;
 import org.apache.activemq.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,9 @@ public class PriceTxnConsumer {
 	private StockService stockService;
 
 	@Autowired
+	private SectorService sectorService;
+
+	@Autowired
 	private StockPriceRepository stockPriceRepository;
 
 	@JmsListener(destination = QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE)
@@ -41,13 +46,22 @@ public class PriceTxnConsumer {
 			Session session) throws InterruptedException {
 
 		LOGGER.info("PRICETXN_CONSUMER START " + stockPriceIO);
-		
-		if (stockService.isActive(stockPriceIO.getNseSymbol())) {
 
-			this.processPriceUpdate(stockPriceIO);
+		if (stockService.getStockByNseSymbol(stockPriceIO.getNseSymbol()) != null){
 
-		}  else {
+			if (stockService.isActive(stockPriceIO.getNseSymbol())) {
+
+				this.processPriceUpdate(stockPriceIO);
+
+			}
+	}else {
+			StockIO stockIO = new StockIO(stockPriceIO.getNseSymbol(), "NIFTY", stockPriceIO.getNseSymbol(), stockPriceIO.getSeries(), stockPriceIO.getIsin(), StockIO.IndiceType.NSE);
+
+			Stock stock = stockService.add(stockIO.getIsin(), stockIO.getCompanyName(), stockIO.getNseSymbol(),stockIO.getIndice(), sectorService.getOrAddSectorByName(stockIO.getSector()));
+
 			LOGGER.debug("NOT IN MASTER, IGNORED..." + stockPriceIO.getNseSymbol());
+
+			queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
 		}
 
 	}
@@ -63,8 +77,8 @@ public class PriceTxnConsumer {
 			stockPrice.setCurrentPrice(stockPriceIO.getClose());
 			stockPrice.setPrevClose(stockPriceIO.getPrevClose());
 			stockPrice.setOpenPrice(stockPriceIO.getOpen());
-			stockPrice.setYearHigh(stockPriceIO.getYearHigh());
-			stockPrice.setYearLow(stockPriceIO.getYearLow());
+			//stockPrice.setYearHigh(stockPriceIO.getYearHigh());
+			//stockPrice.setYearLow(stockPriceIO.getYearLow());
 			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
 			
 			
@@ -75,8 +89,8 @@ public class PriceTxnConsumer {
 			stockPrice.setCurrentPrice(stockPriceIO.getClose());
 			stockPrice.setPrevClose(stockPriceIO.getPrevClose());
 			stockPrice.setOpenPrice(stockPriceIO.getOpen());
-			stockPrice.setYearHigh(stockPriceIO.getYearHigh());
-			stockPrice.setYearLow(stockPriceIO.getYearLow());
+			//stockPrice.setYearHigh(stockPriceIO.getYearHigh());
+			//stockPrice.setYearLow(stockPriceIO.getYearLow());
 			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
 		}
 
