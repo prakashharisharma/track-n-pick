@@ -73,8 +73,6 @@ public class RuleService {
 						if (peDiff > 5.0) {
 							if (pb < 2.5) {
 								isUndervalued = true;
-							} else if (pbDiff > 0.20) {
-								isUndervalued = true;
 							}
 
 						}
@@ -112,10 +110,10 @@ public class RuleService {
 					LOGGER.debug(" RULE 4 ");
 					isOvervalued = true;
 
-				}/*else if(pb > sectorPb) {
+				}else if(pb > 2.5) {
 					LOGGER.debug(" RULE 4 ");
 					isOvervalued = true;
-				}*/
+				}
 			}
 
 		}
