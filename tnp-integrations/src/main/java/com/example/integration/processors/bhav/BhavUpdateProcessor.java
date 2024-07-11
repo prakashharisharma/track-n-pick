@@ -33,17 +33,18 @@ public class BhavUpdateProcessor implements Processor {
 		
 		@SuppressWarnings("unchecked")
 		List<StockPriceIN> dailyStockPriceList = (List<StockPriceIN>) exchange.getIn().getBody();
-		
+
 		dailyStockPriceList = dailyStockPriceList.stream().filter(sp -> sp.getSeries().equalsIgnoreCase("EQ")).collect(Collectors.toList());
 		
 		Set<StockPriceIN> dailyStockPriceSet = new HashSet<>(dailyStockPriceList);
-		
 
 		dailyStockPriceSet.stream().filter(sp -> sp.getSeries().equalsIgnoreCase("EQ")).forEach( sp -> {
-			
-			StockPriceIO stockPriceIO = new StockPriceIO(sp.getNseSymbol(), sp.getSeries(), sp.getOpen(), sp.getHigh(), sp.getLow(), sp.getClose(), sp.getLast(), sp.getPrevClose(), sp.getTottrdqty(), sp.getTottrdval(), sp.getTimestamp(), sp.getTotaltrades(), sp.getIsin());
+
+
+			StockPriceIO stockPriceIO = new StockPriceIO(sp.getNseSymbol(), sp.getSeries(), sp.getOpen(), sp.getHigh(), sp.getLow(), sp.getClose(), sp.getLast(), sp.getPrevClose(), sp.getTottrdqty(), sp.getTottrdval(), sp.getTimestamp().toString(), sp.getTotaltrades(), sp.getIsin());
 			
 			log.debug("Queuing to update price Stock:{}" + stockPriceIO.getNseSymbol());
+
 
 			/* Store Bhav for analytics purpose, Not needed for now
 			queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_BHAV_QUEUE);

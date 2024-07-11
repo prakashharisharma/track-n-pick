@@ -81,7 +81,7 @@ public class StockPriceIO implements Serializable {
 		this.tottrdval = tottrdval;
 		
 		DateTimeFormatter formatter_1 = new DateTimeFormatterBuilder().parseCaseInsensitive()
-				.appendPattern("dd-MMM-yyyy").toFormatter(Locale.ENGLISH);
+				.appendPattern("yyyy-MM-dd").toFormatter(Locale.ENGLISH);
 
 		LocalDate localdateBhavDate = LocalDate.parse(timestamp, formatter_1);
 		

@@ -26,7 +26,7 @@ public class StockTechnicals implements Serializable{
 
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "STOCK_TECHNICALS_ID")
 	long stockTechnicalsId;
 	

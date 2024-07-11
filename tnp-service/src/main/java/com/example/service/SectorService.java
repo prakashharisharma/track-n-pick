@@ -37,8 +37,10 @@ public class SectorService {
 	private StockService stockService;
 	
 	public Sector getSectorByName(String sectorName) {
+
+		System.out.println("Searching for sector : " + sectorName);
 		
-		List<Sector> sectorList = sectorRepository.findBySectorNameContainingIgnoreCase(sectorName);
+		List<Sector> sectorList = sectorRepository.findBySectorName(sectorName.toUpperCase().trim());
 		
 		Sector sector = null;
 		
@@ -67,14 +69,14 @@ public class SectorService {
 	
 public Sector add(String sectorName) {
 		
-		Sector sector = new Sector(sectorName);
+		Sector sector = new Sector(sectorName.toUpperCase().trim());
 		
 		return sectorRepository.save(sector);
 	}
 	
 	public Sector add(String sectorName, double sectorPe, double sectorPb,double variationPe,double variationPb) {
 		
-		Sector sector = new Sector(sectorName, sectorPe, sectorPb, variationPe, variationPb);
+		Sector sector = new Sector(sectorName.toUpperCase().trim(), sectorPe, sectorPb, variationPe, variationPb);
 		
 		return sectorRepository.save(sector);
 	}

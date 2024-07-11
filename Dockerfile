@@ -1,5 +1,5 @@
 # Start with a base image containing Java runtime
-FROM openjdk:11
+FROM eclipse-temurin:17-jdk-jammy
 
 # Add Maintainer Info
 LABEL maintainer="prakashharisharma@gmail.com"

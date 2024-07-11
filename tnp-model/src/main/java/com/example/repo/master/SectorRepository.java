@@ -15,7 +15,7 @@ public interface SectorRepository extends JpaRepository<Sector, Long> {
 	
 	Sector findBySectorId(long sectorId);
 	
-	List<Sector> findBySectorNameContainingIgnoreCase(String sectorName);
+	List<Sector> findBySectorName(String sectorName);
 	
 	public List<Sector> findAll();
 	

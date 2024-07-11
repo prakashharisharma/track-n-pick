@@ -2,8 +2,13 @@ package com.example;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
+import java.util.Locale;
 
+import com.example.model.master.Sector;
+import com.example.util.io.model.StockIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,10 +133,6 @@ public class AppRunner implements CommandLineRunner {
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
 
-		Stock stock = stockService.getStockByNseSymbol("KRBL");
-		
-	System.out.println(stock);
-		
 		/*
 		  LOGGER.info("PREV50 " + technicalsTemplate.getPrevSessionSma50("ZEEL"));
 		  LOGGER.info("PREV200 " + technicalsTemplate.getPrevSessionSma200("ZEEL"));
@@ -166,10 +167,10 @@ public class AppRunner implements CommandLineRunner {
 		
 		//sl.forEach(System.out::println);
 		
-		List<Stock> stocksList = stockService.activeStocks();
+		//List<Stock> stocksList = stockService.activeStocks();
 
 		
-		List<UserProfile> allActiveUsers = userService.subsribedCurrentUnderValueUsers();
+		//List<UserProfile> allActiveUsers = userService.subsribedCurrentUnderValueUsers();
 		
 		//allActiveUsers.forEach(System.out::println);
 		
@@ -328,6 +329,7 @@ public class AppRunner implements CommandLineRunner {
 		 */
 		//testDownLoad();
 		System.out.println("STARTED");
+
 	}
 	
 	private void testDownLoad() {

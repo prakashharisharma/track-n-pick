@@ -29,7 +29,7 @@ public class StockPrice implements Serializable{
 	private static final long serialVersionUID = 1495123844495916776L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "STOCK_PRICE_ID")
 	long stockPriceId;
 	

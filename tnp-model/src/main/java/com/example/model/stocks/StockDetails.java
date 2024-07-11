@@ -21,7 +21,7 @@ import com.example.model.type.Quarter;
 public class StockDetails {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "STOCK_DETAILS_ID")
 	long stockDetailsId;
 	

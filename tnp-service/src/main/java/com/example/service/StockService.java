@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import com.example.model.stocks.StockTechnicals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -197,6 +198,7 @@ public class StockService {
 		Stock stock = new Stock(isinCode, companyName, nseSymbol, primaryIndice, sectorName);
 
 		stock.setActive(Boolean.TRUE);
+
 
 		stock = stockRepository.save(stock);
 

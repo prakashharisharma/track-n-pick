@@ -23,6 +23,7 @@ import com.example.model.stocks.StockFactor;
 import com.example.util.MiscUtil;
 
 @Service
+
 public class FactorRediff implements FactorBaseService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FactorRediff.class);
@@ -104,8 +105,8 @@ public class FactorRediff implements FactorBaseService {
 
 		for (Element element : allElements) {
 
-			double marketCap = Double.parseDouble(element.text().replace(",", ""));
-
+			//double marketCap = Double.parseDouble(element.text().replace(",", ""));
+			double marketCap = this.parseDouble(element.text().trim(),",", "");
 			stockFactor.setMarketCap(marketCap);
 
 		}
@@ -121,8 +122,8 @@ public class FactorRediff implements FactorBaseService {
 
 				if (j == 16) {
 
-					double faceValue = Double.parseDouble(child.text().replace(",", "").trim());
-
+					//double faceValue = Double.parseDouble(child.text().replace(",", "").trim());
+					double faceValue = this.parseDouble(child.text().trim(),",", "");
 					stockFactor.setFaceValue(faceValue);
 				}
 			}
@@ -130,6 +131,15 @@ public class FactorRediff implements FactorBaseService {
 		}
 
 		return stockFactor;
+	}
+
+	private double parseDouble(String text, CharSequence toBeReplaced, CharSequence replaceWith){
+		try {
+			return Double.parseDouble(text.replace(toBeReplaced, replaceWith));
+		}catch(Exception e){
+			LOGGER.error("An error occurred while parsing : "+text + "to double." , e);
+		}
+		return 0.0;
 	}
 
 	private StockFactor getRatios(Stock stock, StockFactor stockFactor) throws IOException {
