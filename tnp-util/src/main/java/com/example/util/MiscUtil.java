@@ -8,14 +8,15 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 import org.springframework.stereotype.Service;
 
 @Service
 public class MiscUtil {
 
-	private static int times[] = { 1000,2000,3000,3100,3500,3680,  4000,  4129, 4270,4350, 4589, 4600,  4700, 4852, 4967, 5000, 5100,
-			5200, 5300, 5450, };
+	private static int min = 10;
+	private static int max = 500;
 
 	public String formatDouble(double value) {
 
@@ -26,19 +27,7 @@ public class MiscUtil {
 
 	public long getInterval() {
 
-		int no = getRandomNumberInRange(1, 20);
-
-		if (no > 19) {
-
-			no = no % 19;
-
-			return times[no];
-
-		} else {
-
-			return times[no];
-
-		}
+		return new Random().nextInt(max - min + 1) + min;
 	}
 	
 	public void delay() throws InterruptedException {

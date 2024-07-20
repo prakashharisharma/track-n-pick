@@ -32,6 +32,9 @@ public class Sector implements Serializable{
 	@Column(name = "SECTOR_NAME")
 	String sectorName;
 
+	@Column(name = "CODE")
+	String code;
+
 	@Column(name = "SECTOR_PE",columnDefinition="Decimal(10,4) default '20.00'")
 	double sectorPe = 20.00;
 
@@ -60,7 +63,7 @@ public class Sector implements Serializable{
 		this.sectorName = sectorName;
 	}
 
-	public Sector(String sectorName, double sectorPe, double sectorPb,double variationPe,double variationPb) {
+	public Sector(String sectorName, double sectorPe, double sectorPb, double variationPe, double variationPb) {
 		super();
 		this.sectorName = sectorName;
 		this.sectorPe = sectorPe;

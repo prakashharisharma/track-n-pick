@@ -192,13 +192,16 @@ public class StockService {
 		
 	}
 	
-	public Stock add(String isinCode, String companyName, String nseSymbol, IndiceType primaryIndice,
-			Sector sectorName) {
+	public Stock add(StockIO.Exchange exchange, String isinCode, String companyName, String nseSymbol, String bseCode, IndiceType primaryIndice,
+					 Sector sectorName) {
 
-		Stock stock = new Stock(isinCode, companyName, nseSymbol, primaryIndice, sectorName);
+		Stock stock = new Stock(exchange, isinCode, companyName, nseSymbol,  primaryIndice, sectorName);
+
+		if(bseCode!=null && !bseCode.isBlank()){
+			stock.setBseCode(bseCode);
+		}
 
 		stock.setActive(Boolean.TRUE);
-
 
 		stock = stockRepository.save(stock);
 
@@ -241,6 +244,8 @@ public class StockService {
 	
 	public StockFactor updateFactor(Stock stock) {
 
+		LOGGER.info("Updating Factor for : " + stock.getNseSymbol());
+
 		StockFactor stockFactor = stock.getStockFactor();
 
 		if (stock.getStockFactor() != null) {
@@ -253,18 +258,17 @@ public class StockService {
 					
 					System.out.println("interval : " + interval +" : " + stock.getNseSymbol());
 					
-					Thread.sleep(10);
+					Thread.sleep(interval);
+
+					stockFactor = factorRediff.getFactor(stock);
+
+					stockFactorRepository.save(stockFactor);
 					
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					LOGGER.error("An error occured while updating factor {}", stock.getNseSymbol(), e);
 				}
 
-				LOGGER.info("Updating Factor for : " + stock.getNseSymbol());
 
-				stockFactor = factorRediff.getFactor(stock);
-
-				stockFactorRepository.save(stockFactor);
 
 			}
 		} else {

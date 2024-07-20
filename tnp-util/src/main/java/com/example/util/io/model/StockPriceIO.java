@@ -16,7 +16,13 @@ public class StockPriceIO implements Serializable {
 	 */
 	private static final long serialVersionUID = 7704441081622739216L;
 
+	private String exchange;
+
 	private String nseSymbol;
+
+	private String bseCode;
+
+	private String companyName;
 
 	private String series;
 
@@ -65,10 +71,12 @@ public class StockPriceIO implements Serializable {
 		this.isin = isin;
 	}
 
-	public StockPriceIO(String nseSymbol, String series, double open, double high, double low, double close,
+	public StockPriceIO(String exchange, String companyName, String nseSymbol, String series, double open, double high, double low, double close,
 			double last, double prevClose, long tottrdqty, double tottrdval, String timestamp, long totaltrades,
 			String isin) {
 		super();
+		this.exchange = exchange;
+		this.companyName = companyName;
 		this.nseSymbol = nseSymbol;
 		this.series = series;
 		this.open = open;
@@ -79,9 +87,15 @@ public class StockPriceIO implements Serializable {
 		this.prevClose = prevClose;
 		this.tottrdqty = tottrdqty;
 		this.tottrdval = tottrdval;
-		
+
+		String pattern = "yyyy-MM-dd";
+
+		if(timestamp.contains("/")){
+			pattern = "dd/MM/yy";
+		}
+
 		DateTimeFormatter formatter_1 = new DateTimeFormatterBuilder().parseCaseInsensitive()
-				.appendPattern("yyyy-MM-dd").toFormatter(Locale.ENGLISH);
+				.appendPattern(pattern).toFormatter(Locale.ENGLISH);
 
 		LocalDate localdateBhavDate = LocalDate.parse(timestamp, formatter_1);
 		
@@ -122,12 +136,36 @@ public class StockPriceIO implements Serializable {
 		this.yearHigh = yearHigh;
 	}
 
+	public String getExchange() {
+		return exchange;
+	}
+
+	public void setExchange(String exchange) {
+		this.exchange = exchange;
+	}
+
+	public String getCompanyName() {
+		return companyName;
+	}
+
+	public void setCompanyName(String companyName) {
+		this.companyName = companyName;
+	}
+
 	public String getNseSymbol() {
 		return nseSymbol;
 	}
 
 	public void setNseSymbol(String nseSymbol) {
 		this.nseSymbol = nseSymbol;
+	}
+
+	public String getBseCode() {
+		return bseCode;
+	}
+
+	public void setBseCode(String bseCode) {
+		this.bseCode = bseCode;
 	}
 
 	public String getSeries() {

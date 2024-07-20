@@ -6,8 +6,11 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
+import com.example.external.factor.FactorRediff;
 import com.example.model.master.Sector;
+import com.example.model.stocks.StockFactor;
 import com.example.util.io.model.StockIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +55,6 @@ public class AppRunner implements CommandLineRunner {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AppRunner.class);
 
-	
 	@Autowired
 	private RestClientService restClientService;
 	
@@ -129,9 +131,41 @@ public class AppRunner implements CommandLineRunner {
 	@Autowired
 	private StockFactorService stockFactorService;
 
-	
+	@Autowired
+	private FactorRediff factorRediff;
+
+
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
+		/*
+	System.out.println("Running Runner");
+		List<Stock> stocks = stockService.getActiveStocks();
+
+		System.out.println("Total stocks " + stocks.size());
+		for(Stock stock : stocks){
+			System.out.println("Factors updating "+ stock.getNseSymbol());
+			StockFactor stockFactor = stock.getStockFactor();
+			if(stock.getNseSymbol().equalsIgnoreCase("DIVISLAB")){
+				continue;
+			}
+
+			if(stockFactor.getMarketCap() == 0.0 || stockFactor.getFaceValue() == 0.0) {
+				try {
+					stockService.updateFactor(stock);
+				}catch(Exception e){
+					LOGGER.error("An error occured {}", stock.getNseSymbol(), e );
+				}
+				System.out.println("Factors updated {}"+ stock.getNseSymbol());
+			}else{
+				System.out.println("Factors Already Up to date {}"+ stock.getNseSymbol());
+
+			}
+
+		}
+
+
+		System.out.println("Completed Runner");
+				*/
 
 		/*
 		  LOGGER.info("PREV50 " + technicalsTemplate.getPrevSessionSma50("ZEEL"));

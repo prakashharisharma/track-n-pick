@@ -25,7 +25,7 @@ public class FileNameService {
 	private static String base_nse_ReferrerURI = "https://archives.nseindia.com/ArchieveSearch?h_filetype=eqbhav&date=";
 
 	// ./src/data/inbox/zip/cm19SEP2018bhav.zip
-	private static String base_nse_bhav_downloaded_filename = FileLocationConstants.BHAV_ZIP_LOCATION+ File.separator;
+	private static String base_nse_bhav_downloaded_filename = FileLocationConstants.NSE_BHAV_ZIP_LOCATION + File.separator;
 	
 	private static String base_nse_master500_downloaded_filename = FileLocationConstants.NIFTY_500_DOWNLOAD_LOCATION+File.separator+"nifty500Stockslist.csv";
 	

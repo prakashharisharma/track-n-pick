@@ -37,7 +37,7 @@ public class StockPriceIN implements Serializable{
 
 	@JsonProperty("FinInstrmId")
 	@DataField(pos = 6)
-	private String finInstrmId;
+	private String exchangeCode;
 
 	@JsonProperty("ISIN")
 	@DataField(pos = 7)
@@ -229,12 +229,12 @@ public class StockPriceIN implements Serializable{
 		this.finInstrmTp = finInstrmTp;
 	}
 
-	public String getFinInstrmId() {
-		return finInstrmId;
+	public String getExchangeCode() {
+		return exchangeCode;
 	}
 
-	public void setFinInstrmId(String finInstrmId) {
-		this.finInstrmId = finInstrmId;
+	public void setExchangeCode(String exchangeCode) {
+		this.exchangeCode = exchangeCode;
 	}
 
 	public String getExpiryDate() {

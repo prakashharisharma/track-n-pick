@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.aspectj.apache.bcel.generic.LOOKUPSWITCH;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,7 +24,6 @@ import com.example.model.stocks.StockFactor;
 import com.example.util.MiscUtil;
 
 @Service
-
 public class FactorRediff implements FactorBaseService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FactorRediff.class);
@@ -81,63 +81,90 @@ public class FactorRediff implements FactorBaseService {
 
 		Element body = doc.body();
 
-		Element allElement = body.getElementsByClass("zoom-container").first();
+		//Element allElement = body.getElementsByClass("zoom-container").first();
 
-		if (allElement == null) {
+		stockFactor.setMarketCap(this.parseMarketCap(body, stock));
+		stockFactor.setFaceValue(this.parseFaceValue(body, stock));
+
+		Element zoomDiv  = body.getElementsByClass("zoom-container").get(0);
+
+		String zoomUrl = zoomDiv.select("a").first().absUrl("href");
+
+		if (zoomUrl == null || zoomUrl.isEmpty()) {
 			return stockFactor;
 		}
 
-		String url = allElement.select("a").first().absUrl("href");
+		String ratioUrlPre = zoomUrl.replace("/bse/day/chart", "");
 
-		if (url == null || url.isEmpty()) {
-			return stockFactor;
-		}
+		ratioUrlPre = ratioUrlPre.replace("/nse/day/chart", "");
 
-		String mcapFaceValueURL = url.replace("/bse/day/chart", "");
+			LOGGER.info(ratioUrlPre);
 
-		LOGGER.info(mcapFaceValueURL);
+		this.setRatioURL(ratioUrlPre + "/ratio");
 
-		this.setRatioURL(mcapFaceValueURL + "/ratio");
+		LOGGER.info("Ratio Url {}", ratioURL);
 
-		Elements allElements = doc.select("span#ltpid");
-
-		allElements = doc.select("span#MarketCap");
-
-		for (Element element : allElements) {
-
-			//double marketCap = Double.parseDouble(element.text().replace(",", ""));
-			double marketCap = this.parseDouble(element.text().trim(),",", "");
-			stockFactor.setMarketCap(marketCap);
-
-		}
-
-		allElements = doc.select("div#div_rcard_more");
-
-		for (Element element : allElements) {
-
-			Elements childs = element.getAllElements();
-			int j = 0;
-			for (Element child : childs) {
-				j++;
-
-				if (j == 16) {
-
-					//double faceValue = Double.parseDouble(child.text().replace(",", "").trim());
-					double faceValue = this.parseDouble(child.text().trim(),",", "");
-					stockFactor.setFaceValue(faceValue);
-				}
-			}
-
-		}
 
 		return stockFactor;
+	}
+
+	private Double parseMarketCap(Element body, Stock stock){
+
+		try {
+
+			//select div
+			Element forBse = body.getElementById("for_BSE");
+
+			LOGGER.info("result 1 {}" , forBse.text());
+
+			if(forBse.text().contains("not listed")){
+				forBse = body.getElementById("for_NSE");
+			}
+
+			//select first table by class
+			Element table = forBse.getElementsByClass("company-graph-wrap").get(0);
+			//Select second row
+			Element row = table.select("tr").get(1);
+
+			//select 5th column
+			Element column = row.select("td").get(4);
+
+			return this.parseDouble(column.text().trim(),",", "");
+
+		}catch(Exception e){
+			LOGGER.error("An Error ocured while parsing MArketCap {} ", stock.getNseSymbol());
+		}
+
+		return 0.0;
+	}
+
+	private Double parseFaceValue(Element body, Stock stock){
+
+		try {
+			//select div
+			Element allElement = body.getElementById("div_rcard_more");
+
+			int i = 0;
+			for(Element element : allElement.getAllElements()){
+
+				if(i==11){
+					return  this.parseDouble(element.text().trim(),",", "");
+				}
+				i++;
+			}
+
+		}catch(Exception e){
+			LOGGER.error("An Error ocured while parsing Face Value {} ", stock.getNseSymbol());
+		}
+
+		return 0.0;
 	}
 
 	private double parseDouble(String text, CharSequence toBeReplaced, CharSequence replaceWith){
 		try {
 			return Double.parseDouble(text.replace(toBeReplaced, replaceWith));
 		}catch(Exception e){
-			LOGGER.error("An error occurred while parsing : "+text + "to double." , e);
+			LOGGER.error("An error occurred while parsing : "+text + " to double." , e);
 		}
 		return 0.0;
 	}
@@ -424,6 +451,16 @@ public class FactorRediff implements FactorBaseService {
 				stockFactor.setLastModified(LocalDate.now());
 				stockFactor = this.getMcapFaceValue(stock, stockFactor);
 				stockFactor = this.getRatios(stock, stockFactor);
+
+				LOGGER.info("Quarter {}", stockFactor.getQuarterEnded());
+				LOGGER.info("EPS {}", stockFactor.getEps());
+				LOGGER.info("Dividend {}", stockFactor.getDividend());
+				LOGGER.info("BookValue {}", stockFactor.getBookValue());
+				LOGGER.info("ROE {}", stockFactor.getReturnOnEquity());
+				LOGGER.info("ROCE {}", stockFactor.getReturnOnCapital());
+				LOGGER.info("Debt Equity {}", stockFactor.getDebtEquity());
+				LOGGER.info("Current Ratio {}", stockFactor.getCurrentRatio());
+				LOGGER.info("Quick  Ratio {}", stockFactor.getQuickRatio());
 
 				// increment thye remoteCallCounter
 				remoteCallCounter++;

@@ -23,6 +23,7 @@ import com.example.model.stocks.StockFactor;
 import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.StockTechnicals;
 import com.example.model.stocks.UserPortfolio;
+import com.example.util.io.model.StockIO;
 import com.example.util.io.model.StockIO.IndiceType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -68,7 +69,11 @@ public class Stock implements Serializable{
 	@Column(name = "INDICE")
 	@Enumerated(EnumType.STRING)
 	private IndiceType primaryIndice;
-	
+
+	@Column(name = "EXCHANGE")
+	@Enumerated(EnumType.STRING)
+	private StockIO.Exchange exchange;
+
 	@OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
 	private StockPrice stockPrice;
 	
@@ -94,8 +99,9 @@ public class Stock implements Serializable{
 		this.active = true;
 	}
 
-	public Stock(String isinCode, String companyName, String nseSymbol, IndiceType primaryIndice, Sector sectorName) {
+	public Stock(StockIO.Exchange exchange, String isinCode, String companyName, String nseSymbol, IndiceType primaryIndice, Sector sectorName) {
 		super();
+		this.exchange = exchange;
 		this.isinCode = isinCode;
 		this.companyName = companyName;
 		this.nseSymbol = nseSymbol;

@@ -22,8 +22,11 @@ public class BhavUpdateRoute extends RouteBuilder {
 
 		final DataFormat bindy = new BindyCsvDataFormat(StockPriceIN.class);
 
-		// parse the csv file and push list to jmsqueue
-		from("file:"+FileLocationConstants.BHAV_CSV_LOCATION+"?noop=false").unmarshal(bindy).to("jms:"+QueueConstants.IntegrationQueue.PROCESS_BHAV_QUEUE);
+		// parse the nse csv file and push list to jmsqueue
+		from("file:"+FileLocationConstants.NSE_BHAV_CSV_LOCATION +"?noop=false").unmarshal(bindy).to("jms:"+QueueConstants.IntegrationQueue.PROCESS_BHAV_QUEUE);
+
+		// parse the bse csv file and push list to jmsqueue
+		from("file:"+FileLocationConstants.BSE_BHAV_CSV_LOCATION +"?noop=false").unmarshal(bindy).to("jms:"+QueueConstants.IntegrationQueue.PROCESS_BHAV_QUEUE);
 
 		//from("jms:queue.bhav.csv.stocks").process(retainMasterRecordsProcessor).log("${body}");
 		

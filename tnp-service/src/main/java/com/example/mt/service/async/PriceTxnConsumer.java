@@ -55,9 +55,29 @@ public class PriceTxnConsumer {
 
 			}
 	}else {
-			StockIO stockIO = new StockIO(stockPriceIO.getNseSymbol(), "NIFTY", stockPriceIO.getNseSymbol(), stockPriceIO.getSeries(), stockPriceIO.getIsin(), StockIO.IndiceType.NSE);
+			StockIO stockIO = new StockIO(stockPriceIO.getCompanyName(), "NIFTY", stockPriceIO.getNseSymbol(), stockPriceIO.getSeries(), stockPriceIO.getIsin(), StockIO.IndiceType.NSE);
 
-			Stock stock = stockService.add(stockIO.getIsin(), stockIO.getCompanyName(), stockIO.getNseSymbol(),stockIO.getIndice(), sectorService.getOrAddSectorByName(stockIO.getSector()));
+			stockIO.setBseCode(stockPriceIO.getBseCode());
+
+			if(stockPriceIO.getExchange().equalsIgnoreCase("NSE")) {
+				stockIO.setSector("NSE");
+				stockIO.setIndice(StockIO.IndiceType.NSE);
+				stockIO.setExchange(StockIO.Exchange.NSE);
+			}else if(stockPriceIO.getExchange().equalsIgnoreCase("BSE") && stockPriceIO.getSeries().equalsIgnoreCase("A")){
+				stockIO.setSector("BSE");
+				stockIO.setIndice(StockIO.IndiceType.BSE_A);
+				stockIO.setExchange(StockIO.Exchange.BSE);
+			} else if (stockPriceIO.getExchange().equalsIgnoreCase("BSE") && stockPriceIO.getSeries().equalsIgnoreCase("B")) {
+				stockIO.setSector("BSE");
+				stockIO.setIndice(StockIO.IndiceType.BSE_B);
+				stockIO.setExchange(StockIO.Exchange.BSE);
+			}else  {
+				stockIO.setSector("BSE");
+				stockIO.setIndice(StockIO.IndiceType.BSE_M);
+				stockIO.setExchange(StockIO.Exchange.BSE);
+			}
+
+			Stock stock = stockService.add(stockIO.getExchange(),stockIO.getIsin(), stockIO.getCompanyName(), stockIO.getNseSymbol(), stockIO.getBseCode(), stockIO.getIndice(), sectorService.getOrAddSectorByName(stockIO.getSector()));
 
 			LOGGER.debug("NOT IN MASTER, IGNORED..." + stockPriceIO.getNseSymbol());
 
@@ -72,7 +92,7 @@ public class PriceTxnConsumer {
 
 		StockPrice stockPrice = stock.getStockPrice();
 
-		if (stockPrice != null) {
+		if (stockPrice != null && !stockPrice.getBhavDate().isEqual(LocalDate.now())) {
 			stockPrice.setLastModified(LocalDate.now());
 			stockPrice.setCurrentPrice(stockPriceIO.getClose());
 			stockPrice.setPrevClose(stockPriceIO.getPrevClose());
@@ -80,8 +100,9 @@ public class PriceTxnConsumer {
 			//stockPrice.setYearHigh(stockPriceIO.getYearHigh());
 			//stockPrice.setYearLow(stockPriceIO.getYearLow());
 			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
-			
-			
+
+		} else if (stockPrice != null && stockPrice.getBhavDate().isEqual(LocalDate.now())) {
+			LOGGER.info("Price is already updated for {}", stockPriceIO.getNseSymbol());
 		} else {
 			stockPrice = new StockPrice();
 			stockPrice.setStock(stock);

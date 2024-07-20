@@ -4,10 +4,12 @@ public interface FileLocationConstants {
 
 
 	public static String BASE_PATH = "/Users/phs/mydrive/repo/tnp";
-	public static String BHAV_ZIP_LOCATION = BASE_PATH+"/data/bhav/nse/zip";
-	
-	public static String BHAV_CSV_LOCATION = BASE_PATH+"/data/bhav/nse/csv";
-	
+	public static String NSE_BHAV_ZIP_LOCATION = BASE_PATH+"/data/bhav/nse/zip";
+
+	public static String BSE_BHAV_ZIP_LOCATION = BASE_PATH+"/data/bhav/bse/zip";
+	public static String NSE_BHAV_CSV_LOCATION = BASE_PATH+"/data/bhav/nse/csv";
+
+	public static String BSE_BHAV_CSV_LOCATION = BASE_PATH+"/data/bhav/bse/csv";
 	public static String NIFTY_500_DOWNLOAD_LOCATION = BASE_PATH+"/data/master/nifty500/csv";
 	
 	public static String NIFTY_1000_DOWNLOAD_LOCATION = BASE_PATH+"/data/master/nifty1000/csv";

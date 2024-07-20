@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.example.model.master.Sector;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockPrice;
-import com.example.util.io.model.StockIO.IndiceType;
 import com.example.util.rules.RulesFundamental;
 import com.example.util.rules.RulesResearch;
 
@@ -30,21 +29,17 @@ public class RuleService {
 	private StockService stockService;
 
 	public boolean isPriceInRange(Stock stock) {
-		boolean isPriceInRange = false;
 
-		//if (stock.getPrimaryIndice() == IndiceType.NIFTY50) {
 			if (stock.getStockPrice().getCurrentPrice() > rules.getPricegt()
 					&& stock.getStockPrice().getCurrentPrice() < rules.getPricelt()) {
-				isPriceInRange = true;
+
+				return Boolean.TRUE;
 			}
 
-		//}
-		
-		return isPriceInRange;
+		return Boolean.FALSE;
 	}
 
 	public boolean isUndervalued(Stock stock) {
-		boolean isUndervalued = false;
 
 		if (this.isUndervaluedPre(stock)) {
 
@@ -64,27 +59,14 @@ public class RuleService {
 				
 				double peDiff = sectorPe - pe;
 
-				if (pe > 0.0) {
-
-					LOGGER.debug(stock.getNseSymbol() + " : " + stockPrice + " PE : " + pe + " PB : " + pb);
-
-					//if (stock.getPrimaryIndice() == IndiceType.NIFTY50) {
-
-						if (peDiff > 5.0) {
-							if (pb < 2.5) {
-								isUndervalued = true;
-							}
-
-						}
-					//}
-
-					// }
+				if (pe > sectorPe && pb < 2.5) {
+					return Boolean.TRUE;
 				}
 			}
 
 		}
 
-		return isUndervalued;
+		return Boolean.FALSE;
 
 	}
 
@@ -102,39 +84,21 @@ public class RuleService {
 
 			double sectorPe = stock.getSector().getSectorPe();
 
-			if (pe <= 0.0) {
+			if (pe <= 0.0 || pe > sectorPe) {
 				isOvervalued = true;
-			} else {
-				if (pe > sectorPe) {
-
-					LOGGER.debug(" RULE 4 ");
-					isOvervalued = true;
-
-				}else if(pb > 2.5) {
-					LOGGER.debug(" RULE 4 ");
-					isOvervalued = true;
-				}
 			}
-
 		}
-
 		return isOvervalued;
 	}
 
 	private boolean isUndervaluedPre(Stock stock) {
 
-		boolean isUndervalued = false;
-
 		if (stock != null) {
-
-			//if (stock.getPrimaryIndice() == IndiceType.NIFTY50) {
-				isUndervalued = this.isUndervaluedPre50(stock);
-			//}
-
+				return this.isUndervaluedPre50(stock);
 		}
-		return isUndervalued;
-	}
 
+		return Boolean.FALSE;
+	}
 	private boolean isUndervaluedPre50(Stock stock) {
 
 		boolean isUndervalued = false;
@@ -152,7 +116,7 @@ public class RuleService {
 					if (stock.getSector().getSectorName().equalsIgnoreCase("FINANCIAL SERVICES")) {
 
 						if (stock.getStockFactor().getMarketCap() >= rules.getMcap()
-								&& stock.getStockFactor().getDividend() > rules.getDividend()
+								&& stock.getStockFactor().getDividend() >= rules.getDividend()
 								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoe()
 								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoce()
 								&& stock.getStockFactor().getCurrentRatio() >= rules.getCurrentRatio()
@@ -161,8 +125,9 @@ public class RuleService {
 						}
 
 					} else {
-						if (stock.getStockFactor().getMarketCap() >= rules.getMcap()
-								&& stock.getStockFactor().getDebtEquity() < rules.getDebtEquity()
+						if (
+								stock.getStockFactor().getMarketCap() >= rules.getMcap() &&
+								 stock.getStockFactor().getDebtEquity() < rules.getDebtEquity()
 								&& stock.getStockFactor().getDividend() >= rules.getDividend()
 								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoe()
 								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoce()

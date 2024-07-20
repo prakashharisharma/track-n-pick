@@ -12,11 +12,18 @@ public class UnzipRoute extends RouteBuilder{
 	@Override
 	public void configure() throws Exception {
 		
-		from("file:"+FileLocationConstants.BHAV_ZIP_LOCATION+"?noop=false&delay=5000&antInclude=*.zip&moveFailed=error")
+		from("file:"+FileLocationConstants.NSE_BHAV_ZIP_LOCATION +"?noop=false&delay=5000&antInclude=*.zip&moveFailed=error")
 		.split(new ZipSplitter()) 
         .streaming() 
         .convertBodyTo(String.class) 
-        .to("file:"+FileLocationConstants.BHAV_CSV_LOCATION); 
+        .to("file:"+FileLocationConstants.NSE_BHAV_CSV_LOCATION);
+
+
+		from("file:"+FileLocationConstants.BSE_BHAV_ZIP_LOCATION +"?noop=false&delay=5000&antInclude=*.zip&moveFailed=error")
+				.split(new ZipSplitter())
+				.streaming()
+				.convertBodyTo(String.class)
+				.to("file:"+FileLocationConstants.BSE_BHAV_CSV_LOCATION);
 		
 	}
 

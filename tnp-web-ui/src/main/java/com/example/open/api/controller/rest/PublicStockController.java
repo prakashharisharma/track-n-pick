@@ -27,7 +27,6 @@ import com.example.ui.model.RecentCrossOverIO;
 import com.example.ui.model.StockDetailsIO;
 import com.example.ui.model.StockSearch;
 import com.example.util.FormulaService;
-import com.example.util.io.model.StockIO;
 import com.example.util.io.model.StockPriceIO;
 
 @RestController
