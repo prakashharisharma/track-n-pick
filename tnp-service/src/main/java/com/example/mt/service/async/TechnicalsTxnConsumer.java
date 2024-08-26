@@ -63,12 +63,35 @@ public class TechnicalsTxnConsumer {
 		StockTechnicals stockTechnicals = stock.getTechnicals();
 
 		if (stockTechnicals != null) {
+			stockTechnicals.setSma5(stockTechnicalsIO.getSma5());
+			stockTechnicals.setSma10(stockTechnicalsIO.getSma10());
+			stockTechnicals.setSma20(stockTechnicalsIO.getSma20());
 			stockTechnicals.setSma50(stockTechnicalsIO.getSma50());
 			stockTechnicals.setSma100(stockTechnicalsIO.getSma100());
 			stockTechnicals.setSma200(stockTechnicalsIO.getSma200());
+
+			stockTechnicals.setPrevSma5(stockTechnicalsIO.getPrevSma5());
+			stockTechnicals.setPrevSma10(stockTechnicalsIO.getPrevSma10());
+			stockTechnicals.setPrevSma20(stockTechnicalsIO.getPrevSma20());
 			stockTechnicals.setPrevSma50(stockTechnicalsIO.getPrevSma50());
 			stockTechnicals.setPrevSma100(stockTechnicalsIO.getPrevSma100());
 			stockTechnicals.setPrevSma200(stockTechnicalsIO.getPrevSma200());
+
+			stockTechnicals.setEma5(stockTechnicalsIO.getEma5());
+			stockTechnicals.setEma10(stockTechnicalsIO.getEma10());
+			stockTechnicals.setEma20(stockTechnicalsIO.getEma20());
+			stockTechnicals.setEma50(stockTechnicalsIO.getEma50());
+			stockTechnicals.setEma100(stockTechnicalsIO.getEma100());
+			stockTechnicals.setEma200(stockTechnicalsIO.getEma200());
+
+			stockTechnicals.setPrevEma5(stockTechnicalsIO.getPrevEma5());
+			stockTechnicals.setPrevEma10(stockTechnicalsIO.getPrevEma10());
+			stockTechnicals.setPrevEma20(stockTechnicalsIO.getPrevEma20());
+			stockTechnicals.setPrevEma50(stockTechnicalsIO.getPrevEma50());
+			stockTechnicals.setPrevEma100(stockTechnicalsIO.getPrevEma100());
+			stockTechnicals.setPrevEma200(stockTechnicalsIO.getPrevEma200());
+
+
 			stockTechnicals.setRsi(stockTechnicalsIO.getRsi());
 
 			stockTechnicals.setLastModified(LocalDate.now());
@@ -77,9 +100,6 @@ public class TechnicalsTxnConsumer {
 			stockTechnicals.setSod(stockTechnicalsIO.getSod());
 			stockTechnicals.setObv(stockTechnicalsIO.getObv());
 			stockTechnicals.setRocv(stockTechnicalsIO.getRocv());
-
-			stockTechnicals.setSma21(stockTechnicalsIO.getSma21());
-			stockTechnicals.setPrevSma21(stockTechnicalsIO.getPrevSma21());
 
 			stockTechnicals.setVolume(stockTechnicalsIO.getVolume());
 			stockTechnicals.setAvgVolume(stockTechnicalsIO.getAvgVolume());
@@ -88,13 +108,34 @@ public class TechnicalsTxnConsumer {
 			stockTechnicals = new StockTechnicals();
 			stockTechnicals.setStock(stock);
 
+			stockTechnicals.setSma5(stockTechnicalsIO.getSma5());
+			stockTechnicals.setSma10(stockTechnicalsIO.getSma10());
+			stockTechnicals.setSma20(stockTechnicalsIO.getSma20());
 			stockTechnicals.setSma50(stockTechnicalsIO.getSma50());
-
 			stockTechnicals.setSma100(stockTechnicalsIO.getSma100());
 			stockTechnicals.setSma200(stockTechnicalsIO.getSma200());
+
+			stockTechnicals.setPrevSma5(stockTechnicalsIO.getPrevSma5());
+			stockTechnicals.setPrevSma10(stockTechnicalsIO.getPrevSma10());
+			stockTechnicals.setPrevSma20(stockTechnicalsIO.getPrevSma20());
 			stockTechnicals.setPrevSma50(stockTechnicalsIO.getPrevSma50());
 			stockTechnicals.setPrevSma100(stockTechnicalsIO.getPrevSma100());
 			stockTechnicals.setPrevSma200(stockTechnicalsIO.getPrevSma200());
+
+			stockTechnicals.setEma5(stockTechnicalsIO.getEma5());
+			stockTechnicals.setEma10(stockTechnicalsIO.getEma10());
+			stockTechnicals.setEma20(stockTechnicalsIO.getEma20());
+			stockTechnicals.setEma50(stockTechnicalsIO.getEma50());
+			stockTechnicals.setEma100(stockTechnicalsIO.getEma100());
+			stockTechnicals.setEma200(stockTechnicalsIO.getEma200());
+
+			stockTechnicals.setPrevEma5(stockTechnicalsIO.getPrevEma5());
+			stockTechnicals.setPrevEma10(stockTechnicalsIO.getPrevEma10());
+			stockTechnicals.setPrevEma20(stockTechnicalsIO.getPrevEma20());
+			stockTechnicals.setPrevEma50(stockTechnicalsIO.getPrevEma50());
+			stockTechnicals.setPrevEma100(stockTechnicalsIO.getPrevEma100());
+			stockTechnicals.setPrevEma200(stockTechnicalsIO.getPrevEma200());
+
 			stockTechnicals.setRsi(stockTechnicalsIO.getRsi());
 
 			stockTechnicals.setLastModified(LocalDate.now());
@@ -104,8 +145,7 @@ public class TechnicalsTxnConsumer {
 			stockTechnicals.setObv(stockTechnicalsIO.getObv());
 			stockTechnicals.setRocv(stockTechnicalsIO.getRocv());
 
-			stockTechnicals.setSma21(stockTechnicalsIO.getSma21());
-			stockTechnicals.setPrevSma21(stockTechnicalsIO.getPrevSma21());
+
 
 			stockTechnicals.setVolume(stockTechnicalsIO.getVolume());
 			stockTechnicals.setAvgVolume(stockTechnicalsIO.getAvgVolume());

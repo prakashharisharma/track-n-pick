@@ -6,6 +6,7 @@ import com.example.model.ledger.ResearchLedgerFundamental;
 import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
+import com.example.service.TechnicalsResearchService;
 import com.example.util.io.model.StockIO.IndiceType;
 
 public class UIRenderStock {
@@ -13,6 +14,12 @@ public class UIRenderStock {
 	long stockid;
 
 	String symbol;
+
+	String name;
+
+	String sector;
+
+	long sectorid;
 
 	long qunatity;
 
@@ -43,6 +50,8 @@ public class UIRenderStock {
 	double sma200;
 
 	double rsi;
+
+	double xirr;
 	
 	String category;
 
@@ -56,11 +65,25 @@ public class UIRenderStock {
 
 	boolean overValued;
 
+	boolean deathCross;
+
+	boolean goldenCross;
+
+	TechnicalsResearchService.RsiTrend rsiTrend;
+
+	public boolean isGoldenCross() {
+		return goldenCross;
+	}
+
+	public void setGoldenCross(boolean goldenCross) {
+		this.goldenCross = goldenCross;
+	}
+
 	public UIRenderStock() {
 		this.researchDate = LocalDate.now();
 	}
 
-	public UIRenderStock(UserPortfolio userPortfolioStock, double profitPer, boolean overValued) {
+	public UIRenderStock(UserPortfolio userPortfolioStock, double profitPer, boolean overValued, boolean deathCross, double rsi) {
 		super();
 		this.symbol = userPortfolioStock.getStock().getNseSymbol();
 		this.qunatity = userPortfolioStock.getQuantity();
@@ -71,7 +94,10 @@ public class UIRenderStock {
 		this.overValued = overValued;
 		this.profitPer = profitPer;
 		this.researchDate = LocalDate.now();
-
+		this.name = userPortfolioStock.getStock().getCompanyName();
+		this.sector = userPortfolioStock.getStock().getSector().getSectorName();
+		this.deathCross = deathCross;
+		this.rsi = rsi;
 	}
 
 	public UIRenderStock(Stock stock) {
@@ -87,7 +113,7 @@ public class UIRenderStock {
 
 	}
 
-	public UIRenderStock(ResearchLedgerFundamental researchLedger, double profitPer, double pe, double pb) {
+	public UIRenderStock(ResearchLedgerFundamental researchLedger, double profitPer, double pe, double pb, boolean goldenCross, TechnicalsResearchService.RsiTrend rsiTrend) {
 
 		this.symbol = researchLedger.getStock().getNseSymbol();
 		this.currentPrice = researchLedger.getStock().getStockPrice().getCurrentPrice();
@@ -106,7 +132,8 @@ public class UIRenderStock {
 
 		this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
 		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
-		this.rsi = researchLedger.getStock().getTechnicals().getRsi();
+		this.rsiTrend = rsiTrend;
+		this.goldenCross = goldenCross;
 
 	}
 	public UIRenderStock(ResearchLedgerTechnical researchLedger, double profitPer, double pe, double pb) {
@@ -134,7 +161,7 @@ public class UIRenderStock {
 
 	}
 	public UIRenderStock(ResearchLedgerFundamental researchLedger, double profitPer, double pe, double pb,
-			double peDifference) {
+						 double peDifference, boolean goldenCross, TechnicalsResearchService.RsiTrend rsiTrend) {
 
 		this.symbol = researchLedger.getStock().getNseSymbol();
 		this.currentPrice = researchLedger.getStock().getStockPrice().getCurrentPrice();
@@ -155,6 +182,8 @@ public class UIRenderStock {
 		//this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
 		//this.rsi = researchLedger.getStock().getTechnicals().getRsi();
 		this.peDifference = peDifference;
+		this.goldenCross = goldenCross;
+		this.rsiTrend = rsiTrend;
 	}
 
 	public UIRenderStock(ResearchLedgerTechnical researchLedger, double profitPer, double pe, double pb,
@@ -195,6 +224,30 @@ public class UIRenderStock {
 
 	public void setSymbol(String symbol) {
 		this.symbol = symbol;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getSector() {
+		return sector;
+	}
+
+	public void setSector(String sector) {
+		this.sector = sector;
+	}
+
+	public long getSectorid() {
+		return sectorid;
+	}
+
+	public void setSectorid(long sectorid) {
+		this.sectorid = sectorid;
 	}
 
 	public long getQunatity() {
@@ -363,6 +416,30 @@ public class UIRenderStock {
 
 	public void setCategory(String category) {
 		this.category = category;
+	}
+
+	public boolean isDeathCross() {
+		return deathCross;
+	}
+
+	public void setDeathCross(boolean deathCross) {
+		this.deathCross = deathCross;
+	}
+
+	public TechnicalsResearchService.RsiTrend getRsiTrend() {
+		return rsiTrend;
+	}
+
+	public double getXirr() {
+		return xirr;
+	}
+
+	public void setXirr(double xirr) {
+		this.xirr = xirr;
+	}
+
+	public void setRsiTrend(TechnicalsResearchService.RsiTrend rsiTrend) {
+		this.rsiTrend = rsiTrend;
 	}
 
 	@Override

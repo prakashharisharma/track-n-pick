@@ -1,6 +1,10 @@
 package com.example.util;
 
+import org.decampo.xirr.Transaction;
+import org.decampo.xirr.Xirr;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class FormulaService {
@@ -136,15 +140,40 @@ public class FormulaService {
 	}
 
 	public double calculateEMA(double close, double prevEMA, int timePeriod) {
+
 		double ema;
 		
 		double K = this.getEMAMultiplier(timePeriod);
-		
-		//System.out.println("K" + K);
-		
-		ema = (close  * K) + (prevEMA * (1 - K));
-		 // (22.15 * 0.1818) + (22.22 * ( 1 - 0.1818)) = 4.02687 + (22.22 * (0.8182)) = 18.180404 = 22.207274
+
+		ema = ((close  * K) + (prevEMA * (1 - K)));
+
 		return ema;
+	}
+
+	public double calculateXirr(List<Transaction> transactions){
+
+		double xirr = 0.00;
+
+		try{
+			xirr = new Xirr(transactions).xirr() * 100;
+		}catch (Exception e){
+			System.out.println("An error occured while calculating xirr");
+			e.printStackTrace();
+		}
+
+		return xirr;
+	}
+
+	public double calculateCagr(double initialCapital, double currentCapital, long years){
+
+		if(years <= 0){
+			years = 1;
+		}
+
+		double expYears = 1 / years;
+
+		return ((Math.pow((currentCapital / initialCapital), expYears) - 1) * 100 );
+
 	}
 	
 }

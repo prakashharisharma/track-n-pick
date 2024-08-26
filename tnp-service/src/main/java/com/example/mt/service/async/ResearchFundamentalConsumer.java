@@ -71,11 +71,14 @@ public class ResearchFundamentalConsumer {
 
 			}
 		} else {
+
 			if (ruleService.isUndervalued(stock)) {
 
 				this.addToUnderValueLedger(stock);
 
-			} else if (ruleService.isOvervalued(stock)) {
+			}
+
+			if (ruleService.isOvervalued(stock)) {
 				this.removeFromUnderValueLedger(stock);
 
 			}
@@ -103,14 +106,18 @@ public class ResearchFundamentalConsumer {
 
 		researchLedgerService.addResearch(stock, entryValuation);
 
-		this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.BUY);
+
+			this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.BUY);
+
 	}
 
 	private void updateResearchLedgerFundamental(Stock stock, ValuationLedger exitValuation) {
 
-		researchLedgerService.updateResearch(stock, exitValuation);
+		boolean addedNew = researchLedgerService.updateResearch(stock, exitValuation);
 
-		this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.SELL);
+		if(addedNew) {
+			this.addToResearchHistory(stock, ResearchType.FUNDAMENTAL, ResearchTrigger.SELL);
+		}
 	}
 
 	private void addToResearchHistory(Stock stock, ResearchType researchType, ResearchTrigger researchTrigger) {

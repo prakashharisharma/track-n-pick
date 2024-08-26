@@ -15,6 +15,8 @@ public class RulesNotification {
 	
 	private int factorIntervalDays;
 
+	private int apiCallCounter;
+
 	public int getWatchlistSize() {
 		return watchlistSize;
 	}
@@ -38,6 +40,12 @@ public class RulesNotification {
 	public void setFactorIntervalDays(int factorIntervalDays) {
 		this.factorIntervalDays = factorIntervalDays;
 	}
-	
-	
+
+	public int getApiCallCounter() {
+		return apiCallCounter;
+	}
+
+	public void setApiCallCounter(int apiCallCounter) {
+		this.apiCallCounter = apiCallCounter;
+	}
 }

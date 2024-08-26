@@ -33,19 +33,16 @@ public class BhavHistoryConsumer {
 	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
 
-		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_BHAV_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : START");
+		LOGGER.info("{} : Updating Bhav for {}", QueueConstants.HistoricalQueue.UPDATE_BHAV_QUEUE.toUpperCase(), stockPriceIO.getNseSymbol());
 
-		
-		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_BHAV_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : updating Bhav History..");
-		
 		DailyBhav dailyBhav = new DailyBhav(stockPriceIO.getNseSymbol(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
 				stockPriceIO.getLow(), stockPriceIO.getClose(), stockPriceIO.getLast(), stockPriceIO.getPrevClose(),
 				stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdval(), stockPriceIO.getTotaltrades(), stockPriceIO.getBhavDate());
 
 		bhavTemplate.create(dailyBhav);
 
-		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_BHAV_QUEUE.toUpperCase() +" : " + stockPriceIO.getNseSymbol() +" : END");
-		
+		LOGGER.info("{} : Updated Bhav for {}", QueueConstants.HistoricalQueue.UPDATE_BHAV_QUEUE.toUpperCase(), stockPriceIO.getNseSymbol());
+
 		queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_CANDLESTICK_QUEUE);
 	}
 

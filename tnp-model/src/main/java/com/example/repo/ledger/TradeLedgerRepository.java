@@ -1,6 +1,7 @@
 package com.example.repo.ledger;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import javax.transaction.Transactional;
 
@@ -21,5 +22,11 @@ public interface TradeLedgerRepository extends JpaRepository<TradeLedger, Long> 
 	
 	@Query(value = "SELECT sum(tl.brokerage) from TradeLedger tl where tl.transactionDate BETWEEN :dateFrom AND :dateTo AND tl.userId = :userId")
 	Double getBrokeragePaidBetweenTwoDates(@Param("userId") UserProfile userId,@Param("dateFrom") LocalDate dateFrom,@Param("dateTo") LocalDate dateTo);
-	
+
+	@Query( nativeQuery = true, value = "select tl.*  from trade_ledger tl left join user_portfolio up on tl.user_id = up.user_id" +
+			" where tl.txn_date >= up.first_txn_date" +
+			" and tl.stock_id = up.stock_id" +
+			" and tl.user_id = :userId" +
+			" and tl.stock_id = :stockId")
+	List<TradeLedger> getCashFlows(@Param("userId") UserProfile userId, @Param("stockId") Long stockId);
 }

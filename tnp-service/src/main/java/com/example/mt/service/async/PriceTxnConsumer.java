@@ -45,43 +45,15 @@ public class PriceTxnConsumer {
 	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
 
-		LOGGER.info("PRICETXN_CONSUMER START " + stockPriceIO);
+		LOGGER.info("PRICETXN_CONSUMER START {} ", stockPriceIO.getNseSymbol());
 
 		if (stockService.getStockByNseSymbol(stockPriceIO.getNseSymbol()) != null){
 
-			if (stockService.isActive(stockPriceIO.getNseSymbol())) {
+			this.processPriceUpdate(stockPriceIO);
 
-				this.processPriceUpdate(stockPriceIO);
+		}else {
 
-			}
-	}else {
-			StockIO stockIO = new StockIO(stockPriceIO.getCompanyName(), "NIFTY", stockPriceIO.getNseSymbol(), stockPriceIO.getSeries(), stockPriceIO.getIsin(), StockIO.IndiceType.NSE);
-
-			stockIO.setBseCode(stockPriceIO.getBseCode());
-
-			if(stockPriceIO.getExchange().equalsIgnoreCase("NSE")) {
-				stockIO.setSector("NSE");
-				stockIO.setIndice(StockIO.IndiceType.NSE);
-				stockIO.setExchange(StockIO.Exchange.NSE);
-			}else if(stockPriceIO.getExchange().equalsIgnoreCase("BSE") && stockPriceIO.getSeries().equalsIgnoreCase("A")){
-				stockIO.setSector("BSE");
-				stockIO.setIndice(StockIO.IndiceType.BSE_A);
-				stockIO.setExchange(StockIO.Exchange.BSE);
-			} else if (stockPriceIO.getExchange().equalsIgnoreCase("BSE") && stockPriceIO.getSeries().equalsIgnoreCase("B")) {
-				stockIO.setSector("BSE");
-				stockIO.setIndice(StockIO.IndiceType.BSE_B);
-				stockIO.setExchange(StockIO.Exchange.BSE);
-			}else  {
-				stockIO.setSector("BSE");
-				stockIO.setIndice(StockIO.IndiceType.BSE_M);
-				stockIO.setExchange(StockIO.Exchange.BSE);
-			}
-
-			Stock stock = stockService.add(stockIO.getExchange(),stockIO.getIsin(), stockIO.getCompanyName(), stockIO.getNseSymbol(), stockIO.getBseCode(), stockIO.getIndice(), sectorService.getOrAddSectorByName(stockIO.getSector()));
-
-			LOGGER.debug("NOT IN MASTER, IGNORED..." + stockPriceIO.getNseSymbol());
-
-			queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
+			this.addStockToMaster(stockPriceIO);
 		}
 
 	}
@@ -100,6 +72,9 @@ public class PriceTxnConsumer {
 			//stockPrice.setYearHigh(stockPriceIO.getYearHigh());
 			//stockPrice.setYearLow(stockPriceIO.getYearLow());
 			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
+			//queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE);
+			queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE);
+
 
 		} else if (stockPrice != null && stockPrice.getBhavDate().isEqual(LocalDate.now())) {
 			LOGGER.info("Price is already updated for {}", stockPriceIO.getNseSymbol());
@@ -113,11 +88,43 @@ public class PriceTxnConsumer {
 			//stockPrice.setYearHigh(stockPriceIO.getYearHigh());
 			//stockPrice.setYearLow(stockPriceIO.getYearLow());
 			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
+			queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE);
+			//queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE);
 		}
 
 		stockPriceRepository.save(stockPrice);
 
 		this.processFactor(stockPriceIO.getNseSymbol());
+	}
+
+	private void addStockToMaster(StockPriceIO stockPriceIO){
+		StockIO stockIO = new StockIO(stockPriceIO.getCompanyName(), "NIFTY", stockPriceIO.getNseSymbol(), stockPriceIO.getSeries(), stockPriceIO.getIsin(), StockIO.IndiceType.NSE);
+
+		stockIO.setBseCode(stockPriceIO.getBseCode());
+
+		if(stockPriceIO.getExchange().equalsIgnoreCase("NSE")) {
+			stockIO.setSector("NSE");
+			stockIO.setIndice(StockIO.IndiceType.NSE);
+			stockIO.setExchange(StockIO.Exchange.NSE);
+		}else if(stockPriceIO.getExchange().equalsIgnoreCase("BSE") && stockPriceIO.getSeries().equalsIgnoreCase("A")){
+			stockIO.setSector("BSE");
+			stockIO.setIndice(StockIO.IndiceType.BSE_A);
+			stockIO.setExchange(StockIO.Exchange.BSE);
+		} else if (stockPriceIO.getExchange().equalsIgnoreCase("BSE") && stockPriceIO.getSeries().equalsIgnoreCase("B")) {
+			stockIO.setSector("BSE");
+			stockIO.setIndice(StockIO.IndiceType.BSE_B);
+			stockIO.setExchange(StockIO.Exchange.BSE);
+		}else  {
+			stockIO.setSector("BSE");
+			stockIO.setIndice(StockIO.IndiceType.BSE_M);
+			stockIO.setExchange(StockIO.Exchange.BSE);
+		}
+
+		Stock stock = stockService.add(stockIO.getExchange(),stockIO.getIsin(), stockIO.getCompanyName(), stockIO.getNseSymbol(), stockIO.getBseCode(), stockIO.getIndice(), sectorService.getOrAddSectorByName(stockIO.getSector()));
+
+		LOGGER.debug("Stock Added..." + stockPriceIO.getNseSymbol());
+
+		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
 	}
 
 	private void processFactor(String nseSymbol) {

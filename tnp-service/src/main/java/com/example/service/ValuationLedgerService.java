@@ -39,52 +39,38 @@ public class ValuationLedgerService {
 
 	public ValuationLedger addUndervalued(Stock stock) {
 
-		ValuationLedger undervalueLedger = valuationLedgerRepository.findByStockIdAndTypeAndStatus(stock,Type.UNDERVALUE, Status.OPEN);
+		ValuationLedger valuationLedger = valuationLedgerRepository.findByStockIdAndTypeAndStatus(stock,Type.UNDERVALUE, Status.OPEN);
 
-		if (undervalueLedger == null) {
-			undervalueLedger = new ValuationLedger();
+		if (valuationLedger == null) {
+			valuationLedger = new ValuationLedger();
 
 			double pe = stockService.getPe(stock);
 
 			double pb = stockService.getPb(stock);
 
-			undervalueLedger.setStockId(stock);
-			undervalueLedger.setPb(pb);
-			undervalueLedger.setPe(pe);
-			undervalueLedger.setResearchDate(LocalDate.now());
+			valuationLedger.setStockId(stock);
+			valuationLedger.setPb(pb);
+			valuationLedger.setPe(pe);
+			valuationLedger.setResearchDate(LocalDate.now());
 
-			//undervalueLedger.setCategory(category);
+			valuationLedger.setType(Type.UNDERVALUE);
 
-			undervalueLedger.setType(Type.UNDERVALUE);
-
-			undervalueLedger.setStatus(Status.OPEN);
+			valuationLedger.setStatus(Status.OPEN);
 			
-			undervalueLedger.setPrice(stock.getStockPrice().getCurrentPrice());
+			valuationLedger.setPrice(stock.getStockPrice().getCurrentPrice());
 
-			undervalueLedger.setCurrentRatio(stock.getStockFactor().getCurrentRatio());
+			valuationLedger.setCurrentRatio(stock.getStockFactor().getCurrentRatio());
 			
-			undervalueLedger.setDebtEquity(stock.getStockFactor().getDebtEquity());
+			valuationLedger.setDebtEquity(stock.getStockFactor().getDebtEquity());
 			
-			undervalueLedger.setDividend(stock.getStockFactor().getDividend());
+			valuationLedger.setDividend(stock.getStockFactor().getDividend());
 			
-			undervalueLedger.setSectorPb(stock.getSector().getSectorPb());
+			valuationLedger.setSectorPb(stock.getSector().getSectorPb());
 			
-			undervalueLedger.setSectorPe(stock.getSector().getSectorPe());
-			
-			
-			valuationLedgerRepository.save(undervalueLedger);
-		} /*else {
-			double newPe = stockService.getPe(stock);
+			valuationLedger.setSectorPe(stock.getSector().getSectorPe());
 
-			double newPb = stockService.getPb(stock);
-
-			undervalueLedger.setNewPb(newPb);
-			undervalueLedger.setNewPe(newPe);
-			undervalueLedger.setLastModified(LocalDate.now());
-
-			valuationLedgerRepository.save(undervalueLedger);
-
-		}*/
+			valuationLedgerRepository.save(valuationLedger);
+		}
 
 		ValuationLedger valuationLedgerPrevOverValued = valuationLedgerRepository.findByStockIdAndTypeAndStatus(stock, Type.OVERVALUE,  Status.OPEN);
 
@@ -94,58 +80,47 @@ public class ValuationLedgerService {
 			valuationLedgerRepository.save(valuationLedgerPrevOverValued);
 		}
 
-		return undervalueLedger;
+		return valuationLedger;
 		
 	}
 
 	public ValuationLedger addOvervalued(Stock stock) {
-		ValuationLedger undervalueLedger = valuationLedgerRepository.findByStockIdAndTypeAndStatus(stock,Type.OVERVALUE, Status.OPEN);
+		ValuationLedger valuationLedger = valuationLedgerRepository.findByStockIdAndTypeAndStatus(stock,Type.OVERVALUE, Status.OPEN);
 
-		if (undervalueLedger == null) {
-			undervalueLedger = new ValuationLedger();
+		if (valuationLedger == null) {
+			valuationLedger = new ValuationLedger();
 
 			double pe = stockService.getPe(stock);
 
 			double pb = stockService.getPb(stock);
 
-			undervalueLedger.setStockId(stock);
-			undervalueLedger.setPb(pb);
-			undervalueLedger.setPe(pe);
-			undervalueLedger.setResearchDate(LocalDate.now());
+			valuationLedger.setStockId(stock);
+			valuationLedger.setPb(pb);
+			valuationLedger.setPe(pe);
+			valuationLedger.setResearchDate(LocalDate.now());
 
 			//undervalueLedger.setCategory(category);
 
-			undervalueLedger.setType(Type.OVERVALUE);
+			valuationLedger.setType(Type.OVERVALUE);
 
-			undervalueLedger.setStatus(Status.OPEN);
+			valuationLedger.setStatus(Status.OPEN);
 			
 			
-			undervalueLedger.setPrice(stock.getStockPrice().getCurrentPrice());
+			valuationLedger.setPrice(stock.getStockPrice().getCurrentPrice());
 
-			undervalueLedger.setCurrentRatio(stock.getStockFactor().getCurrentRatio());
+			valuationLedger.setCurrentRatio(stock.getStockFactor().getCurrentRatio());
 			
-			undervalueLedger.setDebtEquity(stock.getStockFactor().getDebtEquity());
+			valuationLedger.setDebtEquity(stock.getStockFactor().getDebtEquity());
 			
-			undervalueLedger.setDividend(stock.getStockFactor().getDividend());
+			valuationLedger.setDividend(stock.getStockFactor().getDividend());
 			
-			undervalueLedger.setSectorPb(stock.getSector().getSectorPb());
+			valuationLedger.setSectorPb(stock.getSector().getSectorPb());
 			
-			undervalueLedger.setSectorPe(stock.getSector().getSectorPe());
+			valuationLedger.setSectorPe(stock.getSector().getSectorPe());
 			
 
-			valuationLedgerRepository.save(undervalueLedger);
-		} /*else {
-			double newPe = stockService.getPe(stock);
-
-			double newPb = stockService.getPb(stock);
-
-			undervalueLedger.setNewPb(newPb);
-			undervalueLedger.setNewPe(newPe);
-			undervalueLedger.setLastModified(LocalDate.now());
-
-			valuationLedgerRepository.save(undervalueLedger);
-
-		}*/
+			valuationLedgerRepository.save(valuationLedger);
+		}
 
 		ValuationLedger valuationLedgerPrevUnderValued = valuationLedgerRepository.findByStockIdAndTypeAndStatus(stock, Type.UNDERVALUE, Status.OPEN);
 
@@ -155,7 +130,7 @@ public class ValuationLedgerService {
 			valuationLedgerRepository.save(valuationLedgerPrevUnderValued);
 		}
 		
-		return undervalueLedger;
+		return valuationLedger;
 	}
 
 }

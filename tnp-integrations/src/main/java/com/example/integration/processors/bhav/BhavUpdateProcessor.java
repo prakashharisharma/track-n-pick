@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.example.util.DownloadCounterUtil;
+import com.example.util.io.model.UpdateTriggerIO;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class BhavUpdateProcessor implements Processor {
-
-	//private static final Logger LOGGER = LoggerFactory.getLogger(BhavUpdateProcessor.class);
 
 	private static Set<String> ignoreSet = new HashSet<>();
 
@@ -74,6 +74,9 @@ public class BhavUpdateProcessor implements Processor {
 		ignoreSet.add("NIF5GETF");
 		ignoreSet.add("HDFCQUAL");
 		ignoreSet.add("NIFTYBEES");
+		ignoreSet.add("PSUBANK");
+		ignoreSet.add("TATAGOLD");
+		ignoreSet.add("SDL24BEES");
 		ignoreSet.add("CONSUMIETF");
 		ignoreSet.add("LICNETFN50");
 		ignoreSet.add("LOWVOLIETF");
@@ -82,56 +85,173 @@ public class BhavUpdateProcessor implements Processor {
 		ignoreSet.add("11AGG");
 		ignoreSet.add("MOM100");
 		ignoreSet.add("HDFCNIFTY");
-
+		ignoreSet.add("UTIBANKETF");
+		ignoreSet.add("ABSLPSE");
+		ignoreSet.add("SOBHAPP");
+		ignoreSet.add("11DPR");
+		ignoreSet.add("HDFCMID150");
+		ignoreSet.add("PSUBNKBEES");
+		ignoreSet.add("HDFCMOMENT");
+		ignoreSet.add("SDL26BEES");
+		ignoreSet.add("MOLOWVOL");
+		ignoreSet.add("GOLD1");
+		ignoreSet.add("MID150BEES");
+		ignoreSet.add("MON100");
+		ignoreSet.add("NIF100BEES");
+		ignoreSet.add("LICNFNHGP");
+		ignoreSet.add("SENSEXBEES");
+		ignoreSet.add("BANKNIFTY1");
+		ignoreSet.add("SBISENSEX");
+		ignoreSet.add("PSUBNKBEES");
+		ignoreSet.add("11AMD");
+		ignoreSet.add("ABSLPSE");
+		ignoreSet.add("MOM50");
+		ignoreSet.add("MOLOWVOL");
+		ignoreSet.add("MIDSMALL");
+		ignoreSet.add("HDFCSML250");
+		ignoreSet.add("HDFCNIF100");
+		ignoreSet.add("NIFTYQLITY");
+		ignoreSet.add("MAFANG");
+		ignoreSet.add("AXSENSEX");
+		ignoreSet.add("HDFCMID150");
+		ignoreSet.add("LICNMID100");
+		ignoreSet.add("HDFCNIFIT");
+		ignoreSet.add("MAKEINDIA");
+		ignoreSet.add("08MPD");
+		ignoreSet.add("ESG");
+		ignoreSet.add("11DPR");
+		ignoreSet.add("11DPD");
+		ignoreSet.add("MOHEALTH");
+		ignoreSet.add("MASPTOP50");
+		ignoreSet.add("LOWVOL");
+		ignoreSet.add("HEALTHY");
+		ignoreSet.add("MIDQ50ADD");
+		ignoreSet.add("ICICIB22");
+		ignoreSet.add("MID150CASE");
+		ignoreSet.add("HDFCSENSEX");
+		ignoreSet.add("08GPG");
+		ignoreSet.add("BANKBEES");
+		ignoreSet.add("HDFCNEXT50");
+		ignoreSet.add("MONQ50");
+		ignoreSet.add("11MPR");
+		ignoreSet.add("11MPD");
+		ignoreSet.add("JUNIORBEES");
+		ignoreSet.add("BSLNIFTY");
+		ignoreSet.add("HDFCMOMENT");
+		ignoreSet.add("ABSLNN50ET");
+		ignoreSet.add("EVINDIA");
+		ignoreSet.add("MAHKTECH");
+		ignoreSet.add("11GPG");
+		ignoreSet.add("MOMENTUM");
+		ignoreSet.add("TECH");
+		ignoreSet.add("INFRABEES");
+		ignoreSet.add("QNIFTY");
+		ignoreSet.add("HDFCVALUE");
+		ignoreSet.add("HDFCPSUBK");
+		ignoreSet.add("NIEHSPI");
+		ignoreSet.add("NIEHSPD");
+		ignoreSet.add("NIEHSPE");
+		ignoreSet.add("NIESSPA");
+		ignoreSet.add("NIEHSPL");
+		ignoreSet.add("NIESSPC");
+		ignoreSet.add("MOMOMENTUM");
+		ignoreSet.add("PSUBANKADD");
+		ignoreSet.add("UTISXN50");
+		ignoreSet.add("UTINEXT50");
+		ignoreSet.add("HDFCGROWTH");
+		ignoreSet.add("IDFSENSEXE");
+		ignoreSet.add("HDFCPVTBAN");
+		ignoreSet.add("NAVINIFTY");
+		ignoreSet.add("HEALTHADD");
+		ignoreSet.add("NIF100BEES");
+		ignoreSet.add("NIFMID150");
+		ignoreSet.add("IVZINGOLD");
+		ignoreSet.add("SILVERADD");
+		ignoreSet.add("GILT5YBEES");
+		ignoreSet.add("NV20BEES");
+		ignoreSet.add("DIVOPPBEES");
+		ignoreSet.add("SILVERBEES");
+		ignoreSet.add("AUTOBEES");
+		ignoreSet.add("ITBEES");
+		ignoreSet.add("SDL26BEES");
+		ignoreSet.add("GSEC10YEAR");
+		ignoreSet.add("GOLD1");
+		ignoreSet.add("LIQUIDBEES");
+		ignoreSet.add("HDFCGOLD");
+		ignoreSet.add("MID150BEES");
+		ignoreSet.add("CONSUMBEES");
+		ignoreSet.add("MON100");
+		ignoreSet.add("LICMFGOLD");
+		ignoreSet.add("GOLDBEES");
+		ignoreSet.add("HNGSNGBEES");
+		ignoreSet.add("LTGILTBEES");
+		ignoreSet.add("NV20");
+		ignoreSet.add("PHARMABEES");
+		ignoreSet.add("AXISGOLD");
+		ignoreSet.add("NIEHSPG");
+		ignoreSet.add("NIESSPE");
+		ignoreSet.add("IVZINNIFTY");
+		ignoreSet.add("08AGG");
+		ignoreSet.add("NIESSPJ");
 
 	}
 
 	@Autowired
 	private QueueService queueService;
+
 	
 	@Override
 	public void process(Exchange exchange) throws Exception {
 
-		log.info("Starting Bhav Processor");
-		
+		DownloadCounterUtil.reset();
+
+		log.info("Starting Bhav Processor and resetting apiCounter to {}", DownloadCounterUtil.get());
+
 		@SuppressWarnings("unchecked")
 		List<StockPriceIN> dailyStockPriceList = (List<StockPriceIN>) exchange.getIn().getBody();
-
-		//dailyStockPriceList = dailyStockPriceList.stream().filter(sp -> sp.getSeries().equalsIgnoreCase("EQ")).collect(Collectors.toList());
 
 		Set<StockPriceIN> dailyStockPriceSet = new HashSet<>(dailyStockPriceList);
 
 		dailyStockPriceSet.forEach( sp -> {
-			log.info("Processing Bhav  {} {} {} {} {}", sp.getSource(), sp.getIsin(), sp.getNseSymbol(), sp.getSeries(), sp.getTimestamp());
 
-			if(this.isIgnored(sp.getNseSymbol()) || sp.getNseSymbol().contains("EPF") || sp.getNseSymbol().contains("AMC")) {
-				log.info("Ignored Symbol {}", sp.getNseSymbol());
-			}else if(sp.getSource().equalsIgnoreCase("NSE")){
-				this.processNseBhav(sp);
-			} else if (sp.getSource().equalsIgnoreCase("BSE")) {
-				this.processBseBhav(sp);
-			}else{
-				log.info("Invalid Source");
+			if(!this.isIgnored(sp.getNseSymbol())
+					&& !sp.getNseSymbol().contains("ETF")
+					&& !sp.getNseSymbol().contains("AMC")) {
+
+				this.processBhav(sp);
+
 			}
 
-			//StockPriceIO stockPriceIO = new StockPriceIO(sp.getNseSymbol(), sp.getSeries(), sp.getOpen(), sp.getHigh(), sp.getLow(), sp.getClose(), sp.getLast(), sp.getPrevClose(), sp.getTottrdqty(), sp.getTottrdval(), sp.getTimestamp().toString(), sp.getTotaltrades(), sp.getIsin());
-
-			/* Store Bhav for analytics purpose, Not needed for now
-			queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_BHAV_QUEUE);
-			*/
-
-			//queueService.send(stockPriceIO, QueueConstants.HistoricalQueue.UPDATE_PRICE_QUEUE);
-			//queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
-
 		});
-		
+
+		UpdateTriggerIO updateTriggerIO = new UpdateTriggerIO(UpdateTriggerIO.TriggerType.UPDATE_RESEARCH);
+
+		queueService.send(updateTriggerIO, QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE);
+
 		log.info("Completed Bhav Processor");
-		
+	}
+
+	private void processBhav(StockPriceIN stockPriceIN){
+
+		log.info("Processing Bhav  {} {} {} {} {}", stockPriceIN.getSource(),
+				stockPriceIN.getIsin(),
+				stockPriceIN.getNseSymbol(),
+				stockPriceIN.getSeries(),
+				stockPriceIN.getTimestamp());
+
+			if (stockPriceIN.getSource().equalsIgnoreCase("NSE")) {
+				this.processNseBhav(stockPriceIN);
+			} else if (stockPriceIN.getSource().equalsIgnoreCase("BSE")) {
+				this.processBseBhav(stockPriceIN);
+			} else {
+				log.debug("Invalid Source");
+			}
 	}
 
 	private void sendToUpdateQueue(StockPriceIO stockPriceIO){
 		log.info("Queuing to update price Stock: {}", stockPriceIO.getNseSymbol());
 		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
+
 	}
 
 	private void processNseBhav(StockPriceIN stockPriceIN){
@@ -141,7 +261,7 @@ public class BhavUpdateProcessor implements Processor {
 
 			this.sendToUpdateQueue(stockPriceIO);
 		}else{
-			log.info("Ignored : {} on {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource());
+			log.info("Ignored : {} on {} Series {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(), stockPriceIN.getSeries());
 		}
 	}
 
@@ -152,11 +272,12 @@ public class BhavUpdateProcessor implements Processor {
 			stockPriceIO.setBseCode(stockPriceIN.getExchangeCode());
 			this.sendToUpdateQueue(stockPriceIO);
 		}else{
-			log.info("Ignored : {} on {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource());
+			log.info("Ignored : {} on {} Series {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(), stockPriceIN.getSeries());
 		}
 	}
 
 	private boolean isIgnored(String nseSymbol){
 		return ignoreSet.contains(nseSymbol)? Boolean.TRUE : Boolean.FALSE;
 	}
+
 }

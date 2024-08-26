@@ -50,7 +50,7 @@ public class ResearchLedgerFundamentalService {
 
 	}
 
-	public void updateResearch(Stock stock, ValuationLedger exitValuation) {
+	public boolean updateResearch(Stock stock, ValuationLedger exitValuation) {
 
 		ResearchLedgerFundamental researchLedger = researchLedgerRepository.findByStockAndResearchStatus(stock, ResearchTrigger.BUY);
 		
@@ -62,9 +62,11 @@ public class ResearchLedgerFundamentalService {
 		//	researchLedger.setNotifiedStorage(false);
 			researchLedger.setExitValuation(exitValuation);
 			
-			researchLedgerRepository.save(researchLedger);	
+			researchLedgerRepository.save(researchLedger);
+			return Boolean.TRUE;
 		}
-		
+
+		return Boolean.FALSE;
 		
 	}
 

@@ -59,7 +59,15 @@ public class RuleService {
 				
 				double peDiff = sectorPe - pe;
 
-				if (pe > sectorPe && pb < 2.5) {
+				if(pe < sectorPe && pb < sectorPb){
+					return Boolean.TRUE;
+				}
+
+				if(pe <= 20 && pb < sectorPb){
+					return  Boolean.TRUE;
+				}
+
+				if (pe < sectorPe && pb <= 3) {
 					return Boolean.TRUE;
 				}
 			}
@@ -75,7 +83,8 @@ public class RuleService {
 
 		if (!this.isUndervaluedPre(stock)) {
 			isOvervalued = true;
-		} else {
+		}/*
+		else {
 			double pe = stockService.getPe(stock);
 
 			double pb = stockService.getPb(stock);
@@ -84,10 +93,11 @@ public class RuleService {
 
 			double sectorPe = stock.getSector().getSectorPe();
 
-			if (pe <= 0.0 || pe > sectorPe) {
+			if (pe <= 0.0 || pe < sectorPe) {
 				isOvervalued = true;
 			}
 		}
+		*/
 		return isOvervalued;
 	}
 
@@ -109,11 +119,16 @@ public class RuleService {
 
 			if (sector != null) {
 
-				String sectorName = sector.getSectorName();
+				String sectorName = stock.getSector().getSectorName();
 
 				if (sectorName != null && !sectorName.isEmpty()) {
 
-					if (stock.getSector().getSectorName().equalsIgnoreCase("FINANCIAL SERVICES")) {
+
+					if (sectorName.equalsIgnoreCase("Financial Institution")
+					|| sectorName.equalsIgnoreCase("Non Banking Financial Company NBFC")
+							|| sectorName.equalsIgnoreCase("Other Bank")
+							|| sectorName.equalsIgnoreCase("Private Sector Bank")
+							|| sectorName.equalsIgnoreCase("Public Sector Bank")) {
 
 						if (stock.getStockFactor().getMarketCap() >= rules.getMcap()
 								&& stock.getStockFactor().getDividend() >= rules.getDividend()
@@ -125,6 +140,12 @@ public class RuleService {
 						}
 
 					} else {
+
+						if(stock.getStockFactor().getReturnOnEquity() >= 50.0
+								&& stock.getStockFactor().getReturnOnCapital() >= 50.0){
+							isUndervalued = true;
+						}
+
 						if (
 								stock.getStockFactor().getMarketCap() >= rules.getMcap() &&
 								 stock.getStockFactor().getDebtEquity() < rules.getDebtEquity()

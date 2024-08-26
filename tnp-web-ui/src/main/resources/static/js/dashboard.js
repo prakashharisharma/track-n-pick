@@ -6,7 +6,10 @@ $(document).ready(function() {
        $('#currentValue').append('<i class="fa fa-rupee">&nbsp;</i>' + data.currentValue.toFixed(2));
        $('#ytdRealizedGainPer').append(data.ytdRealizedGainPer.toFixed(2) + ' %');
        $('#ytdUnrealizedGainPer').append(data.ytdUnrealizedGainPer.toFixed(2) +' %');
-       
+
+       $('#fyXirr').append(data.fyXirr.toFixed(2) + ' %');
+       $('#fyCagr').append(data.fyCagr.toFixed(2) +' %');
+
        $('#fyInvestmentValue').append('<i class="fa fa-rupee">&nbsp;</i>' + data.fyInvestmentValue.toFixed(2));
        $('#fyCurrentValue').append('<i class="fa fa-rupee">&nbsp;</i>' + data.currentValue.toFixed(2));
        $('#fyRealizedGainPer').append(data.fyRealizedGainPer.toFixed(2) + ' %');
@@ -17,8 +20,15 @@ $(document).ready(function() {
        $('#fyNetTaxPaid').append('<i class="fa fa-rupee">&nbsp;</i>' + data.fyNetTaxPaid.toFixed(2));
        $('#fyNetExpense').append('<i class="fa fa-rupee">&nbsp;</i>' + data.fyNetExpense.toFixed(2));
        $('#fyNetTaxLiability').append('<i class="fa fa-rupee">&nbsp;</i>' + data.fyNetTaxLiability.toFixed(2));
-       
-       
+
+        if(data.fyXirr <= 0.00){
+     	   $('#fyXirrTxt').removeClass('text-success').addClass('text-danger');
+        }
+
+        if(data.fyCagr <= 0.00){
+     	   $('#fyCagrTxt').removeClass('text-success').addClass('text-danger');
+        }
+
        if(data.ytdRealizedGainPer < 0.00){
     	   $('#ytdRealizedGainPerTxt').removeClass('text-success').addClass('text-danger');
        }
@@ -41,13 +51,50 @@ $(document).ready(function() {
        
        
     });
-    
+
+    loadWeeklyChart();
     loadPieChart();
     loadChart();
     loadIndiceChart();
 });
 
+function loadWeeklyChart(){
 
+var dataPoints = [];
+
+var options =  {
+	animationEnabled: true,
+	theme: "light2",
+	title: {
+		text: "Monthly Performance"
+	},
+	axisX: {
+		valueFormatString: "DD MMM YYYY",
+	},
+	axisY: {
+		title: "INR",
+		titleFontSize: 24
+	},
+	data: [{
+		type: "spline",
+		yValueFormatString: "₹#,###.##",
+		dataPoints: dataPoints
+	}]
+};
+
+function addData(data) {
+	for (var i = 0; i < data.length; i++) {
+		dataPoints.push({
+			x: new Date(data[i].date),
+			y: data[i].units
+		});
+	}
+	$("#weeklychartContainer").CanvasJSChart(options);
+
+}
+//$.getJSON("https://canvasjs.com/data/gallery/jquery/daily-sales-data.json", addData);
+$.getJSON("/api/chart/performance/monthly", addData);
+}
 
 
 function loadPieChart() {

@@ -395,7 +395,7 @@ public class PriceTemplate {
 		return prevOBV;
 	}
 	
-	public double getAveragePrice(String nseSymbol, int days) {
+	public double getAveragePrice(String nseSymbol, double close, int days) {
 		//TradingSession ts = this.getTradingSessionBeforeDays(days);
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
@@ -403,7 +403,6 @@ public class PriceTemplate {
 		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
 		
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
-		
 
 		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").avg("close").as("avgPrice");
 
@@ -418,7 +417,8 @@ public class PriceTemplate {
 
 		StockPriceResult stockPriceResult = result.getUniqueMappedResult();
 
-		double averagePrice= 0.00;
+		double averagePrice = close;
+
 		if(stockPriceResult != null) {
 			averagePrice = stockPriceResult.getResultPrice();
 		}

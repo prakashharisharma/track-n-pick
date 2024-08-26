@@ -9,6 +9,7 @@ import java.util.List;
 import javax.transaction.Transactional;
 
 import com.example.model.stocks.StockTechnicals;
+import com.example.util.DownloadCounterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -205,9 +206,9 @@ public class StockService {
 
 		stock = stockRepository.save(stock);
 
-		this.updatePrice(stock);
+		//this.updatePrice(stock);
 		
-		this.updateFactor(stock);
+		//this.updateFactor(stock);
 
 		return stock;
 	}
@@ -253,23 +254,28 @@ public class StockService {
 			if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > notificationRules.getFactorIntervalDays()) {
 
 				try {
-					
-					long interval = miscUtil.getInterval();
-					
-					System.out.println("interval : " + interval +" : " + stock.getNseSymbol());
-					
-					Thread.sleep(interval);
 
-					stockFactor = factorRediff.getFactor(stock);
+					if(DownloadCounterUtil.get() < notificationRules.getApiCallCounter()) {
 
-					stockFactorRepository.save(stockFactor);
+						long interval = miscUtil.getInterval();
+
+						Thread.sleep(interval);
+
+						stockFactor = factorRediff.getFactor(stock);
+
+						stockFactorRepository.save(stockFactor);
+
+						DownloadCounterUtil.increment();
+					}else{
+						LOGGER.warn("Counter exceeds {} for {} ", DownloadCounterUtil.get(), stock.getNseSymbol());
+					}
 					
 				} catch (InterruptedException e) {
 					LOGGER.error("An error occured while updating factor {}", stock.getNseSymbol(), e);
 				}
 
-
-
+			}else{
+				LOGGER.info("Factors recently updated.. {}", stock.getNseSymbol());
 			}
 		} else {
 

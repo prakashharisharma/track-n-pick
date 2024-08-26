@@ -14,6 +14,8 @@ import com.example.util.io.model.StockIO.IndiceType;
 @Service
 public class TechnicalsResearchService {
 
+	public enum RsiTrend {OVERBAUGHT, OVERSOLD, NUETRAL}
+
 	@Autowired
 	private BreakoutLedgerService breakoutLedgerService;
 
@@ -21,7 +23,7 @@ public class TechnicalsResearchService {
 	 * A bullish crossover occurs when the shorter moving average crosses above the
 	 * longer moving average. This is also known as a golden cross.
 	 * 
-	 * @param nifty200stocksList
+	 * @param stocksList
 	 * @return
 	 */
 	public List<Stock> bullishCrossOver(List<Stock> stocksList) {
@@ -43,20 +45,106 @@ public class TechnicalsResearchService {
 	 * A bullish crossover occurs when the shorter moving average crosses above the
 	 * longer moving average. This is also known as a golden cross.
 	 * 
-	 * @param nifty200stocksList
+	 * @param stock
 	 * @return
 	 */
 	public boolean isBullishCrossOver50(Stock stock) {
 
 		boolean isBullishCrossOver = false;
 
-		isBullishCrossOver = isShortCrossedLongFromLow(stock.getTechnicals().getPrevSma21(),
-				stock.getTechnicals().getPrevSma50(), stock.getTechnicals().getSma21(),
+		isBullishCrossOver = isShortCrossedLongFromLow(stock.getTechnicals().getPrevSma20(),
+				stock.getTechnicals().getPrevSma50(), stock.getTechnicals().getSma20(),
 				stock.getTechnicals().getSma50());
 
 		return isBullishCrossOver;
 	}
 
+	/**
+	 * when the price crosses above a moving average
+	 * and RSI moves out of oversold territory (above 30),
+	 * it may signal a potential long entry.
+	 * @return
+	 */
+	public boolean isBullishWithRsiAndMovingAverage(Stock stock){
+
+		return Boolean.FALSE;
+	}
+
+	/**
+	 *
+	 * Conversely, when the price crosses below the moving average
+	 * and RSI moves into overbought territory (above 70),
+	 * it could indicate a short entry point.
+	 * @return
+	 */
+	public boolean isBearishWithRsiAndMovingAverage(Stock stock){
+
+		return Boolean.FALSE;
+	}
+
+	public RsiTrend currentTrend(Stock stock){
+
+		if(this.isOverBaught(stock)){
+			return RsiTrend.OVERBAUGHT;
+		}
+
+		if(this.isOverSold(stock)){
+			return RsiTrend.OVERSOLD;
+		}
+
+		return RsiTrend.NUETRAL;
+	}
+
+
+	/**
+	 * Relatively short-term moving average crossovers,
+	 * such as the 5 EMA crossing over the 10 EMA,
+	 * are best suited to complement RSI.
+	 * The 5 EMA crossing from above to below the 10 EMA
+	 * confirms the RSI's indication of overbought conditions
+	 * and possible trend reversal.
+	 * @param stock
+	 * @return
+	 */
+	public boolean isOverBaught(Stock stock){
+
+		if(this.isLongCrossedShortFromHigh(stock.getTechnicals().getPrevEma5(),
+				stock.getTechnicals().getPrevEma10(), stock.getTechnicals().getEma5(),
+				stock.getTechnicals().getEma10())
+				&&
+				stock.getTechnicals().getRsi() > 70.0
+		){
+			return Boolean.TRUE;
+		}
+
+		return Boolean.FALSE;
+	}
+
+
+
+	/**
+	 * Relatively short-term moving average crossovers,
+	 * such as the 5 EMA crossing over the 10 EMA,
+	 * are best suited to complement RSI.
+	 * The 5 EMA crossing from below to above the 10 EMA
+	 * confirms the RSI's indication of oversold conditions
+	 * and possible trend reversal.
+	 * @param stock
+	 * @return
+	 */
+	public boolean isOverSold(Stock stock){
+
+		if(this.isShortCrossedLongFromLow(stock.getTechnicals().getPrevEma5(),
+				stock.getTechnicals().getPrevEma10(), stock.getTechnicals().getEma5(),
+				stock.getTechnicals().getEma10())
+		&&
+				stock.getTechnicals().getRsi() < 30.0
+		){
+			return Boolean.TRUE;
+		}
+
+		return Boolean.FALSE;
+	}
 	public boolean isBullishCrossOver100(Stock stock) {
 
 		boolean isBullishCrossOver = false;
@@ -143,7 +231,7 @@ public class TechnicalsResearchService {
 	 * A bearish crossover occurs when the shorter moving average crosses below the
 	 * longer moving average. This is known as a dead cross.
 	 * 
-	 * @param nifty200stocksList
+	 * @param stocksList
 	 * @return
 	 */
 	public List<Stock> bearishCrossover(List<Stock> stocksList) {
@@ -162,14 +250,14 @@ public class TechnicalsResearchService {
 	 * A bearish crossover occurs when the shorter moving average crosses below the
 	 * longer moving average. This is known as a dead cross.
 	 * 
-	 * @param nifty200stocksList
+	 * @param stock
 	 * @return
 	 */
 	public boolean isBearishCrossover50(Stock stock) {
 		boolean isBearishCrossover = false;
 
-		isBearishCrossover = isLongCrossedShortFromHigh(stock.getTechnicals().getPrevSma21(),
-				stock.getTechnicals().getPrevSma50(), stock.getTechnicals().getSma21(),
+		isBearishCrossover = isLongCrossedShortFromHigh(stock.getTechnicals().getPrevSma20(),
+				stock.getTechnicals().getPrevSma50(), stock.getTechnicals().getSma20(),
 				stock.getTechnicals().getSma50());
 
 		return isBearishCrossover;
@@ -188,9 +276,9 @@ public class TechnicalsResearchService {
 	public boolean isBearishCrossover200(Stock stock) {
 		boolean isBearishCrossover = false;
 
-		isBearishCrossover = isLongCrossedShortFromHigh(stock.getTechnicals().getPrevSma50(),
-				stock.getTechnicals().getPrevSma200(), stock.getTechnicals().getSma50(),
-				stock.getTechnicals().getSma200());
+		isBearishCrossover = isLongCrossedShortFromHigh(stock.getTechnicals().getPrevEma50(),
+				stock.getTechnicals().getPrevEma200(), stock.getTechnicals().getEma50(),
+				stock.getTechnicals().getEma200());
 
 		return isBearishCrossover;
 	}

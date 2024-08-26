@@ -49,7 +49,7 @@ public class FactorTxnConsumer {
 
 		StockFactor newStockFactor = null;
 
-		if (ruleService.isPriceInRange(stock)) {
+		//if (ruleService.isPriceInRange(stock)) {
 
 			prevStockFactor = stock.getStockFactor();
 
@@ -70,17 +70,19 @@ public class FactorTxnConsumer {
 				}
 			}
 
-			ResearchIO researchIO = new ResearchIO(nseSymbol, ResearchType.FUNDAMENTAL, ResearchTrigger.BUY);
+			ResearchIO researchIO = new ResearchIO(nseSymbol, ResearchType.FUNDAMENTAL, ResearchTrigger.BUY_SELL);
 
 			this.processResearch(researchIO);
 
-		}
+		//}
 
 		LOGGER.debug(QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE.toUpperCase() + " : " + nseSymbol + " : END");
 	}
 
 	private void processResearch(ResearchIO researchIO) {
+
 		queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
+
 	}
 
 }

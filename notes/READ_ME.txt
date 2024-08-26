@@ -628,17 +628,6 @@ AND q.PER > 5.0
 --AND q.VAL < 25000.0
 order by q.NSE_SYMBOL
 
-Hammer - > Confirmation occurs if the candle following the hammer closes above the closing price of the hammer. Ideally, this confirmation candle shows strong buying. 
-
-
-https://codeburst.io/i-believe-it-really-depends-on-your-environment-and-how-well-protected-the-different-pieces-are-7919bfa6bc86
-
-
-db.getCollection('candlesticks_history').find({pattern:'HAMMER',bhavDate: ISODate('2019-07-26T00:00:00.000Z'),close:{$gte:50.0}})
-
-http://blog.arungupta.me/microservice-design-patterns/
-https://dzone.com/articles/design-patterns-for-microservices
-
 
 
 

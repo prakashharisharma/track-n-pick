@@ -30,8 +30,6 @@ public class FactorRediff implements FactorBaseService {
 
 	private static String BASE_URL_REDIFF = "https://money.rediff.com/companies/";
 
-	private static int remoteCallCounter = 0;
-
 	static Map<String, String> dateMap = new HashMap<>();
 
 	static Map<String, String> resultQuarterMap = new HashMap<>();
@@ -57,16 +55,16 @@ public class FactorRediff implements FactorBaseService {
 	static {
 		resultQuarterMap.put("JAN", "DEC");
 		resultQuarterMap.put("FEB", "DEC");
-		resultQuarterMap.put("MAR", "DEC");
+		resultQuarterMap.put("MAR", "MAR");
 		resultQuarterMap.put("APR", "MAR");
 		resultQuarterMap.put("MAY", "MAR");
-		resultQuarterMap.put("JUN", "MAR");
+		resultQuarterMap.put("JUN", "JUN");
 		resultQuarterMap.put("JUL", "JUN");
 		resultQuarterMap.put("AUG", "JUN");
-		resultQuarterMap.put("SEP", "JUN");
+		resultQuarterMap.put("SEP", "SEP");
 		resultQuarterMap.put("OCT", "SEP");
 		resultQuarterMap.put("NOV", "SEP");
-		resultQuarterMap.put("DEC", "SEP");
+		resultQuarterMap.put("DEC", "DEC");
 	}
 
 	private String ratioURL;
@@ -77,33 +75,34 @@ public class FactorRediff implements FactorBaseService {
 
 		System.out.println("REDIFFURL " + rediffURL);
 
-		Document doc = Jsoup.connect(rediffURL).get();
+		if(!rediffURL.contains("---")) {
+			Document doc = Jsoup.connect(rediffURL).get();
 
-		Element body = doc.body();
+			Element body = doc.body();
 
-		//Element allElement = body.getElementsByClass("zoom-container").first();
+			//Element allElement = body.getElementsByClass("zoom-container").first();
 
-		stockFactor.setMarketCap(this.parseMarketCap(body, stock));
-		stockFactor.setFaceValue(this.parseFaceValue(body, stock));
+			stockFactor.setMarketCap(this.parseMarketCap(body, stock));
+			stockFactor.setFaceValue(this.parseFaceValue(body, stock));
 
-		Element zoomDiv  = body.getElementsByClass("zoom-container").get(0);
+			Element zoomDiv = body.getElementsByClass("zoom-container").get(0);
 
-		String zoomUrl = zoomDiv.select("a").first().absUrl("href");
+			String zoomUrl = zoomDiv.select("a").first().absUrl("href");
 
-		if (zoomUrl == null || zoomUrl.isEmpty()) {
-			return stockFactor;
-		}
+			if (zoomUrl == null || zoomUrl.isEmpty()) {
+				return stockFactor;
+			}
 
-		String ratioUrlPre = zoomUrl.replace("/bse/day/chart", "");
+			String ratioUrlPre = zoomUrl.replace("/bse/day/chart", "");
 
-		ratioUrlPre = ratioUrlPre.replace("/nse/day/chart", "");
+			ratioUrlPre = ratioUrlPre.replace("/nse/day/chart", "");
 
 			LOGGER.info(ratioUrlPre);
 
-		this.setRatioURL(ratioUrlPre + "/ratio");
+			this.setRatioURL(ratioUrlPre + "/ratio");
 
-		LOGGER.info("Ratio Url {}", ratioURL);
-
+			LOGGER.info("Ratio Url {}", ratioURL);
+		}
 
 		return stockFactor;
 	}
@@ -414,6 +413,10 @@ public class FactorRediff implements FactorBaseService {
 
 		companyNameurlStr = companyNameurlStr.replace("'s", "-s");
 
+		companyNameurlStr = companyNameurlStr.replace("(", "");
+
+		companyNameurlStr = companyNameurlStr.replace(")", "");
+
 		return BASE_URL_REDIFF + companyNameurlStr;
 	}
 
@@ -445,7 +448,7 @@ public class FactorRediff implements FactorBaseService {
 
 		}
 
-		if (stock.getStockFactor() == null || remoteCallCounter <= 20) {
+		//if (stock.getStockFactor() == null || remoteCallCounter <= 20) {
 
 			try {
 				stockFactor.setLastModified(LocalDate.now());
@@ -463,9 +466,9 @@ public class FactorRediff implements FactorBaseService {
 				LOGGER.info("Quick  Ratio {}", stockFactor.getQuickRatio());
 
 				// increment thye remoteCallCounter
-				remoteCallCounter++;
+				//remoteCallCounter++;
 
-				System.out.println("Remote Call counter : " + remoteCallCounter);
+				//System.out.println("Remote Call counter : " + remoteCallCounter);
 				
 				
 			} catch (IOException e) {
@@ -474,7 +477,7 @@ public class FactorRediff implements FactorBaseService {
 			} 
 
 			stockFactor.setStock(stock);
-		}
+		//}
 
 		return stockFactor;
 	}

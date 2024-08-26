@@ -34,6 +34,25 @@ public class StockTechnicals implements Serializable{
 	@JoinColumn(name = "STOCK_ID", referencedColumnName ="STOCK_ID",  nullable = false)
 	Stock stock;
 
+	@Column(name = "SMA_5", columnDefinition="Decimal(10,2) default '0.00'")
+	double sma5;
+
+	@Column(name = "PREV_SMA_5", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevSma5;
+
+	@Column(name = "SMA_10", columnDefinition="Decimal(10,2) default '0.00'")
+	double sma10;
+
+	@Column(name = "PREV_SMA_10", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevSma10;
+
+	@Column(name = "SMA_20", columnDefinition="Decimal(10,2) default '0.00'")
+	double sma20;
+
+	@Column(name = "PREV_SMA_20", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevSma20;
+
+
 	@Column(name = "SMA_50", columnDefinition="Decimal(10,2) default '0.00'")
 	double sma50;
 	
@@ -51,12 +70,44 @@ public class StockTechnicals implements Serializable{
 	
 	@Column(name = "PREV_SMA_200", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevSma200;
-	
-	@Column(name = "SMA_21", columnDefinition="Decimal(10,2) default '0.00'")
-	double sma21;
-	
-	@Column(name = "PREV_SMA_21", columnDefinition="Decimal(10,2) default '0.00'")
-	double prevSma21;
+
+
+	@Column(name = "EMA_5", columnDefinition="Decimal(10,2) default '0.00'")
+	double ema5;
+
+	@Column(name = "PREV_EMA_5", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevEma5;
+
+	@Column(name = "EMA_10", columnDefinition="Decimal(10,2) default '0.00'")
+	double ema10;
+
+	@Column(name = "PREV_EMA_10", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevEma10;
+
+	@Column(name = "EMA_20", columnDefinition="Decimal(10,2) default '0.00'")
+	double ema20;
+
+	@Column(name = "PREV_EMA_20", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevEma20;
+
+	@Column(name = "EMA_50", columnDefinition="Decimal(10,2) default '0.00'")
+	double ema50;
+
+	@Column(name = "PREV_EMA_50", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevEma50;
+
+	@Column(name = "EMA_100", columnDefinition="Decimal(10,2) default '0.00'")
+	double ema100;
+
+	@Column(name = "PREV_EMA_100", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevEma100;
+
+	@Column(name = "EMA_200", columnDefinition="Decimal(10,2) default '0.00'")
+	double ema200;
+
+	@Column(name = "PREV_EMA_200", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevEma200;
+
 	
 	@Column(name = "RSI", columnDefinition="Decimal(10,2) default '0.00'")
 	double rsi;
@@ -162,45 +213,158 @@ public class StockTechnicals implements Serializable{
 		this.sma100 = sma100;
 	}
 
-	public double getSma21() {
-		return sma21;
+	public double getSma20() {
+		return sma20;
 	}
 
-	public void setSma21(double sma21) {
-		this.sma21 = sma21;
+	public void setSma20(double sma21) {
+		this.sma20 = sma20;
 	}
 
-	public double getPrevSma21() {
-		return prevSma21;
+	public double getPrevSma20() {
+		return prevSma20;
 	}
 
-	public void setPrevSma21(double prevSma21) {
-		this.prevSma21 = prevSma21;
+	public void setPrevSma20(double prevSma20) {
+		this.prevSma20 = prevSma20;
 	}
 
-/*	public DirectionIO getLongTermTrend() {
-		return longTermTrend;
+	public double getSma5() {
+		return sma5;
 	}
 
-	public void setLongTermTrend(DirectionIO longTermTrend) {
-		this.longTermTrend = longTermTrend;
+	public void setSma5(double sma5) {
+		this.sma5 = sma5;
 	}
 
-	public DirectionIO getMidTermTrend() {
-		return midTermTrend;
+	public double getPrevSma5() {
+		return prevSma5;
 	}
 
-	public void setMidTermTrend(DirectionIO midTermTrend) {
-		this.midTermTrend = midTermTrend;
+	public void setPrevSma5(double prevSma5) {
+		this.prevSma5 = prevSma5;
 	}
 
-	public DirectionIO getCurrentTrend() {
-		return currentTrend;
+	public double getSma10() {
+		return sma10;
 	}
 
-	public void setCurrentTrend(DirectionIO currentTrend) {
-		this.currentTrend = currentTrend;
-	}*/
+	public void setSma10(double sma10) {
+		this.sma10 = sma10;
+	}
+
+	public double getPrevSma10() {
+		return prevSma10;
+	}
+
+	public void setPrevSma10(double prevSma10) {
+		this.prevSma10 = prevSma10;
+	}
+
+	public double getEma5() {
+		return ema5;
+	}
+
+	public void setEma5(double ema5) {
+		this.ema5 = ema5;
+	}
+
+	public double getPrevEma5() {
+		return prevEma5;
+	}
+
+	public void setPrevEma5(double prevEma5) {
+		this.prevEma5 = prevEma5;
+	}
+
+	public double getEma10() {
+		return ema10;
+	}
+
+	public void setEma10(double ema10) {
+		this.ema10 = ema10;
+	}
+
+	public double getPrevEma10() {
+		return prevEma10;
+	}
+
+	public void setPrevEma10(double prevEma10) {
+		this.prevEma10 = prevEma10;
+	}
+
+	public double getEma20() {
+		return ema20;
+	}
+
+	public void setEma20(double ema20) {
+		this.ema20 = ema20;
+	}
+
+	public double getPrevEma20() {
+		return prevEma20;
+	}
+
+	public void setPrevEma20(double prevEma20) {
+		this.prevEma20 = prevEma20;
+	}
+
+	public double getEma50() {
+		return ema50;
+	}
+
+	public void setEma50(double ema50) {
+		this.ema50 = ema50;
+	}
+
+	public double getPrevEma50() {
+		return prevEma50;
+	}
+
+	public void setPrevEma50(double prevEma50) {
+		this.prevEma50 = prevEma50;
+	}
+
+	public double getEma100() {
+		return ema100;
+	}
+
+	public void setEma100(double ema100) {
+		this.ema100 = ema100;
+	}
+
+	public double getPrevEma100() {
+		return prevEma100;
+	}
+
+	public void setPrevEma100(double prevEma100) {
+		this.prevEma100 = prevEma100;
+	}
+
+	public double getEma200() {
+		return ema200;
+	}
+
+	public void setEma200(double ema200) {
+		this.ema200 = ema200;
+	}
+
+	public double getPrevEma200() {
+		return prevEma200;
+	}
+
+	public void setPrevEma200(double prevEma200) {
+		this.prevEma200 = prevEma200;
+	}
+
+	public void setVolume(Long volume) {
+		this.volume = volume;
+	}
+
+	public void setAvgVolume(Long avgVolume) {
+		this.avgVolume = avgVolume;
+	}
+
 
 	public double getSok() {
 		return sok;
@@ -254,7 +418,7 @@ public class StockTechnicals implements Serializable{
 	public String toString() {
 		return "StockTechnicals [stockTechnicalsId=" + stockTechnicalsId + ", stock=" + stock + ", sma50=" + sma50
 				+ ", prevSma50=" + prevSma50 + ", sma100=" + sma100 + ", prevSma100=" + prevSma100 + ", sma200="
-				+ sma200 + ", prevSma200=" + prevSma200 + ", sma21=" + sma21 + ", prevSma21=" + prevSma21 + ", rsi="
+				+ sma200 + ", prevSma200=" + prevSma200 + ", sma20=" + sma20 + ", prevSma20=" + prevSma20 + ", rsi="
 				+ rsi + ", lastModified=" + lastModified + ", sok=" + sok + ", sod=" + sod + ", obv=" + obv + ", rocv="
 				+ rocv + "]";
 	}

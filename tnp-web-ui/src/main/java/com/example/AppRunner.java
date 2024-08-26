@@ -4,14 +4,25 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
 import com.example.external.factor.FactorRediff;
+import com.example.model.ledger.FundsLedger;
+import com.example.model.ledger.TradeLedger;
 import com.example.model.master.Sector;
 import com.example.model.stocks.StockFactor;
+import com.example.model.stocks.UserPortfolio;
+import com.example.model.type.FundTransactionType;
+import com.example.repo.ledger.FundsLedgerRepository;
+import com.example.repo.ledger.TradeLedgerRepository;
+import com.example.ui.model.UIRenderStock;
+import com.example.ui.service.UiRenderUtil;
 import com.example.util.io.model.StockIO;
+import org.decampo.xirr.Transaction;
+import org.decampo.xirr.Xirr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +60,9 @@ import com.example.util.io.model.StockPriceIO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.YEARS;
 
 @Component
 public class AppRunner implements CommandLineRunner {
@@ -127,18 +141,53 @@ public class AppRunner implements CommandLineRunner {
 	
 	@Autowired
 	private TechnicalsResearchService technicalsResearchService;
-	
+
+	@Autowired
+	private UiRenderUtil uiRenderUtil;
+
 	@Autowired
 	private StockFactorService stockFactorService;
 
 	@Autowired
 	private FactorRediff factorRediff;
 
+	@Autowired
+	private FundsLedgerRepository fundsLedgerRepository;
+
+	@Autowired
+	private TradeLedgerRepository tradeLedgerRepository;
 
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
+
+		Stock stock = stockService.getStockByNseSymbol("APLLTD");
+
+		StockFactor prevStockFactor = stock.getStockFactor();
+
+		if (prevStockFactor != null) {
+			System.out.println(" PREV " + prevStockFactor.getQuarterEnded());
+		}
+
+		StockFactor newStockFactor = stockService.updateFactor(stock);
+
+		if (newStockFactor != null) {
+			System.out.println(" NEW " + newStockFactor.getQuarterEnded());
+		}
+
+		UserProfile userProfile = new UserProfile();
+		userProfile.setUserId(1);
+
+		List<TradeLedger> tradeLedgers = tradeLedgerRepository.getCashFlows(userProfile, 195l);
+
+		tradeLedgers.forEach( tl -> {
+			System.out.println(" Date "+  tl.getTransactionDate() +  "Amount " + tl.getPrice());
+				}
+		);
+
+
+
 		/*
-	System.out.println("Running Runner");
+		System.out.println("Running Runner");
 		List<Stock> stocks = stockService.getActiveStocks();
 
 		System.out.println("Total stocks " + stocks.size());

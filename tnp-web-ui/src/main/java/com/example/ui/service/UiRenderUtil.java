@@ -1,28 +1,24 @@
 package com.example.ui.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import com.example.model.ledger.*;
+import com.example.model.type.FundTransactionType;
+import com.example.model.type.StockTransactionType;
+import com.example.repo.ledger.FundsLedgerRepository;
+import com.example.service.*;
+import org.decampo.xirr.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.model.ledger.PerformanceLedger;
-import com.example.model.ledger.ResearchLedgerFundamental;
-import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.master.Stock;
 import com.example.model.stocks.UserPortfolio;
 import com.example.model.type.IndicedAllocation;
 import com.example.model.type.SectoralAllocation;
 import com.example.model.um.UserProfile;
-import com.example.service.DividendLedgerService;
-import com.example.service.ExpenseService;
-import com.example.service.FundsLedgerService;
-import com.example.service.PerformanceLedgerService;
-import com.example.service.PortfolioService;
-import com.example.service.RuleService;
-import com.example.service.TradeLedgerService;
-import com.example.service.TradeProfitLedgerService;
 import com.example.ui.model.ChartPerformance;
 import com.example.ui.model.ChartType;
 import com.example.ui.model.RenderIndiceAllocation;
@@ -31,6 +27,8 @@ import com.example.ui.model.UIOverallGainLoss;
 import com.example.ui.model.UIRenderStock;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
+
+import static java.time.temporal.ChronoUnit.YEARS;
 
 @Service
 public class UiRenderUtil {
@@ -43,7 +41,7 @@ public class UiRenderUtil {
 	
 	@Autowired
 	private TradeProfitLedgerService tradeProfitLedgerService;
-	
+
 	@Autowired
 	private MiscUtil miscUtil;
 	
@@ -64,27 +62,66 @@ public class UiRenderUtil {
 	
 	@Autowired
 	private RuleService ruleService;
+
+	@Autowired
+	private TechnicalsResearchService technicalsResearchService;
+	@Autowired
+	private FundsLedgerRepository fundsLedgerRepository;
 	
-	
-	
-	public List<UIRenderStock> renderPortfolio(List<UserPortfolio> userPortfolioList) {
+	public List<UIRenderStock> renderPortfolio(List<UserPortfolio> userPortfolioList,UserProfile userProfile) {
 
 		List<UIRenderStock> portfolioList = new ArrayList<>();
 
 		for (UserPortfolio userPortfolioStock : userPortfolioList) {
 
 			double currentPrice = userPortfolioStock.getStock().getStockPrice().getCurrentPrice();
-			double averagePrice = userPortfolioStock.getAveragePrice();
 
+			double averagePrice = userPortfolioStock.getAveragePrice();
 
 			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(currentPrice, averagePrice)));
 
 			boolean overValued = ruleService.isOvervalued(userPortfolioStock.getStock());
-			
-			portfolioList.add(new UIRenderStock(userPortfolioStock, profitPer, overValued));
+
+			boolean deathCross = technicalsResearchService.isBearishCrossover200(userPortfolioStock.getStock());
+
+			double rsi = userPortfolioStock.getStock().getTechnicals().getRsi();
+
+			UIRenderStock uiRenderStock = new UIRenderStock(userPortfolioStock, profitPer, overValued, deathCross, rsi);
+
+			uiRenderStock.setXirr(this.calculateXirr(userPortfolioStock, userProfile));
+
+			portfolioList.add(uiRenderStock);
 		}
 
 		return portfolioList;
+	}
+
+	private double calculateXirr(UserPortfolio userPortfolio, UserProfile userProfile){
+
+		List<TradeLedger> tradeLedgers = tradeLedgerService.getCashFlows(userProfile, userPortfolio.getStock().getStockId());
+
+		List<Transaction> transactions = new ArrayList<>();
+		for (TradeLedger tradeLedger : tradeLedgers) {
+			if(tradeLedger.getTransactionType() == StockTransactionType.SELL) {
+				transactions.add(new Transaction( tradeLedger.getPrice() * tradeLedger.getQuantity(), tradeLedger.getTransactionDate()));
+				System.out.println("DATE " + tradeLedger.getTransactionDate() + " AMOUNT " + tradeLedger.getPrice() * tradeLedger.getQuantity() + " STO " + userPortfolio.getStock().getStockId());
+
+			}else{
+				transactions.add(new Transaction( -1 * tradeLedger.getPrice() * tradeLedger.getQuantity(), tradeLedger.getTransactionDate()));
+				System.out.println("DATE " + tradeLedger.getTransactionDate() + " AMOUNT " + -1 * tradeLedger.getPrice() * tradeLedger.getQuantity() + " STO " + userPortfolio.getStock().getStockId() + " " +userPortfolio.getStock().getNseSymbol());
+
+			}
+		}
+
+		double currValue = userPortfolio.getQuantity() * userPortfolio.getStock().getStockPrice().getCurrentPrice();
+
+		System.out.println("DATE " + LocalDate.now().plusDays(1) + " AMOUNT " + currValue);
+
+		transactions.add(new Transaction( currValue, LocalDate.now().plusDays(1)));
+
+		double xirr = Double.parseDouble(miscUtil.formatDouble( formulaService.calculateXirr(transactions)));
+		System.out.println(xirr);
+		return xirr;
 	}
 
 	public List<UIRenderStock> renderWatchList(List<Stock> userWatchList) {
@@ -118,7 +155,11 @@ public class UiRenderUtil {
 			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(
 					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getEntryValuation().getPrice())));
 
-			portfolioList.add(new UIRenderStock(researchStock, profitPer,pe, pb));
+			boolean goldenCross = technicalsResearchService.isBullishCrossOver200(researchStock.getStock());
+
+			TechnicalsResearchService.RsiTrend rsiTrend = technicalsResearchService.currentTrend(researchStock.getStock());
+
+			portfolioList.add(new UIRenderStock(researchStock, profitPer,pe, pb, goldenCross, rsiTrend));
 			
 		}
 
@@ -179,7 +220,16 @@ public class UiRenderUtil {
 			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(
 					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getEntryValuation().getPrice())));
 
-			resultList.add(new UIRenderStock(researchStock, profitPer,pe, pb,peDifference));
+			TechnicalsResearchService.RsiTrend rsiTrend = TechnicalsResearchService.RsiTrend.NUETRAL;
+
+			boolean goldenCross = false;
+
+			if(researchStock.getStock().getTechnicals()!= null) {
+				goldenCross = technicalsResearchService.isBullishCrossOver200(researchStock.getStock());
+
+				rsiTrend = technicalsResearchService.currentTrend(researchStock.getStock());
+			}
+			resultList.add(new UIRenderStock(researchStock, profitPer,pe, pb,peDifference, goldenCross, rsiTrend));
 			
 		}
 
@@ -233,11 +283,13 @@ public class UiRenderUtil {
 
 	
 	public UIOverallGainLoss renderUIPerformance(UserProfile user) {
+
 		UIOverallGainLoss uIOverallGainLoss = new UIOverallGainLoss();
 		
 		this.renderYTDPerformance(user, uIOverallGainLoss);
 		this.renderFYTDPerformance(user, uIOverallGainLoss);
 		this.renderFYSummary(user, uIOverallGainLoss);
+		this.renderFyXirrAndCagr(user, uIOverallGainLoss);
 		
 		return uIOverallGainLoss;
 	}
@@ -288,7 +340,7 @@ public class UiRenderUtil {
 		double fyRealizedGainPer = formulaService.calculatePercentRate(fyInvestmentValue, fyRealizedGain);
 		
 		double fyUnrealizedGainPer = formulaService.calculatePercentRate(fyInvestmentValue, fyUnrealizedGain);
-		
+
 		uIOverallGainLoss.setFyInvestmentValue(fyInvestmentValue);
 		uIOverallGainLoss.setFyRealizedGainPer(fyRealizedGainPer);
 		uIOverallGainLoss.setFyUnrealizedGainPer(fyUnrealizedGainPer);
@@ -297,6 +349,54 @@ public class UiRenderUtil {
 		uIOverallGainLoss.setFyNetGain(fyNetProfit);
 		
 		return uIOverallGainLoss;
+	}
+
+	private void renderFyXirrAndCagr(UserProfile userProfile, UIOverallGainLoss uIOverallGainLoss){
+
+		List<FundsLedger> fundsLedgerList =  fundsLedgerRepository.findAllTransactioninCurrentFyByUserId(1, LocalDate.of(2024, 4, 1), LocalDate.now());
+
+
+		List<Transaction> transactions = new ArrayList<>();
+
+		double fyInitialCapital = 60000.00;
+		for (FundsLedger fundsLedger : fundsLedgerList) {
+			if(fundsLedger.getTransactionType() == FundTransactionType.WITHDRAW) {
+				transactions.add(new Transaction( fundsLedger.getAmount(), fundsLedger.getTransactionDate()));
+				//System.out.println("DATE " + fundsLedger.getTransactionDate() + " AMOUNT " + fundsLedger.getAmount() + " TYPE " + fundsLedger.getTransactionType());
+
+			}else{
+				transactions.add(new Transaction( -1 * fundsLedger.getAmount(), fundsLedger.getTransactionDate()));
+				//System.out.println("DATE " + fundsLedger.getTransactionDate() + " AMOUNT " + -1 * fundsLedger.getAmount() + " TYPE " + fundsLedger.getTransactionType());
+
+				if(fundsLedger.getTransactionType() == FundTransactionType.FYRO && fundsLedger.getAmount() != 0.00){
+					fyInitialCapital = fundsLedger.getAmount();
+				}
+			}
+		}
+
+		double currValue = portfolioService.currentValue(userProfile);
+
+		//System.out.println("DATE " + LocalDate.now().plusDays(1) + " AMOUNT " + currValue + " TYPE " + "CURR");
+
+		transactions.add(new Transaction( currValue, LocalDate.now().plusDays(1)));
+
+		double xirr = formulaService.calculateXirr(transactions);
+
+		uIOverallGainLoss.setFyXirr(xirr);
+
+		//System.out.println("XIRR " + xirr);
+
+		LocalDate beginningDate = miscUtil.currentFinYearFirstDay();
+
+		long years = YEARS.between(beginningDate, LocalDate.now());
+
+		//System.out.println("CAGR YEARS "  + years);
+
+		double cagr = formulaService.calculateCagr(fyInitialCapital, currValue, years);
+
+		uIOverallGainLoss.setFyCagr(cagr);
+
+		//System.out.println("CAGR " + cagr);
 	}
 	
 	private UIOverallGainLoss renderFYSummary(UserProfile user, UIOverallGainLoss uIOverallGainLoss) {

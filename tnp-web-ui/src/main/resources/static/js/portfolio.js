@@ -23,21 +23,28 @@ function loadTable(){
 		},
 		"columns" : [ {
 			"data" : "symbol"
-		}, {
+		},{
+            "data" : "name"
+        },{
+             "data" : "sector"
+        },{
 			"data" : "qunatity"
 		},{
 			"data" : "averagePrice"
 		},{
 			"data" : "currentPrice"
 		},{
-			"data" : "yearLow"
-		},{
-			"data" : "yearHigh"
-		},{
 			"data" : "profitPer"
-		},{
+		},
+		{
+        	"data" : "xirr"
+        },{
 			"data" : "overValued"
-		} ],
+		},{
+         	"data" : "deathCross"
+         },{
+             "data" : "rsi"
+        }],
 		rowCallback : function(row, data, index) {
 			if (data.profitPer > 0.0) {
 				$(row).find('td:eq(6)').css('color', 'green');
@@ -45,6 +52,31 @@ function loadTable(){
 			if (data.profitPer < 0.0) {
 				$(row).find('td:eq(6)').css('color', 'red');
 			}
+			if (data.xirr > 0.0) {
+            	$(row).find('td:eq(7)').css('color', 'green');
+            }
+            if (data.xirr < 0.0) {
+            	$(row).find('td:eq(7)').css('color', 'red');
+            }
+
+			if (data.overValued == true) {
+            	$(row).find('td:eq(8)').css('color', 'red');
+            }else{
+                $(row).find('td:eq(8)').css('color', 'green');
+            }
+            if (data.deathCross == true) {
+                $(row).find('td:eq(0)').css('color', 'red');
+                $(row).find('td:eq(1)').css('color', 'red');
+                 $(row).find('td:eq(9)').css('color', 'red');
+                //$(row).addClass('Highlight');
+            }
+
+           if (data.rsi <= 30.0) {
+           				$(row).find('td:eq(10)').css('color', 'green');
+           	}
+           	if (data.rsi >= 70.0) {
+           				$(row).find('td:eq(10)').css('color', 'red');
+           	}
 			
 		}
 	});

@@ -5,6 +5,10 @@ public class UIOverallGainLoss {
 	double ytdInvestmentValue;
 	
 	double currentValue;
+
+	double fyXirr;
+
+	double fyCagr;
 	
 	double ytdRealizedGainPer;
 	
@@ -152,6 +156,21 @@ public class UIOverallGainLoss {
 		this.fyNetTaxLiability = fyNetTaxLiability;
 	}
 
+	public double getFyXirr() {
+		return fyXirr;
+	}
+
+	public void setFyXirr(double fyXirr) {
+		this.fyXirr = fyXirr;
+	}
+
+	public double getFyCagr() {
+		return fyCagr;
+	}
+
+	public void setFyCagr(double fyCagr) {
+		this.fyCagr = fyCagr;
+	}
 
 	@Override
 	public String toString() {

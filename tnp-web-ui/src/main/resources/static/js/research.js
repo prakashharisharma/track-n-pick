@@ -48,7 +48,11 @@ function loadTableFundamental() {
 		{
 			"data" : "profitPer",
 			render: $.fn.dataTable.render.number(',', '.', 2)
-		} ],
+		},{
+         	"data" : "rsiTrend"
+         },{
+            "data" : "goldenCross"
+         }],
 		rowCallback : function(row, data, index) {
 			if (data.profitPer > 0.0) {
 				$(row).find('td:eq(10)').css('color', 'green');
@@ -56,7 +60,19 @@ function loadTableFundamental() {
 			if (data.profitPer < 0.0) {
 				$(row).find('td:eq(10)').css('color', 'red');
 			}
+            if (data.goldenCross == true) {
+                $(row).find('td:eq(0)').css('color', 'green');
+                $(row).find('td:eq(1)').css('color', 'green');
+                 $(row).find('td:eq(12)').css('color', 'green');
+                //$(row).addClass('Highlight');
+            }
 
+           if (data.rsiTrend == 'OVERBAUGHT') {
+           				$(row).find('td:eq(11)').css('color', 'green');
+           	}
+           	if (data.rsiTrend == 'OVERSOLD') {
+           				$(row).find('td:eq(11)').css('color', 'red');
+           	}
 		}
 	});
 

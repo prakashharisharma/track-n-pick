@@ -1,6 +1,7 @@
 package com.example.service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import javax.transaction.Transactional;
 
@@ -116,4 +117,8 @@ public class TradeLedgerService {
 		return fyBrokeragePaid;
 	}
 
+	public List<TradeLedger> getCashFlows(UserProfile user, Long stockId){
+
+		return tradeLedgerRepository.getCashFlows(user, stockId);
+	}
 }

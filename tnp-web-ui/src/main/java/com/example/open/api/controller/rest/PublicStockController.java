@@ -84,7 +84,7 @@ public class PublicStockController {
 
 			double rocv = stockTechnicals.getRocv();
 
-			double ema20 = stockTechnicals.getSma21();
+			double ema20 = stockTechnicals.getSma20();
 
 			double ema50 = stockTechnicals.getSma50();
 

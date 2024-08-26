@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -25,6 +26,7 @@ import com.example.repo.stocks.PortfolioRepository;
 
 @Transactional
 @Service
+@Slf4j
 public class PortfolioService {
 
 	@Autowired
@@ -158,9 +160,13 @@ public class PortfolioService {
 	@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
 	public void sellStock(UserProfile user, Stock stock, double price, long quantity) {
 
+		log.info("Selling stock {}", stock.getStockId());
+
 		UserPortfolio portfolioStock = portfolioRepository.findByPortfolioIdUserAndPortfolioIdStock(user, stock);
 
 		if (portfolioStock != null) {
+
+			System.out.println("Found");
 
 			long newQuantity = portfolioStock.getQuantity() - quantity;
 
@@ -181,12 +187,15 @@ public class PortfolioService {
 			if (newQuantity > 0) {
 				portfolioRepository.save(portfolioStock);
 			} else {
+				System.out.println("Found0");
 				portfolioRepository.delete(portfolioStock);
 			}
 			tradeLedgerService.executeSell(user, stock, price, quantity);
-
+			System.out.println("Found1");
 			tradeProfitLedgerService.addProfitEntry(user, stock, quantity, netProfit);
+			System.out.println("Found2");
 		}
+		log.info("Sold stock {}", stock.getStockId());
 	}
 
 	public List<UserPortfolio> underValuedStocks(UserProfile user) {
@@ -229,7 +238,7 @@ public class PortfolioService {
 		
 	}
 
-	@Cacheable(value = "userportfolio", key = "#userProfile.userId")
+	//@Cacheable(value = "userportfolio", key = "#userProfile.userId")
 	public List<UserPortfolio> userPortfolio(UserProfile userProfile) {
 
 		Set<UserPortfolio> portfolioList = userProfile.getUserPortfolio();

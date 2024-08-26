@@ -46,7 +46,6 @@ public class FundsLedger {
 
 	public FundsLedger() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public FundsLedger(UserProfile userId, Broker brokerId, double amount, LocalDate transactionDate,
