@@ -61,35 +61,40 @@ public class TechnicalsHistoryConsumer {
 		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : PREV TECHNICALS "
 				+ prevStockTechnicals);
 
-		Volume volume = this.getVolume(stockPriceIO, prevStockTechnicals);
+		if(prevStockTechnicals!=null && prevStockTechnicals.getBhavDate().equals(stockPriceIO.getBhavDate()))
+		{
+			LOGGER.info("TECHNICALS ALready exist for the bhav date!!!");
+		}else {
+			Volume volume = this.getVolume(stockPriceIO, prevStockTechnicals);
 
-		LOGGER.trace(
-				QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : NEW PRICEVOLUME " + volume);
+			LOGGER.trace(
+					QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : NEW PRICEVOLUME " + volume);
 
-		Trend trend = this.getTrend(stockPriceIO, prevStockTechnicals);
+			Trend trend = this.getTrend(stockPriceIO, prevStockTechnicals);
 
-		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : NEW MA " + trend);
+			LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : NEW MA " + trend);
 
-		Momentum momentum = this.getMomentum(stockPriceIO, prevStockTechnicals, trend.getMovingAverage().getExponential());
+			Momentum momentum = this.getMomentum(stockPriceIO, prevStockTechnicals, trend.getMovingAverage().getExponential());
 
-		StockTechnicals stockTechnicals = new StockTechnicals(stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate(),
-				volume, trend, momentum);
+			StockTechnicals stockTechnicals = new StockTechnicals(stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate(),
+					volume, trend, momentum);
 
-		technicalsTemplate.create(stockTechnicals);
+			technicalsTemplate.create(stockTechnicals);
 
-		Thread.sleep(50);
+			Thread.sleep(50);
 
-		//
-		StockTechnicalsIO stockTechnicalsIO = this.createStockTechnicalsIO(stockPriceIO, prevStockTechnicals, volume,
-				trend, momentum);
+			//
+			StockTechnicalsIO stockTechnicalsIO = this.createStockTechnicalsIO(stockPriceIO, prevStockTechnicals, volume,
+					trend, momentum);
 
-		LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : "
-				+ stockPriceIO.getNseSymbol() + " : Queuing to update Transactional Technicals.. ");
-		// Save
-		queueService.send(stockTechnicalsIO, QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE);
+			LOGGER.trace(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : "
+					+ stockPriceIO.getNseSymbol() + " : Queuing to update Transactional Technicals.. ");
+			// Save
+			queueService.send(stockTechnicalsIO, QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE);
 
-		LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : "
-				+ stockPriceIO.getNseSymbol() + " : START");
+			LOGGER.debug(QueueConstants.HistoricalQueue.UPDATE_TECHNICALS_QUEUE.toUpperCase() + " : "
+					+ stockPriceIO.getNseSymbol() + " : START");
+		}
 	}
 
 	private double getPriceChange(StockPriceIO stockPriceIO) {
