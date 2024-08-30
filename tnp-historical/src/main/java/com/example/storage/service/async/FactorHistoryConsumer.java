@@ -18,6 +18,7 @@ import com.example.storage.repo.FactorTemplate;
 import com.example.util.io.model.StockFactorIO;
 
 @Component
+@Deprecated
 public class FactorHistoryConsumer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FactorHistoryConsumer.class);

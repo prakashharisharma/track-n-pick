@@ -34,97 +34,114 @@ public class StockTechnicals implements Serializable{
 	@JoinColumn(name = "STOCK_ID", referencedColumnName ="STOCK_ID",  nullable = false)
 	Stock stock;
 
-	@Column(name = "SMA_5", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "BHAV_DATE")
+	LocalDate bhavDate = LocalDate.now();
+	@Column(name = "SMA_5", columnDefinition="decimal(10,2) default '0.00'")
 	double sma5;
 
-	@Column(name = "PREV_SMA_5", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "PREV_SMA_5", columnDefinition="decimal(10,2) default '0.00'")
 	double prevSma5;
 
-	@Column(name = "SMA_10", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "SMA_10", columnDefinition="decimal(10,2) default '0.00'")
 	double sma10;
 
-	@Column(name = "PREV_SMA_10", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "PREV_SMA_10", columnDefinition="decimal(10,2) default '0.00'")
 	double prevSma10;
 
-	@Column(name = "SMA_20", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "SMA_20", columnDefinition="decimal(10,2) default '0.00'")
 	double sma20;
 
-	@Column(name = "PREV_SMA_20", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "PREV_SMA_20", columnDefinition="decimal(10,2) default '0.00'")
 	double prevSma20;
 
-
-	@Column(name = "SMA_50", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "SMA_50", columnDefinition="decimal(10,2) default '0.00'")
 	double sma50;
 	
-	@Column(name = "PREV_SMA_50", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "PREV_SMA_50", columnDefinition="decimal(10,2) default '0.00'")
 	double prevSma50;
 	
-	@Column(name = "SMA_100", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "SMA_100", columnDefinition="decimal(10,2) default '0.00'")
 	double sma100;
 	
-	@Column(name = "PREV_SMA_100", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "PREV_SMA_100", columnDefinition="decimal(10,2) default '0.00'")
 	double prevSma100;
 	
-	@Column(name = "SMA_200", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "SMA_200", columnDefinition="decimal(10,2) default '0.00'")
 	double sma200;
 	
-	@Column(name = "PREV_SMA_200", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "PREV_SMA_200", columnDefinition="decimal(10,2) default '0.00'")
 	double prevSma200;
 
 
-	@Column(name = "EMA_5", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "EMA_5", columnDefinition="decimal(10,2) default '0.00'")
 	double ema5;
 
-	@Column(name = "PREV_EMA_5", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "PREV_EMA_5", columnDefinition="decimal(10,2) default '0.00'")
 	double prevEma5;
 
-	@Column(name = "EMA_10", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "EMA_10", columnDefinition="decimal(10,2) default '0.00'")
 	double ema10;
 
-	@Column(name = "PREV_EMA_10", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "PREV_EMA_10", columnDefinition="decimal(10,2) default '0.00'")
 	double prevEma10;
 
-	@Column(name = "EMA_20", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "EMA_20", columnDefinition="decimal(10,2) default '0.00'")
 	double ema20;
 
-	@Column(name = "PREV_EMA_20", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "PREV_EMA_20", columnDefinition="decimal(10,2) default '0.00'")
 	double prevEma20;
 
-	@Column(name = "EMA_50", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "EMA_50", columnDefinition="decimal(10,2) default '0.00'")
 	double ema50;
 
-	@Column(name = "PREV_EMA_50", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "PREV_EMA_50", columnDefinition="decimal(10,2) default '0.00'")
 	double prevEma50;
 
-	@Column(name = "EMA_100", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "EMA_100", columnDefinition="decimal(10,2) default '0.00'")
 	double ema100;
 
-	@Column(name = "PREV_EMA_100", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "PREV_EMA_100", columnDefinition="decimal(10,2) default '0.00'")
 	double prevEma100;
 
-	@Column(name = "EMA_200", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "EMA_200", columnDefinition="decimal(10,2) default '0.00'")
 	double ema200;
 
-	@Column(name = "PREV_EMA_200", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "PREV_EMA_200", columnDefinition="decimal(10,2) default '0.00'")
 	double prevEma200;
 
 	
-	@Column(name = "RSI", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "RSI", columnDefinition="decimal(10,2) default '0.00'")
 	double rsi;
+
+	@Column(name = "PREV_RSI", columnDefinition="decimal(10,2) default '0.00'")
+	double prevRsi;
+
+	@Column(name = "MACD", columnDefinition="decimal(10,2) default '0.00'")
+	double macd;
+
+
+	@Column(name = "PREV_MACD", columnDefinition="decimal(10,2) default '0.00'")
+	double prevMacd;
+
+	@Column(name = "SIGNAL_LINE", columnDefinition="decimal(10,2) default '0.00'")
+	double signal;
+
+	@Column(name = "PREV_SIGNAL_LINE", columnDefinition="decimal(10,2) default '0.00'")
+	double prevSignal;
 	
 	@Column(name = "LAST_MODIFIED")
 	LocalDate lastModified = LocalDate.now();
 
-	@Column(name = "SOK", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "SOK", columnDefinition="decimal(10,2) default '0.00'")
 	double sok;
 	
-	@Column(name = "SOD", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "SOD", columnDefinition="decimal(10,2) default '0.00'")
 	double sod;
 	
 	@Column(name = "OBV")
 	long obv;
 	
-	@Column(name = "ROCV", columnDefinition="Decimal(10,2) default '0.00'")
+	@Column(name = "ROCV", columnDefinition="decimal(10,2) default '0.00'")
 	double rocv;
 	
 	@Column(name = "VOLUME")
@@ -132,7 +149,7 @@ public class StockTechnicals implements Serializable{
 	
 	@Column(name = "AVG_VOLUME")
 	Long avgVolume;
-	
+
 	public long getStockTechnicalsId() {
 		return stockTechnicalsId;
 	}
@@ -149,84 +166,12 @@ public class StockTechnicals implements Serializable{
 		this.stock = stock;
 	}
 
-	public double getSma50() {
-		return sma50;
+	public LocalDate getBhavDate() {
+		return bhavDate;
 	}
 
-	public void setSma50(double sma50) {
-		this.sma50 = sma50;
-	}
-
-	public double getPrevSma50() {
-		return prevSma50;
-	}
-
-	public void setPrevSma50(double prevSma50) {
-		this.prevSma50 = prevSma50;
-	}
-
-	public double getSma200() {
-		return sma200;
-	}
-
-	public void setSma200(double sma200) {
-		this.sma200 = sma200;
-	}
-
-	public double getPrevSma100() {
-		return prevSma100;
-	}
-
-	public void setPrevSma100(double prevSma100) {
-		this.prevSma100 = prevSma100;
-	}
-
-	public double getPrevSma200() {
-		return prevSma200;
-	}
-
-	public void setPrevSma200(double prevSma200) {
-		this.prevSma200 = prevSma200;
-	}
-
-	public double getRsi() {
-		return rsi;
-	}
-
-	public void setRsi(double rsi) {
-		this.rsi = rsi;
-	}
-
-	public LocalDate getLastModified() {
-		return lastModified;
-	}
-
-	public void setLastModified(LocalDate lastModified) {
-		this.lastModified = lastModified;
-	}
-
-	public double getSma100() {
-		return sma100;
-	}
-
-	public void setSma100(double sma100) {
-		this.sma100 = sma100;
-	}
-
-	public double getSma20() {
-		return sma20;
-	}
-
-	public void setSma20(double sma21) {
-		this.sma20 = sma20;
-	}
-
-	public double getPrevSma20() {
-		return prevSma20;
-	}
-
-	public void setPrevSma20(double prevSma20) {
-		this.prevSma20 = prevSma20;
+	public void setBhavDate(LocalDate bhavDate) {
+		this.bhavDate = bhavDate;
 	}
 
 	public double getSma5() {
@@ -259,6 +204,70 @@ public class StockTechnicals implements Serializable{
 
 	public void setPrevSma10(double prevSma10) {
 		this.prevSma10 = prevSma10;
+	}
+
+	public double getSma20() {
+		return sma20;
+	}
+
+	public void setSma20(double sma20) {
+		this.sma20 = sma20;
+	}
+
+	public double getPrevSma20() {
+		return prevSma20;
+	}
+
+	public void setPrevSma20(double prevSma20) {
+		this.prevSma20 = prevSma20;
+	}
+
+	public double getSma50() {
+		return sma50;
+	}
+
+	public void setSma50(double sma50) {
+		this.sma50 = sma50;
+	}
+
+	public double getPrevSma50() {
+		return prevSma50;
+	}
+
+	public void setPrevSma50(double prevSma50) {
+		this.prevSma50 = prevSma50;
+	}
+
+	public double getSma100() {
+		return sma100;
+	}
+
+	public void setSma100(double sma100) {
+		this.sma100 = sma100;
+	}
+
+	public double getPrevSma100() {
+		return prevSma100;
+	}
+
+	public void setPrevSma100(double prevSma100) {
+		this.prevSma100 = prevSma100;
+	}
+
+	public double getSma200() {
+		return sma200;
+	}
+
+	public void setSma200(double sma200) {
+		this.sma200 = sma200;
+	}
+
+	public double getPrevSma200() {
+		return prevSma200;
+	}
+
+	public void setPrevSma200(double prevSma200) {
+		this.prevSma200 = prevSma200;
 	}
 
 	public double getEma5() {
@@ -357,14 +366,61 @@ public class StockTechnicals implements Serializable{
 		this.prevEma200 = prevEma200;
 	}
 
-	public void setVolume(Long volume) {
-		this.volume = volume;
+	public double getRsi() {
+		return rsi;
 	}
 
-	public void setAvgVolume(Long avgVolume) {
-		this.avgVolume = avgVolume;
+	public void setRsi(double rsi) {
+		this.rsi = rsi;
 	}
 
+	public double getPrevRsi() {
+		return prevRsi;
+	}
+
+	public void setPrevRsi(double prevRsi) {
+		this.prevRsi = prevRsi;
+	}
+
+	public double getMacd() {
+		return macd;
+	}
+
+	public void setMacd(double macd) {
+		this.macd = macd;
+	}
+
+	public double getPrevMacd() {
+		return prevMacd;
+	}
+
+	public void setPrevMacd(double prevMacd) {
+		this.prevMacd = prevMacd;
+	}
+
+	public double getSignal() {
+		return signal;
+	}
+
+	public void setSignal(double signal) {
+		this.signal = signal;
+	}
+
+	public double getPrevSignal() {
+		return prevSignal;
+	}
+
+	public void setPrevSignal(double prevSignal) {
+		this.prevSignal = prevSignal;
+	}
+
+	public LocalDate getLastModified() {
+		return lastModified;
+	}
+
+	public void setLastModified(LocalDate lastModified) {
+		this.lastModified = lastModified;
+	}
 
 	public double getSok() {
 		return sok;
@@ -398,19 +454,19 @@ public class StockTechnicals implements Serializable{
 		this.rocv = rocv;
 	}
 
-	public long getVolume() {
-		return volume != null ? volume : 0;
+	public Long getVolume() {
+		return volume!= null ? volume : 1l;
 	}
 
-	public void setVolume(long volume) {
+	public void setVolume(Long volume) {
 		this.volume = volume;
 	}
 
-	public long getAvgVolume() {
-		return avgVolume != null ? avgVolume : 0;
+	public Long getAvgVolume() {
+		return avgVolume;
 	}
 
-	public void setAvgVolume(long avgVolume) {
+	public void setAvgVolume(Long avgVolume) {
 		this.avgVolume = avgVolume;
 	}
 

@@ -53,6 +53,8 @@ public class StockTechnicalsIO implements Serializable{
 
 	double rsi;
 
+	double prevRsi;
+
 	double sok;
 	
 	double sod;
@@ -150,7 +152,7 @@ public class StockTechnicalsIO implements Serializable{
 		return sma20;
 	}
 
-	public void setSma20(double sma21) {
+	public void setSma20(double sma20) {
 		this.sma20 = sma20;
 	}
 
@@ -380,6 +382,14 @@ public class StockTechnicalsIO implements Serializable{
 
 	public double getPrevMacd() {
 		return prevMacd;
+	}
+
+	public double getPrevRsi() {
+		return prevRsi;
+	}
+
+	public void setPrevRsi(double prevRsi) {
+		this.prevRsi = prevRsi;
 	}
 
 	public void setPrevMacd(double prevMacd) {

@@ -6,6 +6,7 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 
+import com.example.storage.model.StockTechnicals;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -18,6 +19,7 @@ import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import com.example.storage.model.StockPrice;
@@ -506,5 +508,23 @@ public class PriceTemplate {
 	public double getAverageLoss(String nseSymbol, int days) {
 		double averageLoss = Math.abs( this.getTotalLoss(nseSymbol, days) / days);
 		return averageLoss;
+	}
+
+	public StockPrice getPrevPrice(String nseSymbol, int days) {
+
+		Query query = new Query(new Criteria("nseSymbol").is(nseSymbol));
+
+		query.with(Sort.by(Sort.Direction.DESC,"bhavDate")).limit(days);
+
+		List<StockPrice> stockPriceList = mongoTemplate.find(query, StockPrice.class);
+
+		StockPrice stockPrice = null;
+
+		if(!stockPriceList.isEmpty()) {
+			stockPrice = stockPriceList.get(0);
+		}
+
+		return stockPrice;
+
 	}
 }

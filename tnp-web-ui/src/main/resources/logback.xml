@@ -194,12 +194,13 @@
 	
 	<logger name="com.example.mt" level="DEBUG" additivity="true">
 		<appender-ref ref="MT_LOG" />
+		<appender-ref ref="STDOUT" />
 	</logger>
 		<logger name="com.example.external" level="DEBUG" additivity="true">
 		<appender-ref ref="EXTERNAL_LOG" />
 		<appender-ref ref="STDOUT" />
 	</logger>
-	<logger name="com.example.storage" level="TRACE"
+	<logger name="com.example.storage" level="DEBUG"
 		additivity="true">
 		<appender-ref ref="STORAGE_LOG" />
 		<appender-ref ref="STDOUT" />
@@ -216,6 +217,7 @@
 
 	<logger name="com.example.api" level="DEBUG" additivity="true">
 		<appender-ref ref="API_LOG" />
+		<appender-ref ref="STDOUT" />
 	</logger>
 
 	<logger name="com.example.test" level="DEBUG" additivity="true">

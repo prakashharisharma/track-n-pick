@@ -3,7 +3,6 @@ package com.example.integration.processors.bhav;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.example.util.DownloadCounterUtil;
 import com.example.util.io.model.UpdateTriggerIO;
@@ -233,7 +232,7 @@ public class BhavUpdateProcessor implements Processor {
 
 	private void processBhav(StockPriceIN stockPriceIN){
 
-		log.info("Processing Bhav  {} {} {} {} {}", stockPriceIN.getSource(),
+		log.info("{} Processing Bhav  {} {} {} {} {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(),
 				stockPriceIN.getIsin(),
 				stockPriceIN.getNseSymbol(),
 				stockPriceIN.getSeries(),
@@ -241,15 +240,15 @@ public class BhavUpdateProcessor implements Processor {
 
 			if (stockPriceIN.getSource().equalsIgnoreCase("NSE")) {
 				this.processNseBhav(stockPriceIN);
-			} else if (stockPriceIN.getSource().equalsIgnoreCase("BSE")) {
+			}
+
+			if (stockPriceIN.getSource().equalsIgnoreCase("BSE")) {
 				this.processBseBhav(stockPriceIN);
-			} else {
-				log.debug("Invalid Source");
 			}
 	}
 
 	private void sendToUpdateQueue(StockPriceIO stockPriceIO){
-		log.info("Queuing to update price Stock: {}", stockPriceIO.getNseSymbol());
+		log.info("{} Queuing to update price.", stockPriceIO.getNseSymbol());
 		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
 
 	}
@@ -257,22 +256,30 @@ public class BhavUpdateProcessor implements Processor {
 	private void processNseBhav(StockPriceIN stockPriceIN){
 
 		if(stockPriceIN.getSeries().equalsIgnoreCase("EQ")) {
+
 			StockPriceIO stockPriceIO = new StockPriceIO(stockPriceIN.getSource().toUpperCase(), stockPriceIN.getCompanyName(),stockPriceIN.getNseSymbol(), stockPriceIN.getSeries(), stockPriceIN.getOpen(), stockPriceIN.getHigh(), stockPriceIN.getLow(), stockPriceIN.getClose(), stockPriceIN.getLast(), stockPriceIN.getPrevClose(), stockPriceIN.getTottrdqty(), stockPriceIN.getTottrdval(), stockPriceIN.getTimestamp().toString(), stockPriceIN.getTotaltrades(), stockPriceIN.getIsin());
 
 			this.sendToUpdateQueue(stockPriceIO);
+
 		}else{
-			log.info("Ignored : {} on {} Series {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(), stockPriceIN.getSeries());
+			log.info("{} Ignored to process NSE Bhav as Series is {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(), stockPriceIN.getSeries());
 		}
 	}
 
 	private void processBseBhav(StockPriceIN stockPriceIN){
-		log.info("Processing BSE Bhav");
-		if(stockPriceIN.getSeries().equalsIgnoreCase("A") || stockPriceIN.getSeries().equalsIgnoreCase("B") || stockPriceIN.getSeries().equalsIgnoreCase("M")) {
+
+		if(stockPriceIN.getSeries().equalsIgnoreCase("A")
+				|| stockPriceIN.getSeries().equalsIgnoreCase("B")
+				|| stockPriceIN.getSeries().equalsIgnoreCase("M")) {
+
 			StockPriceIO stockPriceIO = new StockPriceIO(stockPriceIN.getSource().toUpperCase(), stockPriceIN.getCompanyName(), stockPriceIN.getNseSymbol(), stockPriceIN.getSeries(), stockPriceIN.getOpen(), stockPriceIN.getHigh(), stockPriceIN.getLow(), stockPriceIN.getClose(), stockPriceIN.getLast(), stockPriceIN.getPrevClose(), stockPriceIN.getTottrdqty(), stockPriceIN.getTottrdval(), stockPriceIN.getTimestamp().toString(), stockPriceIN.getTotaltrades(), stockPriceIN.getIsin());
+
 			stockPriceIO.setBseCode(stockPriceIN.getExchangeCode());
+
 			this.sendToUpdateQueue(stockPriceIO);
+
 		}else{
-			log.info("Ignored : {} on {} Series {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(), stockPriceIN.getSeries());
+			log.info("{} Ignored to process BSE Bhav as series is {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(), stockPriceIN.getSeries());
 		}
 	}
 

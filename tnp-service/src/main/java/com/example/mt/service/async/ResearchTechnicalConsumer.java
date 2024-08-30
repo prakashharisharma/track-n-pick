@@ -27,6 +27,7 @@ import com.example.util.io.model.ResearchIO.ResearchTrigger;
 import com.example.util.io.model.ResearchIO.ResearchType;
 
 @Component
+@Deprecated
 public class ResearchTechnicalConsumer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResearchTechnicalConsumer.class);

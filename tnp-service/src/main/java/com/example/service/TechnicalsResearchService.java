@@ -60,6 +60,24 @@ public class TechnicalsResearchService {
 	}
 
 	/**
+	 * A bullish crossover occurs when the shorter moving average crosses above the
+	 * longer moving average. This is also known as a golden cross.
+	 *
+	 * @param stock
+	 * @return
+	 */
+	public boolean isBullishCrossOver20(Stock stock) {
+
+		boolean isBullishCrossOver = false;
+
+		isBullishCrossOver = isShortCrossedLongFromLow(stock.getTechnicals().getPrevEma5(),
+				stock.getTechnicals().getPrevEma20(), stock.getTechnicals().getEma5(),
+				stock.getTechnicals().getEma20());
+
+		return isBullishCrossOver;
+	}
+
+	/**
 	 * when the price crosses above a moving average
 	 * and RSI moves out of oversold territory (above 30),
 	 * it may signal a potential long entry.
@@ -145,6 +163,7 @@ public class TechnicalsResearchService {
 
 		return Boolean.FALSE;
 	}
+	@Deprecated
 	public boolean isBullishCrossOver100(Stock stock) {
 
 		boolean isBullishCrossOver = false;
@@ -263,6 +282,24 @@ public class TechnicalsResearchService {
 		return isBearishCrossover;
 	}
 
+	/**
+	 * A bearish crossover occurs when the shorter moving average crosses below the
+	 * longer moving average. This is known as a dead cross.
+	 *
+	 * @param stock
+	 * @return
+	 */
+	public boolean isBearishCrossover20(Stock stock) {
+		boolean isBearishCrossover = false;
+
+		isBearishCrossover = isLongCrossedShortFromHigh(stock.getTechnicals().getPrevEma5(),
+				stock.getTechnicals().getPrevEma20(), stock.getTechnicals().getEma5(),
+				stock.getTechnicals().getEma20());
+
+		return isBearishCrossover;
+	}
+
+	@Deprecated
 	public boolean isBearishCrossover100(Stock stock) {
 		boolean isBearishCrossover = false;
 
@@ -322,28 +359,15 @@ public class TechnicalsResearchService {
 
 		double openPrice = stock.getStockPrice().getOpenPrice();
 
-		if (volume > (avgVolume * 2)) {
+		if (volume > (avgVolume * 5)) {
 			if (stock.getTechnicals().getSma50() > stock.getTechnicals().getSma200()) {
 				if (volume > 500) {
 					if (openPrice > prevClose) {
 						isPriceVolumeBullish = true;
 					}
 				}
-			}else if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma50()) {
-				if (volume > 750) {
-					if (openPrice > prevClose) {
-						isPriceVolumeBullish = true;
-					}
-				}
 			}
-			
-			else {
-				if (volume > 1000) {
-					if (openPrice > prevClose) {
-						isPriceVolumeBullish = true;
-					}
-				}
-			}
+
 		}
 
 
@@ -358,28 +382,15 @@ public class TechnicalsResearchService {
 		double prevClose = stock.getStockPrice().getPrevClose();
 		double openPrice = stock.getStockPrice().getOpenPrice();
 
-		if (volume > (avgVolume * 2)) {
+		if (volume > (avgVolume * 5)) {
 			if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma200()) {
-				if (volume > 1000) {
-					if (openPrice < prevClose) {
-						isPriceVolumeBearish = true;
-					}
-				}
-			}else if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma50()) {
-				if (volume > 750) {
-					if (openPrice < prevClose) {
-						isPriceVolumeBearish = true;
-					}
-				}
-			}
-			
-			else {
 				if (volume > 500) {
 					if (openPrice < prevClose) {
 						isPriceVolumeBearish = true;
 					}
 				}
 			}
+
 		}
 
 
@@ -400,6 +411,7 @@ public class TechnicalsResearchService {
 		return isHighVolume;
 	}
 
+	@Deprecated
 	public boolean isBreakOut50Bullish(Stock stock) {
 		boolean isBreakOut50Bullish = false;
 
@@ -412,6 +424,7 @@ public class TechnicalsResearchService {
 		return isBreakOut50Bullish;
 	}
 
+	@Deprecated
 	public boolean isBreakOut50Bearish(Stock stock) {
 		boolean isBreakOut50Bearish = false;
 		if (stock.getPrimaryIndice() == IndiceType.NIFTY50 || stock.getPrimaryIndice() == IndiceType.NIFTY100) {
@@ -427,6 +440,7 @@ public class TechnicalsResearchService {
 		return isBreakOut50Bearish;
 	}
 
+	@Deprecated
 	public boolean isBreakOut200HighVolumeBullish(Stock stock) {
 		boolean isBreakOut200HighVolumeBullish = false;
 
@@ -439,6 +453,7 @@ public class TechnicalsResearchService {
 		return isBreakOut200HighVolumeBullish;
 	}
 
+	@Deprecated
 	public boolean isBreakOut200HighVolumeBearish(Stock stock) {
 		boolean isBreakOut200HighVolumeBearish = false;
 
