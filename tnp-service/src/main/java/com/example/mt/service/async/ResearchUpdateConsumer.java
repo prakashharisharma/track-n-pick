@@ -169,7 +169,9 @@ public class ResearchUpdateConsumer {
 
 			Stock stock = stockService.getStockByNseSymbol(researchIO.getNseSymbol());
 
-			this.researchTechnical(stock, researchIO.getResearchTrigger());
+			if(researchLedgerService.isResearchActive(stock)) {
+				this.researchTechnical(stock, researchIO.getResearchTrigger());
+			}
 
 		}
 

@@ -350,6 +350,15 @@ public class TechnicalsResearchService {
 		return isNegativeBreakout;
 	}
 
+	/**
+	 * 1. Volume up and price up.
+	 * Volume and price rising together presents a bullish signal for short and medium-term investments.
+	 *
+	 * 2. Volume up and price down.
+	 * Falling price with rising volume is a bullish signal. A rally off the bottom is expected to occur.
+	 * @param stock
+	 * @return
+	 */
 	public boolean isPriceVolumeBullish(Stock stock) {
 		boolean isPriceVolumeBullish = false;
 
@@ -358,11 +367,18 @@ public class TechnicalsResearchService {
 		double prevClose = stock.getStockPrice().getPrevClose();
 
 		double openPrice = stock.getStockPrice().getOpenPrice();
+		double high = stock.getStockPrice().getHigh();
+		double low = stock.getStockPrice().getLow();
+		double close = stock.getStockPrice().getCurrentPrice();
 
 		if (volume > (avgVolume * 5)) {
-			if (stock.getTechnicals().getSma50() > stock.getTechnicals().getSma200()) {
+			//if (stock.getTechnicals().getSma50() > stock.getTechnicals().getSma200()) {
+			if (stock.getTechnicals().getSma5() > stock.getTechnicals().getSma20()) {
 				if (volume > 500) {
-					if (openPrice > prevClose) {
+					if ((openPrice > prevClose) && (close > openPrice)) {
+						isPriceVolumeBullish = true;
+					}
+					if((openPrice < prevClose) && (close < openPrice)){
 						isPriceVolumeBullish = true;
 					}
 				}
@@ -381,15 +397,22 @@ public class TechnicalsResearchService {
 		long avgVolume = stock.getTechnicals().getAvgVolume();
 		double prevClose = stock.getStockPrice().getPrevClose();
 		double openPrice = stock.getStockPrice().getOpenPrice();
+		double high = stock.getStockPrice().getHigh();
+		double low = stock.getStockPrice().getLow();
+		double close = stock.getStockPrice().getCurrentPrice();
 
 		if (volume > (avgVolume * 5)) {
-			if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma200()) {
+			//if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma200()) {
+			//if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma20()) {
 				if (volume > 500) {
-					if (openPrice < prevClose) {
+					if ((openPrice > prevClose) && (close < openPrice) ) {
+						isPriceVolumeBearish = true;
+					}
+					if((openPrice < prevClose) && (close > openPrice)){
 						isPriceVolumeBearish = true;
 					}
 				}
-			}
+			//}
 
 		}
 

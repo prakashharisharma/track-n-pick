@@ -54,6 +54,10 @@ public class FactorUpdateConsumer {
 
 			this.processResearch(researchIO);
 
+		 researchIO = new ResearchIO(stockPriceIO.getNseSymbol(), ResearchType.TECHNICAL, ResearchTrigger.BUY_SELL);
+
+		this.processResearch(researchIO);
+
 		log.info("{} Completed factors update.", stockPriceIO.getNseSymbol());
 
 	}

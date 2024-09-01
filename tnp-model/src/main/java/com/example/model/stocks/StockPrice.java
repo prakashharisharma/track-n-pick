@@ -46,6 +46,12 @@ public class StockPrice implements Serializable{
 	
 	@Column(name = "OPEN", columnDefinition="Decimal(10,2) default '0.00'")
 	double openPrice;
+
+	@Column(name = "HIGH", columnDefinition="Decimal(10,2) default '0.00'")
+	double high;
+
+	@Column(name = "LOW", columnDefinition="Decimal(10,2) default '0.00'")
+	double low;
 	
 	@JsonProperty("FiftyTwoWeekLow")
 	@Column(name = "YEAR_LOW", columnDefinition="Decimal(10,2) default '0.00'")
@@ -99,6 +105,22 @@ public class StockPrice implements Serializable{
 
 	public void setOpenPrice(double openPrice) {
 		this.openPrice = openPrice;
+	}
+
+	public double getHigh() {
+		return high;
+	}
+
+	public void setHigh(double high) {
+		this.high = high;
+	}
+
+	public double getLow() {
+		return low;
+	}
+
+	public void setLow(double low) {
+		this.low = low;
 	}
 
 	public double getYearLow() {

@@ -1,7 +1,10 @@
 package com.example.storage.repo;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
+import com.example.storage.model.StockPrice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -480,5 +483,26 @@ public class TechnicalsTemplate {
 		
 		return stockTechnicals;
 		
+	}
+
+	public StockTechnicals getForDate(String nseSymbol, LocalDate date){
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("bhavDate").is(date.atStartOfDay().toInstant(ZoneOffset.UTC)),
+						Criteria.where("nseSymbol").is(nseSymbol)
+				)
+		);
+
+		List<StockTechnicals> stockTechnicalsList = mongoTemplate.find(query, StockTechnicals.class);
+
+		StockTechnicals stockTechnicals = null;
+
+		if(!stockTechnicalsList.isEmpty()) {
+			stockTechnicals = stockTechnicalsList.get(0);
+		}
+
+		return stockTechnicals;
+
 	}
 }

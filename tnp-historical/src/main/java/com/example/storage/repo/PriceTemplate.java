@@ -303,7 +303,28 @@ public class PriceTemplate {
 		
 		return yearLow;
 	}
-	
+
+	public StockPrice getForDate(String nseSymbol, LocalDate date){
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("bhavDate").is(date.atStartOfDay().toInstant(ZoneOffset.UTC)),
+						Criteria.where("nseSymbol").is(nseSymbol)
+				)
+		);
+
+		List<StockPrice> stockPriceList = mongoTemplate.find(query, StockPrice.class);
+
+		StockPrice stockPrice = null;
+
+		if(!stockPriceList.isEmpty()) {
+			stockPrice = stockPriceList.get(0);
+		}
+
+		return stockPrice;
+
+	}
+
 	@Deprecated
 	public double getHighFromDate(String nseSymbol, LocalDate fromDate) {
 

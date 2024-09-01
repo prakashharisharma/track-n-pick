@@ -78,7 +78,8 @@ public class PriceUpdateConsumer {
 
 		com.example.model.stocks.StockPrice stockPrice = stock.getStockPrice();
 
-		if (stockPrice != null && stockPrice.getBhavDate().isEqual(stockPriceIO.getTimestamp())) {
+		if (stockPrice != null && ( stockPrice.getBhavDate().isEqual(stockPriceIO.getTimestamp())
+				|| stockPrice.getBhavDate().isAfter(stockPriceIO.getTimestamp()))) {
 			log.info("{} Transactional price is already up to date", stockPriceIO.getNseSymbol());
 		}
 
@@ -91,6 +92,8 @@ public class PriceUpdateConsumer {
 		stockPrice.setCurrentPrice(stockPriceIO.getClose());
 		stockPrice.setPrevClose(stockPriceIO.getPrevClose());
 		stockPrice.setOpenPrice(stockPriceIO.getOpen());
+		stockPrice.setHigh(stockPriceIO.getHigh());
+		stockPrice.setLow(stockPriceIO.getLow());
 		stockPrice.setYearHigh(stockPriceIO.getYearHigh());
 		stockPrice.setYearLow(stockPriceIO.getYearLow());
 		stockPrice.setBhavDate(stockPriceIO.getTimestamp());
@@ -105,9 +108,11 @@ public class PriceUpdateConsumer {
 
 		log.info("{} Updating historical price", stockPriceIO.getNseSymbol());
 
-		StockPrice prevStockPriceHistory = priceTemplate.getPrevPrice(stockPriceIO.getNseSymbol(), 1);
+		//StockPrice prevStockPriceHistory = priceTemplate.getPrevPrice(stockPriceIO.getNseSymbol(), 1);
+		StockPrice existingStockPriceHistory = priceTemplate.getForDate(stockPriceIO.getNseSymbol(), stockPriceIO.getTimestamp());
 
-		if(prevStockPriceHistory==null || !prevStockPriceHistory.getBhavDate().equals(stockPriceIO.getBhavDate())){
+		if(existingStockPriceHistory == null){
+
 			StockPrice stockPriceHistory = new StockPrice(stockPriceIO.getNseSymbol(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
 					stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getPrevClose(),
 					stockPriceIO.getBhavDate());
@@ -116,9 +121,11 @@ public class PriceUpdateConsumer {
 			this.set14DaysHighLow(stockPriceIO, stockPriceHistory);
 
 			priceTemplate.create(stockPriceHistory);
+			log.info("{} Updated historical price", stockPriceIO.getNseSymbol());
+		}else{
+			log.info("{} Already updated historical price", stockPriceIO.getNseSymbol());
 		}
 
-		log.info("{} Updated historical price", stockPriceIO.getNseSymbol());
 
 	}
 

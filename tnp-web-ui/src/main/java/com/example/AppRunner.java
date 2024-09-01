@@ -18,6 +18,8 @@ import com.example.model.stocks.UserPortfolio;
 import com.example.model.type.FundTransactionType;
 import com.example.repo.ledger.FundsLedgerRepository;
 import com.example.repo.ledger.TradeLedgerRepository;
+import com.example.storage.model.StockPrice;
+import com.example.storage.model.StockTechnicals;
 import com.example.ui.model.UIRenderStock;
 import com.example.ui.service.UiRenderUtil;
 import com.example.util.io.model.StockIO;
@@ -185,6 +187,11 @@ public class AppRunner implements CommandLineRunner {
 		);
 
 
+		StockTechnicals stockPrice = technicalsTemplate.getForDate("HAVELLS",LocalDate.now().minusDays(1));
+
+		if(stockPrice!=null){
+			System.out.println(stockPrice.getBhavDate() + " : " + stockPrice.getTrend().getMovingAverage().getSimple().getAvg5());
+		}
 
 		/*
 		System.out.println("Running Runner");

@@ -78,12 +78,14 @@ public class TechnicalsUpdateConsumer {
 
 		try {
 
-			prevStockTechnicals = technicalsTemplate.getPrevTechnicals(stockPriceIO.getNseSymbol(), 1);
+			StockTechnicals existingStockTechnicals = technicalsTemplate.getForDate(stockPriceIO.getNseSymbol(), stockPriceIO.getTimestamp());
 
-			if(prevStockTechnicals!=null && prevStockTechnicals.getBhavDate().equals(stockPriceIO.getBhavDate()))
+			if(existingStockTechnicals!=null)
 			{
 				log.info("{} Technicals already exist for the bhav date {}", stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate());
 			}else {
+
+				prevStockTechnicals = technicalsTemplate.getPrevTechnicals(stockPriceIO.getNseSymbol(), 1);
 
 				Volume volume = this.getVolume(stockPriceIO, prevStockTechnicals);
 
@@ -101,6 +103,8 @@ public class TechnicalsUpdateConsumer {
 
 				this.updateTechnicalsTxn(stockTechnicalsIO, stockPriceIO);
 
+				queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE);
+
 			}
 		} catch (Exception e) {
 
@@ -108,7 +112,7 @@ public class TechnicalsUpdateConsumer {
 
 		}
 
-		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE);
+
 
 		log.info("{} Updated technicals history.", stockPriceIO.getNseSymbol());
 	}
@@ -315,6 +319,7 @@ public class TechnicalsUpdateConsumer {
 		}
 
 		long prevOBV = 1;
+		double volumeChange = 0.00;
 
 		if (prevStockTechnicals != null) {
 
@@ -322,6 +327,7 @@ public class TechnicalsUpdateConsumer {
 
 				if (prevStockTechnicals.getVolume().getObv() != null) {
 					prevOBV = prevStockTechnicals.getVolume().getObv();
+					volumeChange = formulaService.calculateRateOfChange(stockPriceIO.getTottrdqty(), prevStockTechnicals.getVolume().getVolume());
 				}
 			}
 		}
@@ -333,13 +339,15 @@ public class TechnicalsUpdateConsumer {
 
 		Long volume = stockPriceIO.getTottrdqty();
 
-		double volumeChange = 0.00;
+
 
 		Long avgVolume10 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 10);
 
 		Long avgVolume30 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 30);
 
 		Volume priceVolume = new Volume(OBV, roc, volume, volumeChange, avgVolume10, avgVolume30);
+
+		priceVolume.setVoumeChange(volumeChange);
 
 		log.info("{} Calculated volume ", stockPriceIO.getNseSymbol());
 
@@ -521,11 +529,13 @@ public class TechnicalsUpdateConsumer {
 				stockTechnicalsIO.setRocv(1.0);
 			}
 			if(volume.getVolume()!=null) {
+
 				stockTechnicalsIO.setVolume(volume.getVolume());
+
 			}else {
 				stockTechnicalsIO.setVolume(1);
 			}
-			stockTechnicalsIO.setAvgVolume(volume.getAvgVolume30());
+			stockTechnicalsIO.setAvgVolume(volume.getAvgVolume10());
 		}else {
 			stockTechnicalsIO.setObv(1);
 
@@ -548,7 +558,8 @@ public class TechnicalsUpdateConsumer {
 
 		com.example.model.stocks.StockTechnicals stockTechnicals = stock.getTechnicals();
 
-		if (stockTechnicals != null && stockTechnicals.getBhavDate().isEqual(stockPriceIO.getTimestamp())) {
+		if (stockTechnicals != null && (stockTechnicals.getBhavDate().isEqual(stockPriceIO.getTimestamp())
+		|| stockTechnicals.getBhavDate().isAfter(stockPriceIO.getTimestamp()))) {
 			log.info("{} Transactional technicals is already up to date", stockTechnicalsIO.getNseSymbol());
 		}
 
