@@ -65,42 +65,6 @@ public class PriceUpdateConsumer {
 
 		this.updatePriceHistory(stockPriceIO);
 
-		this.updatePriceTxn(stockPriceIO);
-
-		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE);
-
-	}
-	private void updatePriceTxn(StockPriceIO stockPriceIO) {
-
-		log.info("{} Updating transactional price.", stockPriceIO.getNseSymbol());
-
-		Stock stock = stockService.getStockByNseSymbol(stockPriceIO.getNseSymbol());
-
-		com.example.model.stocks.StockPrice stockPrice = stock.getStockPrice();
-
-		if (stockPrice != null && ( stockPrice.getBhavDate().isEqual(stockPriceIO.getTimestamp())
-				|| stockPrice.getBhavDate().isAfter(stockPriceIO.getTimestamp()))) {
-			log.info("{} Transactional price is already up to date", stockPriceIO.getNseSymbol());
-		}
-
-		if(stockPrice == null){
-			stockPrice = new com.example.model.stocks.StockPrice();
-		}
-
-		stockPrice.setStock(stock);
-		stockPrice.setLastModified(LocalDate.now());
-		stockPrice.setCurrentPrice(stockPriceIO.getClose());
-		stockPrice.setPrevClose(stockPriceIO.getPrevClose());
-		stockPrice.setOpenPrice(stockPriceIO.getOpen());
-		stockPrice.setHigh(stockPriceIO.getHigh());
-		stockPrice.setLow(stockPriceIO.getLow());
-		stockPrice.setYearHigh(stockPriceIO.getYearHigh());
-		stockPrice.setYearLow(stockPriceIO.getYearLow());
-		stockPrice.setBhavDate(stockPriceIO.getTimestamp());
-
-		stockPriceRepository.save(stockPrice);
-
-		log.info("{} Updated transactional price", stockPriceIO.getNseSymbol());
 
 	}
 
@@ -121,13 +85,54 @@ public class PriceUpdateConsumer {
 			this.set14DaysHighLow(stockPriceIO, stockPriceHistory);
 
 			priceTemplate.create(stockPriceHistory);
+
 			log.info("{} Updated historical price", stockPriceIO.getNseSymbol());
+
+
+			this.updatePriceTxn(stockPriceIO);
+
 		}else{
 			log.info("{} Already updated historical price", stockPriceIO.getNseSymbol());
 		}
 
 
 	}
+
+	private void updatePriceTxn(StockPriceIO stockPriceIO) {
+
+		log.info("{} Updating transactional price.", stockPriceIO.getNseSymbol());
+
+		Stock stock = stockService.getStockByNseSymbol(stockPriceIO.getNseSymbol());
+
+		com.example.model.stocks.StockPrice stockPrice = stock.getStockPrice();
+
+		if (stockPrice != null && ( stockPrice.getBhavDate().isEqual(stockPriceIO.getTimestamp())
+				|| stockPrice.getBhavDate().isAfter(stockPriceIO.getTimestamp()))) {
+			log.info("{} Transactional price is already up to date", stockPriceIO.getNseSymbol());
+		}else {
+
+			if (stockPrice == null) {
+				stockPrice = new com.example.model.stocks.StockPrice();
+			}
+
+			stockPrice.setStock(stock);
+			stockPrice.setLastModified(LocalDate.now());
+			stockPrice.setCurrentPrice(stockPriceIO.getClose());
+			stockPrice.setPrevClose(stockPriceIO.getPrevClose());
+			stockPrice.setOpenPrice(stockPriceIO.getOpen());
+			stockPrice.setHigh(stockPriceIO.getHigh());
+			stockPrice.setLow(stockPriceIO.getLow());
+			stockPrice.setYearHigh(stockPriceIO.getYearHigh());
+			stockPrice.setYearLow(stockPriceIO.getYearLow());
+			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
+
+			stockPriceRepository.save(stockPrice);
+			queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE);
+			log.info("{} Updated transactional price", stockPriceIO.getNseSymbol());
+		}
+	}
+
+
 
 	private void setYearHighLow(StockPriceIO stockPriceIO, StockPrice stockPriceHistory ){
 
