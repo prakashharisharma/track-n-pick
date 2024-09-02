@@ -47,7 +47,7 @@ public class PortfolioService {
 	@Autowired
 	private TradeProfitLedgerService tradeProfitLedgerService;
 	
-	@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
+	//@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
 	public void addStock(UserProfile userProfile, Stock stock, double price, long quantity) {
 
 		Optional<UserPortfolio> portfolioStockOpt = userProfile.getUserPortfolio().stream()
@@ -94,7 +94,7 @@ public class PortfolioService {
 		userService.save(userProfile);
 	}
 	
-	@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
+	//@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
 	public void addBonus(UserProfile userProfile, Stock stock, long ratio1, long ratio2) {
 		Optional<UserPortfolio> portfolioStockOpt = userProfile.getUserPortfolio().stream()
 				.filter(up -> up.getStock().getNseSymbol().equalsIgnoreCase(stock.getNseSymbol())).findFirst();
@@ -127,7 +127,7 @@ public class PortfolioService {
 		
 		
 	}
-	@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
+	//@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
 	public void addSplit(UserProfile userProfile, Stock stock, double existingFaceValue, double newFaceValue) {
 		Optional<UserPortfolio> portfolioStockOpt = userProfile.getUserPortfolio().stream()
 				.filter(up -> up.getStock().getNseSymbol().equalsIgnoreCase(stock.getNseSymbol())).findFirst();
@@ -157,7 +157,7 @@ public class PortfolioService {
 		}
 	}
 	
-	@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
+	//@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
 	public void sellStock(UserProfile user, Stock stock, double price, long quantity) {
 
 		log.info("Selling stock {}", stock.getStockId());

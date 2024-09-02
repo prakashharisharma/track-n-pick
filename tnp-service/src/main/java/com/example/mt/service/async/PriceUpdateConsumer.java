@@ -75,26 +75,24 @@ public class PriceUpdateConsumer {
 		//StockPrice prevStockPriceHistory = priceTemplate.getPrevPrice(stockPriceIO.getNseSymbol(), 1);
 		StockPrice existingStockPriceHistory = priceTemplate.getForDate(stockPriceIO.getNseSymbol(), stockPriceIO.getTimestamp());
 
+		StockPrice stockPriceHistory = new StockPrice(stockPriceIO.getNseSymbol(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
+				stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getPrevClose(),
+				stockPriceIO.getBhavDate());
+
+		this.setYearHighLow(stockPriceIO, stockPriceHistory);
+		this.set14DaysHighLow(stockPriceIO, stockPriceHistory);
+
 		if(existingStockPriceHistory == null){
-
-			StockPrice stockPriceHistory = new StockPrice(stockPriceIO.getNseSymbol(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
-					stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getPrevClose(),
-					stockPriceIO.getBhavDate());
-
-			this.setYearHighLow(stockPriceIO, stockPriceHistory);
-			this.set14DaysHighLow(stockPriceIO, stockPriceHistory);
 
 			priceTemplate.create(stockPriceHistory);
 
 			log.info("{} Updated historical price", stockPriceIO.getNseSymbol());
 
-
-			this.updatePriceTxn(stockPriceIO);
-
 		}else{
 			log.info("{} Already updated historical price", stockPriceIO.getNseSymbol());
 		}
 
+		this.updatePriceTxn(stockPriceIO);
 
 	}
 
@@ -127,9 +125,11 @@ public class PriceUpdateConsumer {
 			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
 
 			stockPriceRepository.save(stockPrice);
-			queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE);
+
 			log.info("{} Updated transactional price", stockPriceIO.getNseSymbol());
 		}
+
+		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE);
 	}
 
 

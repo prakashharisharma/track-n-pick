@@ -67,7 +67,11 @@ public class TechnicalsUpdateConsumer {
 	}
 
 	public void processTechnicalsUpdate(StockPriceIO stockPriceIO){
+
 		this.updateTechnicalsHistory(stockPriceIO);
+
+		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE);
+
 	}
 
 	public void updateTechnicalsHistory(StockPriceIO stockPriceIO){
@@ -623,7 +627,7 @@ public class TechnicalsUpdateConsumer {
 
 			stockTechnicalsRepository.save(stockTechnicals);
 
-			queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE);
+
 
 			log.info("{} Updated transactional technicals ", stockPriceIO.getNseSymbol());
 		}
