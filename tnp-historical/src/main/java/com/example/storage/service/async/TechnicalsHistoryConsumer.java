@@ -308,7 +308,7 @@ public class TechnicalsHistoryConsumer {
 
 		Long avgVolume30 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 30);
 
-		Volume priceVolume = new Volume(OBV, roc, volume, voumeChange, avgVolume10, avgVolume30);
+		Volume priceVolume = new Volume(OBV, roc, volume, voumeChange, 0l, avgVolume10, avgVolume30);
 
 		return priceVolume;
 	}

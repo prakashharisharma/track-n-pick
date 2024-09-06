@@ -175,5 +175,72 @@ public class FormulaService {
 		return ((Math.pow((currentCapital / initialCapital), expYears) - 1) * 100 );
 
 	}
+
+	/**
+	 * TR is the greater of the current high - current low, current high - previous close,
+	 * or current low - previous close
+	 * @param high
+	 * @param low
+	 * @param prevClose
+	 * @return
+	 */
+	public double calculateTR(double high, double low, double prevClose) {
+		double tr1 = high - low;
+		double tr2 = Math.abs(high - prevClose);
+		double tr3 = Math.abs(low - prevClose);
+		return Math.max(tr1, Math.max(tr2, tr3));
+	}
+
+	/**
+	 * +DM = current high - previous high.
+	 * @param high
+	 * @param prevHigh
+	 * @param low
+	 * @param prevLow
+	 * @return
+	 */
+	public double calculatePlusDM(double high, double prevHigh, double low, double prevLow) {
+		double upMove = high - prevHigh;
+		double downMove = prevLow - low;
+		if (upMove > downMove && upMove > 0) {
+			return upMove;
+		} else {
+			return 0;
+		}
+	}
+
+	/**
+	 * -DM = previous low - current low
+	 * @param high
+	 * @param prevHigh
+	 * @param low
+	 * @param prevLow
+	 * @return
+	 */
+	public double calculateMinusDM(double high, double prevHigh, double low, double prevLow) {
+		double downMove = prevLow - low;
+		double upMove = high - prevHigh;
+		if (downMove > upMove && downMove > 0) {
+			return downMove;
+		} else {
+			return 0;
+		}
+	}
+
+	/**
+	 * https://en.wikipedia.org/wiki/Average_true_range
+	 * ((prevDaySmoothedAverage * (n-1) + close))/n;
+	 * NOTE :- The first SmoothedAverage is calculated using the arithmetic mean formula or simple moving average
+	 * @param prevDaySmoothedAverage
+	 * @param close
+	 * @return
+	 */
+	public double calculateSmoothedMovingAverage(double close, double prevDaySmoothedAverage){
+
+		int n = 14;
+
+		return ((prevDaySmoothedAverage * (n-1) + close))/n;
+
+	}
 	
 }

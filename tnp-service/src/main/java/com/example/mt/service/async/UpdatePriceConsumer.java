@@ -26,7 +26,7 @@ import com.example.util.io.model.StockPriceIO;
 
 @Component
 @Slf4j
-public class PriceUpdateConsumer {
+public class UpdatePriceConsumer {
 
 	@Autowired
 	private QueueService queueService;

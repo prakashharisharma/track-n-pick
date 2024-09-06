@@ -6,6 +6,8 @@ public class Macd {
 
     private Double signal;
 
+    private  Double avg3;
+
     public Macd() {
     }
 
@@ -28,5 +30,13 @@ public class Macd {
 
     public void setSignal(Double signal) {
         this.signal = signal;
+    }
+
+    public Double getAvg3() {
+        return avg3;
+    }
+
+    public void setAvg3(Double avg3) {
+        this.avg3 = avg3;
     }
 }

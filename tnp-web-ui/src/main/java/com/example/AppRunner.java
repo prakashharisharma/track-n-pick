@@ -193,6 +193,13 @@ public class AppRunner implements CommandLineRunner {
 			System.out.println(stockPrice.getBhavDate() + " : " + stockPrice.getTrend().getMovingAverage().getSimple().getAvg5());
 		}
 
+
+		double plusDM = formulaService.calculatePlusDM(1888.45, 1916.0, 1860.20, 1860.0);
+		double minusDM = formulaService.calculateMinusDM(1888.45, 1916.0, 1860.20, 1860.0);
+
+		 System.out.println("plusDM : "+ plusDM);
+		System.out.println("minusDM : "+ minusDM);
+
 		/*
 		System.out.println("Running Runner");
 		List<Stock> stocks = stockService.getActiveStocks();

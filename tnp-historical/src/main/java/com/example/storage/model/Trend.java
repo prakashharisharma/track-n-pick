@@ -4,6 +4,8 @@ public class Trend {
 
 	private MovingAverage movingAverage;
 
+	private AverageDirectionalIndex adx;
+
 	public Trend(MovingAverage movingAverage) {
 		super();
 		this.movingAverage = movingAverage;
@@ -15,6 +17,14 @@ public class Trend {
 
 	public void setMovingAverage(MovingAverage movingAverage) {
 		this.movingAverage = movingAverage;
+	}
+
+	public AverageDirectionalIndex getAdx() {
+		return adx;
+	}
+
+	public void setAdx(AverageDirectionalIndex adx) {
+		this.adx = adx;
 	}
 
 	@Override

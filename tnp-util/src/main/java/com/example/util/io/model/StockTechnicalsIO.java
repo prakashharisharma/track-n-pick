@@ -51,9 +51,11 @@ public class StockTechnicalsIO implements Serializable{
 	double prevSignalLine;
 	double prevMacd;
 
+	double avgMacd;
 	double rsi;
-
 	double prevRsi;
+
+	double avgRsi;
 
 	double sok;
 	
@@ -66,6 +68,10 @@ public class StockTechnicalsIO implements Serializable{
 	long volume;
 	
 	long avgVolume;
+
+	double adx;
+
+	double avgAdx;
 	
 	public StockTechnicalsIO() {
 		super();
@@ -394,6 +400,38 @@ public class StockTechnicalsIO implements Serializable{
 
 	public void setPrevMacd(double prevMacd) {
 		this.prevMacd = prevMacd;
+	}
+
+	public double getAdx() {
+		return adx;
+	}
+
+	public void setAdx(double adx) {
+		this.adx = adx;
+	}
+
+	public double getAvgAdx() {
+		return avgAdx;
+	}
+
+	public void setAvgAdx(double avgAdx) {
+		this.avgAdx = avgAdx;
+	}
+
+	public double getAvgMacd() {
+		return avgMacd;
+	}
+
+	public void setAvgMacd(double avgMacd) {
+		this.avgMacd = avgMacd;
+	}
+
+	public double getAvgRsi() {
+		return avgRsi;
+	}
+
+	public void setAvgRsi(double avgRsi) {
+		this.avgRsi = avgRsi;
 	}
 
 	@Override

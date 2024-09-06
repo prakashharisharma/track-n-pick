@@ -13,6 +13,8 @@ public class RSI {
 	private Double avgGain;
 	
 	private Double avgLoss;
+
+	private  Double avg3;
 	
 	public RSI() {
 		super();
@@ -75,6 +77,14 @@ public class RSI {
 
 	public void setAvgLoss(Double avgLoss) {
 		this.avgLoss = avgLoss;
+	}
+
+	public Double getAvg3() {
+		return avg3;
+	}
+
+	public void setAvg3(Double avg3) {
+		this.avg3 = avg3;
 	}
 
 	@Override

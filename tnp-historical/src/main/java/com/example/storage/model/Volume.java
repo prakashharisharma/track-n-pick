@@ -10,16 +10,18 @@ public class Volume {
 
 	private Double voumeChange;
 
+	private Long avgVolume5;
 	private Long avgVolume10;
 	
 	private Long avgVolume30;
 
-	public Volume(Long obv, Double roc, Long volume, Double voumeChange, Long avgVolume10, Long avgVolume30) {
+	public Volume(Long obv, Double roc, Long volume, Double voumeChange,Long avgVolume5, Long avgVolume10, Long avgVolume30) {
 		super();
 		this.obv = obv != null ? obv : 1;
 		this.roc = roc != null ? roc : 0.00;
 		this.volume = volume != null ? volume : 0l;
 		this.voumeChange = voumeChange !=null ? voumeChange : 0.00 ;
+		this.avgVolume5 = avgVolume5 != null ? avgVolume5 : 0l;
 		this.avgVolume10 = avgVolume10 != null ? avgVolume10 : 0l;
 		this.avgVolume30 = avgVolume30 != null ? avgVolume30 : 0l;
 	}
@@ -62,6 +64,14 @@ public class Volume {
 
 	public void setAvgVolume10(Long avgVolume10) {
 		this.avgVolume10 = avgVolume10;
+	}
+
+	public Long getAvgVolume5() {
+		return avgVolume5;
+	}
+
+	public void setAvgVolume5(Long avgVolume5) {
+		this.avgVolume5 = avgVolume5;
 	}
 
 	public Long getAvgVolume30() {

@@ -5,6 +5,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 import com.example.storage.model.StockPrice;
+import com.example.storage.model.result.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -21,10 +22,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import com.example.storage.model.StockTechnicals;
-import com.example.storage.model.result.RsiCountResult;
-import com.example.storage.model.result.StockOBVResult;
-import com.example.storage.model.result.StockPriceResult;
-import com.example.storage.model.result.VolumeResult;
 
 @Repository
 public class TechnicalsTemplate {
@@ -210,6 +207,66 @@ public class TechnicalsTemplate {
 		}
 		
 		return averageVolume;
+	}
+
+	public Double getAverageMacd(String nseSymbol, int days) {
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
+
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
+
+		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").avg("momentum.macd.macd").as("avgMacd");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("avgMacd").as("value");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc, yearHighGroup,
+				projectToMatchModel);
+
+		AggregationResults<DoubleResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_TH,
+				DoubleResult.class);
+
+		DoubleResult macdResult = result.getUniqueMappedResult();
+
+		Double averageMacd = 0.00;
+
+		if(macdResult != null) {
+			averageMacd = macdResult.getValue();
+		}
+
+		return averageMacd;
+	}
+
+	public Double getAverageRsi(String nseSymbol, int days) {
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
+
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
+
+		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").avg("momentum.rsi.rsi").as("avgRsi");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("avgRsi").as("value");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc, yearHighGroup,
+				projectToMatchModel);
+
+		AggregationResults<DoubleResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_TH,
+				DoubleResult.class);
+
+		DoubleResult rsiResult = result.getUniqueMappedResult();
+
+		Double averageRsi = 0.00;
+
+		if(rsiResult != null) {
+			averageRsi = rsiResult.getValue();
+		}
+
+		return averageRsi;
 	}
 	
 	public double getPriorDaysSma50Average(String nseSymbol, int days) {

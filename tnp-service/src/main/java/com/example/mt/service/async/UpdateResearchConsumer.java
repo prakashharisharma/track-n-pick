@@ -10,8 +10,6 @@ import com.example.storage.model.StockResearch;
 import com.example.storage.repo.ResearchTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.messaging.MessageHeaders;
@@ -25,7 +23,7 @@ import com.example.util.io.model.ResearchIO.ResearchType;;
 
 @Component
 @Slf4j
-public class ResearchUpdateConsumer {
+public class UpdateResearchConsumer {
 
 	@Autowired
 	private StockService stockService;

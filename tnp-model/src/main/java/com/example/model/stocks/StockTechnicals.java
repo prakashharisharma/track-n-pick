@@ -119,9 +119,11 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "MACD", columnDefinition="decimal(10,2) default '0.00'")
 	double macd;
 
-
 	@Column(name = "PREV_MACD", columnDefinition="decimal(10,2) default '0.00'")
 	double prevMacd;
+
+	@Column(name = "AVG_MACD", columnDefinition="decimal(10,2) default '0.00'")
+	double avgMacd;
 
 	@Column(name = "SIGNAL_LINE", columnDefinition="decimal(10,2) default '0.00'")
 	double signal;
@@ -149,6 +151,12 @@ public class StockTechnicals implements Serializable{
 	
 	@Column(name = "AVG_VOLUME")
 	Long avgVolume;
+
+	@Column(name = "ADX", columnDefinition="decimal(10,2) default '0.00'")
+	double adx;
+
+	@Column(name = "AVG_ADX", columnDefinition="decimal(10,2) default '0.00'")
+	double avgAdx;
 
 	public long getStockTechnicalsId() {
 		return stockTechnicalsId;
@@ -468,6 +476,22 @@ public class StockTechnicals implements Serializable{
 
 	public void setAvgVolume(Long avgVolume) {
 		this.avgVolume = avgVolume;
+	}
+
+	public double getAdx() {
+		return adx;
+	}
+
+	public void setAdx(double adx) {
+		this.adx = adx;
+	}
+
+	public double getAvgAdx() {
+		return avgAdx;
+	}
+
+	public void setAvgAdx(double avgAdx) {
+		this.avgAdx = avgAdx;
 	}
 
 	@Override
