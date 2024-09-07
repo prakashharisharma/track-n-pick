@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.example.storage.model.StockTechnicals;
+import com.example.storage.model.result.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -23,10 +24,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import com.example.storage.model.StockPrice;
-import com.example.storage.model.result.HighLowResult;
-import com.example.storage.model.result.StockOBVResult;
-import com.example.storage.model.result.StockPriceResult;
-import com.example.storage.model.result.YearHighLowResult;
 
 @Repository
 public class PriceTemplate {
@@ -541,11 +538,13 @@ public class PriceTemplate {
 
 		StockPrice stockPrice = null;
 
-		if(!stockPriceList.isEmpty()) {
-			stockPrice = stockPriceList.get(0);
+		if(!stockPriceList.isEmpty() && stockPriceList.size() == days) {
+			stockPrice = stockPriceList.get(days - 1);
 		}
 
 		return stockPrice;
 
 	}
+
+
 }

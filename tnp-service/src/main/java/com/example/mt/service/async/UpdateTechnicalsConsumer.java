@@ -1,5 +1,6 @@
 package com.example.mt.service.async;
 
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 
 import javax.jms.Session;
@@ -197,7 +198,7 @@ public class UpdateTechnicalsConsumer {
 
 		double avg3 = technicalsTemplate.getAverageRsi(stockPriceIO.getNseSymbol(), 2);
 
-		avg3 = ( ( avg3 * 2) + rsi) / 3;
+		avg3 = formulaService.calculateSmoothedMovingAverage(avg3, rsi, 3);
 
 		rsiObj.setAvg3(avg3);
 
@@ -317,21 +318,26 @@ public class UpdateTechnicalsConsumer {
 
 	private AverageDirectionalIndex getAverageDirectionalIndex(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals){
 
-		StockPrice prevDayStockPrice = priceTemplate.getPrevPrice(stockPriceIO.getNseSymbol(), 1);
+		StockPrice prevDayStockPrice = priceTemplate.getPrevPrice(stockPriceIO.getNseSymbol(), 2);
 
 		if(prevDayStockPrice!=null) {
+
+			log.info("{} prevDay Price bhavDate: {}", stockPriceIO.getNseSymbol(), prevDayStockPrice.getBhavDate());
+
+			log.info("{} Calculating ADX high: {} low: {} prevHigh: {} prevLow: {} prevClose: {}",
+					stockPriceIO.getNseSymbol(), stockPriceIO.getHigh(), stockPriceIO.getLow(),
+					prevDayStockPrice.getHigh(), prevDayStockPrice.getLow(), stockPriceIO.getPrevClose());
 
 			double tr = formulaService.calculateTR(stockPriceIO.getHigh(), stockPriceIO.getLow(), stockPriceIO.getPrevClose());
 			double plusDM = formulaService.calculatePlusDM(stockPriceIO.getHigh(), prevDayStockPrice.getHigh(), stockPriceIO.getLow(), prevDayStockPrice.getLow());
 			double minusDM = formulaService.calculateMinusDM(stockPriceIO.getHigh(), prevDayStockPrice.getHigh(), stockPriceIO.getLow(), prevDayStockPrice.getLow());
 
-			AverageDirectionalIndex adx = new AverageDirectionalIndex();
 
-			adx.setTr(tr);
+			log.info("{} calculated tr: {} plusDM: {} minusDM:{}", stockPriceIO.getNseSymbol(), tr, plusDM, minusDM);
 
-			adx.setPlusDm(plusDM);
+			AverageDirectionalIndex adx = new AverageDirectionalIndex(tr, plusDM, minusDM);
 
-			adx.setMinusDm(minusDM);
+			this.enhance(stockPriceIO, prevStockTechnicals, adx);
 
 			return adx;
 
@@ -339,6 +345,80 @@ public class UpdateTechnicalsConsumer {
 
 		return  new AverageDirectionalIndex();
 	}
+
+	private AverageDirectionalIndex enhance(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals, AverageDirectionalIndex averageDirectionalIndex){
+
+		double atr = 0.00;
+		double plusDi = 0.00;
+		double minusDi = 0.00;
+		double smoothedPlusDm = 0.00;
+		double smoothedMinusDm = 0.00;
+		double adx = 0.00;
+		double dx = 0.00;
+
+		if(technicalsTemplate.getTrCount(stockPriceIO.getNseSymbol()) == 13){
+
+			double averageTr = technicalsTemplate.getAdxAverage(stockPriceIO.getNseSymbol(),"tr", 13);
+			atr = formulaService.calculateSmoothedMovingAverage(averageTr, averageDirectionalIndex.getTr(), 14);
+
+
+			double avgPlusDm = technicalsTemplate.getAdxAverage(stockPriceIO.getNseSymbol(),"plusDm", 13);
+			 smoothedPlusDm = formulaService.calculateSmoothedMovingAverage(avgPlusDm, averageDirectionalIndex.getPlusDm(), 14);
+
+
+			double avgMinusDm = technicalsTemplate.getAdxAverage(stockPriceIO.getNseSymbol(),"minusDm", 13);
+			 smoothedMinusDm = formulaService.calculateSmoothedMovingAverage(avgMinusDm, averageDirectionalIndex.getMinusDm(), 14);
+
+
+		}
+
+		if (technicalsTemplate.getTrCount(stockPriceIO.getNseSymbol()) > 13){
+
+			 atr = formulaService.calculateSmoothedMovingAverage( prevStockTechnicals.getTrend().getAdx().getAtr(), averageDirectionalIndex.getTr(), 14);
+
+			 smoothedPlusDm = formulaService.calculateSmoothedMovingAverage(prevStockTechnicals.getTrend().getAdx().getPlusDi(), averageDirectionalIndex.getPlusDm(), 14);
+			 smoothedMinusDm = formulaService.calculateSmoothedMovingAverage(prevStockTechnicals.getTrend().getAdx().getMinusDi(),averageDirectionalIndex.getMinusDm(), 14);
+
+		}
+
+
+		plusDi = formulaService.calculatePlusDi(smoothedPlusDm, atr);
+		minusDi = formulaService.calculateMinusDi(smoothedMinusDm, atr);
+
+		if(technicalsTemplate.getTrCount(stockPriceIO.getNseSymbol() ) == 27){
+
+			double averageDx = technicalsTemplate.getAdxAverage(stockPriceIO.getNseSymbol(),"dx", 13);
+
+			dx = formulaService.calculateDX(plusDi, minusDi);
+			adx = formulaService.calculateSmoothedMovingAverage(averageDx, averageDirectionalIndex.getMinusDm(), 14);
+		}
+
+		if(technicalsTemplate.getTrCount(stockPriceIO.getNseSymbol() ) > 27){
+
+			dx = formulaService.calculateDX(plusDi, minusDi);
+
+			adx = formulaService.calculateSmoothedMovingAverage(prevStockTechnicals.getTrend().getAdx().getAdx(),dx,  14);
+		}
+
+
+		averageDirectionalIndex.setAtr(atr);
+
+		averageDirectionalIndex.setPlusDi(plusDi);
+
+		averageDirectionalIndex.setMinusDi(minusDi);
+		averageDirectionalIndex.setDx(dx);
+		averageDirectionalIndex.setAdx(adx);
+
+		if(adx > 0.00) {
+			double avg3 = technicalsTemplate.getAdxAverage(stockPriceIO.getNseSymbol(),"adx", 2);
+			avg3 = formulaService.calculateSmoothedMovingAverage(avg3, adx, 3);
+			averageDirectionalIndex.setAvg3(avg3);
+		}
+
+		return averageDirectionalIndex;
+	}
+
+
 
 	private Volume getVolume(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals) {
 
@@ -375,15 +455,15 @@ public class UpdateTechnicalsConsumer {
 
 		Long avgVolume5 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 4);
 
-		avgVolume5 = (( avgVolume5 * 4 ) + volume ) / 5;
+		avgVolume5 = formulaService.calculateSmoothedMovingAverage(avgVolume5, volume, 5);
 
 		Long avgVolume10 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 9);
 
-		avgVolume10 = (( avgVolume10 * 9 ) + volume ) / 10;
+		avgVolume10 = formulaService.calculateSmoothedMovingAverage(avgVolume10, volume, 10);
 
 		Long avgVolume30 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 29);
 
-		avgVolume30 = (( avgVolume30 * 29 ) + volume ) / 30;
+		avgVolume30 = formulaService.calculateSmoothedMovingAverage(avgVolume30, volume, 30);
 
 		Volume priceVolume = new Volume(OBV, roc, volume, volumeChange, avgVolume5, avgVolume10, avgVolume30);
 
@@ -439,7 +519,7 @@ public class UpdateTechnicalsConsumer {
 
 		double avg3 = technicalsTemplate.getAverageMacd(stockPriceIO.getNseSymbol(),2);
 
-		avg3 = ( (avg3 * 2 ) + macd) / 3;
+		avg3 = formulaService.calculateSmoothedMovingAverage(avg3, macd, 3);
 
 		Macd macdObj =  new Macd(macd, signal);
 

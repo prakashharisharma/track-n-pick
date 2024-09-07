@@ -534,8 +534,8 @@ public class TechnicalsTemplate {
 		
 		StockTechnicals stockTechnicals = null;
 		
-		if(!stockTechnicalsList.isEmpty()) {
-			stockTechnicals = stockTechnicalsList.get(0);
+		if(!stockTechnicalsList.isEmpty() && stockTechnicalsList.size() == days) {
+			stockTechnicals = stockTechnicalsList.get(days-1);
 		}
 		
 		return stockTechnicals;
@@ -561,5 +561,49 @@ public class TechnicalsTemplate {
 
 		return stockTechnicals;
 
+	}
+
+	public long getTrCount(String nseSymbol){
+
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+
+						Criteria.where("nseSymbol").is(nseSymbol),
+						Criteria.where("trend.adx.tr").exists(Boolean.TRUE)
+				)
+		);
+
+		return mongoTemplate.count(query, StockTechnicals.class);
+	}
+
+	public double getAdxAverage(String nseSymbol, String type, int days) {
+
+		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
+		SortOperation sortByAvgPopAsc = Aggregation.sort(Sort.by(Direction.DESC, "bhavDate"));
+
+		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
+
+		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").avg("trend.adx."+type).as("avg");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("avg").as("avg");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc, yearHighGroup,
+				projectToMatchModel);
+
+		AggregationResults<AverageResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_TH,
+				AverageResult.class);
+
+		AverageResult averageResult = result.getUniqueMappedResult();
+
+		double average = 0;
+
+		if(averageResult != null) {
+			average = averageResult.getAvg();
+		}
+
+		return average;
 	}
 }

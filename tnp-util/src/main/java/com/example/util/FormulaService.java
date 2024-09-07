@@ -4,6 +4,7 @@ import org.decampo.xirr.Transaction;
 import org.decampo.xirr.Xirr;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 @Service
@@ -209,6 +210,20 @@ public class FormulaService {
 		}
 	}
 
+	public double calculatePlusDi(double smoothedPlusDm, double atr){
+		if( atr == 0.00){
+			return 0.00;
+		}
+		return 100 * Math.abs(smoothedPlusDm / atr);
+	}
+
+	public double calculateMinusDi(double smoothedMinusDm, double atr){
+		if( atr == 0.00){
+			return 0.00;
+		}
+		return 100 * Math.abs(smoothedMinusDm / atr);
+	}
+
 	/**
 	 * -DM = previous low - current low
 	 * @param high
@@ -232,15 +247,24 @@ public class FormulaService {
 	 * ((prevDaySmoothedAverage * (n-1) + close))/n;
 	 * NOTE :- The first SmoothedAverage is calculated using the arithmetic mean formula or simple moving average
 	 * @param prevDaySmoothedAverage
-	 * @param close
+	 * @param current
 	 * @return
 	 */
-	public double calculateSmoothedMovingAverage(double close, double prevDaySmoothedAverage){
+	public double calculateSmoothedMovingAverage(double prevDaySmoothedAverage, double current, int days){
 
-		int n = 14;
-
-		return ((prevDaySmoothedAverage * (n-1) + close))/n;
+		return ((prevDaySmoothedAverage * (days-1) + current))/days;
 
 	}
-	
+
+	public long calculateSmoothedMovingAverage(long prevDaySmoothedAverage, long current, int days){
+
+		return ((prevDaySmoothedAverage * (days-1) + current))/days;
+
+	}
+
+	public double calculateDX(double plusDI, double minusDI) {
+		return 100 * Math.abs(plusDI - minusDI) / (plusDI + minusDI);
+	}
+
+
 }

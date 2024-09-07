@@ -200,6 +200,34 @@ public class AppRunner implements CommandLineRunner {
 		 System.out.println("plusDM : "+ plusDM);
 		System.out.println("minusDM : "+ minusDM);
 
+		StockPrice sp = priceTemplate.getPrevPrice("BBL", 1);
+
+		System.out.println("bhav Date : "+ sp.getBhavDate());
+		sp = priceTemplate.getPrevPrice("BBL", 2);
+
+		System.out.println("bhav Date : "+ sp.getBhavDate());
+
+		sp = priceTemplate.getPrevPrice("BBL", 3);
+
+		System.out.println("bhav Date : "+ sp.getBhavDate());
+
+		StockTechnicals st = technicalsTemplate.getPrevTechnicals("BBL", 1);
+
+		System.out.println("ST bhav Date : "+ st.getBhavDate());
+
+		st = technicalsTemplate.getPrevTechnicals("BBL", 2);
+
+		System.out.println("ST bhav Date : "+ st.getBhavDate());
+
+		st = technicalsTemplate.getPrevTechnicals("BBL", 3);
+
+		System.out.println("ST bhav Date : "+ st.getBhavDate());
+
+		System.out.println("TR Count " + technicalsTemplate.getTrCount("HAVELLS"));
+
+		System.out.println("TR avg " + technicalsTemplate.getAdxAverage("HAVELLS", "tr", 13));
+		System.out.println("plusDm avg " + technicalsTemplate.getAdxAverage("HAVELLS", "plusDm", 13));
+		System.out.println("minusDm avg " + technicalsTemplate.getAdxAverage("HAVELLS", "minusDm", 13));
 		/*
 		System.out.println("Running Runner");
 		List<Stock> stocks = stockService.getActiveStocks();

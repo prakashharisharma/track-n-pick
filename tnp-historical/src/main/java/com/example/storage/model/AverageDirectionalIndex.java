@@ -20,6 +20,15 @@ public class AverageDirectionalIndex {
 
     private Double avg3;
 
+    public AverageDirectionalIndex() {
+    }
+
+    public AverageDirectionalIndex(Double tr, Double plusDm, Double minusDm) {
+        this.tr = tr;
+        this.plusDm = plusDm;
+        this.minusDm = minusDm;
+    }
+
     public Double getTr() {
         return tr;
     }
