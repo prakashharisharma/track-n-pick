@@ -141,10 +141,12 @@ public class RuleService {
 
 					} else {
 
+						/*
 						if(stock.getStockFactor().getReturnOnEquity() >= 50.0
 								&& stock.getStockFactor().getReturnOnCapital() >= 50.0){
 							isUndervalued = true;
 						}
+						*/
 
 						if (
 								stock.getStockFactor().getMarketCap() >= rules.getMcap() &&

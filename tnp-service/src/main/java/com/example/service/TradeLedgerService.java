@@ -63,14 +63,16 @@ public class TradeLedgerService {
 				LocalDate.now());
 
 		this.calculateCharges(tradeLedger, user, price, quantity);
-
+		System.out.println("Executing Sell");
 		tradeLedgerRepository.save(tradeLedger);
 
 	}
 
 	private void calculateCharges(TradeLedger tradeLedger, UserProfile user, double price, long quantity) {
 
-		double brokergaeTotal = (brokerageService.getBrokerage(user).getDeliveryCharge() * quantity) / 100;
+		//double brokergaeTotal = (brokerageService.getBrokerage(user).getDeliveryCharge() * quantity) / 100;
+
+		double brokergaeTotal = 10.0;
 
 		tradeLedger.setBrokerage(brokergaeTotal);
 
@@ -90,10 +92,13 @@ public class TradeLedgerService {
 
 		tradeLedger.setStampDuty(stampDuty);
 
-		double gst = (taxMasterService.getTaxMaster().getStampDuty()
+		double gst = (taxMasterService.getTaxMaster().getGst()
 				* (brokergaeTotal + nseTxnCharges + sebiTurnoverFee + stampDuty)) / 100;
-
 		tradeLedger.setGst(gst);
+		double totaL = brokergaeTotal + nseTxnCharges + sebiTurnoverFee + securityTxnTax + stampDuty + gst;
+
+
+		tradeLedger.setTotalCharges(totaL);
 
 	}
 

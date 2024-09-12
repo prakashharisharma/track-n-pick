@@ -116,6 +116,9 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "PREV_RSI", columnDefinition="decimal(10,2) default '0.00'")
 	double prevRsi;
 
+	@Column(name = "AVG_RSI", columnDefinition="decimal(10,2) default '0.00'")
+	double avgRsi;
+
 	@Column(name = "MACD", columnDefinition="decimal(10,2) default '0.00'")
 	double macd;
 
@@ -492,6 +495,22 @@ public class StockTechnicals implements Serializable{
 
 	public void setAvgAdx(double avgAdx) {
 		this.avgAdx = avgAdx;
+	}
+
+	public double getAvgRsi() {
+		return avgRsi;
+	}
+
+	public void setAvgRsi(double avgRsi) {
+		this.avgRsi = avgRsi;
+	}
+
+	public double getAvgMacd() {
+		return avgMacd;
+	}
+
+	public void setAvgMacd(double avgMacd) {
+		this.avgMacd = avgMacd;
 	}
 
 	@Override

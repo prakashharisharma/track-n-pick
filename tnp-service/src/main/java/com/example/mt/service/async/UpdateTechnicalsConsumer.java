@@ -198,7 +198,7 @@ public class UpdateTechnicalsConsumer {
 
 		double avg3 = technicalsTemplate.getAverageRsi(stockPriceIO.getNseSymbol(), 2);
 
-		avg3 = formulaService.calculateSmoothedMovingAverage(avg3, rsi, 3);
+		avg3 = formulaService.calculateSmoothedMovingAverage(avg3, smoothedRsi, 3);
 
 		rsiObj.setAvg3(avg3);
 
@@ -433,6 +433,7 @@ public class UpdateTechnicalsConsumer {
 		}
 
 		long prevOBV = 1;
+
 		double volumeChange = 0.00;
 
 		if (prevStockTechnicals != null) {
@@ -651,9 +652,11 @@ public class UpdateTechnicalsConsumer {
 			stockTechnicalsIO.setSignalLine(momentum.getMacd().getSignal());
 			stockTechnicalsIO.setAvgMacd(momentum.getMacd().getAvg3());
 
+
 			if(prevStockTechnicals!=null && prevStockTechnicals.getMomentum().getRsi()!=null){
-				stockTechnicalsIO.setPrevRsi(prevStockTechnicals.getMomentum().getRsi().getRsi());
+				stockTechnicalsIO.setPrevRsi(prevStockTechnicals.getMomentum().getRsi().getSmoothedRsi());
 			}
+
 
 
 		}else {
@@ -756,10 +759,11 @@ public class UpdateTechnicalsConsumer {
 
 			stockTechnicals.setRsi(stockTechnicalsIO.getRsi());
 			stockTechnicals.setPrevRsi(stockTechnicalsIO.getPrevRsi());
+			stockTechnicals.setAvgRsi(stockTechnicalsIO.getAvgRsi());
 
 			stockTechnicals.setMacd(stockTechnicalsIO.getMacd());
 			stockTechnicals.setPrevMacd(stockTechnicalsIO.getPrevMacd());
-
+			stockTechnicals.setAvgMacd(stockTechnicalsIO.getAvgMacd());
 			stockTechnicals.setSignal(stockTechnicalsIO.getSignalLine());
 			stockTechnicals.setPrevSignal(stockTechnicalsIO.getPrevSignalLine());
 
@@ -771,8 +775,10 @@ public class UpdateTechnicalsConsumer {
 			stockTechnicals.setRocv(stockTechnicalsIO.getRocv());
 
 			stockTechnicals.setVolume(stockTechnicalsIO.getVolume());
-
 			stockTechnicals.setAvgVolume(stockTechnicalsIO.getAvgVolume());
+
+			//stockTechnicals.setAdx(stockTechnicalsIO.getAdx());
+			//stockTechnicals.setAvgAdx(stockTechnicalsIO.getAvgAdx());
 
 			stockTechnicalsRepository.save(stockTechnicals);
 

@@ -210,21 +210,25 @@ public class UpdateResearchConsumer {
 
 			if (technicalsResearchService.isBullishCrossOver50(stock)) {
 
-				this.addBullishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.CROSS100);
+				this.addBullishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.CROSS50);
 
 			}
-
+			/*
 			if (technicalsResearchService.isBullishCrossOver50(stock)) {
 
 				this.addBullishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.CROSS50);
 
 			}
+ 			*/
 
+			/*
 			if (technicalsResearchService.isBullishCrossOver20(stock)) {
 
 				this.addBullishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.CROSS20);
 
 			}
+			*/
+
 
 			if (technicalsResearchService.isBearishCrossover200(stock)) {
 
@@ -237,12 +241,13 @@ public class UpdateResearchConsumer {
 				this.addBearishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.CROSS50);
 
 			}
-
+			/*
 			if (technicalsResearchService.isBearishCrossover20(stock)) {
 
 				this.addBearishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.CROSS20);
 
 			}
+			*/
 
 			if (technicalsResearchService.isPriceVolumeBullish(stock)) {
 				this.addBullishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.VIPR);

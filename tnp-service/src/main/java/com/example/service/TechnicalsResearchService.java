@@ -52,9 +52,9 @@ public class TechnicalsResearchService {
 
 		boolean isBullishCrossOver = false;
 
-		isBullishCrossOver = isShortCrossedLongFromLow(stock.getTechnicals().getPrevSma20(),
-				stock.getTechnicals().getPrevSma50(), stock.getTechnicals().getSma20(),
-				stock.getTechnicals().getSma50());
+		isBullishCrossOver = isShortCrossedLongFromLow(stock.getTechnicals().getPrevEma20(),
+				stock.getTechnicals().getPrevEma50(), stock.getTechnicals().getEma20(),
+				stock.getTechnicals().getEma50());
 
 		return isBullishCrossOver;
 	}
@@ -275,9 +275,9 @@ public class TechnicalsResearchService {
 	public boolean isBearishCrossover50(Stock stock) {
 		boolean isBearishCrossover = false;
 
-		isBearishCrossover = isLongCrossedShortFromHigh(stock.getTechnicals().getPrevSma20(),
-				stock.getTechnicals().getPrevSma50(), stock.getTechnicals().getSma20(),
-				stock.getTechnicals().getSma50());
+		isBearishCrossover = isLongCrossedShortFromHigh(stock.getTechnicals().getPrevEma20(),
+				stock.getTechnicals().getPrevEma50(), stock.getTechnicals().getEma20(),
+				stock.getTechnicals().getEma50());
 
 		return isBearishCrossover;
 	}
@@ -373,7 +373,7 @@ public class TechnicalsResearchService {
 
 		if (volume > (avgVolume * 5)) {
 			//if (stock.getTechnicals().getSma50() > stock.getTechnicals().getSma200()) {
-			if (stock.getTechnicals().getSma5() > stock.getTechnicals().getSma20()) {
+			if (stock.getTechnicals().getEma20() > stock.getTechnicals().getEma50()) {
 				if (volume > 500) {
 					if ((openPrice > prevClose) && (close > openPrice)) {
 						isPriceVolumeBullish = true;

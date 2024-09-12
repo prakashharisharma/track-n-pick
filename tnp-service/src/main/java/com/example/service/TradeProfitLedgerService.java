@@ -23,6 +23,7 @@ public class TradeProfitLedgerService {
 	
 	public void addProfitEntry(UserProfile user, Stock stock, long quantity, double netProfit) {
 		TradeProfitLedger tradeProfitLedger = new TradeProfitLedger(user, stock, quantity, netProfit);
+		System.out.println("Adding Profit Entry");
 		tradeProfitLedgerRepository.save(tradeProfitLedger);
 		
 	}

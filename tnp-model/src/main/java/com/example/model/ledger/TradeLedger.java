@@ -52,26 +52,29 @@ public class TradeLedger {
 	@Column(name = "TXN_DATE")
 	LocalDate transactionDate;
 
-	@Column(name = "BROKERAGE", columnDefinition="Decimal(10,4) default '0.00'")
+	@Column(name = "BROKERAGE", columnDefinition="Decimal(10,5) default '0.00'")
 	double brokerage;
 	
-	@Column(name = "SECURITY_TXN_TAX", columnDefinition="Decimal(10,4) default '0.00'")
+	@Column(name = "SECURITY_TXN_TAX", columnDefinition="Decimal(10,5) default '0.00'")
 	double securityTxnTax;
 	
-	@Column(name = "STAMP_DUTY", columnDefinition="Decimal(10,4) default '0.00'")
+	@Column(name = "STAMP_DUTY", columnDefinition="Decimal(10,5) default '0.00'")
 	double stampDuty;
 	
-	@Column(name = "NSE_TXN_CHARGE", columnDefinition="Decimal(10,4) default '0.00'")
+	@Column(name = "NSE_TXN_CHARGE", columnDefinition="Decimal(10,5) default '0.00'")
 	double nseTransactionCharge;
 	
-	@Column(name = "BSE_TXN_CHARGE", columnDefinition="Decimal(10,4) default '0.00'")
+	@Column(name = "BSE_TXN_CHARGE", columnDefinition="Decimal(10,5) default '0.00'")
 	double bseTransactionCharge;
 	
-	@Column(name = "SEBI_TURNOVER_FEE", columnDefinition="Decimal(10,4) default '0.00'")
+	@Column(name = "SEBI_TURNOVER_FEE", columnDefinition="Decimal(10,5) default '0.00'")
 	double sebiTurnoverFee;
 	
-	@Column(name = "GST", columnDefinition="Decimal(10,4) default '0.00'")
+	@Column(name = "GST", columnDefinition="Decimal(10,5) default '0.00'")
 	double gst;
+
+	@Column(name = "TOTAL_CHARGES", columnDefinition="Decimal(10,5) default '0.00'")
+	double totalCharges;
 
 	public TradeLedger() {
 		super();
@@ -221,7 +224,12 @@ public class TradeLedger {
 	public void setGst(double gst) {
 		this.gst = gst;
 	}
-	
-	
-	
+
+	public double getTotalCharges() {
+		return totalCharges;
+	}
+
+	public void setTotalCharges(double totalCharges) {
+		this.totalCharges = totalCharges;
+	}
 }

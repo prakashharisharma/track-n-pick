@@ -247,10 +247,10 @@ public class TechnicalsTemplate {
 
 		LimitOperation limitToOnlyFirstDoc = Aggregation.limit(days);
 
-		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").avg("momentum.rsi.rsi").as("avgRsi");
+		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").avg("momentum.rsi.smoothedRsi").as("avgRsi");
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
-				.andExpression("avgRsi").as("value");
+				.andExpression("smoothedRsi").as("value");
 
 		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc, yearHighGroup,
 				projectToMatchModel);
