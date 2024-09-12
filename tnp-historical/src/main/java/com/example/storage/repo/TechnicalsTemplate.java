@@ -250,7 +250,7 @@ public class TechnicalsTemplate {
 		GroupOperation yearHighGroup = Aggregation.group("nseSymbol").avg("momentum.rsi.smoothedRsi").as("avgRsi");
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
-				.andExpression("smoothedRsi").as("value");
+				.andExpression("avgRsi").as("value");
 
 		Aggregation aggregation = Aggregation.newAggregation(matchSymbol, sortByAvgPopAsc, limitToOnlyFirstDoc, yearHighGroup,
 				projectToMatchModel);
