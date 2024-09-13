@@ -255,10 +255,12 @@ public class BhavUpdateProcessor implements Processor {
 
 	private void processNseBhav(StockPriceIN stockPriceIN){
 
-		if(stockPriceIN.getSeries().equalsIgnoreCase("EQ")
+		/*
+			if(stockPriceIN.getSeries().equalsIgnoreCase("EQ")
 				|| stockPriceIN.getSeries().equalsIgnoreCase("BE")) {
-
-			StockPriceIO stockPriceIO = new StockPriceIO(stockPriceIN.getSource().toUpperCase(), stockPriceIN.getCompanyName(),stockPriceIN.getNseSymbol(), stockPriceIN.getSeries(), stockPriceIN.getOpen(), stockPriceIN.getHigh(), stockPriceIN.getLow(), stockPriceIN.getClose(), stockPriceIN.getLast(), stockPriceIN.getPrevClose(), stockPriceIN.getTottrdqty(), stockPriceIN.getTottrdval(), stockPriceIN.getTimestamp().toString(), stockPriceIN.getTotaltrades(), stockPriceIN.getIsin());
+		*/
+			if(stockPriceIN.getSeries().equalsIgnoreCase("EQ")) {
+				StockPriceIO stockPriceIO = new StockPriceIO(stockPriceIN.getSource().toUpperCase(), stockPriceIN.getCompanyName(),stockPriceIN.getNseSymbol(), stockPriceIN.getSeries(), stockPriceIN.getOpen(), stockPriceIN.getHigh(), stockPriceIN.getLow(), stockPriceIN.getClose(), stockPriceIN.getLast(), stockPriceIN.getPrevClose(), stockPriceIN.getTottrdqty(), stockPriceIN.getTottrdval(), stockPriceIN.getTimestamp().toString(), stockPriceIN.getTotaltrades(), stockPriceIN.getIsin());
 
 			this.sendToUpdateQueue(stockPriceIO);
 
