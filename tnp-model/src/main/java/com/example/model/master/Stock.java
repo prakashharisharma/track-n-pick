@@ -64,8 +64,11 @@ public class Stock implements Serializable{
 	Sector sector;
 	
 	@Column(name = "IS_ACTIVE")
-	boolean active = true;
-	
+	private boolean active = true;
+
+	@Column(name = "IS_ACTIVITY_COMPLETED")
+	private boolean activityCompleted = false;
+
 	@Column(name = "INDICE")
 	@Enumerated(EnumType.STRING)
 	private IndiceType primaryIndice;
@@ -85,10 +88,12 @@ public class Stock implements Serializable{
 	
 	@OneToMany(mappedBy = "portfolioId.stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<UserPortfolio> userPortfolio = new HashSet<>();
-	
+
+
 	public Stock() {
 		super();
 		this.active = true;
+		this.activityCompleted = false;
 	}
 
 	public Stock(String companyName, String nseSymbol, String bseCode) {
@@ -97,6 +102,7 @@ public class Stock implements Serializable{
 		this.nseSymbol = nseSymbol;
 		this.bseCode = bseCode;
 		this.active = true;
+		this.activityCompleted = false;
 	}
 
 	public Stock(StockIO.Exchange exchange, String isinCode, String companyName, String nseSymbol, IndiceType primaryIndice, Sector sectorName) {
@@ -109,6 +115,7 @@ public class Stock implements Serializable{
 		this.sector = sectorName;
 		this.sectorName = sectorName.getSectorName();
 		this.active = true;
+		this.activityCompleted = false;
 	}
 	
 	public Stock(String isinCode, String companyName, String nseSymbol, String sector) {
@@ -118,6 +125,7 @@ public class Stock implements Serializable{
 		this.nseSymbol = nseSymbol;
 		this.sectorName = sector;
 		this.active = true;
+		this.activityCompleted = false;
 	}
 
 	public long getStockId() {
@@ -215,6 +223,14 @@ public class Stock implements Serializable{
 
 	public void setPrimaryIndice(IndiceType primaryIndice) {
 		this.primaryIndice = primaryIndice;
+	}
+
+	public boolean isActivityCompleted() {
+		return activityCompleted;
+	}
+
+	public void setActivityCompleted(boolean activityCompleted) {
+		this.activityCompleted = activityCompleted;
 	}
 
 	@Override

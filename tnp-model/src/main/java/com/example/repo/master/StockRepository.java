@@ -29,6 +29,8 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 	
 	List<Stock> findByActive(boolean isActive);
 
+	List<Stock> findByActivityCompleted(boolean isActivityCompleted);
+
 	public List<Stock> findAll();
 	
 	public List<Stock> findByActiveAndPrimaryIndice(boolean isActive, IndiceType primaryIndice);

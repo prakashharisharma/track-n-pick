@@ -10,11 +10,11 @@ public class Momentum {
 
 	private StochasticOscillator stochasticOscillator;
 	
-	public Momentum(Macd macd, RSI rsi,StochasticOscillator stochasticOscillator) {
+	public Momentum(Macd macd, RSI rsi) {
 		super();
 		this.macd = macd;
 		this.rsi = rsi;
-		this.stochasticOscillator = stochasticOscillator;
+		//this.stochasticOscillator = stochasticOscillator;
 	}
 
 	public Macd getMacd() {

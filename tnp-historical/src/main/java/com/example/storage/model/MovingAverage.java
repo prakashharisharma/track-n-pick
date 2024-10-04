@@ -2,11 +2,11 @@ package com.example.storage.model;
 
 public class MovingAverage {
 
-	private Simple simple;
+	private SimpleMovingAverage simple;
 	
-	private Exponential exponential;
+	private ExponentialMovingAverage exponential;
 	
-	public MovingAverage(Simple simple, Exponential exponential) {
+	public MovingAverage(SimpleMovingAverage simple, ExponentialMovingAverage exponential) {
 		super();
 		
 		this.simple = simple;
@@ -14,19 +14,19 @@ public class MovingAverage {
 		
 	}
 
-	public Simple getSimple() {
+	public SimpleMovingAverage getSimple() {
 		return simple;
 	}
 
-	public void setSimple(Simple simple) {
+	public void setSimple(SimpleMovingAverage simple) {
 		this.simple = simple;
 	}
 
-	public Exponential getExponential() {
+	public ExponentialMovingAverage getExponential() {
 		return exponential;
 	}
 
-	public void setExponential(Exponential exponential) {
+	public void setExponential(ExponentialMovingAverage exponential) {
 		this.exponential = exponential;
 	}
 

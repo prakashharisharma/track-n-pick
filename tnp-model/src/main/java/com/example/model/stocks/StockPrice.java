@@ -40,18 +40,22 @@ public class StockPrice implements Serializable{
 	@JsonProperty("LastTradedPrice")
 	@Column(name = "CURRENT_PRICE", columnDefinition="Decimal(10,2) default '0.00'")
 	double currentPrice;
-	
+
 	@Column(name = "PREV_CLOSE", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevClose;
-	
+
+
 	@Column(name = "OPEN", columnDefinition="Decimal(10,2) default '0.00'")
-	double openPrice;
+	double open;
 
 	@Column(name = "HIGH", columnDefinition="Decimal(10,2) default '0.00'")
 	double high;
 
 	@Column(name = "LOW", columnDefinition="Decimal(10,2) default '0.00'")
 	double low;
+
+	@Column(name = "CLOSE", columnDefinition="Decimal(10,2) default '0.00'")
+	double close;
 	
 	@JsonProperty("FiftyTwoWeekLow")
 	@Column(name = "YEAR_LOW", columnDefinition="Decimal(10,2) default '0.00'")
@@ -97,14 +101,6 @@ public class StockPrice implements Serializable{
 
 	public void setPrevClose(double prevClose) {
 		this.prevClose = prevClose;
-	}
-
-	public double getOpenPrice() {
-		return openPrice;
-	}
-
-	public void setOpenPrice(double openPrice) {
-		this.openPrice = openPrice;
 	}
 
 	public double getHigh() {
@@ -155,13 +151,30 @@ public class StockPrice implements Serializable{
 		this.bhavDate = bhavDate;
 	}
 
-	@Override
-	public String toString() {
-		return "StockPrice [stockPriceId=" + stockPriceId 
-				+ ", currentPrice=" + currentPrice + ", yearLow=" + yearLow + ", yearHigh=" + yearHigh
-				+ ", lastModified=" + lastModified + "]";
+	public double getOpen() {
+		return open;
 	}
 
-	
+	public void setOpen(double open) {
+		this.open = open;
+	}
 
+	public double getClose() {
+		return close;
+	}
+
+	public void setClose(double close) {
+		this.close = close;
+	}
+
+	@Override
+	public String toString() {
+		return "StockPrice{" +
+				"open=" + open +
+				", high=" + high +
+				", low=" + low +
+				", close=" + close +
+				", bhavDate=" + bhavDate +
+				'}';
+	}
 }

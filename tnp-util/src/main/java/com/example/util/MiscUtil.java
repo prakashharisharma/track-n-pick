@@ -15,14 +15,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class MiscUtil {
 
-	private static int min = 10;
-	private static int max = 500;
+	private static int min = 500;
+	private static int max = 3800;
 
 	public String formatDouble(double value) {
 
 		DecimalFormat dec = new DecimalFormat("#0.00");
 
 		return dec.format(value);
+	}
+
+	public double formatDouble(double value, String decimalZeros) {
+
+		DecimalFormat dec = new DecimalFormat("#0."+ decimalZeros);
+
+		return Double.parseDouble(dec.format(value));
 	}
 
 	public long getInterval() {

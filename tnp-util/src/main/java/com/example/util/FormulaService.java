@@ -2,6 +2,7 @@ package com.example.util;
 
 import org.decampo.xirr.Transaction;
 import org.decampo.xirr.Xirr;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
@@ -10,20 +11,25 @@ import java.util.List;
 @Service
 public class FormulaService {
 
+	@Autowired
+	private MiscUtil miscUtil;
+
 	public double calculateRs(double averageGain, double averageLoss) {
 
-		double rs = averageGain / averageLoss;
 
-		return rs;
+		return  (averageLoss == 0.00 ) ? 0.00 : (averageGain / averageLoss);
+		//double rs = averageGain / averageLoss;
+
+		//return rs;
 	}
 
 	public double calculateRsi(double rs) {
 
-		double rsi = 0.00;
+		double rsi = 50.00;
 		try {
 			rsi = (100 - (100 / (1 + rs)));
 		}catch(Exception e) {
-			rsi = 1.00;
+			rsi = 50.00;
 		}
 		return rsi;
 	}
@@ -137,7 +143,7 @@ public class FormulaService {
 		
 		double multiplier = (2.0 / ((double)timePeriod + 1.0) );
 
-		return multiplier;
+		return miscUtil.formatDouble(multiplier,"0000");
 	}
 
 	public double calculateEMA(double close, double prevEMA, int timePeriod) {
@@ -145,6 +151,8 @@ public class FormulaService {
 		double ema;
 		
 		double K = this.getEMAMultiplier(timePeriod);
+
+		//System.out.println("(("+close+"  * "+K+") + ("+prevEMA +" * (1 - "+K+")))");
 
 		ema = ((close  * K) + (prevEMA * (1 - K)));
 
@@ -252,13 +260,13 @@ public class FormulaService {
 	 */
 	public double calculateSmoothedMovingAverage(double prevDaySmoothedAverage, double current, int days){
 
-		return ((prevDaySmoothedAverage * (days-1) + current))/days;
+		return (((prevDaySmoothedAverage * (days-1)) + current))/days;
 
 	}
 
 	public long calculateSmoothedMovingAverage(long prevDaySmoothedAverage, long current, int days){
 
-		return ((prevDaySmoothedAverage * (days-1) + current))/days;
+		return (((prevDaySmoothedAverage * (days-1)) + current))/days;
 
 	}
 

@@ -1,20 +1,20 @@
 package com.example.storage.model;
 
-public class Exponential {
+public class ExponentialMovingAverage {
 
 	private Double avg5;
-
 	private Double avg10;
-
-	private Double avg12;
 	private Double avg20;
-
-	private Double avg26;
 	private Double avg50;
 	private Double avg100;
 	private Double avg200;
 
-	public Exponential(Double avg5, Double avg10, Double avg20,Double avg50, Double avg100, Double avg200) {
+
+	private Double avg12;
+	private Double avg26;
+
+
+	public ExponentialMovingAverage(Double avg5, Double avg10, Double avg20, Double avg50, Double avg100, Double avg200) {
 		super();
 		this.avg5 = avg5 != null ? avg5 : 0.00;
 		this.avg10 = avg10 != null ? avg10 : 0.00;
@@ -91,7 +91,13 @@ public class Exponential {
 
 	@Override
 	public String toString() {
-		return "Exponential [avg50=" + avg50 + ", avg100=" + avg100 + ", avg200=" + avg200 + "]";
+		return "ExponentialMovingAverage{" +
+				"avg5=" + avg5 +
+				", avg10=" + avg10 +
+				", avg20=" + avg20 +
+				", avg50=" + avg50 +
+				", avg100=" + avg100 +
+				", avg200=" + avg200 +
+				'}';
 	}
-
 }

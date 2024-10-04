@@ -109,15 +109,11 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "PREV_EMA_200", columnDefinition="decimal(10,2) default '0.00'")
 	double prevEma200;
 
-	
 	@Column(name = "RSI", columnDefinition="decimal(10,2) default '0.00'")
 	double rsi;
 
 	@Column(name = "PREV_RSI", columnDefinition="decimal(10,2) default '0.00'")
 	double prevRsi;
-
-	@Column(name = "AVG_RSI", columnDefinition="decimal(10,2) default '0.00'")
-	double avgRsi;
 
 	@Column(name = "MACD", columnDefinition="decimal(10,2) default '0.00'")
 	double macd;
@@ -125,8 +121,6 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "PREV_MACD", columnDefinition="decimal(10,2) default '0.00'")
 	double prevMacd;
 
-	@Column(name = "AVG_MACD", columnDefinition="decimal(10,2) default '0.00'")
-	double avgMacd;
 
 	@Column(name = "SIGNAL_LINE", columnDefinition="decimal(10,2) default '0.00'")
 	double signal;
@@ -137,17 +131,6 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "LAST_MODIFIED")
 	LocalDate lastModified = LocalDate.now();
 
-	@Column(name = "SOK", columnDefinition="decimal(10,2) default '0.00'")
-	double sok;
-	
-	@Column(name = "SOD", columnDefinition="decimal(10,2) default '0.00'")
-	double sod;
-	
-	@Column(name = "OBV")
-	long obv;
-	
-	@Column(name = "ROCV", columnDefinition="decimal(10,2) default '0.00'")
-	double rocv;
 	
 	@Column(name = "VOLUME")
 	Long volume;
@@ -158,8 +141,14 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "ADX", columnDefinition="decimal(10,2) default '0.00'")
 	double adx;
 
-	@Column(name = "AVG_ADX", columnDefinition="decimal(10,2) default '0.00'")
-	double avgAdx;
+	@Column(name = "PREV_ADX", columnDefinition="decimal(10,2) default '0.00'")
+	double prevAdx;
+
+	@Column(name = "PLUS_DI", columnDefinition="decimal(10,2) default '0.00'")
+	double plusDi;
+
+	@Column(name = "MINUS_DI", columnDefinition="decimal(10,2) default '0.00'")
+	double minusDi;
 
 	public long getStockTechnicalsId() {
 		return stockTechnicalsId;
@@ -433,38 +422,6 @@ public class StockTechnicals implements Serializable{
 		this.lastModified = lastModified;
 	}
 
-	public double getSok() {
-		return sok;
-	}
-
-	public void setSok(double sok) {
-		this.sok = sok;
-	}
-
-	public double getSod() {
-		return sod;
-	}
-
-	public void setSod(double sod) {
-		this.sod = sod;
-	}
-
-	public long getObv() {
-		return obv;
-	}
-
-	public void setObv(long obv) {
-		this.obv = obv;
-	}
-
-	public double getRocv() {
-		return rocv;
-	}
-
-	public void setRocv(double rocv) {
-		this.rocv = rocv;
-	}
-
 	public Long getVolume() {
 		return volume!= null ? volume : 1l;
 	}
@@ -489,38 +446,74 @@ public class StockTechnicals implements Serializable{
 		this.adx = adx;
 	}
 
-	public double getAvgAdx() {
-		return avgAdx;
+	public double getPlusDi() {
+		return plusDi;
 	}
 
-	public void setAvgAdx(double avgAdx) {
-		this.avgAdx = avgAdx;
+	public void setPlusDi(double plusDi) {
+		this.plusDi = plusDi;
 	}
 
-	public double getAvgRsi() {
-		return avgRsi;
+	public double getMinusDi() {
+		return minusDi;
 	}
 
-	public void setAvgRsi(double avgRsi) {
-		this.avgRsi = avgRsi;
+	public void setMinusDi(double minusDi) {
+		this.minusDi = minusDi;
 	}
 
-	public double getAvgMacd() {
-		return avgMacd;
+	public double getPrevAdx() {
+		return prevAdx;
 	}
 
-	public void setAvgMacd(double avgMacd) {
-		this.avgMacd = avgMacd;
+	public void setPrevAdx(double prevAdx) {
+		this.prevAdx = prevAdx;
 	}
+
 
 	@Override
 	public String toString() {
-		return "StockTechnicals [stockTechnicalsId=" + stockTechnicalsId + ", stock=" + stock + ", sma50=" + sma50
-				+ ", prevSma50=" + prevSma50 + ", sma100=" + sma100 + ", prevSma100=" + prevSma100 + ", sma200="
-				+ sma200 + ", prevSma200=" + prevSma200 + ", sma20=" + sma20 + ", prevSma20=" + prevSma20 + ", rsi="
-				+ rsi + ", lastModified=" + lastModified + ", sok=" + sok + ", sod=" + sod + ", obv=" + obv + ", rocv="
-				+ rocv + "]";
+		return "StockTechnicals{" +
+				"stockTechnicalsId=" + stockTechnicalsId +
+				", stock=" + stock +
+				", bhavDate=" + bhavDate +
+				", sma5=" + sma5 +
+				", prevSma5=" + prevSma5 +
+				", sma10=" + sma10 +
+				", prevSma10=" + prevSma10 +
+				", sma20=" + sma20 +
+				", prevSma20=" + prevSma20 +
+				", sma50=" + sma50 +
+				", prevSma50=" + prevSma50 +
+				", sma100=" + sma100 +
+				", prevSma100=" + prevSma100 +
+				", sma200=" + sma200 +
+				", prevSma200=" + prevSma200 +
+				", ema5=" + ema5 +
+				", prevEma5=" + prevEma5 +
+				", ema10=" + ema10 +
+				", prevEma10=" + prevEma10 +
+				", ema20=" + ema20 +
+				", prevEma20=" + prevEma20 +
+				", ema50=" + ema50 +
+				", prevEma50=" + prevEma50 +
+				", ema100=" + ema100 +
+				", prevEma100=" + prevEma100 +
+				", ema200=" + ema200 +
+				", prevEma200=" + prevEma200 +
+				", rsi=" + rsi +
+				", prevRsi=" + prevRsi +
+				", macd=" + macd +
+				", prevMacd=" + prevMacd +
+				", signal=" + signal +
+				", prevSignal=" + prevSignal +
+				", lastModified=" + lastModified +
+				", volume=" + volume +
+				", avgVolume=" + avgVolume +
+				", adx=" + adx +
+				", prevAdx=" + prevAdx +
+				", plusDi=" + plusDi +
+				", minusDi=" + minusDi +
+				'}';
 	}
-
-	
 }

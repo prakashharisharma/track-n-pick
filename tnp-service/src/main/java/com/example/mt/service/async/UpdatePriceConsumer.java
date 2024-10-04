@@ -1,19 +1,19 @@
 package com.example.mt.service.async;
 
+import java.io.IOException;
 import java.time.LocalDate;
 
-import javax.jms.Session;
-
+import com.example.mq.producer.EventProducerService;
 import com.example.service.SectorService;
 import com.example.util.io.model.StockIO;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.activemq.Message;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.handler.annotation.Headers;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.stereotype.Component;
+import org.springframework.kafka.annotation.KafkaListener;
 import com.example.storage.repo.PriceTemplate;
 import com.example.storage.model.StockPrice;
 import com.example.storage.model.result.HighLowResult;
@@ -23,11 +23,19 @@ import com.example.mq.producer.QueueService;
 import com.example.repo.stocks.StockPriceRepository;
 import com.example.service.StockService;
 import com.example.util.io.model.StockPriceIO;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Service;
 
-@Component
+import javax.jms.Message;
+import javax.jms.Session;
+
+
 @Slf4j
+@Service
 public class UpdatePriceConsumer {
-
+//public class UpdatePriceConsumer extends AbstractEventConsumer<StockPriceIO> {
 	@Autowired
 	private QueueService queueService;
 
@@ -43,9 +51,13 @@ public class UpdatePriceConsumer {
 	@Autowired
 	private PriceTemplate priceTemplate;
 
+	@Autowired private ObjectMapper mapper;
+
+	@Autowired private EventProducerService eventProducerService;
+
 	@JmsListener(destination = QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE)
 	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers, Message message,
-			Session session) throws InterruptedException {
+							   Session session) throws InterruptedException {
 
 		log.info("{} Starting price update.", stockPriceIO.getNseSymbol());
 
@@ -61,6 +73,48 @@ public class UpdatePriceConsumer {
 		log.info("{} Completed price update.", stockPriceIO.getNseSymbol());
 	}
 
+/*
+	@KafkaListener(
+			topics = "${kafka.topic.prefix:}" + QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE,
+			clientIdPrefix = "json",
+			containerFactory = "kafkaListenerContainerFactory",
+			concurrency = "${spring.kafka.listener.concurrency:1}")
+	@Override
+	public void consume(
+			ConsumerRecord<String, Message<StockPriceIO>> consumerRecord, Message<StockPriceIO> messageWrapper)
+			throws Exception {
+		this.process(consumerRecord, messageWrapper);
+	}
+
+	@Override
+	public void process(Message<StockPriceIO> messageWrapper) throws Exception {
+
+		StockPriceIO stockPriceIO = this.map(messageWrapper);
+
+		log.info("{} Starting price update.", stockPriceIO.getNseSymbol());
+
+		if (stockService.getStockByNseSymbol(stockPriceIO.getNseSymbol()) != null){
+
+			this.processPriceUpdate(stockPriceIO);
+
+		}else {
+
+			this.addStockToMaster(stockPriceIO);
+		}
+
+		log.info("{} Completed price update.", stockPriceIO.getNseSymbol());
+	}
+
+	private StockPriceIO map(Message<StockPriceIO> messageWrapper) throws IOException {
+
+		ObjectWriter objectWriter = mapper.writer().withDefaultPrettyPrinter();
+
+		String jsonString = objectWriter.writeValueAsString(messageWrapper.getPayload());
+
+		return mapper.readValue(jsonString, new TypeReference<StockPriceIO>() {});
+	}
+*/
+
 	private void processPriceUpdate(StockPriceIO stockPriceIO){
 
 		this.updatePriceHistory(stockPriceIO);
@@ -72,13 +126,15 @@ public class UpdatePriceConsumer {
 
 		log.info("{} Updating historical price", stockPriceIO.getNseSymbol());
 
-		//StockPrice prevStockPriceHistory = priceTemplate.getPrevPrice(stockPriceIO.getNseSymbol(), 1);
-		StockPrice existingStockPriceHistory = priceTemplate.getForDate(stockPriceIO.getNseSymbol(), stockPriceIO.getTimestamp());
+		StockPrice stockPrice = new StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
+				stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getTottrdqty());
 
-		StockPrice stockPriceHistory = new StockPrice(stockPriceIO.getNseSymbol(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
-				stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getPrevClose(),
-				stockPriceIO.getBhavDate());
+		priceTemplate.upsert(stockPrice);
+		log.info("{} Updated historical price for date {}", stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate());
+		//StockPrice existingStockPriceHistory = priceTemplate.getForDate(stockPriceIO.getNseSymbol(), stockPriceIO.getTimestamp());
 
+
+		/*
 		this.setYearHighLow(stockPriceIO, stockPriceHistory);
 		this.set14DaysHighLow(stockPriceIO, stockPriceHistory);
 
@@ -91,6 +147,7 @@ public class UpdatePriceConsumer {
 		}else{
 			log.info("{} Already updated historical price", stockPriceIO.getNseSymbol());
 		}
+		*/
 
 		this.updatePriceTxn(stockPriceIO);
 
@@ -114,23 +171,31 @@ public class UpdatePriceConsumer {
 			}
 
 			stockPrice.setStock(stock);
-			stockPrice.setLastModified(LocalDate.now());
-			stockPrice.setCurrentPrice(stockPriceIO.getClose());
-			stockPrice.setPrevClose(stockPriceIO.getPrevClose());
-			stockPrice.setOpenPrice(stockPriceIO.getOpen());
+
+			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
+			stockPrice.setOpen(stockPriceIO.getOpen());
 			stockPrice.setHigh(stockPriceIO.getHigh());
 			stockPrice.setLow(stockPriceIO.getLow());
+			stockPrice.setClose(stockPriceIO.getClose());
+
+			stockPrice.setCurrentPrice(stockPriceIO.getClose());
+			stockPrice.setPrevClose(stockPriceIO.getPrevClose());
+
 			stockPrice.setYearHigh(stockPriceIO.getYearHigh());
 			stockPrice.setYearLow(stockPriceIO.getYearLow());
-			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
 
+			stockPrice.setLastModified(LocalDate.now());
 			stockPriceRepository.save(stockPrice);
 
 			log.info("{} Updated transactional price", stockPriceIO.getNseSymbol());
 		}
 
 		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE);
+
+		//this.createEvent(stockPriceIO);
 	}
+
+
 
 
 
@@ -240,4 +305,11 @@ public class UpdatePriceConsumer {
 		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
 	}
 
+/*
+	private void createEvent(StockPriceIO stockPriceIO) {
+		Message<StockPriceIO> message = new Message<>(stockPriceIO);
+		eventProducerService.create(QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE, message);
+		log.info("send event");
+	}
+ */
 }

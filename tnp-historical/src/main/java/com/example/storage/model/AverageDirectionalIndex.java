@@ -10,6 +10,10 @@ public class AverageDirectionalIndex {
 
     private Double atr;
 
+    private Double smoothedPlusDM;
+
+    private Double smoothedMinusDM;
+
     private Double plusDi;
 
     private Double minusDi;
@@ -23,10 +27,14 @@ public class AverageDirectionalIndex {
     public AverageDirectionalIndex() {
     }
 
-    public AverageDirectionalIndex(Double tr, Double plusDm, Double minusDm) {
-        this.tr = tr;
-        this.plusDm = plusDm;
-        this.minusDm = minusDm;
+    public AverageDirectionalIndex(Double atr, Double smoothedPlusDM,Double smoothedMinusDM, Double plusDi, Double minusDi, Double dx, Double adx) {
+        this.atr = atr;
+        this.smoothedPlusDM = smoothedPlusDM;
+        this.smoothedMinusDM = smoothedMinusDM;
+        this.plusDi = plusDi;
+        this.minusDi = minusDi;
+        this.dx = dx;
+        this.adx = adx;
     }
 
     public Double getTr() {
@@ -59,6 +67,22 @@ public class AverageDirectionalIndex {
 
     public void setAtr(Double atr) {
         this.atr = atr;
+    }
+
+    public Double getSmoothedPlusDM() {
+        return smoothedPlusDM;
+    }
+
+    public void setSmoothedPlusDM(Double smoothedPlusDM) {
+        this.smoothedPlusDM = smoothedPlusDM;
+    }
+
+    public Double getSmoothedMinusDM() {
+        return smoothedMinusDM;
+    }
+
+    public void setSmoothedMinusDM(Double smoothedMinusDM) {
+        this.smoothedMinusDM = smoothedMinusDM;
     }
 
     public Double getPlusDi() {
@@ -99,5 +123,22 @@ public class AverageDirectionalIndex {
 
     public void setAvg3(Double avg3) {
         this.avg3 = avg3;
+    }
+
+    @Override
+    public String toString() {
+        return "AverageDirectionalIndex{" +
+                "tr=" + tr +
+                ", plusDm=" + plusDm +
+                ", minusDm=" + minusDm +
+                ", atr=" + atr +
+                ", smoothedPlusDM=" + smoothedPlusDM +
+                ", smoothedMinusDM=" + smoothedMinusDM +
+                ", plusDi=" + plusDi +
+                ", minusDi=" + minusDi +
+                ", dx=" + dx +
+                ", adx=" + adx +
+                ", avg3=" + avg3 +
+                '}';
     }
 }

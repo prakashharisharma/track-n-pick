@@ -11,11 +11,24 @@ public class StockTechnicals {
 	@Id
 	private String id;
 
-	String nseSymbol;
+	private String nseSymbol;
 	
-	Instant bhavDate = Instant.now();
+	private Instant bhavDate = Instant.now();
 	
-	Volume volume;
+	private Volume volume;
+
+	private SimpleMovingAverage sma;
+
+	private ExponentialMovingAverage ema;
+
+	private AverageDirectionalIndex adx;
+
+	private RelativeStrengthIndex rsi;
+
+	private MovingAverageConvergenceDivergence macd;
+
+
+	MovingAverage movingAverage;
 
 	Trend trend;
 	
@@ -26,6 +39,18 @@ public class StockTechnicals {
 		
 	}
 
+	public StockTechnicals(String nseSymbol, Instant bhavDate, Volume volume, SimpleMovingAverage sma, ExponentialMovingAverage ema, AverageDirectionalIndex adx, RelativeStrengthIndex rsi, MovingAverageConvergenceDivergence macd) {
+		this.nseSymbol = nseSymbol;
+		this.bhavDate = bhavDate;
+		this.volume = volume;
+		this.sma = sma;
+		this.ema = ema;
+		this.adx = adx;
+		this.rsi = rsi;
+		this.macd = macd;
+	}
+
+	@Deprecated
 	public StockTechnicals(String nseSymbol, Instant bhavDate, Volume volume, Trend trend, Momentum momentum) {
 		super();
 		this.nseSymbol = nseSymbol;
@@ -83,10 +108,57 @@ public class StockTechnicals {
 		this.momentum = momentum;
 	}
 
-	@Override
-	public String toString() {
-		return "StockTechnicals [id=" + id + ", nseSymbol=" + nseSymbol + ", bhavDate=" + bhavDate + ", volume="
-				+ volume + ", trend=" + trend + ", momentum=" + momentum + "]";
+	public SimpleMovingAverage getSma() {
+		return sma;
 	}
 
+	public void setSma(SimpleMovingAverage sma) {
+		this.sma = sma;
+	}
+
+	public ExponentialMovingAverage getEma() {
+		return ema;
+	}
+
+	public void setEma(ExponentialMovingAverage ema) {
+		this.ema = ema;
+	}
+
+	public AverageDirectionalIndex getAdx() {
+		return adx;
+	}
+
+	public void setAdx(AverageDirectionalIndex adx) {
+		this.adx = adx;
+	}
+
+	public RelativeStrengthIndex getRsi() {
+		return rsi;
+	}
+
+	public void setRsi(RelativeStrengthIndex rsi) {
+		this.rsi = rsi;
+	}
+
+	public MovingAverageConvergenceDivergence getMacd() {
+		return macd;
+	}
+
+	public void setMacd(MovingAverageConvergenceDivergence macd) {
+		this.macd = macd;
+	}
+
+	@Override
+	public String toString() {
+		return "StockTechnicals{" +
+				"nseSymbol='" + nseSymbol + '\'' +
+				", bhavDate=" + bhavDate +
+				", volume=" + volume +
+				", sma=" + sma +
+				", ema=" + ema +
+				", adx=" + adx +
+				", rsi=" + rsi +
+				", macd=" + macd +
+				'}';
+	}
 }

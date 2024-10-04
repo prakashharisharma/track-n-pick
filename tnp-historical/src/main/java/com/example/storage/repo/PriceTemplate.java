@@ -8,6 +8,9 @@ import java.util.List;
 
 import com.example.storage.model.StockTechnicals;
 import com.example.storage.model.result.*;
+import com.mongodb.client.result.UpdateResult;
+import com.mongodb.internal.bulk.UpdateRequest;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -21,6 +24,7 @@ import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import com.example.storage.model.StockPrice;
@@ -240,18 +244,20 @@ public class PriceTemplate {
 	public HighLowResult getHighLowByDate(String nseSymbol, LocalDate fromDate) {
 		Instant yearBackInstant = fromDate.atStartOfDay().toInstant(ZoneOffset.UTC);
 
-		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+		//MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+		MatchOperation matchSymbolAndDate = Aggregation.match(new Criteria().andOperator(
+				Criteria.where("bhavDate").gte(Date.from(yearBackInstant)),
+				Criteria.where("nseSymbol").is(nseSymbol)
+		));
 
-		MatchOperation matchPrices = Aggregation
-				.match(new Criteria("bhavDate").gte(Date.from(yearBackInstant)));
+		//MatchOperation matchPrices = Aggregation.match(new Criteria("bhavDate").gte(Date.from(yearBackInstant)));
 		
 		GroupOperation yearLowGroup = Aggregation.group("nseSymbol").min("low").as("yearLow").max("high").as("yearHigh");
 
 		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
 				.andExpression("yearLow").as("low").andExpression("yearHigh").as("high");
 
-		Aggregation aggregation = Aggregation.newAggregation(matchSymbol,  matchPrices,  yearLowGroup,
-				projectToMatchModel);
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbolAndDate,  yearLowGroup, projectToMatchModel);
 
 		AggregationResults<HighLowResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_PH,
 				HighLowResult.class);
@@ -271,6 +277,7 @@ public class PriceTemplate {
 		Instant yearBackInstant = fromDate.atStartOfDay().toInstant(ZoneOffset.UTC);
 
 		MatchOperation matchSymbol = Aggregation.match(new Criteria("nseSymbol").is(nseSymbol));
+
 
 		MatchOperation matchPrices = Aggregation
 				.match(new Criteria("bhavDate").gte(Date.from(yearBackInstant)));
@@ -442,8 +449,6 @@ public class PriceTemplate {
 		if(stockPriceResult != null) {
 			averagePrice = stockPriceResult.getResultPrice();
 		}
-		
-		//System.out.println(result.getRawResults());
 
 		return averagePrice;
 	}
@@ -546,5 +551,42 @@ public class PriceTemplate {
 
 	}
 
+	public void upsert(StockPrice stockPrice){
+
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("bhavDate").is(stockPrice.getBhavDate()),
+						Criteria.where("nseSymbol").is(stockPrice.getNseSymbol())
+				)
+		);
+
+		Document doc = new Document(); // org.bson.Document
+		mongoTemplate.getConverter().write(stockPrice, doc);
+		Update update = Update.fromDocument(doc);
+
+		UpdateResult updateResult = mongoTemplate.upsert(query, update, COLLECTION_PH);
+	}
+
+	public long count(String nseSymbol){
+		Query query = new Query();
+		query.addCriteria(
+				Criteria.where("nseSymbol").is(nseSymbol)
+		);
+
+		return mongoTemplate.count(query, COLLECTION_PH);
+	}
+
+	public List<StockPrice> get(String nseSymbol, int days){
+
+		Query query = new Query();
+		query.addCriteria(
+				Criteria.where("nseSymbol").is(nseSymbol)
+		);
+
+		query.with(Sort.by(Sort.Direction.DESC, "bhavDate")).limit(days);
+
+		return mongoTemplate.find(query, StockPrice.class);
+	}
 
 }

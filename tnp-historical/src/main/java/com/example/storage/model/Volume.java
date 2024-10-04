@@ -2,44 +2,17 @@ package com.example.storage.model;
 
 public class Volume {
 
-	private Long obv;
-
-	private Double roc;
-
 	private Long volume;
 
-	private Double voumeChange;
+	private Long average;
 
-	private Long avgVolume5;
-	private Long avgVolume10;
-	
-	private Long avgVolume30;
 
-	public Volume(Long obv, Double roc, Long volume, Double voumeChange,Long avgVolume5, Long avgVolume10, Long avgVolume30) {
-		super();
-		this.obv = obv != null ? obv : 1;
-		this.roc = roc != null ? roc : 0.00;
-		this.volume = volume != null ? volume : 0l;
-		this.voumeChange = voumeChange !=null ? voumeChange : 0.00 ;
-		this.avgVolume5 = avgVolume5 != null ? avgVolume5 : 0l;
-		this.avgVolume10 = avgVolume10 != null ? avgVolume10 : 0l;
-		this.avgVolume30 = avgVolume30 != null ? avgVolume30 : 0l;
+	public Volume() {
 	}
 
-	public Long getObv() {
-		return obv;
-	}
-
-	public void setObv(Long obv) {
-		this.obv = obv;
-	}
-
-	public Double getRoc() {
-		return roc;
-	}
-
-	public void setRoc(Double roc) {
-		this.roc = roc;
+	public Volume(Long volume, Long average) {
+		this.volume = volume;
+		this.average = average;
 	}
 
 	public Long getVolume() {
@@ -50,42 +23,20 @@ public class Volume {
 		this.volume = volume;
 	}
 
-	public Double getVoumeChange() {
-		return voumeChange;
+	public Long getAverage() {
+		return average;
 	}
 
-	public void setVoumeChange(Double voumeChange) {
-		this.voumeChange = voumeChange;
+	public void setAverage(Long average) {
+		this.average = average;
 	}
 
-	public Long getAvgVolume10() {
-		return avgVolume10;
-	}
-
-	public void setAvgVolume10(Long avgVolume10) {
-		this.avgVolume10 = avgVolume10;
-	}
-
-	public Long getAvgVolume5() {
-		return avgVolume5;
-	}
-
-	public void setAvgVolume5(Long avgVolume5) {
-		this.avgVolume5 = avgVolume5;
-	}
-
-	public Long getAvgVolume30() {
-		return avgVolume30;
-	}
-
-	public void setAvgVolume30(Long avgVolume30) {
-		this.avgVolume30 = avgVolume30;
-	}
 
 	@Override
 	public String toString() {
-		return "Volume [obv=" + obv + ", roc=" + roc + ", volume=" + volume + ", voumeChange=" + voumeChange
-				+ ", avgVolume10=" + avgVolume10 + ", avgVolume30=" + avgVolume30 + "]";
+		return "Volume{" +
+				"volume=" + volume +
+				", average=" + average +
+				'}';
 	}
-
 }

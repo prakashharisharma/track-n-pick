@@ -1,7 +1,6 @@
 package com.example.storage.model;
 
-public class Simple {
-
+public class SimpleMovingAverage {
 
 	private Double avg5;
 
@@ -12,7 +11,7 @@ public class Simple {
 	private Double avg100;
 	private Double avg200;
 
-	public Simple(Double avg5, Double avg10, Double avg20, Double avg50, Double avg100, Double avg200) {
+	public SimpleMovingAverage(Double avg5, Double avg10, Double avg20, Double avg50, Double avg100, Double avg200) {
 		super();
 		this.avg5 = avg5 != null ? avg5 : 0.00;
 		this.avg10 = avg10 != null ? avg10 : 0.00;
@@ -72,7 +71,13 @@ public class Simple {
 
 	@Override
 	public String toString() {
-		return "Simple [avg50=" + avg50 + ", avg100=" + avg100 + ", avg200=" + avg200 + "]";
+		return "SimpleMovingAverage{" +
+				"avg5=" + avg5 +
+				", avg10=" + avg10 +
+				", avg20=" + avg20 +
+				", avg50=" + avg50 +
+				", avg100=" + avg100 +
+				", avg200=" + avg200 +
+				'}';
 	}
-
 }

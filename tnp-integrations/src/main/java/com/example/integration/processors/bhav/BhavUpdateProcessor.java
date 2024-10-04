@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.example.dto.kafka.Message;
+import com.example.mq.producer.EventProducerService;
 import com.example.util.DownloadCounterUtil;
 import com.example.util.io.model.UpdateTriggerIO;
 import org.apache.camel.Exchange;
@@ -192,13 +194,54 @@ public class BhavUpdateProcessor implements Processor {
 		ignoreSet.add("IVZINNIFTY");
 		ignoreSet.add("08AGG");
 		ignoreSet.add("NIESSPJ");
-
+		ignoreSet.add("HDFCSILVER");
+		ignoreSet.add("GOLDCASE");
+		ignoreSet.add("AXISNIFTY");
+		ignoreSet.add("ABGSEC");
+		ignoreSet.add("MOREALTY");
+		ignoreSet.add("SILVER");
+		ignoreSet.add("CONS");
+		ignoreSet.add("LIQUID");
+		ignoreSet.add("MOGSEC");
+		ignoreSet.add("IDFNIFTYET");
+		ignoreSet.add("IT");
+		ignoreSet.add("SBISILVER");
+		ignoreSet.add("MOSMALL250");
+		ignoreSet.add("AXISILVER");
+		ignoreSet.add("MNC");
+		ignoreSet.add("ALPHA");
+		ignoreSet.add("ESILVER");
+		ignoreSet.add("LIQUIDSBI");
+		ignoreSet.add("SILVER1");
+		ignoreSet.add("EGOLD");
+		ignoreSet.add("HDFCLIQUID");
+		ignoreSet.add("MONIFTY500");
+		ignoreSet.add("LIQUIDCASE");
+		ignoreSet.add("LIQUID1");
+		ignoreSet.add("MIDCAP");
+		ignoreSet.add("GROWEV");
+		ignoreSet.add("GSEC10ABSL");
+		ignoreSet.add("GROWWEV");
+		ignoreSet.add("MODEFENCE");
+		ignoreSet.add("MULTICAP");
+		ignoreSet.add("TOP10ADD");
+		ignoreSet.add("08QPR");
+		ignoreSet.add("NPBET");
+				ignoreSet.add("SDL24BEES");
+						ignoreSet.add("BBNPPGOLD");
+								ignoreSet.add("TATAGOLD");
+										ignoreSet.add("LIQUIDSHRI");
+										ignoreSet.add("EBANKNIFTY");
+										ignoreSet.add("GROWWLIQID");
+										ignoreSet.add("MOMENTUM50");
+										ignoreSet.add("GROWWLIQID");
 	}
 
 	@Autowired
 	private QueueService queueService;
 
-	
+	@Autowired private EventProducerService eventProducerService;
+
 	@Override
 	public void process(Exchange exchange) throws Exception {
 
@@ -215,7 +258,7 @@ public class BhavUpdateProcessor implements Processor {
 
 			if(!this.isIgnored(sp.getNseSymbol())
 					&& !sp.getNseSymbol().contains("ETF")
-					&& !sp.getNseSymbol().contains("AMC")) {
+					) {
 
 				this.processBhav(sp);
 
@@ -250,6 +293,7 @@ public class BhavUpdateProcessor implements Processor {
 	private void sendToUpdateQueue(StockPriceIO stockPriceIO){
 		log.info("{} Queuing to update price.", stockPriceIO.getNseSymbol());
 		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
+		//this.createEvent(stockPriceIO);
 
 	}
 
@@ -285,7 +329,18 @@ public class BhavUpdateProcessor implements Processor {
 	}
 
 	private boolean isIgnored(String nseSymbol){
+
+		if(nseSymbol.endsWith("-RE") || nseSymbol.endsWith("-RE1") || nseSymbol.endsWith("-RE2")){
+			return Boolean.TRUE;
+		}
+
 		return ignoreSet.contains(nseSymbol)? Boolean.TRUE : Boolean.FALSE;
 	}
 
+
+	private void createEvent(StockPriceIO stockPriceIO) {
+		Message<StockPriceIO> message = new Message<>(stockPriceIO);
+		eventProducerService.create(QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE, message);
+		log.info("send event");
+	}
 }

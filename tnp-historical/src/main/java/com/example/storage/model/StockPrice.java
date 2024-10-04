@@ -9,31 +9,47 @@ public class StockPrice {
 
 	@Id
 	private String id;
-
 	private String nseSymbol;
-	
+	private Instant bhavDate = Instant.now();
 	private Double open;
 	private Double high;
 	private Double low;
 	private Double close;
+	private Long volume;
+
+	@Deprecated
 	private Double prevClose;
 
-	private Instant bhavDate = Instant.now();
-	
+	@Deprecated
 	private Double change;
-	
+
+	@Deprecated
 	private Double yearLow;
+	@Deprecated
 	private Double yearHigh;
-	
+
+	@Deprecated
 	private Double low14;
+	@Deprecated
 	private Double high14;
-	
+
 	public StockPrice() {
 		super();
 	}
 
+	public StockPrice(String nseSymbol, Instant bhavDate, Double open, Double high, Double low, Double close, Long volume) {
+		this.nseSymbol = nseSymbol;
+		this.bhavDate = bhavDate;
+		this.open = open;
+		this.high = high;
+		this.low = low;
+		this.close = close;
+		this.volume = volume;
+	}
+
+	@Deprecated
 	public StockPrice(String nseSymbol, Double open, Double high, Double low, Double close,
-			Double prevClose, Instant bhavDate) {
+					  Double prevClose, Instant bhavDate) {
 		super();
 		this.nseSymbol = nseSymbol;
 		this.open = open;
@@ -149,13 +165,24 @@ public class StockPrice {
 		this.high14 = high14;
 	}
 
-	@Override
-	public String toString() {
-		return "StockPrice [id=" + id + ", nseSymbol=" + nseSymbol + ", open=" + open + ", high=" + high + ", low="
-				+ low + ", close=" + close + ", prevClose=" + prevClose + ", bhavDate=" + bhavDate + ", change="
-				+ change + ", yearLow=" + yearLow + ", yearHigh=" + yearHigh + ", low14=" + low14 + ", high14=" + high14
-				+ "]";
+	public Long getVolume() {
+		return volume;
 	}
 
+	public void setVolume(Long volume) {
+		this.volume = volume;
+	}
 
+	@Override
+	public String toString() {
+		return "StockPrice{" +
+				"nseSymbol='" + nseSymbol + '\'' +
+				", bhavDate=" + bhavDate +
+				", open=" + open +
+				", high=" + high +
+				", low=" + low +
+				", close=" + close +
+				", volume=" + volume +
+				'}';
+	}
 }

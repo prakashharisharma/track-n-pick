@@ -253,13 +253,13 @@ public class StockService {
 
 			if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > notificationRules.getFactorIntervalDays()) {
 
-				try {
+				//try {
 
 					if(DownloadCounterUtil.get() < notificationRules.getApiCallCounter()) {
 
-						long interval = miscUtil.getInterval();
+						//long interval = miscUtil.getInterval();
 
-						Thread.sleep(interval);
+						//Thread.sleep(interval);
 
 						stockFactor = factorRediff.getFactor(stock);
 
@@ -270,9 +270,9 @@ public class StockService {
 						LOGGER.warn("Counter exceeds {} for {} ", DownloadCounterUtil.get(), stock.getNseSymbol());
 					}
 					
-				} catch (InterruptedException e) {
-					LOGGER.error("An error occured while updating factor {}", stock.getNseSymbol(), e);
-				}
+				//} catch (InterruptedException e) {
+				//	LOGGER.error("An error occured while updating factor {}", stock.getNseSymbol(), e);
+				//}
 
 			}else{
 				LOGGER.info("Factors recently updated.. {}", stock.getNseSymbol());

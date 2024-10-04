@@ -73,7 +73,7 @@ public class StockDetailsIO implements Serializable {
 	public StockDetailsIO(String nseSymbol, String sector, double currentPrice, double yearLow, double yearHigh,
 			double marketCap, double debtEquity, double currentRatio, double quickRatio, double dividend, double pb,
 			double pe, double sectorPe, double sectorPb, double returnOnEquity, double returnOnCapital, double rsi,
-			String valuation, IndiceType indice, double sok, double sod, long obv, double rocv, double ema20,
+			String valuation, IndiceType indice,  double ema20,
 			double ema50, double ema100, double ema200) {
 		super();
 		this.nseSymbol = nseSymbol;

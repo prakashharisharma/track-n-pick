@@ -1,17 +1,22 @@
 package com.example.mt.service.async;
 
-import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 
+import javax.jms.Message;
 import javax.jms.Session;
 
+import com.example.service.*;
 import com.example.storage.model.*;
+import com.example.storage.model.assembler.StockPriceOHLCVAssembler;
 import com.example.storage.repo.PriceTemplate;
 import com.example.storage.repo.TechnicalsTemplate;
 import com.example.util.FormulaService;
+import com.example.util.MiscUtil;
 import com.example.util.io.model.StockPriceIO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.activemq.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.messaging.MessageHeaders;
@@ -23,14 +28,14 @@ import com.example.model.master.Stock;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.repo.stocks.StockTechnicalsRepository;
-import com.example.service.PortfolioService;
-import com.example.service.ResearchLedgerFundamentalService;
-import com.example.service.StockService;
 import com.example.util.io.model.StockTechnicalsIO;
 
 @Component
 @Slf4j
 public class UpdateTechnicalsConsumer {
+//	public class UpdateTechnicalsConsumer extends AbstractEventConsumer<StockPriceIO> {
+
+	private static final long MIN_TRADING_DAYS = 32;
 
 	@Autowired
 	private StockService stockService;
@@ -55,6 +60,25 @@ public class UpdateTechnicalsConsumer {
 	@Autowired
 	private PriceTemplate priceTemplate;
 
+	@Autowired private ObjectMapper mapper;
+
+	@Autowired
+	private RelativeStrengthIndexService relativeStrengthIndexService;
+
+	@Autowired
+	private ExponentialMovingAverageService exponentialMovingAverageService;
+
+	@Autowired
+	private MovingAverageConvergenceDivergenceService movingAverageConvergenceDivergenceService;
+
+	@Autowired
+	private AverageDirectionalIndexService averageDirectionalIndexService;
+
+	@Autowired
+	private StockPriceOHLCVAssembler stockPriceOHLCVAssembler;
+
+	@Autowired
+	private MiscUtil miscUtil;
 
 	@JmsListener(destination = QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE)
 	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers,
@@ -66,6 +90,41 @@ public class UpdateTechnicalsConsumer {
 
 		log.info("{} Completed technicals update.", stockPriceIO.getNseSymbol());
 	}
+
+/*
+	@KafkaListener(
+			topics = "${kafka.topic.prefix:}" + QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE,
+			clientIdPrefix = "json",
+			containerFactory = "kafkaListenerContainerFactory",
+			concurrency = "${spring.kafka.listener.concurrency:1}")
+	@Override
+	public void consume(
+			ConsumerRecord<String, com.example.dto.kafka.Message<StockPriceIO>> consumerRecord, com.example.dto.kafka.Message<StockPriceIO> messageWrapper)
+			throws Exception {
+		this.process(consumerRecord, messageWrapper);
+	}
+
+	@Override
+	public void process(com.example.dto.kafka.Message<StockPriceIO> messageWrapper) throws Exception {
+
+		StockPriceIO stockPriceIO = this.map(messageWrapper);
+
+		log.info("{} Starting technicals update.", stockPriceIO.getNseSymbol());
+
+		this.processTechnicalsUpdate(stockPriceIO);
+
+		log.info("{} Completed technicals update.", stockPriceIO.getNseSymbol());
+	}
+
+	private StockPriceIO map(Message<StockPriceIO> messageWrapper) throws IOException {
+
+		ObjectWriter objectWriter = mapper.writer().withDefaultPrettyPrinter();
+
+		String jsonString = objectWriter.writeValueAsString(messageWrapper.getPayload());
+
+		return mapper.readValue(jsonString, new TypeReference<StockPriceIO>() {});
+	}
+ */
 
 	public void processTechnicalsUpdate(StockPriceIO stockPriceIO){
 
@@ -79,45 +138,176 @@ public class UpdateTechnicalsConsumer {
 
 		log.info("{} Updating technicals history.", stockPriceIO.getNseSymbol());
 
-		StockTechnicals prevStockTechnicals = null;
-
 		try {
 
-			StockTechnicals existingStockTechnicals = technicalsTemplate.getForDate(stockPriceIO.getNseSymbol(), stockPriceIO.getTimestamp());
+			StockTechnicals stockTechnicals = this.build(stockPriceIO);
 
-			if(existingStockTechnicals!=null)
-			{
-				log.info("{} Technicals already exist for the bhav date {}", stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate());
-			}else {
+			technicalsTemplate.upsert(stockTechnicals);
 
-				prevStockTechnicals = technicalsTemplate.getPrevTechnicals(stockPriceIO.getNseSymbol(), 1);
+			this.updateTechnicalsTxn(stockTechnicals, stockPriceIO);
 
-				Volume volume = this.getVolume(stockPriceIO, prevStockTechnicals);
-
-				Trend trend = this.getTrend(stockPriceIO, prevStockTechnicals);
-
-				Momentum momentum = this.getMomentum(stockPriceIO, prevStockTechnicals, trend.getMovingAverage().getExponential());
-
-				StockTechnicals stockTechnicals = new StockTechnicals(stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate(),
-						volume, trend, momentum);
-
-				technicalsTemplate.create(stockTechnicals);
-
-				StockTechnicalsIO stockTechnicalsIO = this.createStockTechnicalsIO(stockPriceIO, prevStockTechnicals, volume,
-						trend, momentum);
-
-				this.updateTechnicalsTxn(stockTechnicalsIO, stockPriceIO);
-
-			}
 		} catch (Exception e) {
 
 			log.error(" {} Error while updating echnicals ", stockPriceIO.getNseSymbol(), e);
 
 		}
 
-
-
 		log.info("{} Updated technicals history.", stockPriceIO.getNseSymbol());
+	}
+
+
+	private StockTechnicals build(StockPriceIO stockPriceIO){
+
+		String nseSymbol = stockPriceIO.getNseSymbol();
+
+		long tradingDays = priceTemplate.count(nseSymbol);
+
+		StockTechnicals prevStockTechnicals=this.init(stockPriceIO);
+
+		if(tradingDays <= 1){
+			return prevStockTechnicals;
+		}
+
+		if(tradingDays > MIN_TRADING_DAYS){
+			prevStockTechnicals = technicalsTemplate.getPrevTechnicals(nseSymbol,  1);
+		}
+
+		//To handle if there is corrupt data
+		if(prevStockTechnicals.getEma() == null){
+			tradingDays = 2;
+		}
+
+		List<OHLCV> ohlcvList = this.fetch(nseSymbol, tradingDays);
+
+		Volume volume = this.build(nseSymbol, ohlcvList, prevStockTechnicals.getVolume(), tradingDays);
+
+		SimpleMovingAverage sma = this.build(nseSymbol, ohlcvList, prevStockTechnicals.getSma(), tradingDays);
+
+		ExponentialMovingAverage ema = this.build(nseSymbol, ohlcvList,prevStockTechnicals.getEma(), tradingDays);
+
+		AverageDirectionalIndex adx = this.build(nseSymbol, ohlcvList, prevStockTechnicals.getAdx(), tradingDays);
+
+		RelativeStrengthIndex rsi = this.build(nseSymbol, ohlcvList, prevStockTechnicals.getRsi(), tradingDays);
+
+		MovingAverageConvergenceDivergence macd = this.build(nseSymbol, ohlcvList, prevStockTechnicals.getMacd(), tradingDays);
+
+		return new StockTechnicals(nseSymbol, stockPriceIO.getBhavDate(), volume,  sma, ema, adx, rsi, macd);
+	}
+
+	private StockTechnicals init(StockPriceIO stockPriceIO){
+		StockTechnicals stockTechnicals = new StockTechnicals();
+
+		stockTechnicals.setBhavDate(stockPriceIO.getBhavDate());
+		stockTechnicals.setNseSymbol(stockPriceIO.getNseSymbol());
+
+		Volume volume = new Volume(stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdqty());
+		stockTechnicals.setVolume(volume);
+		SimpleMovingAverage sma = new SimpleMovingAverage(0.00,0.00,0.00,0.00,0.00,0.00);
+		stockTechnicals.setSma(sma);
+		ExponentialMovingAverage ema = new ExponentialMovingAverage(0.00,0.00,0.00,0.00,0.00,0.00);
+		stockTechnicals.setEma(ema);
+		AverageDirectionalIndex adx = new AverageDirectionalIndex(0.00, 0.00,0.00, 0.00, 0.00, 0.00, 0.00);
+		stockTechnicals.setAdx(adx);
+		RelativeStrengthIndex rsi = new RelativeStrengthIndex(0.00, 0.00, 0.00, 0.00);
+		stockTechnicals.setRsi(rsi);
+		MovingAverageConvergenceDivergence macd = new MovingAverageConvergenceDivergence(0.00, 0.00, 0.00, 0.00);
+		stockTechnicals.setMacd(macd);
+		return stockTechnicals;
+	}
+
+	private List<OHLCV> fetch(String nseSymbol, long tradingDays){
+
+		int limit = tradingDays > MIN_TRADING_DAYS ? 2 : 700;
+
+		List<StockPrice> stockPriceList =  priceTemplate.get(nseSymbol, limit);
+
+		Collections.reverse(stockPriceList);
+
+		return stockPriceOHLCVAssembler.toModel(stockPriceList);
+	}
+
+	private Volume build(String nseSymbol, List<OHLCV> ohlcvList, Volume prevVolume, long tradingDays){
+
+		OHLCV ohlcv = ohlcvList.get(ohlcvList.size() -1);
+
+		Long avgVolume10 = technicalsTemplate.getAverageVolume(nseSymbol, 9);
+
+		avgVolume10 = formulaService.calculateSmoothedMovingAverage(avgVolume10, ohlcv.getVolume(), 10);
+
+		return new Volume(ohlcv.getVolume(), avgVolume10);
+	}
+
+private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, SimpleMovingAverage prevSimpleMovingAverage, long tradingDays){
+
+	double close = 0.00;
+
+	double sma5 = priceTemplate.getAveragePrice(nseSymbol, close, 5);
+
+	double sma10 = priceTemplate.getAveragePrice(nseSymbol, close, 10);
+
+	double sma20 = priceTemplate.getAveragePrice(nseSymbol, close, 20);
+
+	double sma50 = priceTemplate.getAveragePrice(nseSymbol, close, 50);
+
+	double sma100 = priceTemplate.getAveragePrice(nseSymbol, close, 100);
+
+	double sma200 = priceTemplate.getAveragePrice(nseSymbol,close, 200);
+
+	return new SimpleMovingAverage(miscUtil.formatDouble(sma5,"00"),
+			miscUtil.formatDouble(sma10,"00"),
+			miscUtil.formatDouble(sma20,"00"),
+			miscUtil.formatDouble(sma50,"00"),
+			miscUtil.formatDouble(sma100,"00"),
+			miscUtil.formatDouble(sma200,"00"));
+}
+
+	private ExponentialMovingAverage build(String nseSymbol,List<OHLCV> ohlcvList, ExponentialMovingAverage prevExponentialMovingAverage, long tradingDays){
+
+		if(tradingDays > MIN_TRADING_DAYS) {
+			OHLCV ohlcv = ohlcvList.get(1);
+			double ema5 = exponentialMovingAverageService.calculate(ohlcv, prevExponentialMovingAverage.getAvg5(), 5);
+			double ema10 = exponentialMovingAverageService.calculate(ohlcv,prevExponentialMovingAverage.getAvg10(), 10);
+			double ema20 = exponentialMovingAverageService.calculate(ohlcv, prevExponentialMovingAverage.getAvg20(), 20);
+			double ema50 = exponentialMovingAverageService.calculate(ohlcv, prevExponentialMovingAverage.getAvg50(), 50);
+			double ema100 = exponentialMovingAverageService.calculate(ohlcv,prevExponentialMovingAverage.getAvg100(), 100);
+			double ema200 = exponentialMovingAverageService.calculate(ohlcv, prevExponentialMovingAverage.getAvg200(), 200);
+			return new ExponentialMovingAverage(ema5, ema10, ema20, ema50, ema100, ema200);
+		}
+
+		int resultIndex = ohlcvList.size()-1;
+		double ema5 = exponentialMovingAverageService.calculate(ohlcvList, 5).get(resultIndex);;
+		double ema10 = exponentialMovingAverageService.calculate(ohlcvList, 10).get(resultIndex);
+		double ema20 = exponentialMovingAverageService.calculate(ohlcvList, 20).get(resultIndex);
+		double ema50 = exponentialMovingAverageService.calculate(ohlcvList, 50).get(resultIndex);
+		double ema100 = exponentialMovingAverageService.calculate(ohlcvList, 100).get(resultIndex);
+		double ema200 = exponentialMovingAverageService.calculate(ohlcvList, 200).get(resultIndex);
+		return new ExponentialMovingAverage(ema5, ema10, ema20, ema50, ema100, ema200);
+	}
+
+	private AverageDirectionalIndex build(String nseSymbol,List<OHLCV> ohlcvList, AverageDirectionalIndex prevAverageDirectionalIndex, long tradingDays){
+
+		if(tradingDays > MIN_TRADING_DAYS) {
+			return averageDirectionalIndexService.calculate(ohlcvList, prevAverageDirectionalIndex);
+		}
+
+		return averageDirectionalIndexService.calculate(ohlcvList).get(ohlcvList.size() -1);
+	}
+
+	private RelativeStrengthIndex build(String nseSymbol,List<OHLCV> ohlcvList, RelativeStrengthIndex prevRelativeStrengthIndex, long tradingDays){
+		if(tradingDays > MIN_TRADING_DAYS) {
+			return relativeStrengthIndexService.calculate(ohlcvList, prevRelativeStrengthIndex);
+		}
+
+		return relativeStrengthIndexService.calculate(ohlcvList).get(ohlcvList.size() -1);
+	}
+
+	private MovingAverageConvergenceDivergence build(String nseSymbol,List<OHLCV> ohlcvList, MovingAverageConvergenceDivergence prevMovingAverageConvergenceDivergence, long tradingDays){
+
+		if(tradingDays > MIN_TRADING_DAYS) {
+			return movingAverageConvergenceDivergenceService.calculate(ohlcvList.get(ohlcvList.size()-1), prevMovingAverageConvergenceDivergence);
+		}
+
+		return movingAverageConvergenceDivergenceService.calculate(ohlcvList).get(ohlcvList.size() -1);
 	}
 
 
@@ -251,7 +441,7 @@ public class UpdateTechnicalsConsumer {
 
 		double sma200 = priceTemplate.getAveragePrice(stockPriceIO.getNseSymbol(),close, 200);
 
-		Simple simple = new Simple(sma5, sma10, sma20, sma50, sma100, sma200);
+		SimpleMovingAverage simple = new SimpleMovingAverage(sma5, sma10, sma20, sma50, sma100, sma200);
 
 
 		double prevEma5 = close;
@@ -304,7 +494,7 @@ public class UpdateTechnicalsConsumer {
 
 		double ema200 = formulaService.calculateEMA(close, prevEma200, 200);
 
-		Exponential exponential = new Exponential(ema5, ema10, ema20, ema50, ema100, ema200);
+		ExponentialMovingAverage exponential = new ExponentialMovingAverage(ema5, ema10, ema20, ema50, ema100, ema200);
 
 		exponential.setAvg12(ema12);
 		exponential.setAvg26(ema26);
@@ -316,471 +506,116 @@ public class UpdateTechnicalsConsumer {
 		return movingAverage;
 	}
 
-	private AverageDirectionalIndex getAverageDirectionalIndex(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals){
 
-		StockPrice prevDayStockPrice = priceTemplate.getPrevPrice(stockPriceIO.getNseSymbol(), 2);
+	private StockTechnicalsIO createStockTechnicalsIO(StockPriceIO stockPriceIO, StockTechnicals stockTechnicals) {
 
-		if(prevDayStockPrice!=null) {
-
-			log.info("{} prevDay Price bhavDate: {}", stockPriceIO.getNseSymbol(), prevDayStockPrice.getBhavDate());
-
-			log.info("{} Calculating ADX high: {} low: {} prevHigh: {} prevLow: {} prevClose: {}",
-					stockPriceIO.getNseSymbol(), stockPriceIO.getHigh(), stockPriceIO.getLow(),
-					prevDayStockPrice.getHigh(), prevDayStockPrice.getLow(), stockPriceIO.getPrevClose());
-
-			double tr = formulaService.calculateTR(stockPriceIO.getHigh(), stockPriceIO.getLow(), stockPriceIO.getPrevClose());
-			double plusDM = formulaService.calculatePlusDM(stockPriceIO.getHigh(), prevDayStockPrice.getHigh(), stockPriceIO.getLow(), prevDayStockPrice.getLow());
-			double minusDM = formulaService.calculateMinusDM(stockPriceIO.getHigh(), prevDayStockPrice.getHigh(), stockPriceIO.getLow(), prevDayStockPrice.getLow());
-
-
-			log.info("{} calculated tr: {} plusDM: {} minusDM:{}", stockPriceIO.getNseSymbol(), tr, plusDM, minusDM);
-
-			AverageDirectionalIndex adx = new AverageDirectionalIndex(tr, plusDM, minusDM);
-
-			this.enhance(stockPriceIO, prevStockTechnicals, adx);
-
-			return adx;
-
-		}
-
-		return  new AverageDirectionalIndex();
-	}
-
-	private AverageDirectionalIndex enhance(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals, AverageDirectionalIndex averageDirectionalIndex){
-
-		double atr = 0.00;
-		double plusDi = 0.00;
-		double minusDi = 0.00;
-		double smoothedPlusDm = 0.00;
-		double smoothedMinusDm = 0.00;
-		double adx = 0.00;
-		double dx = 0.00;
-
-		if(technicalsTemplate.getTrCount(stockPriceIO.getNseSymbol()) == 13){
-
-			double averageTr = technicalsTemplate.getAdxAverage(stockPriceIO.getNseSymbol(),"tr", 13);
-			atr = formulaService.calculateSmoothedMovingAverage(averageTr, averageDirectionalIndex.getTr(), 14);
-
-
-			double avgPlusDm = technicalsTemplate.getAdxAverage(stockPriceIO.getNseSymbol(),"plusDm", 13);
-			 smoothedPlusDm = formulaService.calculateSmoothedMovingAverage(avgPlusDm, averageDirectionalIndex.getPlusDm(), 14);
-
-
-			double avgMinusDm = technicalsTemplate.getAdxAverage(stockPriceIO.getNseSymbol(),"minusDm", 13);
-			 smoothedMinusDm = formulaService.calculateSmoothedMovingAverage(avgMinusDm, averageDirectionalIndex.getMinusDm(), 14);
-
-
-		}
-
-		if (technicalsTemplate.getTrCount(stockPriceIO.getNseSymbol()) > 13){
-
-			 atr = formulaService.calculateSmoothedMovingAverage( prevStockTechnicals.getTrend().getAdx().getAtr(), averageDirectionalIndex.getTr(), 14);
-
-			 smoothedPlusDm = formulaService.calculateSmoothedMovingAverage(prevStockTechnicals.getTrend().getAdx().getPlusDi(), averageDirectionalIndex.getPlusDm(), 14);
-			 smoothedMinusDm = formulaService.calculateSmoothedMovingAverage(prevStockTechnicals.getTrend().getAdx().getMinusDi(),averageDirectionalIndex.getMinusDm(), 14);
-
-		}
-
-
-		plusDi = formulaService.calculatePlusDi(smoothedPlusDm, atr);
-		minusDi = formulaService.calculateMinusDi(smoothedMinusDm, atr);
-
-		if(technicalsTemplate.getTrCount(stockPriceIO.getNseSymbol() ) == 27){
-
-			double averageDx = technicalsTemplate.getAdxAverage(stockPriceIO.getNseSymbol(),"dx", 13);
-
-			dx = formulaService.calculateDX(plusDi, minusDi);
-			adx = formulaService.calculateSmoothedMovingAverage(averageDx, averageDirectionalIndex.getMinusDm(), 14);
-		}
-
-		if(technicalsTemplate.getTrCount(stockPriceIO.getNseSymbol() ) > 27){
-
-			dx = formulaService.calculateDX(plusDi, minusDi);
-
-			adx = formulaService.calculateSmoothedMovingAverage(prevStockTechnicals.getTrend().getAdx().getAdx(),dx,  14);
-		}
-
-
-		averageDirectionalIndex.setAtr(atr);
-
-		averageDirectionalIndex.setPlusDi(plusDi);
-
-		averageDirectionalIndex.setMinusDi(minusDi);
-		averageDirectionalIndex.setDx(dx);
-		averageDirectionalIndex.setAdx(adx);
-
-		if(adx > 0.00) {
-			double avg3 = technicalsTemplate.getAdxAverage(stockPriceIO.getNseSymbol(),"adx", 2);
-			avg3 = formulaService.calculateSmoothedMovingAverage(avg3, adx, 3);
-			averageDirectionalIndex.setAvg3(avg3);
-		}
-
-		return averageDirectionalIndex;
-	}
-
-
-
-	private Volume getVolume(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals) {
-
-		log.info("{} Calculating volume ", stockPriceIO.getNseSymbol());
-
-		if(stockPriceIO.getTottrdqty() < 1000) {
-			stockPriceIO.setTottrdqty(1);
-		}else {
-			long volume = stockPriceIO.getTottrdqty() / 1000;
-
-			stockPriceIO.setTottrdqty(volume);
-		}
-
-		long prevOBV = 1;
-
-		double volumeChange = 0.00;
-
-		if (prevStockTechnicals != null) {
-
-			if (prevStockTechnicals.getVolume() != null) {
-
-				if (prevStockTechnicals.getVolume().getObv() != null) {
-					prevOBV = prevStockTechnicals.getVolume().getObv();
-					volumeChange = formulaService.calculateRateOfChange(stockPriceIO.getTottrdqty(), prevStockTechnicals.getVolume().getVolume());
-				}
-			}
-		}
-
-		long OBV = formulaService.calculateOBV(prevOBV, stockPriceIO.getPrevClose(), stockPriceIO.getClose(),
-				stockPriceIO.getTottrdqty());
-
-		double roc = formulaService.calculateRateOfChange(OBV, prevOBV);
-
-		Long volume = stockPriceIO.getTottrdqty();
-
-		Long avgVolume5 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 4);
-
-		avgVolume5 = formulaService.calculateSmoothedMovingAverage(avgVolume5, volume, 5);
-
-		Long avgVolume10 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 9);
-
-		avgVolume10 = formulaService.calculateSmoothedMovingAverage(avgVolume10, volume, 10);
-
-		Long avgVolume30 = technicalsTemplate.getAverageVolume(stockPriceIO.getNseSymbol(), 29);
-
-		avgVolume30 = formulaService.calculateSmoothedMovingAverage(avgVolume30, volume, 30);
-
-		Volume priceVolume = new Volume(OBV, roc, volume, volumeChange, avgVolume5, avgVolume10, avgVolume30);
-
-		priceVolume.setVoumeChange(volumeChange);
-
-		log.info("{} Calculated volume ", stockPriceIO.getNseSymbol());
-
-		return priceVolume;
-	}
-
-	private Trend getTrend(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals) {
-
-		MovingAverage movingAverage = this.getMovingAverage(stockPriceIO, prevStockTechnicals);
-
-		AverageDirectionalIndex adx = this.getAverageDirectionalIndex(stockPriceIO, prevStockTechnicals);
-
-		Trend trend = new Trend(movingAverage);
-
-		if(adx.getTr()!=null){
-			trend.setAdx(adx);
-		}
-
-		return trend;
-	}
-
-	private Momentum getMomentum(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals, Exponential exponential) {
-
-		RSI rsiObj = this.getRSI(stockPriceIO, prevStockTechnicals);
-
-		StochasticOscillator stochasticOscillator = this.getStochasticOscillator(stockPriceIO, prevStockTechnicals);
-
-		log.trace("{} New StochasticOscillator {}", stockPriceIO.getNseSymbol(),  stochasticOscillator);
-
-		Macd macd = this.calculateMacd(stockPriceIO,exponential, prevStockTechnicals);
-
-		Momentum momentum = new Momentum(macd, rsiObj, stochasticOscillator);
-
-		return momentum;
-	}
-
-	private Macd calculateMacd(StockPriceIO stockPriceIO, Exponential exponential, StockTechnicals prevStockTechnicals){
-
-		double macd =  exponential.getAvg12() - exponential.getAvg26();
-
-		double prevSignal = macd;
-
-		if(prevStockTechnicals!=null && prevStockTechnicals.getMomentum()!=null && prevStockTechnicals.getMomentum().getMacd()!=null) {
-			Double prevMacd = prevStockTechnicals.getMomentum().getMacd().getMacd();
-			prevSignal = prevMacd != null ? prevMacd : macd;
-		}
-
-		double signal = formulaService.calculateEMA(macd, prevSignal, 9);
-
-		double avg3 = technicalsTemplate.getAverageMacd(stockPriceIO.getNseSymbol(),2);
-
-		avg3 = formulaService.calculateSmoothedMovingAverage(avg3, macd, 3);
-
-		Macd macdObj =  new Macd(macd, signal);
-
-		macdObj.setAvg3(avg3);
-
-		return macdObj;
-	}
-
-	private StockTechnicalsIO createStockTechnicalsIO(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals,
-													  Volume volume, Trend trend, Momentum momentum) {
 		StockTechnicalsIO stockTechnicalsIO = new StockTechnicalsIO();
 
 		stockTechnicalsIO.setNseSymbol(stockPriceIO.getNseSymbol());
 
-		if (trend.getMovingAverage() != null) {
+		stockTechnicalsIO.setSma5(stockTechnicals.getSma().getAvg5());
+		stockTechnicalsIO.setSma10(stockTechnicals.getSma().getAvg10());
+		stockTechnicalsIO.setSma20(stockTechnicals.getSma().getAvg20());
+		stockTechnicalsIO.setSma50(stockTechnicals.getSma().getAvg50());
+		stockTechnicalsIO.setSma100(stockTechnicals.getSma().getAvg100());
+		stockTechnicalsIO.setSma200(stockTechnicals.getSma().getAvg200());
 
-			stockTechnicalsIO.setSma5(trend.getMovingAverage().getSimple().getAvg5());
-			stockTechnicalsIO.setSma10(trend.getMovingAverage().getSimple().getAvg10());
-			stockTechnicalsIO.setSma20(trend.getMovingAverage().getSimple().getAvg20());
+		stockTechnicalsIO.setEma5(stockTechnicals.getEma().getAvg5());
+		stockTechnicalsIO.setEma10(stockTechnicals.getEma().getAvg10());
+		stockTechnicalsIO.setEma20(stockTechnicals.getEma().getAvg20());
+		stockTechnicalsIO.setEma50(stockTechnicals.getEma().getAvg50());
+		stockTechnicalsIO.setEma100(stockTechnicals.getEma().getAvg100());
+		stockTechnicalsIO.setEma200(stockTechnicals.getEma().getAvg200());
 
-			stockTechnicalsIO.setSma50(trend.getMovingAverage().getSimple().getAvg50());
-			stockTechnicalsIO.setSma100(trend.getMovingAverage().getSimple().getAvg100());
-			stockTechnicalsIO.setSma200(trend.getMovingAverage().getSimple().getAvg200());
+		stockTechnicalsIO.setAdx(stockTechnicals.getAdx().getAdx());
+		stockTechnicalsIO.setPlusDi(stockTechnicals.getAdx().getPlusDi());
+		stockTechnicalsIO.setMinusDi(stockTechnicals.getAdx().getMinusDi());
 
-			stockTechnicalsIO.setEma5(trend.getMovingAverage().getExponential().getAvg5());
-			stockTechnicalsIO.setEma10(trend.getMovingAverage().getExponential().getAvg10());
-			stockTechnicalsIO.setEma20(trend.getMovingAverage().getExponential().getAvg20());
-			stockTechnicalsIO.setEma50(trend.getMovingAverage().getExponential().getAvg50());
-			stockTechnicalsIO.setEma100(trend.getMovingAverage().getExponential().getAvg100());
-			stockTechnicalsIO.setEma200(trend.getMovingAverage().getExponential().getAvg200());
+		stockTechnicalsIO.setMacd(stockTechnicals.getMacd().getMacd());
+		stockTechnicalsIO.setSignal(stockTechnicals.getMacd().getSignal());
 
+		stockTechnicalsIO.setRsi(stockTechnicals.getRsi().getRsi());
 
-			if (prevStockTechnicals != null) {
-				stockTechnicalsIO
-						.setPrevSma5(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg5());
-				stockTechnicalsIO
-						.setPrevSma10(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg10());
-				stockTechnicalsIO
-						.setPrevSma20(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg20());
-				stockTechnicalsIO
-						.setPrevSma50(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg50());
-				stockTechnicalsIO
-						.setPrevSma100(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg100());
-				stockTechnicalsIO
-						.setPrevSma200(prevStockTechnicals.getTrend().getMovingAverage().getSimple().getAvg200());
-
-				stockTechnicalsIO
-						.setPrevEma5(prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg5());
-				stockTechnicalsIO
-						.setPrevEma10(prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg10());
-				stockTechnicalsIO
-						.setPrevEma20(prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg20());
-				stockTechnicalsIO
-						.setPrevEma50(prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg50());
-				stockTechnicalsIO
-						.setPrevEma100(prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg100());
-				stockTechnicalsIO
-						.setPrevEma200(prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg200());
-
-				if(prevStockTechnicals.getMomentum()!=null && prevStockTechnicals.getMomentum().getMacd()!=null) {
-					stockTechnicalsIO.setPrevMacd(prevStockTechnicals.getMomentum().getMacd().getMacd());
-					stockTechnicalsIO.setPrevSignalLine(prevStockTechnicals.getMomentum().getMacd().getSignal());
-				}else {
-					stockTechnicalsIO.setPrevMacd(momentum.getMacd().getMacd());
-					stockTechnicalsIO.setPrevSignalLine(momentum.getMacd().getMacd());
-				}
-
-			} else {
-				stockTechnicalsIO.setPrevSma5(stockPriceIO.getClose());
-				stockTechnicalsIO.setPrevSma10(stockPriceIO.getClose());
-				stockTechnicalsIO.setPrevSma20(stockPriceIO.getClose());
-				stockTechnicalsIO.setPrevSma50(stockPriceIO.getClose());
-				stockTechnicalsIO.setPrevSma100(stockPriceIO.getClose());
-				stockTechnicalsIO.setPrevSma200(stockPriceIO.getClose());
-
-				stockTechnicalsIO.setPrevEma5(stockPriceIO.getClose());
-				stockTechnicalsIO.setPrevEma10(stockPriceIO.getClose());
-				stockTechnicalsIO.setPrevEma20(stockPriceIO.getClose());
-				stockTechnicalsIO.setPrevEma50(stockPriceIO.getClose());
-				stockTechnicalsIO.setPrevEma100(stockPriceIO.getClose());
-				stockTechnicalsIO.setPrevEma200(stockPriceIO.getClose());
-
-				//stockTechnicalsIO.setPrevSignalLine(stockPriceIO.getClose());
-			}
-		} else {
-			stockTechnicalsIO.setSma5(stockPriceIO.getClose());
-			stockTechnicalsIO.setSma10(stockPriceIO.getClose());
-			stockTechnicalsIO.setSma20(stockPriceIO.getClose());
-			stockTechnicalsIO.setSma50(stockPriceIO.getClose());
-			stockTechnicalsIO.setSma100(stockPriceIO.getClose());
-			stockTechnicalsIO.setSma200(stockPriceIO.getClose());
-
-			stockTechnicalsIO.setPrevSma5(stockPriceIO.getClose());
-			stockTechnicalsIO.setPrevSma10(stockPriceIO.getClose());
-			stockTechnicalsIO.setPrevSma20(stockPriceIO.getClose());
-			stockTechnicalsIO.setPrevSma50(stockPriceIO.getClose());
-			stockTechnicalsIO.setPrevSma100(stockPriceIO.getClose());
-			stockTechnicalsIO.setPrevSma200(stockPriceIO.getClose());
-
-			stockTechnicalsIO.setEma5(stockPriceIO.getClose());
-			stockTechnicalsIO.setEma10(stockPriceIO.getClose());
-			stockTechnicalsIO.setEma20(stockPriceIO.getClose());
-			stockTechnicalsIO.setEma50(stockPriceIO.getClose());
-			stockTechnicalsIO.setEma100(stockPriceIO.getClose());
-			stockTechnicalsIO.setEma200(stockPriceIO.getClose());
-			stockTechnicalsIO.setSignalLine(stockPriceIO.getClose());
-
-			stockTechnicalsIO.setPrevEma5(stockPriceIO.getClose());
-			stockTechnicalsIO.setPrevEma10(stockPriceIO.getClose());
-			stockTechnicalsIO.setPrevEma20(stockPriceIO.getClose());
-			stockTechnicalsIO.setPrevEma50(stockPriceIO.getClose());
-			stockTechnicalsIO.setPrevEma100(stockPriceIO.getClose());
-			stockTechnicalsIO.setPrevEma200(stockPriceIO.getClose());
-
-			//stockTechnicalsIO.setPrevSignalLine(stockPriceIO.getClose());
-		}
-
-		if (momentum != null) {
-			if(momentum.getRsi().getSmoothedRsi()!=null) {
-				stockTechnicalsIO.setRsi(momentum.getRsi().getSmoothedRsi());
-				stockTechnicalsIO.setAvgRsi(momentum.getRsi().getAvg3());
-			}else {
-				stockTechnicalsIO.setRsi(1.0);
-			}
-			stockTechnicalsIO.setSok(momentum.getStochasticOscillator().getK());
-			stockTechnicalsIO.setSod(momentum.getStochasticOscillator().getD());
-
-			stockTechnicalsIO.setMacd(momentum.getMacd().getMacd());
-			stockTechnicalsIO.setSignalLine(momentum.getMacd().getSignal());
-			stockTechnicalsIO.setAvgMacd(momentum.getMacd().getAvg3());
-
-
-			if(prevStockTechnicals!=null && prevStockTechnicals.getMomentum().getRsi()!=null){
-				stockTechnicalsIO.setPrevRsi(prevStockTechnicals.getMomentum().getRsi().getSmoothedRsi());
-			}
-
-
-
-		}else {
-			stockTechnicalsIO.setRsi(1.00);
-			stockTechnicalsIO.setSok(1.00);
-			stockTechnicalsIO.setSod(1.00);
-		}
-		if (volume != null) {
-			stockTechnicalsIO.setObv(volume.getObv());
-			if(volume.getRoc()!=null) {
-				stockTechnicalsIO.setRocv(volume.getRoc());
-			}else {
-				stockTechnicalsIO.setRocv(1.0);
-			}
-			if(volume.getVolume()!=null) {
-
-				stockTechnicalsIO.setVolume(volume.getVolume());
-
-			}else {
-				stockTechnicalsIO.setVolume(1);
-			}
-			stockTechnicalsIO.setAvgVolume(volume.getAvgVolume10());
-		}else {
-			stockTechnicalsIO.setObv(1);
-
-			stockTechnicalsIO.setRocv(1);
-
-			stockTechnicalsIO.setVolume(1);
-			stockTechnicalsIO.setAvgVolume(1);
-		}
-
-		if(trend.getAdx()!=null){
-
-			if(trend.getAdx().getAdx()!=null){
-				stockTechnicalsIO.setAdx(trend.getAdx().getAdx());
-			}
-
-			if(trend.getAdx().getAvg3()!=null){
-				stockTechnicalsIO.setAvgAdx(trend.getAdx().getAvg3());
-			}
-
-		}
+		stockTechnicalsIO.setVolume(stockTechnicals.getVolume().getVolume());
+		stockTechnicalsIO.setAvgVolume(stockTechnicals.getVolume().getAverage());
 
 		return stockTechnicalsIO;
 	}
 
 
-	private void updateTechnicalsTxn(StockTechnicalsIO stockTechnicalsIO, StockPriceIO stockPriceIO) {
+	private void updateTechnicalsTxn(StockTechnicals stockTechnicals, StockPriceIO stockPriceIO) {
 
 		log.info("{} Updating transactional technicals ", stockPriceIO.getNseSymbol());
 
+		StockTechnicalsIO stockTechnicalsIO = this.createStockTechnicalsIO(stockPriceIO, stockTechnicals);
+
 		Stock stock = stockService.getStockByNseSymbol(stockTechnicalsIO.getNseSymbol());
 
+		com.example.model.stocks.StockTechnicals stockTechnicalsTxn = stock.getTechnicals();
 
-		com.example.model.stocks.StockTechnicals stockTechnicals = stock.getTechnicals();
-
-		if (stockTechnicals != null && (stockTechnicals.getBhavDate().isEqual(stockPriceIO.getTimestamp())
-		|| stockTechnicals.getBhavDate().isAfter(stockPriceIO.getTimestamp()))) {
-			log.info("{} Transactional technicals is already up to date", stockTechnicalsIO.getNseSymbol());
+		if (stockTechnicalsTxn != null && (stockTechnicalsTxn.getBhavDate().isEqual(stockPriceIO.getTimestamp())
+		|| stockTechnicalsTxn.getBhavDate().isAfter(stockPriceIO.getTimestamp()))) {
+			log.info("{} Transactional technicals is already up to date for {}", stockTechnicalsIO.getNseSymbol(), stockPriceIO.getBhavDate());
 		}else {
 
-			if (stockTechnicals == null) {
-				stockTechnicals = new
+			if (stockTechnicalsTxn == null) {
+				stockTechnicalsTxn = new
 						com.example.model.stocks.StockTechnicals();
 			}
 
-			stockTechnicals.setStock(stock);
-			stockTechnicals.setBhavDate(stockPriceIO.getTimestamp());
+			stockTechnicalsTxn.setStock(stock);
+			stockTechnicalsTxn.setBhavDate(stockPriceIO.getTimestamp());
 
-			stockTechnicals.setSma5(stockTechnicalsIO.getSma5());
-			stockTechnicals.setSma10(stockTechnicalsIO.getSma10());
+			stockTechnicalsTxn.setPrevSma5(stockTechnicalsTxn.getSma5());
+			stockTechnicalsTxn.setPrevSma10(stockTechnicalsTxn.getSma10());
+			stockTechnicalsTxn.setPrevSma20(stockTechnicalsTxn.getSma20());
+			stockTechnicalsTxn.setPrevSma50(stockTechnicalsTxn.getSma50());
+			stockTechnicalsTxn.setPrevSma100(stockTechnicalsTxn.getSma100());
+			stockTechnicalsTxn.setPrevSma200(stockTechnicalsTxn.getSma200());
 
-			stockTechnicals.setSma20(stockTechnicalsIO.getSma20());
-
-			stockTechnicals.setSma50(stockTechnicalsIO.getSma50());
-			stockTechnicals.setSma100(stockTechnicalsIO.getSma100());
-			stockTechnicals.setSma200(stockTechnicalsIO.getSma200());
-
-			stockTechnicals.setPrevSma5(stockTechnicalsIO.getPrevSma5());
-			stockTechnicals.setPrevSma10(stockTechnicalsIO.getPrevSma10());
-			stockTechnicals.setPrevSma20(stockTechnicalsIO.getPrevSma20());
-			stockTechnicals.setPrevSma50(stockTechnicalsIO.getPrevSma50());
-			stockTechnicals.setPrevSma100(stockTechnicalsIO.getPrevSma100());
-			stockTechnicals.setPrevSma200(stockTechnicalsIO.getPrevSma200());
-
-			stockTechnicals.setEma5(stockTechnicalsIO.getEma5());
-			stockTechnicals.setEma10(stockTechnicalsIO.getEma10());
-			stockTechnicals.setEma20(stockTechnicalsIO.getEma20());
-			stockTechnicals.setEma50(stockTechnicalsIO.getEma50());
-			stockTechnicals.setEma100(stockTechnicalsIO.getEma100());
-			stockTechnicals.setEma200(stockTechnicalsIO.getEma200());
-
-			stockTechnicals.setPrevEma5(stockTechnicalsIO.getPrevEma5());
-			stockTechnicals.setPrevEma10(stockTechnicalsIO.getPrevEma10());
-			stockTechnicals.setPrevEma20(stockTechnicalsIO.getPrevEma20());
-			stockTechnicals.setPrevEma50(stockTechnicalsIO.getPrevEma50());
-			stockTechnicals.setPrevEma100(stockTechnicalsIO.getPrevEma100());
-			stockTechnicals.setPrevEma200(stockTechnicalsIO.getPrevEma200());
+			stockTechnicalsTxn.setSma5(stockTechnicalsIO.getSma5());
+			stockTechnicalsTxn.setSma10(stockTechnicalsIO.getSma10());
+			stockTechnicalsTxn.setSma20(stockTechnicalsIO.getSma20());
+			stockTechnicalsTxn.setSma50(stockTechnicalsIO.getSma50());
+			stockTechnicalsTxn.setSma100(stockTechnicalsIO.getSma100());
+			stockTechnicalsTxn.setSma200(stockTechnicalsIO.getSma200());
 
 
-			stockTechnicals.setRsi(stockTechnicalsIO.getRsi());
-			stockTechnicals.setPrevRsi(stockTechnicalsIO.getPrevRsi());
-			stockTechnicals.setAvgRsi(stockTechnicalsIO.getAvgRsi());
+			stockTechnicalsTxn.setPrevEma5(stockTechnicalsTxn.getEma5());
+			stockTechnicalsTxn.setPrevEma10(stockTechnicalsTxn.getEma10());
+			stockTechnicalsTxn.setPrevEma20(stockTechnicalsTxn.getEma20());
+			stockTechnicalsTxn.setPrevEma50(stockTechnicalsTxn.getEma50());
+			stockTechnicalsTxn.setPrevEma100(stockTechnicalsTxn.getEma100());
+			stockTechnicalsTxn.setPrevEma200(stockTechnicalsTxn.getEma200());
 
-			stockTechnicals.setMacd(stockTechnicalsIO.getMacd());
-			stockTechnicals.setPrevMacd(stockTechnicalsIO.getPrevMacd());
-			stockTechnicals.setAvgMacd(stockTechnicalsIO.getAvgMacd());
-			stockTechnicals.setSignal(stockTechnicalsIO.getSignalLine());
-			stockTechnicals.setPrevSignal(stockTechnicalsIO.getPrevSignalLine());
+			stockTechnicalsTxn.setEma5(stockTechnicalsIO.getEma5());
+			stockTechnicalsTxn.setEma10(stockTechnicalsIO.getEma10());
+			stockTechnicalsTxn.setEma20(stockTechnicalsIO.getEma20());
+			stockTechnicalsTxn.setEma50(stockTechnicalsIO.getEma50());
+			stockTechnicalsTxn.setEma100(stockTechnicalsIO.getEma100());
+			stockTechnicalsTxn.setEma200(stockTechnicalsIO.getEma200());
 
-			stockTechnicals.setLastModified(LocalDate.now());
+			stockTechnicalsTxn.setPrevAdx(stockTechnicalsTxn.getAdx());
+			stockTechnicalsTxn.setAdx(stockTechnicalsIO.getAdx());
 
-			stockTechnicals.setSok(stockTechnicalsIO.getSok());
-			stockTechnicals.setSod(stockTechnicalsIO.getSod());
-			stockTechnicals.setObv(stockTechnicalsIO.getObv());
-			stockTechnicals.setRocv(stockTechnicalsIO.getRocv());
+			stockTechnicalsTxn.setPlusDi(stockTechnicalsIO.getPlusDi());
+			stockTechnicalsTxn.setMinusDi(stockTechnicalsIO.getMinusDi());
 
-			stockTechnicals.setVolume(stockTechnicalsIO.getVolume());
-			stockTechnicals.setAvgVolume(stockTechnicalsIO.getAvgVolume());
+			stockTechnicalsTxn.setPrevRsi(stockTechnicalsTxn.getRsi());
+			stockTechnicalsTxn.setRsi(stockTechnicalsIO.getRsi());
 
-			//stockTechnicals.setAdx(stockTechnicalsIO.getAdx());
-			//stockTechnicals.setAvgAdx(stockTechnicalsIO.getAvgAdx());
+			stockTechnicalsTxn.setPrevMacd(stockTechnicalsTxn.getMacd());
+			stockTechnicalsTxn.setMacd(stockTechnicalsIO.getMacd());
 
-			stockTechnicalsRepository.save(stockTechnicals);
+			stockTechnicalsTxn.setPrevSignal(stockTechnicalsTxn.getSignal());
+			stockTechnicalsTxn.setSignal(stockTechnicalsIO.getSignal());
+
+			stockTechnicalsTxn.setVolume(stockTechnicalsIO.getVolume());
+			stockTechnicalsTxn.setAvgVolume(stockTechnicalsIO.getAvgVolume());
+
+			stockTechnicalsTxn.setLastModified(LocalDate.now());
+
+			stockTechnicalsRepository.save(stockTechnicalsTxn);
 
 			log.info("{} Updated transactional technicals ", stockPriceIO.getNseSymbol());
 		}

@@ -76,13 +76,6 @@ public class PublicStockController {
 				valuation = "NUETRAL";
 			}
 
-			double sok = stockTechnicals.getSok();
-
-			double sod = stockTechnicals.getSod();
-
-			long obv = stockTechnicals.getObv();
-
-			double rocv = stockTechnicals.getRocv();
 
 			double ema20 = stockTechnicals.getSma20();
 
@@ -102,7 +95,7 @@ public class PublicStockController {
 					stockFactor.getCurrentRatio(), stockFactor.getQuickRatio(), stockFactor.getDividend(), pb, pe,
 					stock.getSector().getSectorPe(), stock.getSector().getSectorPb(), stockFactor.getReturnOnEquity(),
 					stockFactor.getReturnOnCapital(), stockTechnicals.getRsi(), valuation, stock.getPrimaryIndice(),
-					sok, sod, obv, rocv, ema20, ema50, ema100, ema200);
+					 ema20, ema50, ema100, ema200);
 			
 			stockDetails.setCrossOver(crossOver);
 			stockDetails.setBreakOut(breakOut);

@@ -72,7 +72,7 @@ public class TradeLedgerService {
 
 		//double brokergaeTotal = (brokerageService.getBrokerage(user).getDeliveryCharge() * quantity) / 100;
 
-		double brokergaeTotal = 10.0;
+		double brokergaeTotal = ( 20.0 + 3.60) ;
 
 		tradeLedger.setBrokerage(brokergaeTotal);
 

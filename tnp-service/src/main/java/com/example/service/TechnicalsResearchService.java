@@ -366,7 +366,7 @@ public class TechnicalsResearchService {
 		long avgVolume = stock.getTechnicals().getAvgVolume();
 		double prevClose = stock.getStockPrice().getPrevClose();
 
-		double openPrice = stock.getStockPrice().getOpenPrice();
+		double openPrice = stock.getStockPrice().getOpen();
 		double high = stock.getStockPrice().getHigh();
 		double low = stock.getStockPrice().getLow();
 		double close = stock.getStockPrice().getCurrentPrice();
@@ -396,7 +396,7 @@ public class TechnicalsResearchService {
 		long volume = stock.getTechnicals().getVolume();
 		long avgVolume = stock.getTechnicals().getAvgVolume();
 		double prevClose = stock.getStockPrice().getPrevClose();
-		double openPrice = stock.getStockPrice().getOpenPrice();
+		double openPrice = stock.getStockPrice().getOpen();
 		double high = stock.getStockPrice().getHigh();
 		double low = stock.getStockPrice().getLow();
 		double close = stock.getStockPrice().getCurrentPrice();

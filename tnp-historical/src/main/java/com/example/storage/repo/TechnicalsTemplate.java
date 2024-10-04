@@ -6,6 +6,8 @@ import java.util.List;
 
 import com.example.storage.model.StockPrice;
 import com.example.storage.model.result.*;
+import com.mongodb.client.result.UpdateResult;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -19,6 +21,7 @@ import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import com.example.storage.model.StockTechnicals;
@@ -606,4 +609,22 @@ public class TechnicalsTemplate {
 
 		return average;
 	}
+
+	public void upsert(StockTechnicals stockTechnicals){
+
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("bhavDate").is(stockTechnicals.getBhavDate()),
+						Criteria.where("nseSymbol").is(stockTechnicals.getNseSymbol())
+				)
+		);
+
+		Document doc = new Document(); // org.bson.Document
+		mongoTemplate.getConverter().write(stockTechnicals, doc);
+		Update update = Update.fromDocument(doc);
+
+		UpdateResult updateResult = mongoTemplate.upsert(query, update, COLLECTION_TH);
+	}
+
 }
