@@ -56,9 +56,8 @@ public class StockPriceIO implements Serializable {
 
 	private double low14;
 	private double high14;
-	
-	
-	
+
+	private boolean lastRecordToProcess;
 	
 	public StockPriceIO() {
 		super();
@@ -310,6 +309,14 @@ public class StockPriceIO implements Serializable {
 
 	public void setHigh14(double high14) {
 		this.high14 = high14;
+	}
+
+	public boolean isLastRecordToProcess() {
+		return lastRecordToProcess;
+	}
+
+	public void setLastRecordToProcess(boolean lastRecordToProcess) {
+		this.lastRecordToProcess = lastRecordToProcess;
 	}
 
 	@Override

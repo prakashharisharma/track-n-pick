@@ -1,24 +1,45 @@
 package com.example.model.um;
 
-import javax.persistence.AssociationOverride;
-import javax.persistence.AssociationOverrides;
-import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.Table;
+import javax.persistence.*;
 
+/**
+ *
+ * BrokerageType FIXED
+ * 	FLAT - Per Order / PERCENTAGE - Of total transaction value
+ *
+ * BrokerageType MIN - Minimum of
+ * 	FLAT - Per Order / PERCENTAGE - Of total transaction value
+ *
+ */
 @Entity
 @Table(name = "USER_BROKERAGE")
 @AssociationOverrides({ @AssociationOverride(name = "brokerageId.user", joinColumns = @JoinColumn(name = "USER_ID")),
 		@AssociationOverride(name = "brokerageId.broker", joinColumns = @JoinColumn(name = "BROKER_ID")) })
 public class UserBrokerage {
 
+	public enum Type {FIXED, MIN};
+
+	public enum Calculation {FLAT, PERCENTAGE};
+
 	@EmbeddedId
 	UserBrokerageKey brokerageId = new UserBrokerageKey();
 
-	@Column(name = "DELIVERY_CHARGE", columnDefinition="Decimal(10,4) default '0.00'")
-	double deliveryCharge;
+	@Column(name = "BROKERAGE_TYPE")
+	@Enumerated(EnumType.STRING)
+	Type type;
+
+	@Column(name = "BROKERAGE_CALCULATION")
+	@Enumerated(EnumType.STRING)
+	Calculation calculation;
+
+	@Column(name = "FLAT_CHARGE", columnDefinition="Decimal(10,5) default '0.00'")
+	double flatCharge;
+
+	@Column(name = "PERCENTAGE_CHARGE", columnDefinition="Decimal(10,5) default '0.00'")
+	double percentageCharge;
+
+	@Column(name = "DP_CHARGE", columnDefinition="Decimal(10,5) default '0.00'")
+	double dpCharge;
 
 	@Column(name = "DP_ID")
 	String dpId;
@@ -37,12 +58,44 @@ public class UserBrokerage {
 		this.brokerageId = brokerageId;
 	}
 
-	public double getDeliveryCharge() {
-		return deliveryCharge;
+	public Type getType() {
+		return type;
 	}
 
-	public void setDeliveryCharge(double deliveryCharge) {
-		this.deliveryCharge = deliveryCharge;
+	public void setType(Type type) {
+		this.type = type;
+	}
+
+	public Calculation getCalculation() {
+		return calculation;
+	}
+
+	public void setCalculation(Calculation calculation) {
+		this.calculation = calculation;
+	}
+
+	public double getFlatCharge() {
+		return flatCharge;
+	}
+
+	public void setFlatCharge(double flatCharge) {
+		this.flatCharge = flatCharge;
+	}
+
+	public double getPercentageCharge() {
+		return percentageCharge;
+	}
+
+	public void setPercentageCharge(double percentageCharge) {
+		this.percentageCharge = percentageCharge;
+	}
+
+	public double getDpCharge() {
+		return dpCharge;
+	}
+
+	public void setDpCharge(double dpCharge) {
+		this.dpCharge = dpCharge;
 	}
 
 	public String getDpId() {
@@ -72,8 +125,15 @@ public class UserBrokerage {
 
 	@Override
 	public String toString() {
-		return "UserBrokerage [brokerageId=" + brokerageId + ", deliveryCharge=" + deliveryCharge + ", dpId=" + dpId
-				+ ", clientId=" + clientId + "]";
+		return "UserBrokerage{" +
+				"brokerageId=" + brokerageId +
+				", type=" + type +
+				", calculation=" + calculation +
+				", flatCharge=" + flatCharge +
+				", percentageCharge=" + percentageCharge +
+				", dpId='" + dpId + '\'' +
+				", clientId='" + clientId + '\'' +
+				", active=" + active +
+				'}';
 	}
-
 }

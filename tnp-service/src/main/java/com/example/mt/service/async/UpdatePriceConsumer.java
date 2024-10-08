@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import com.example.mq.producer.EventProducerService;
 import com.example.service.SectorService;
 import com.example.util.io.model.StockIO;
+import com.example.util.io.model.UpdateTriggerIO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -190,7 +191,16 @@ public class UpdatePriceConsumer {
 			log.info("{} Updated transactional price", stockPriceIO.getNseSymbol());
 		}
 
+		if(stockPriceIO.isLastRecordToProcess()) {
+
+			UpdateTriggerIO updateTriggerIO = new UpdateTriggerIO(UpdateTriggerIO.TriggerType.UPDATE_RESEARCH);
+
+			queueService.send(updateTriggerIO, QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE);
+		}
+
 		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE);
+
+		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE);
 
 		//this.createEvent(stockPriceIO);
 	}

@@ -32,47 +32,38 @@ function loadTableFundamental() {
 			"data" : "pe",
 			render: $.fn.dataTable.render.number(',', '.', 2)
 		}, {
+            "data" : "sectorPe",
+           	render: $.fn.dataTable.render.number(',', '.', 2)
+        },{
 			"data" : "pb",
-			
 			render: $.fn.dataTable.render.number(',', '.', 2)
 		}, {
+            "data" : "sectorPb",
+            render: $.fn.dataTable.render.number(',', '.', 2)
+        },{
 			"data" : "roe",
 			render: $.fn.dataTable.render.number(',', '.', 2)
 		}, {
 			"data" : "roc",
 			render: $.fn.dataTable.render.number(',', '.', 2)
-		},{
-			"data" : "peDifference",
-			render: $.fn.dataTable.render.number(',', '.', 2)
-		}, 
+		},
 		{
 			"data" : "profitPer",
 			render: $.fn.dataTable.render.number(',', '.', 2)
 		},{
-         	"data" : "rsiTrend"
-         },{
-            "data" : "goldenCross"
+            "data" : "bullish"
          }],
 		rowCallback : function(row, data, index) {
 			if (data.profitPer > 0.0) {
-				$(row).find('td:eq(10)').css('color', 'green');
+				$(row).find('td:eq(11)').css('color', 'green');
 			}
 			if (data.profitPer < 0.0) {
-				$(row).find('td:eq(10)').css('color', 'red');
+				$(row).find('td:eq(11)').css('color', 'red');
 			}
-            if (data.goldenCross == true) {
+            if (data.bullish == true) {
                 $(row).find('td:eq(0)').css('color', 'green');
-                $(row).find('td:eq(1)').css('color', 'green');
-                 $(row).find('td:eq(12)').css('color', 'green');
-                //$(row).addClass('Highlight');
+                $(row).find('td:eq(0)').css('font-weight', 'bold');
             }
-
-           if (data.rsiTrend == 'OVERBAUGHT') {
-           				$(row).find('td:eq(11)').css('color', 'green');
-           	}
-           	if (data.rsiTrend == 'OVERSOLD') {
-           				$(row).find('td:eq(11)').css('color', 'red');
-           	}
 		}
 	});
 
@@ -90,29 +81,67 @@ function loadTableTechnical() {
 		}, {
 			"data" : "researchDate"
 		}, {
-			"data" : "category"
-		}
-		, {
 			"data" : "researchPrice"
 		}, {
 			"data" : "currentPrice"
 		}, {
-			"data" : "sma50"
+			"data" : "ema5"
 		}, {
-			"data" : "sma200"
+			"data" : "ema10"
 		}, {
+            "data" : "ema20"
+        },{
+             "data" : "ema50"
+        },
+        {
+            "data" : "ema100"
+        },
+        {
+             "data" : "ema200"
+        },
+        {
 			"data" : "rsi"
 		}, {
 			"data" : "profitPer"
 		} ],
 		rowCallback : function(row, data, index) {
 			if (data.profitPer > 0.0) {
-				$(row).find('td:eq(9)').css('color', 'green');
+				$(row).find('td:eq(12)').css('color', 'green');
 			}
 			if (data.profitPer < 0.0) {
-				$(row).find('td:eq(9)').css('color', 'red');
+				$(row).find('td:eq(12)').css('color', 'red');
 			}
 
+            if(data.currentPrice > data.ema5){
+                $(row).find('td:eq(5)').css('color', 'green');
+            }else{
+                $(row).find('td:eq(5)').css('color', 'red');
+            }
+            if(data.currentPrice > data.ema10){
+                $(row).find('td:eq(6)').css('color', 'green');
+            }else{
+                $(row).find('td:eq(6)').css('color', 'red');
+            }
+            if(data.currentPrice > data.ema20){
+                $(row).find('td:eq(7)').css('color', 'green');
+            }else{
+                $(row).find('td:eq(7)').css('color', 'red');
+            }
+            if(data.currentPrice > data.ema50){
+                $(row).find('td:eq(8)').css('color', 'green');
+            }else{
+                $(row).find('td:eq(8)').css('color', 'red');
+            }
+            if(data.currentPrice > data.ema100){
+                $(row).find('td:eq(9)').css('color', 'green');
+            }else{
+                $(row).find('td:eq(9)').css('color', 'red');
+            }
+            if(data.currentPrice > data.ema200){
+                $(row).find('td:eq(10)').css('color', 'green');
+            }else{
+                $(row).find('td:eq(10)').css('color', 'red');
+            }
 		}
 	});
 }

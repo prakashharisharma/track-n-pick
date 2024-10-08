@@ -14,16 +14,19 @@ import java.util.Collections;
 import java.util.List;
 
 import com.example.external.factor.FactorRediff;
+import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.ledger.TradeLedger;
 import com.example.model.stocks.StockFactor;
 import com.example.mq.constants.QueueConstants;
 import com.example.repo.ledger.FundsLedgerRepository;
+import com.example.repo.ledger.ResearchLedgerTechnicalRepository;
 import com.example.repo.ledger.TradeLedgerRepository;
 import com.example.repo.master.StockRepository;
 import com.example.service.*;
 import com.example.storage.model.*;
 import com.example.ui.service.UiRenderUtil;
 import com.example.util.io.model.MCResult;
+import com.example.util.io.model.ResearchIO;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -161,6 +164,9 @@ public class AppRunner implements CommandLineRunner {
 	private StockRepository stockRepository;
 
 
+	@Autowired
+	private ResearchLedgerTechnicalRepository researchLedgerTechnicalRepository;
+
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
 
@@ -176,6 +182,12 @@ public class AppRunner implements CommandLineRunner {
 
 		for (StockPrice price : stockPriceList) {
 			System.out.println(price);
+		}
+
+		List<ResearchLedgerTechnical> researchLedgerTechnicals =  researchLedgerTechnicalRepository.getActiveResearch("ANUP", ResearchIO.ResearchTrigger.BUY);
+
+		if(!researchLedgerTechnicals.isEmpty()){
+			System.out.println(researchLedgerTechnicals.get(researchLedgerTechnicals.size() -1 ));
 		}
 
 		/*

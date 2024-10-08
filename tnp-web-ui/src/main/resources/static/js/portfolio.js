@@ -39,13 +39,27 @@ function loadTable(){
 		{
         	"data" : "xirr"
         },{
-			"data" : "overValued"
+			"data" : "invested"
 		},{
-         	"data" : "deathCross"
-         },{
-             "data" : "rsi"
-        }],
+         	"data" : "currentValue"
+         }],
 		rowCallback : function(row, data, index) {
+
+            if(data.bearish == true){
+                $(row).find('td:eq(0)').css('color', 'red');
+                $(row).find('td:eq(0)').css('font-weight', 'bold');
+                $(row).find('td:eq(1)').css('color', 'red');
+                $(row).find('td:eq(1)').css('font-weight', 'bold');
+            }
+
+            if(data.averagePrice > data.currentPrice){
+                $(row).find('td:eq(5)').css('color', 'red');
+            }
+
+            if(data.averagePrice < data.currentPrice){
+                $(row).find('td:eq(5)').css('color', 'green');
+            }
+
 			if (data.profitPer > 0.0) {
 				$(row).find('td:eq(6)').css('color', 'green');
 			}
@@ -59,24 +73,15 @@ function loadTable(){
             	$(row).find('td:eq(7)').css('color', 'red');
             }
 
-			if (data.overValued == true) {
-            	$(row).find('td:eq(8)').css('color', 'red');
-            }else{
-                $(row).find('td:eq(8)').css('color', 'green');
-            }
-            if (data.deathCross == true) {
-                $(row).find('td:eq(0)').css('color', 'red');
-                $(row).find('td:eq(1)').css('color', 'red');
-                 $(row).find('td:eq(9)').css('color', 'red');
-                //$(row).addClass('Highlight');
+            if(data.currentValue > data.invested){
+                $(row).find('td:eq(9)').css('color', 'green');
             }
 
-           if (data.rsi <= 30.0) {
-           				$(row).find('td:eq(10)').css('color', 'green');
-           	}
-           	if (data.rsi >= 70.0) {
-           				$(row).find('td:eq(10)').css('color', 'red');
-           	}
+            if(data.currentValue < data.invested){
+                $(row).find('td:eq(9)').css('color', 'red');
+            }
+
+
 			
 		}
 	});

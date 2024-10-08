@@ -69,6 +69,9 @@ public class TradeLedger {
 	
 	@Column(name = "SEBI_TURNOVER_FEE", columnDefinition="Decimal(10,5) default '0.00'")
 	double sebiTurnoverFee;
+
+	@Column(name = "DP_CHARGE", columnDefinition="Decimal(10,5) default '0.00'")
+	double dpCharge;
 	
 	@Column(name = "GST", columnDefinition="Decimal(10,5) default '0.00'")
 	double gst;
@@ -215,6 +218,14 @@ public class TradeLedger {
 
 	public void setSebiTurnoverFee(double sebiTurnoverFee) {
 		this.sebiTurnoverFee = sebiTurnoverFee;
+	}
+
+	public double getDpCharge() {
+		return dpCharge;
+	}
+
+	public void setDpCharge(double dpCharge) {
+		this.dpCharge = dpCharge;
 	}
 
 	public double getGst() {

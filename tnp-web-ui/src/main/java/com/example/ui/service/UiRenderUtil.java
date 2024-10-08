@@ -6,10 +6,12 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.example.model.ledger.*;
+import com.example.model.stocks.StockTechnicals;
 import com.example.model.type.FundTransactionType;
 import com.example.model.type.StockTransactionType;
 import com.example.repo.ledger.FundsLedgerRepository;
 import com.example.service.*;
+import com.example.util.io.model.ResearchIO;
 import org.decampo.xirr.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -67,6 +69,9 @@ public class UiRenderUtil {
 	private TechnicalsResearchService technicalsResearchService;
 	@Autowired
 	private FundsLedgerRepository fundsLedgerRepository;
+
+	@Autowired
+	private ResearchLedgerTechnicalService researchLedgerTechnicalService;
 	
 	public List<UIRenderStock> renderPortfolio(List<UserPortfolio> userPortfolioList,UserProfile userProfile) {
 
@@ -80,15 +85,23 @@ public class UiRenderUtil {
 
 			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(currentPrice, averagePrice)));
 
-			boolean overValued = ruleService.isOvervalued(userPortfolioStock.getStock());
+			//boolean overValued = ruleService.isOvervalued(userPortfolioStock.getStock());
 
-			boolean deathCross = technicalsResearchService.isBearishCrossover200(userPortfolioStock.getStock());
+			//boolean deathCross = technicalsResearchService.isBearishCrossover200(userPortfolioStock.getStock());
 
-			double rsi = userPortfolioStock.getStock().getTechnicals().getRsi();
+			//double rsi = userPortfolioStock.getStock().getTechnicals().getRsi();
 
-			UIRenderStock uiRenderStock = new UIRenderStock(userPortfolioStock, profitPer, overValued, deathCross, rsi);
+			double invested = userPortfolioStock.getQuantity() * userPortfolioStock.getAveragePrice();
+
+			double currentValue = userPortfolioStock.getQuantity() * currentPrice;
+
+			UIRenderStock uiRenderStock = new UIRenderStock(userPortfolioStock, profitPer, miscUtil.formatDouble(invested,"00"), miscUtil.formatDouble(currentValue,"00"));
 
 			uiRenderStock.setXirr(this.calculateXirr(userPortfolioStock, userProfile));
+
+			boolean bearish = researchLedgerTechnicalService.isActive(userPortfolioStock.getStock(), ResearchIO.ResearchTrigger.SELL);
+
+			uiRenderStock.setBearish(bearish);
 
 			portfolioList.add(uiRenderStock);
 		}
@@ -172,24 +185,38 @@ public class UiRenderUtil {
 
 		for (ResearchLedgerTechnical researchStock : researchList) {
 
-			double currentPrice = researchStock.getStock().getStockPrice().getCurrentPrice();
+			//double currentPrice = researchStock.getStock().getStockPrice().getCurrentPrice();
 			
-			double bookValue= researchStock.getStock().getStockFactor().getBookValue();
+			//double bookValue= researchStock.getStock().getStockFactor().getBookValue();
 			
-			double eps = researchStock.getStock().getStockFactor().getEps();
+			//double eps = researchStock.getStock().getStockFactor().getEps();
 			
-			double pe= formulaService.calculatePe(currentPrice, eps);
+			//double pe= formulaService.calculatePe(currentPrice, eps);
 			
-			double pb= formulaService.calculatePb(currentPrice, bookValue);
+			//double pb= formulaService.calculatePb(currentPrice, bookValue);
 
 			
 			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(
-					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getEntryCrossOver().getPrice())));
+					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getResearchPrice())));
 
-			portfolioList.add(new UIRenderStock(researchStock, profitPer,pe, pb));
-			
-			
-			
+			UIRenderStock uiRenderStock = new UIRenderStock(researchStock.getStock());
+
+			uiRenderStock.setResearchPrice(researchStock.getResearchPrice());
+
+			StockTechnicals stockTechnicals = researchStock.getStock().getTechnicals();
+
+			if(stockTechnicals!=null) {
+				uiRenderStock.setEma5(stockTechnicals.getEma5());
+				uiRenderStock.setEma10(stockTechnicals.getEma10());
+				uiRenderStock.setEma20(stockTechnicals.getEma20());
+				uiRenderStock.setEma50(stockTechnicals.getEma50());
+				uiRenderStock.setEma100(stockTechnicals.getEma100());
+				uiRenderStock.setEma200(stockTechnicals.getEma200());
+				uiRenderStock.setRsi(stockTechnicals.getRsi());
+			}
+
+			portfolioList.add(uiRenderStock);
+
 		}
 
 		return portfolioList;
@@ -212,24 +239,16 @@ public class UiRenderUtil {
 			
 			double pb = formulaService.calculatePb(currentPrice, bookValue);
 
-
 			double sectorPe = researchStock.getStock().getSector().getSectorPe();
-			
-			double peDifference = sectorPe - pe;
+
+			double sectorPb = researchStock.getStock().getSector().getSectorPb();
 			
 			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(
 					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getEntryValuation().getPrice())));
 
-			TechnicalsResearchService.RsiTrend rsiTrend = TechnicalsResearchService.RsiTrend.NUETRAL;
+			boolean isBullish = researchLedgerTechnicalService.isActive(researchStock.getStock(), ResearchIO.ResearchTrigger.BUY);
 
-			boolean goldenCross = false;
-
-			if(researchStock.getStock().getTechnicals()!= null) {
-				goldenCross = technicalsResearchService.isBullishCrossOver200(researchStock.getStock());
-
-				rsiTrend = technicalsResearchService.currentTrend(researchStock.getStock());
-			}
-			resultList.add(new UIRenderStock(researchStock, profitPer,pe, pb,peDifference, goldenCross, rsiTrend));
+			resultList.add(new UIRenderStock(researchStock, profitPer,pe, pb,sectorPe, sectorPb, isBullish));
 			
 		}
 
@@ -260,7 +279,7 @@ public class UiRenderUtil {
 			double peDifference = sectorPe - pe;
 			
 			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(
-					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getEntryCrossOver().getPrice())));
+					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getResearchPrice())));
 
 			resultList.add(new UIRenderStock(researchStock, profitPer,pe, pb,peDifference));
 			

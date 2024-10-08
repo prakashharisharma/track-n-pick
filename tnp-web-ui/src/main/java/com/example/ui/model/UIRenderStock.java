@@ -39,11 +39,27 @@ public class UIRenderStock {
 
 	double roe;
 
+	double ema5;
+
+	double ema10;
+
+	double ema20;
+
+	double ema50;
+
+	double ema100;
+
+	double ema200;
+
 	double roc;
 
 	double pe;
 
+	double sectorPe;
+
 	double pb;
+
+	double sectorPb;
 
 	double sma50;
 
@@ -63,52 +79,54 @@ public class UIRenderStock {
 
 	IndiceType indice;
 
+	double invested;
+
+	double currentValue;
+
 	boolean overValued;
 
-	boolean deathCross;
+	boolean bearish;
 
-	boolean goldenCross;
+	boolean bullish;
 
 	TechnicalsResearchService.RsiTrend rsiTrend;
 
-	public boolean isGoldenCross() {
-		return goldenCross;
+	public boolean isBullish() {
+		return bullish;
 	}
 
-	public void setGoldenCross(boolean goldenCross) {
-		this.goldenCross = goldenCross;
+	public void setBullish(boolean bullish) {
+		this.bullish = bullish;
 	}
 
 	public UIRenderStock() {
 		this.researchDate = LocalDate.now();
 	}
 
-	public UIRenderStock(UserPortfolio userPortfolioStock, double profitPer, boolean overValued, boolean deathCross, double rsi) {
+	public UIRenderStock(UserPortfolio userPortfolioStock, double profitPer, double invested, double currentValue) {
 		super();
 		this.symbol = userPortfolioStock.getStock().getNseSymbol();
 		this.qunatity = userPortfolioStock.getQuantity();
 		this.averagePrice = userPortfolioStock.getAveragePrice();
 		this.currentPrice = userPortfolioStock.getStock().getStockPrice().getCurrentPrice();
-		this.yearLow = userPortfolioStock.getStock().getStockPrice().getYearLow();
-		this.yearHigh = userPortfolioStock.getStock().getStockPrice().getYearHigh();
-		this.overValued = overValued;
 		this.profitPer = profitPer;
 		this.researchDate = LocalDate.now();
 		this.name = userPortfolioStock.getStock().getCompanyName();
 		this.sector = userPortfolioStock.getStock().getSector().getSectorName();
-		this.deathCross = deathCross;
-		this.rsi = rsi;
+		this.invested = invested;
+		this.currentValue = currentValue;
 	}
 
 	public UIRenderStock(Stock stock) {
 
 		this.symbol = stock.getNseSymbol();
+		this.indice = stock.getPrimaryIndice();
 		this.currentPrice = stock.getStockPrice().getCurrentPrice();
-		this.yearLow = stock.getStockPrice().getYearLow();
-		this.yearHigh = stock.getStockPrice().getYearHigh();
-		this.debtEquity = stock.getStockFactor().getDebtEquity();
-		this.roe = stock.getStockFactor().getReturnOnEquity();
-		this.roc = stock.getStockFactor().getReturnOnCapital();
+		//this.yearLow = stock.getStockPrice().getYearLow();
+		//this.yearHigh = stock.getStockPrice().getYearHigh();
+		//this.debtEquity = stock.getStockFactor().getDebtEquity();
+		//this.roe = stock.getStockFactor().getReturnOnEquity();
+		//this.roc = stock.getStockFactor().getReturnOnCapital();
 		this.researchDate = LocalDate.now();
 
 	}
@@ -133,7 +151,7 @@ public class UIRenderStock {
 		this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
 		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
 		this.rsiTrend = rsiTrend;
-		this.goldenCross = goldenCross;
+		this.bullish = goldenCross;
 
 	}
 	public UIRenderStock(ResearchLedgerTechnical researchLedger, double profitPer, double pe, double pb) {
@@ -142,10 +160,10 @@ public class UIRenderStock {
 		this.currentPrice = researchLedger.getStock().getStockPrice().getCurrentPrice();
 		this.yearLow = researchLedger.getStock().getStockPrice().getYearLow();
 		this.yearHigh = researchLedger.getStock().getStockPrice().getYearHigh();
-		this.researchPrice = researchLedger.getEntryCrossOver().getPrice();
-		if (researchLedger.getEntryCrossOver() != null) {
-			this.researchDate = researchLedger.getEntryCrossOver().getResearchDate();
-		}
+		this.researchPrice = researchLedger.getResearchPrice();
+		//if (researchLedger.getEntryCrossOver() != null) {
+			this.researchDate = researchLedger.getResearchDate();
+		//}
 		this.profitPer = profitPer;
 		this.indice = researchLedger.getStock().getPrimaryIndice();
 		this.pe = pe;
@@ -157,16 +175,16 @@ public class UIRenderStock {
 		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
 		this.rsi = researchLedger.getStock().getTechnicals().getRsi();
 		
-		this.category = researchLedger.getEntryCrossOver().getCrossOverCategory().toString();
+		this.category = researchLedger.getResearchRule().toString();
 
 	}
 	public UIRenderStock(ResearchLedgerFundamental researchLedger, double profitPer, double pe, double pb,
-						 double peDifference, boolean goldenCross, TechnicalsResearchService.RsiTrend rsiTrend) {
+						 double sectorPe, double sectorPb, boolean isBullish) {
 
 		this.symbol = researchLedger.getStock().getNseSymbol();
 		this.currentPrice = researchLedger.getStock().getStockPrice().getCurrentPrice();
-		this.yearLow = researchLedger.getStock().getStockPrice().getYearLow();
-		this.yearHigh = researchLedger.getStock().getStockPrice().getYearHigh();
+		//this.yearLow = researchLedger.getStock().getStockPrice().getYearLow();
+		//this.yearHigh = researchLedger.getStock().getStockPrice().getYearHigh();
 		this.researchPrice = researchLedger.getEntryValuation().getPrice();
 		if (researchLedger.getEntryValuation() != null) {
 			this.researchDate = researchLedger.getEntryValuation().getResearchDate();
@@ -178,12 +196,10 @@ public class UIRenderStock {
 		this.debtEquity = researchLedger.getStock().getStockFactor().getDebtEquity();
 		this.roe = researchLedger.getStock().getStockFactor().getReturnOnEquity();
 		this.roc = researchLedger.getStock().getStockFactor().getReturnOnCapital();
-		//this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
-		//this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
-		//this.rsi = researchLedger.getStock().getTechnicals().getRsi();
-		this.peDifference = peDifference;
-		this.goldenCross = goldenCross;
-		this.rsiTrend = rsiTrend;
+		this.sectorPe = sectorPe;
+		this.sectorPb = sectorPb;
+		this.bullish = isBullish;
+
 	}
 
 	public UIRenderStock(ResearchLedgerTechnical researchLedger, double profitPer, double pe, double pb,
@@ -193,10 +209,10 @@ public class UIRenderStock {
 		this.currentPrice = researchLedger.getStock().getStockPrice().getCurrentPrice();
 		this.yearLow = researchLedger.getStock().getStockPrice().getYearLow();
 		this.yearHigh = researchLedger.getStock().getStockPrice().getYearHigh();
-		this.researchPrice = researchLedger.getEntryCrossOver().getPrice();
-		if (researchLedger.getEntryCrossOver() != null) {
-			this.researchDate = researchLedger.getEntryCrossOver().getResearchDate();
-		}
+		this.researchPrice = researchLedger.getResearchPrice();
+		//if (researchLedger.getEntryCrossOver() != null) {
+			this.researchDate = researchLedger.getResearchDate();
+		//}
 		this.profitPer = profitPer;
 		this.indice = researchLedger.getStock().getPrimaryIndice();
 		this.pe = pe;
@@ -390,6 +406,54 @@ public class UIRenderStock {
 		return indice;
 	}
 
+	public double getEma5() {
+		return ema5;
+	}
+
+	public void setEma5(double ema5) {
+		this.ema5 = ema5;
+	}
+
+	public double getEma10() {
+		return ema10;
+	}
+
+	public void setEma10(double ema10) {
+		this.ema10 = ema10;
+	}
+
+	public double getEma20() {
+		return ema20;
+	}
+
+	public void setEma20(double ema20) {
+		this.ema20 = ema20;
+	}
+
+	public double getEma50() {
+		return ema50;
+	}
+
+	public void setEma50(double ema50) {
+		this.ema50 = ema50;
+	}
+
+	public double getEma100() {
+		return ema100;
+	}
+
+	public void setEma100(double ema100) {
+		this.ema100 = ema100;
+	}
+
+	public double getEma200() {
+		return ema200;
+	}
+
+	public void setEma200(double ema200) {
+		this.ema200 = ema200;
+	}
+
 	public void setIndice(IndiceType indice) {
 		this.indice = indice;
 	}
@@ -418,12 +482,12 @@ public class UIRenderStock {
 		this.category = category;
 	}
 
-	public boolean isDeathCross() {
-		return deathCross;
+	public boolean isBearish() {
+		return bearish;
 	}
 
-	public void setDeathCross(boolean deathCross) {
-		this.deathCross = deathCross;
+	public void setBearish(boolean bearish) {
+		this.bearish = bearish;
 	}
 
 	public TechnicalsResearchService.RsiTrend getRsiTrend() {

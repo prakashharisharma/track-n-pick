@@ -473,7 +473,6 @@ public class StockPriceIN implements Serializable{
 		return serialVersionUID;
 	}
 
-
 	@Override
 	public String toString() {
 		return "StockPrice [symbol=" + nseSymbol + ", close=" + close + "]";

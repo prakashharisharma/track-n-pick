@@ -3,6 +3,9 @@ package com.example.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.model.stocks.StockPrice;
+import com.example.model.stocks.StockTechnicals;
+import com.example.util.rules.RulesFundamental;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +21,9 @@ public class TechnicalsResearchService {
 
 	@Autowired
 	private BreakoutLedgerService breakoutLedgerService;
+
+	@Autowired
+	private RulesFundamental rulesFundamental;
 
 	/**
 	 * A bullish crossover occurs when the shorter moving average crosses above the
@@ -175,6 +181,93 @@ public class TechnicalsResearchService {
 		return isBullishCrossOver;
 	}
 
+	public boolean isBullishRule1(Stock stock){
+
+		boolean isBullish = Boolean.FALSE;
+
+		if(stock.getStockFactor()!=null && stock.getStockFactor().getMarketCap() > rulesFundamental.getMcap()){
+			StockPrice stockPrice = stock.getStockPrice();
+			StockTechnicals stockTechnicals = stock.getTechnicals();
+			if(stockPrice!=null && stockTechnicals!=null){
+				if( (stockTechnicals.getEma20() > stockTechnicals.getEma50())
+				&&
+						(stockTechnicals.getEma50() > stockTechnicals.getEma200())
+				){
+					if((stockTechnicals.getAdx() > stockTechnicals.getPrevAdx())
+					&&
+							(stockTechnicals.getPlusDi() > stockTechnicals.getMinusDi())
+					&&
+							(stockTechnicals.getRsi() > stockTechnicals.getPrevRsi())
+					&&
+							(stockTechnicals.getMacd() > stockTechnicals.getPrevMacd())
+					&&
+							(stockTechnicals.getMacd() > 0.00)
+					&&
+							(stockTechnicals.getMacd() > stockTechnicals.getSignal())){
+
+						if((stockTechnicals.getEma5() > stockTechnicals.getPrevEma5())
+								&&
+								(stockPrice.getClose() > stockPrice.getOpen())
+
+								&&
+								(stockPrice.getCurrentPrice() > stockTechnicals.getEma5())
+						){
+							isBullish = Boolean.TRUE;
+						}
+
+					}
+				}
+
+			}
+		}
+
+		return isBullish;
+	}
+
+	public boolean isBullishRule2(Stock stock){
+
+		boolean isBullish = Boolean.FALSE;
+
+		if(stock.getStockFactor()!=null && stock.getStockFactor().getMarketCap() > rulesFundamental.getMcap()){
+			StockPrice stockPrice = stock.getStockPrice();
+			StockTechnicals stockTechnicals = stock.getTechnicals();
+			if(stockPrice!=null && stockTechnicals!=null){
+				if( (stockTechnicals.getEma20() > stockTechnicals.getEma50())
+						&&
+						(stockTechnicals.getEma50() > stockTechnicals.getEma200())
+				){
+					if((stockTechnicals.getAdx() > stockTechnicals.getPrevAdx())
+							&&
+							(stockTechnicals.getAdx() > 25.0 && stockTechnicals.getAdx() < 30.0)
+							&&
+							(stockTechnicals.getPlusDi() > stockTechnicals.getMinusDi())
+							&&
+							(stockTechnicals.getRsi() > stockTechnicals.getPrevRsi())
+							&&
+							(stockTechnicals.getRsi() > 60.0)
+							&&
+							(stockTechnicals.getMacd() > stockTechnicals.getPrevMacd())
+							&&
+							(stockTechnicals.getMacd() > 0.00)
+							&&
+							(stockTechnicals.getMacd() > stockTechnicals.getSignal())){
+
+						if(
+
+								(stockPrice.getCurrentPrice() > stockTechnicals.getEma20())
+						){
+							isBullish = Boolean.TRUE;
+						}
+
+					}
+				}
+
+			}
+		}
+
+		return isBullish;
+	}
+
 	public boolean isBullishCrossOver200(Stock stock) {
 
 		boolean isBullishCrossOver = false;
@@ -308,6 +401,77 @@ public class TechnicalsResearchService {
 				stock.getTechnicals().getSma100());
 
 		return isBearishCrossover;
+	}
+
+	public boolean isBearishRule1(Stock stock) {
+
+		boolean isBearish = Boolean.FALSE;
+
+		StockPrice stockPrice = stock.getStockPrice();
+		StockTechnicals stockTechnicals = stock.getTechnicals();
+
+		if(stockPrice!=null && stockTechnicals!=null){
+
+			if((stockTechnicals.getAdx() < stockTechnicals.getPrevAdx())
+					&&
+					(stockTechnicals.getRsi() < stockTechnicals.getPrevRsi())
+					&&
+					(stockTechnicals.getMacd() < stockTechnicals.getPrevMacd())
+					&&
+					(stockTechnicals.getMacd() < stockTechnicals.getSignal())){
+
+				if((stockTechnicals.getEma5() < stockTechnicals.getPrevEma5())
+						&&
+						(stockPrice.getClose() < stockPrice.getOpen())
+
+						&&
+						(stockPrice.getCurrentPrice() < stockTechnicals.getEma5())
+				){
+					isBearish = Boolean.TRUE;
+				}
+
+			}
+
+
+		}
+
+
+		return isBearish;
+	}
+
+	public boolean isBearishRule2(Stock stock) {
+
+		boolean isBearish = Boolean.FALSE;
+
+			StockPrice stockPrice = stock.getStockPrice();
+			StockTechnicals stockTechnicals = stock.getTechnicals();
+
+			if(stockPrice!=null && stockTechnicals!=null){
+
+					if((stockTechnicals.getAdx() < stockTechnicals.getPrevAdx())
+							&&
+							(stockTechnicals.getRsi() < stockTechnicals.getPrevRsi())
+							&&
+							(stockTechnicals.getMacd() < stockTechnicals.getPrevMacd())
+							&&
+							(stockTechnicals.getMacd() < stockTechnicals.getSignal())
+							&&
+							(stockTechnicals.getAdx() < 30.0)
+					){
+						if(
+								(stockPrice.getClose() < stockPrice.getOpen())
+							)
+						{
+							isBearish = Boolean.TRUE;
+						}
+
+					}
+
+
+			}
+
+
+		return isBearish;
 	}
 
 	public boolean isBearishCrossover200(Stock stock) {

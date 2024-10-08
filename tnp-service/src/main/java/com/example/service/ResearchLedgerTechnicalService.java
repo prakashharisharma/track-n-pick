@@ -1,5 +1,6 @@
 package com.example.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -25,7 +26,7 @@ public class ResearchLedgerTechnicalService {
 	@Autowired
 	private ResearchLedgerTechnicalRepository researchLedgerRepository;
 
-	public void addResearch(Stock stock,CrossOverLedger entryCrossOver) {
+	public void addResearch(Stock stock, int rule) {
 
 		ResearchLedgerTechnical researchLedger = researchLedgerRepository.findByStockAndResearchStatus(stock, ResearchTrigger.BUY);
 
@@ -34,14 +35,16 @@ public class ResearchLedgerTechnicalService {
 			researchLedger = new ResearchLedgerTechnical();
 			
 			researchLedger.setStock(stock);
-			
 			researchLedger.setResearchStatus(ResearchTrigger.BUY);
-			
+
 			researchLedger.setNotified(false);
+			researchLedger.setResearchRule(rule);
+			researchLedger.setResearchPrice(stock.getStockPrice().getCurrentPrice());
+			researchLedger.setResearchDate(stock.getStockPrice().getBhavDate());
 			
 			//researchLedger.setNotifiedStorage(false);
 			
-			researchLedger.setEntryCrossOver(entryCrossOver);
+			//researchLedger.setEntryCrossOver(entryCrossOver);
 			
 			researchLedgerRepository.save(researchLedger);
 		} else {
@@ -50,19 +53,18 @@ public class ResearchLedgerTechnicalService {
 
 	}
 
-	public void updateResearch(Stock stock, CrossOverLedger exitCrossOver) {
+	public void updateResearch(Stock stock, int rule) {
 
 		ResearchLedgerTechnical researchLedger = researchLedgerRepository.findByStockAndResearchStatus(stock, ResearchTrigger.BUY);
 		
 		if (researchLedger != null) {
 
-			
 			researchLedger.setResearchStatus(ResearchTrigger.SELL);
 			
 			researchLedger.setNotified(false);
-			//researchLedger.setNotifiedStorage(false);
-			
-			researchLedger.setExitCrossOver(exitCrossOver);
+			researchLedger.setExitDate(stock.getStockPrice().getBhavDate());
+			researchLedger.setExitPrice(stock.getStockPrice().getCurrentPrice());
+			researchLedger.setExitRule(rule);
 			
 			researchLedgerRepository.save(researchLedger);	
 		}
@@ -126,6 +128,21 @@ public class ResearchLedgerTechnicalService {
 	public List<ResearchLedgerTechnical> researchStocksTechnicals() {
 
 		return researchLedgerRepository.findByResearchStatus(ResearchTrigger.BUY);
+	}
+
+	public boolean isActive(Stock stock, ResearchTrigger researchStatus){
+
+		List<ResearchLedgerTechnical> researchLedgerTechnicals = researchLedgerRepository.getActiveResearch(stock.getNseSymbol(), researchStatus);
+
+		if(researchLedgerTechnicals!=null && !researchLedgerTechnicals.isEmpty()){
+
+			ResearchLedgerTechnical researchLedgerTechnical = researchLedgerTechnicals.get(researchLedgerTechnicals.size() -1);
+
+			if(researchStatus == researchLedgerTechnical.getResearchStatus()){
+				return Boolean.TRUE;
+			}
+		}
+		return Boolean.FALSE;
 	}
 
 }

@@ -14,6 +14,7 @@ import com.example.storage.repo.PriceTemplate;
 import com.example.storage.repo.TechnicalsTemplate;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
+import com.example.util.io.model.ResearchIO;
 import com.example.util.io.model.StockPriceIO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -129,8 +130,6 @@ public class UpdateTechnicalsConsumer {
 	public void processTechnicalsUpdate(StockPriceIO stockPriceIO){
 
 		this.updateTechnicalsHistory(stockPriceIO);
-
-		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE);
 
 	}
 
@@ -616,6 +615,10 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 			stockTechnicalsTxn.setLastModified(LocalDate.now());
 
 			stockTechnicalsRepository.save(stockTechnicalsTxn);
+
+			ResearchIO researchIO = new ResearchIO(stockPriceIO.getNseSymbol(), ResearchIO.ResearchType.TECHNICAL, ResearchIO.ResearchTrigger.BUY_SELL);
+
+			queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
 
 			log.info("{} Updated transactional technicals ", stockPriceIO.getNseSymbol());
 		}

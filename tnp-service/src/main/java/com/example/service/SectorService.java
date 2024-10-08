@@ -107,7 +107,9 @@ public Sector add(String sectorName) {
 	}
 	
 	public void updateSectorPEPB() {
-		
+
+		log.info("Starting Update sector PE and PB");
+
 		List<Sector> sectorList = this.allSectors();
 	
 		sectorList.forEach(sector -> {
@@ -121,7 +123,7 @@ public Sector add(String sectorName) {
 			double variationPb = 0.00;
 			double sectorCurrentRatio = 0.00;
 			
-			System.out.println(sector.getSectorName());
+			//System.out.println(sector.getSectorName());
 
 			
 			//else{
@@ -144,7 +146,7 @@ public Sector add(String sectorName) {
 
 				variationPe = formulaService.calculatePercentage(sectorPe, 5);
 
-				System.out.println(sector.getSectorName() + " : PE : " + sectorPe);
+				//System.out.println(sector.getSectorName() + " : PE : " + sectorPe);
 
 				avgBookValue = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getBookValue()).average().orElse(0.00);
 
@@ -156,7 +158,7 @@ public Sector add(String sectorName) {
 
 				sectorCurrentRatio = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getCurrentRatio()).average().orElse(0.00);
 
-				System.out.println(sector.getSectorName() + " : PB : " + sectorPb);
+				//System.out.println(sector.getSectorName() + " : PB : " + sectorPb);
 
 				//}
 			}catch (Exception e){
@@ -171,6 +173,8 @@ public Sector add(String sectorName) {
 			sectorRepository.save(sector);
 			
 		});
+
+		log.info("Completed Update sector PE and PB");
 	}
 	
 }

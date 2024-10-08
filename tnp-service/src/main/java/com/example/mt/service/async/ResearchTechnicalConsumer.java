@@ -169,11 +169,11 @@ public class ResearchTechnicalConsumer {
 	}
 
 	private void updateResearchLedgerTechnical(Stock stock, CrossOverLedger exitCrossOver) {
-		researchLedgerService.updateResearch(stock, exitCrossOver);
+		//researchLedgerService.updateResearch(stock, exitCrossOver);
 	}
 
 	private void addToResearchLedgerTechnical(Stock stock, CrossOverLedger entryCrossOver) {
-		researchLedgerService.addResearch(stock, entryCrossOver);
+		//researchLedgerService.addResearch(stock, entryCrossOver);
 	}
 
 	private void addToResearchHistory(Stock stock, ResearchType researchType, ResearchTrigger researchTrigger) {

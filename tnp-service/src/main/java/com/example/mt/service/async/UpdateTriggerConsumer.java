@@ -75,11 +75,10 @@ public class UpdateTriggerConsumer {
 		LOGGER.info(QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE.toUpperCase() + " : " + updateTriggerIO + " : START");
 
 		if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_RESEARCH) {
+
 			this.updateSectorPEPB();
 			
-			this.updateResearchStrong();
-			
-			//this.updateResearchTweaked();
+			//this.updateResearchStrong();
 			
 		} else if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_CYRO) {
 			this.updateCYRO();
@@ -182,8 +181,9 @@ public class UpdateTriggerConsumer {
 	}
 
 	private void updateSectorPEPB() {
+
 		sectorService.updateSectorPEPB();
 		
-		System.out.println("updateSectorPEPB END");
+		//System.out.println("updateSectorPEPB END");
 	}
 }

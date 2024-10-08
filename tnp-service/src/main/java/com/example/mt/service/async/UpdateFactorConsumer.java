@@ -6,8 +6,6 @@ import com.example.storage.repo.FactorTemplate;
 import com.example.util.io.model.StockPriceIO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.messaging.MessageHeaders;
@@ -28,7 +26,7 @@ import com.example.util.io.model.StockFactorIO;
 
 @Component
 @Slf4j
-public class FactorUpdateConsumer {
+public class UpdateFactorConsumer {
 
 	@Autowired
 	private QueueService queueService;
@@ -46,19 +44,11 @@ public class FactorUpdateConsumer {
 	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers, Message message,
 			Session session) throws InterruptedException {
 
-		log.info("{} Starting factors update.", stockPriceIO.getNseSymbol());
+			log.info("{} Starting factors update.", stockPriceIO.getNseSymbol());
 
 			this.updateFactorsTxn(stockPriceIO);
 
-			ResearchIO researchIO = new ResearchIO(stockPriceIO.getNseSymbol(), ResearchType.FUNDAMENTAL, ResearchTrigger.BUY_SELL);
-
-			this.processResearch(researchIO);
-
-		 	researchIO = new ResearchIO(stockPriceIO.getNseSymbol(), ResearchType.TECHNICAL, ResearchTrigger.BUY_SELL);
-
-			this.processResearch(researchIO);
-
-		log.info("{} Completed factors update.", stockPriceIO.getNseSymbol());
+			log.info("{} Completed factors update.", stockPriceIO.getNseSymbol());
 
 	}
 
@@ -66,8 +56,6 @@ public class FactorUpdateConsumer {
 
 		this.updateFactorsTxn(stockPriceIO);
 	}
-
-
 
 	private void updateFactorsTxn(StockPriceIO stockPriceIO){
 
@@ -97,6 +85,10 @@ public class FactorUpdateConsumer {
 				this.updateFactorsHistory(stockFactorIO);
 			}
 		}
+
+		ResearchIO researchIO = new ResearchIO(stockPriceIO.getNseSymbol(), ResearchType.FUNDAMENTAL, ResearchTrigger.BUY_SELL);
+
+		this.processResearch(researchIO);
 	}
 
 	private void updateFactorsHistory(StockFactorIO stockFactorIO){
