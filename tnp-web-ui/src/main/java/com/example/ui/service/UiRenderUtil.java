@@ -184,17 +184,6 @@ public class UiRenderUtil {
 		List<UIRenderStock> portfolioList = new ArrayList<>();
 
 		for (ResearchLedgerTechnical researchStock : researchList) {
-
-			//double currentPrice = researchStock.getStock().getStockPrice().getCurrentPrice();
-			
-			//double bookValue= researchStock.getStock().getStockFactor().getBookValue();
-			
-			//double eps = researchStock.getStock().getStockFactor().getEps();
-			
-			//double pe= formulaService.calculatePe(currentPrice, eps);
-			
-			//double pb= formulaService.calculatePb(currentPrice, bookValue);
-
 			
 			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(
 					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getResearchPrice())));
@@ -202,6 +191,8 @@ public class UiRenderUtil {
 			UIRenderStock uiRenderStock = new UIRenderStock(researchStock.getStock());
 
 			uiRenderStock.setResearchPrice(researchStock.getResearchPrice());
+			uiRenderStock.setProfitPer(profitPer);
+			uiRenderStock.setResearchDate(researchStock.getResearchDate());
 
 			StockTechnicals stockTechnicals = researchStock.getStock().getTechnicals();
 

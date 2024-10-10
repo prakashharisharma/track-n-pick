@@ -127,7 +127,7 @@ public class UIRenderStock {
 		//this.debtEquity = stock.getStockFactor().getDebtEquity();
 		//this.roe = stock.getStockFactor().getReturnOnEquity();
 		//this.roc = stock.getStockFactor().getReturnOnCapital();
-		this.researchDate = LocalDate.now();
+		//this.researchDate = LocalDate.now();
 
 	}
 

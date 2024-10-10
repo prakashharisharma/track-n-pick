@@ -237,6 +237,7 @@ public class UpdateBhavProcessor implements Processor {
 										ignoreSet.add("GROWWLIQID");
 										ignoreSet.add("MOMENTUM50");
 										ignoreSet.add("GROWWLIQID");
+										ignoreSet.add("BANKPSU");
 	}
 
 	@Autowired

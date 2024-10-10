@@ -422,6 +422,8 @@ public class TechnicalsResearchService {
 
 				if((stockTechnicals.getEma5() < stockTechnicals.getPrevEma5())
 						&&
+						(stockTechnicals.getEma20() < stockTechnicals.getPrevEma20())
+						&&
 						(stockPrice.getClose() < stockPrice.getOpen())
 
 						&&
