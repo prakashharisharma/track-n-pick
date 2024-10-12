@@ -26,7 +26,7 @@ public class ResearchLedgerTechnicalService {
 	@Autowired
 	private ResearchLedgerTechnicalRepository researchLedgerRepository;
 
-	public void addResearch(Stock stock, int rule) {
+	public void addResearch(Stock stock, int rule, double score) {
 
 		ResearchLedgerTechnical researchLedger = researchLedgerRepository.findByStockAndResearchStatus(stock, ResearchTrigger.BUY);
 
@@ -41,10 +41,7 @@ public class ResearchLedgerTechnicalService {
 			researchLedger.setResearchRule(rule);
 			researchLedger.setResearchPrice(stock.getStockPrice().getCurrentPrice());
 			researchLedger.setResearchDate(stock.getStockPrice().getBhavDate());
-			
-			//researchLedger.setNotifiedStorage(false);
-			
-			//researchLedger.setEntryCrossOver(entryCrossOver);
+			researchLedger.setScore(score);
 			
 			researchLedgerRepository.save(researchLedger);
 		} else {
@@ -72,18 +69,6 @@ public class ResearchLedgerTechnicalService {
 		
 	}
 
-	/*public boolean isResearchStorageNotified(Stock stock, ResearchTrigger researchTrigger) {
-		boolean isResearchStorageNotified = true;
-		ResearchLedgerTechnical researchLedger = researchLedgerRepository.findByStockAndResearchStatusAndNotifiedStorage(stock, researchTrigger, false);
-		
-		if(researchLedger != null) {
-			
-			isResearchStorageNotified = false;
-		}
-		
-		return isResearchStorageNotified;
-	}*/
-
 
 	public void updateResearchNotified(ResearchLedgerTechnical researchLedger) {
 		
@@ -104,8 +89,6 @@ public class ResearchLedgerTechnicalService {
 		ResearchLedgerTechnical researchLedger1 = researchLedgerRepository.findBySrlId(researchLedger.getSrlId());
 		
 		if (researchLedger1 != null) {
-
-			//researchLedger1.setNotifiedStorage(true);
 			
 			researchLedgerRepository.save(researchLedger1);
 		}

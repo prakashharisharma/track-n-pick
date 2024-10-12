@@ -54,6 +54,9 @@ public class ResearchLedgerTechnical {
 	@Column(name = "EXIT_RULE")
 	Integer exitRule;
 
+	@Column(name = "SCORE", columnDefinition="Decimal(10,2) default '0.00'")
+	double score;
+
 	public long getSrlId() {
 		return srlId;
 	}
@@ -132,6 +135,14 @@ public class ResearchLedgerTechnical {
 
 	public void setExitRule(Integer exitRule) {
 		this.exitRule = exitRule;
+	}
+
+	public double getScore() {
+		return score;
+	}
+
+	public void setScore(double score) {
+		this.score = score;
 	}
 
 	@Override

@@ -21,8 +21,15 @@ import com.example.model.master.Stock;
 public class BreakoutLedger implements Serializable{
 
 	public enum BreakoutType {POSITIVE, NEGATIVE}
-	
-	public enum BreakoutCategory { CROSS50,CROSS100, CROSS200 }
+
+	/**
+	 * - GAP_UP - Price open and close above previous close
+	 * - MACD_CROSS_VOLUME_HIGH - MACD crossing over signal line and volume > avg_10
+	 * - SIGNAL_NEAR_AND_ABOVE_ZERO_LINE - st.signal_line < (st.macd - st.signal_line)
+	 * - VOLUME_HIGH - volume > avg_10
+	 * - RULE 2 is true
+	 */
+	public enum BreakoutCategory { CROSS50, CROSS200, GAP_UP,  MACD_CROSS_VOLUME_HIGH, SIGNAL_NEAR_HISTOGRAM, VOLUME_HIGH, RULE2}
 	
 	/**
 	 * 
@@ -51,25 +58,18 @@ public class BreakoutLedger implements Serializable{
 	@Enumerated(EnumType.STRING)
 	BreakoutCategory breakoutCategory;
 
-	@Column(name = "PRICE", columnDefinition="Decimal(10,2) default '0.00'")
-	double price;
-	
-	@Column(name = "SMA", columnDefinition="Decimal(10,2) default '0.00'")
-	double sma;
 
 	public BreakoutLedger() {
 		super();
 	}
 
 	public BreakoutLedger(Stock stockId, LocalDate breakoutDate, BreakoutType breakoutType,
-			BreakoutCategory breakoutCategory, double price, double sma) {
+			BreakoutCategory breakoutCategory) {
 		super();
 		this.stockId = stockId;
 		this.breakoutDate = breakoutDate;
 		this.breakoutType = breakoutType;
 		this.breakoutCategory = breakoutCategory;
-		this.price = price;
-		this.sma = sma;
 	}
 
 	public long getBreakoutId() {
@@ -112,27 +112,14 @@ public class BreakoutLedger implements Serializable{
 		this.breakoutCategory = breakoutCategory;
 	}
 
-	public double getPrice() {
-		return price;
-	}
-
-	public void setPrice(double price) {
-		this.price = price;
-	}
-
-	public double getSma() {
-		return sma;
-	}
-
-	public void setSma(double sma) {
-		this.sma = sma;
-	}
-
 	@Override
 	public String toString() {
-		return "BreakoutLedger [breakoutId=" + breakoutId + ", stockId=" + stockId + ", breakoutDate=" + breakoutDate
-				+ ", breakoutType=" + breakoutType + ", breakoutCategory=" + breakoutCategory + ", price=" + price
-				+ ", sma=" + sma + "]";
+		return "BreakoutLedger{" +
+				"breakoutId=" + breakoutId +
+				", stockId=" + stockId +
+				", breakoutDate=" + breakoutDate +
+				", breakoutType=" + breakoutType +
+				", breakoutCategory=" + breakoutCategory +
+				'}';
 	}
-	
 }

@@ -256,6 +256,7 @@ public class TechnicalsResearchService {
 
 								(stockPrice.getCurrentPrice() > stockTechnicals.getEma20())
 						){
+							breakoutLedgerService.addPositive(stock, BreakoutCategory.RULE2);
 							isBullish = Boolean.TRUE;
 						}
 
@@ -266,6 +267,101 @@ public class TechnicalsResearchService {
 		}
 
 		return isBullish;
+	}
+
+	public double breakoutScore(Stock stock){
+
+		double score = 0.00;
+
+		if(this.isGapUp(stock)){
+			score = score + 2.0;
+		}
+
+		if(this.isMacdCrossOverWithHighVolume(stock)){
+			score = score + 2.0;
+		}
+
+		if(this.isSignalNearHistogram(stock)){
+			score = score + 2.0;
+		}
+
+		if(this.isVolumeAboveAverage(stock)){
+			score = score + 2.0;
+		}
+
+		if(this.isBullishRule2(stock)){
+			score = score + 2.0;
+		}
+
+		return score;
+	}
+
+
+
+	public boolean isGapUp(Stock stock){
+
+		StockPrice stockPrice = stock.getStockPrice();
+
+		if( stockPrice != null
+			&&
+			(stockPrice.getOpen() > stockPrice.getPrevClose())
+			&&
+			(stockPrice.getClose() >= stockPrice.getOpen())
+			&&
+			(stockPrice.getPrevClose() > stockPrice.getPrevOpen())
+		){
+				breakoutLedgerService.addPositive(stock, BreakoutCategory.GAP_UP);
+				return Boolean.TRUE;
+
+		}
+
+		return Boolean.FALSE;
+	}
+
+	public boolean isMacdCrossOverWithHighVolume(Stock stock){
+
+		boolean isMacdCrossOver = this. isShortCrossedLongFromLow(stock.getTechnicals().getPrevMacd(),
+				stock.getTechnicals().getPrevSignal(), stock.getTechnicals().getMacd(),
+				stock.getTechnicals().getSignal());
+
+		if(isMacdCrossOver && this.isVolumeAboveAverage(stock)){
+			breakoutLedgerService.addPositive(stock, BreakoutCategory.MACD_CROSS_VOLUME_HIGH);
+			return Boolean.TRUE;
+		}
+
+		return Boolean.FALSE;
+	}
+
+	public boolean isSignalNearHistogram(Stock stock){
+
+		StockTechnicals stockTechnicals  = stock.getTechnicals();
+
+		if(stockTechnicals!=null){
+
+			double histogram = stockTechnicals.getMacd() - stockTechnicals.getSignal();
+
+			if(stockTechnicals.getSignal() <= histogram ){
+				breakoutLedgerService.addPositive(stock, BreakoutCategory.SIGNAL_NEAR_HISTOGRAM);
+				return Boolean.TRUE;
+			}
+		}
+
+		return Boolean.FALSE;
+	}
+
+	public boolean isVolumeAboveAverage(Stock stock){
+
+		StockTechnicals stockTechnicals  = stock.getTechnicals();
+
+		if( (stockTechnicals!=null )
+				&&
+				stockTechnicals.getVolume() > (stockTechnicals.getAvgVolume() * 4)
+		){
+			breakoutLedgerService.addPositive(stock, BreakoutCategory.VOLUME_HIGH);
+			return Boolean.TRUE;
+		}
+
+		return Boolean.FALSE;
 	}
 
 	public boolean isBullishCrossOver200(Stock stock) {
@@ -567,18 +663,15 @@ public class TechnicalsResearchService {
 		double low = stock.getStockPrice().getLow();
 		double close = stock.getStockPrice().getCurrentPrice();
 
-		if (volume > (avgVolume * 5)) {
-			//if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma200()) {
-			//if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma20()) {
-				if (volume > 500) {
+		if (this.isVolumeAboveAverage(stock)) {
+
 					if ((openPrice > prevClose) && (close < openPrice) ) {
 						isPriceVolumeBearish = true;
 					}
 					if((openPrice < prevClose) && (close > openPrice)){
 						isPriceVolumeBearish = true;
 					}
-				}
-			//}
+
 
 		}
 
@@ -586,26 +679,13 @@ public class TechnicalsResearchService {
 		return isPriceVolumeBearish;
 	}
 
-	public boolean isHighVolume(Stock stock) {
-
-		boolean isHighVolume = false;
-
-		long volume = stock.getTechnicals().getVolume();
-		long avgVolume = stock.getTechnicals().getAvgVolume();
-
-		if (volume > (avgVolume * 2)) {
-			isHighVolume = true;
-		}
-
-		return isHighVolume;
-	}
 
 	@Deprecated
 	public boolean isBreakOut50Bullish(Stock stock) {
 		boolean isBreakOut50Bullish = false;
 
 		if (breakoutLedgerService.isBreakout(stock, BreakoutType.POSITIVE, BreakoutCategory.CROSS50)) {
-			if (this.isHighVolume(stock)) {
+			if (this.isVolumeAboveAverage(stock)) {
 				isBreakOut50Bullish = true;
 			}
 		}
@@ -619,7 +699,7 @@ public class TechnicalsResearchService {
 		if (stock.getPrimaryIndice() == IndiceType.NIFTY50 || stock.getPrimaryIndice() == IndiceType.NIFTY100) {
 			if (stock.getStockPrice().getCurrentPrice() > stock.getTechnicals().getSma200()) {
 				if (breakoutLedgerService.isBreakout(stock, BreakoutType.NEGATIVE, BreakoutCategory.CROSS50)) {
-					if (this.isHighVolume(stock)) {
+					if (this.isVolumeAboveAverage(stock)) {
 						isBreakOut50Bearish = true;
 					}
 				}
@@ -634,7 +714,7 @@ public class TechnicalsResearchService {
 		boolean isBreakOut200HighVolumeBullish = false;
 
 		if (breakoutLedgerService.isBreakout(stock, BreakoutType.POSITIVE, BreakoutCategory.CROSS200)) {
-			if (this.isHighVolume(stock)) {
+			if (this.isVolumeAboveAverage(stock)) {
 				isBreakOut200HighVolumeBullish = true;
 			}
 		}
@@ -647,7 +727,7 @@ public class TechnicalsResearchService {
 		boolean isBreakOut200HighVolumeBearish = false;
 
 		if (breakoutLedgerService.isBreakout(stock, BreakoutType.NEGATIVE, BreakoutCategory.CROSS200)) {
-			if (this.isHighVolume(stock)) {
+			if (this.isVolumeAboveAverage(stock)) {
 				isBreakOut200HighVolumeBearish = true;
 			}
 		}

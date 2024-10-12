@@ -69,9 +69,11 @@ public class ResearchBreakoutConsumer {
 		if (technicalsResearchService.isPositiveBreakout200(stock)) {
 			breakoutLedgerService.addPositive(stock, BreakoutLedger.BreakoutCategory.CROSS200);
 		}
+		/*
 		if (technicalsResearchService.isPositiveBreakout100(stock)) {
 			breakoutLedgerService.addPositive(stock, BreakoutLedger.BreakoutCategory.CROSS100);
 		}
+		 */
 		if (technicalsResearchService.isPositiveBreakout50(stock)) {
 			breakoutLedgerService.addPositive(stock, BreakoutLedger.BreakoutCategory.CROSS50);
 		}
@@ -85,9 +87,11 @@ public class ResearchBreakoutConsumer {
 		if (technicalsResearchService.isNegativeBreakout50(stock)) {
 			breakoutLedgerService.addNegative(stock, BreakoutLedger.BreakoutCategory.CROSS50);
 		}
+		/*
 		if (technicalsResearchService.isNegativeBreakout100(stock)) {
 			breakoutLedgerService.addNegative(stock, BreakoutLedger.BreakoutCategory.CROSS100);
 		}
+		*/
 		if (technicalsResearchService.isNegativeBreakout200(stock)) {
 			breakoutLedgerService.addNegative(stock, BreakoutLedger.BreakoutCategory.CROSS200);
 		}

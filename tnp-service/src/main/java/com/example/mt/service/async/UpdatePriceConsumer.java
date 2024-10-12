@@ -174,13 +174,17 @@ public class UpdatePriceConsumer {
 			stockPrice.setStock(stock);
 
 			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
+
+			stockPrice.setPrevOoen(stockPrice.getOpen());
+			stockPrice.setPrevClose(stockPrice.getClose());
+
 			stockPrice.setOpen(stockPriceIO.getOpen());
 			stockPrice.setHigh(stockPriceIO.getHigh());
 			stockPrice.setLow(stockPriceIO.getLow());
 			stockPrice.setClose(stockPriceIO.getClose());
 
 			stockPrice.setCurrentPrice(stockPriceIO.getClose());
-			stockPrice.setPrevClose(stockPriceIO.getPrevClose());
+
 
 			stockPrice.setYearHigh(stockPriceIO.getYearHigh());
 			stockPrice.setYearLow(stockPriceIO.getYearLow());

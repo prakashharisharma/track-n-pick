@@ -39,6 +39,7 @@ public class UpdateResearchConsumer {
 
 	@Autowired
 	private ResearchLedgerTechnicalService researchTechnicalLedgerService;
+
 	@Autowired
 	private CrossOverLedgerService crossOverLedgerService;
 
@@ -179,6 +180,7 @@ public class UpdateResearchConsumer {
 	private void researchTechnical(Stock stock, ResearchIO.ResearchTrigger researchTrigger) {
 
 		if (researchTrigger == ResearchIO.ResearchTrigger.BUY) {
+			/*
 			if (ruleService.isUndervalued(stock)) {
 				if (technicalsResearchService.isBullishCrossOver200(stock)) {
 
@@ -189,14 +191,19 @@ public class UpdateResearchConsumer {
 				}
 
 			}
+			 */
+
+			if (technicalsResearchService.isBullishRule1(stock)) {
+
+				double score = technicalsResearchService.breakoutScore(stock);
+
+				this.addBullishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.RULE1, score);
+
+			}
 
 		} else if (researchTrigger == ResearchIO.ResearchTrigger.SELL) {
 
-			if (technicalsResearchService.isBearishCrossover200(stock)) {
-
-				this.addBearishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.CROSS200);
-
-			} else if (technicalsResearchService.isPriceVolumeBearish(stock)) {
+		  	if (technicalsResearchService.isPriceVolumeBearish(stock)) {
 				this.addBearishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.VIPF);
 			}
 
@@ -204,16 +211,19 @@ public class UpdateResearchConsumer {
 
 			if (technicalsResearchService.isBullishRule1(stock)) {
 
-				this.addBullishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.RULE1);
+				double score = technicalsResearchService.breakoutScore(stock);
+
+				this.addBullishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.RULE1, score);
 
 			}
 
-
+			/*
 			if (technicalsResearchService.isBullishRule2(stock)) {
 
 				this.addBullishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.RULE2);
 
 			}
+			 */
 
 			/*
 			if (technicalsResearchService.isBullishCrossOver50(stock)) {
@@ -234,15 +244,19 @@ public class UpdateResearchConsumer {
 
 			if (technicalsResearchService.isBearishRule1(stock)) {
 
+
 				this.addBearishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.RULE1);
 
 			}
 
+			/*
 			if (technicalsResearchService.isBearishRule2(stock)) {
 
 				this.addBearishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.RULE2);
 
 			}
+			 */
+
 			/*
 			if (technicalsResearchService.isBearishCrossover20(stock)) {
 
@@ -265,13 +279,13 @@ public class UpdateResearchConsumer {
 
 	}
 
-	private void addBullishCrossOverLedger(Stock stock, CrossOverLedger.CrossOverCategory crossOverCategory) {
+	private void addBullishCrossOverLedger(Stock stock, CrossOverLedger.CrossOverCategory crossOverCategory, double score) {
 
 		//CrossOverLedger entryCrossOver = crossOverLedgerService.addBullish(stock, crossOverCategory);
 
 		//if (crossOverCategory == CrossOverLedger.CrossOverCategory.CROSS20 || crossOverCategory == CrossOverLedger.CrossOverCategory.VIPR) {
 
-			this.addToResearchLedgerTechnical(stock, crossOverCategory.ordinal());
+			this.addToResearchLedgerTechnical(stock, crossOverCategory.ordinal(), score);
 		//}
 
 		this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchIO.ResearchTrigger.BUY);
@@ -294,8 +308,8 @@ public class UpdateResearchConsumer {
 		researchTechnicalLedgerService.updateResearch(stock, rule);
 	}
 
-	private void addToResearchLedgerTechnical(Stock stock, int rule) {
-		researchTechnicalLedgerService.addResearch(stock, rule);
+	private void addToResearchLedgerTechnical(Stock stock, int rule, double score) {
+		researchTechnicalLedgerService.addResearch(stock, rule, score);
 	}
 
 

@@ -25,34 +25,27 @@ public class BreakoutLedgerService {
 		BreakoutLedger breakoutLedger =  breakoutLedgerRepository.findByStockIdAndBreakoutTypeAndBreakoutCategoryAndBreakoutDate(stock, BreakoutLedger.BreakoutType.POSITIVE, breakoutCategory, LocalDate.now());
 		
 		if(breakoutLedger == null) {
-			if(breakoutCategory == BreakoutLedger.BreakoutCategory.CROSS50) {
-				breakoutLedger = new BreakoutLedger(stock, LocalDate.now(), BreakoutLedger.BreakoutType.POSITIVE, breakoutCategory, stock.getStockPrice().getCurrentPrice(), stock.getTechnicals().getSma50());
-			}else if(breakoutCategory == BreakoutLedger.BreakoutCategory.CROSS100) {
-				breakoutLedger = new BreakoutLedger(stock, LocalDate.now(), BreakoutLedger.BreakoutType.POSITIVE, breakoutCategory, stock.getStockPrice().getCurrentPrice(), stock.getTechnicals().getSma100());
-			}else if(breakoutCategory == BreakoutLedger.BreakoutCategory.CROSS200) {
-				breakoutLedger = new BreakoutLedger(stock, LocalDate.now(), BreakoutLedger.BreakoutType.POSITIVE, breakoutCategory, stock.getStockPrice().getCurrentPrice(), stock.getTechnicals().getSma200());
-			}
-			
+
+			breakoutLedger = new BreakoutLedger(stock, stock.getStockPrice().getBhavDate(), BreakoutLedger.BreakoutType.POSITIVE, breakoutCategory);
+
 			breakoutLedgerRepository.save(breakoutLedger);
 		}
 		
 	}
 	public void addNegative(Stock stock,BreakoutCategory breakoutCategory) {
+
 		BreakoutLedger breakoutLedger =  breakoutLedgerRepository.findByStockIdAndBreakoutTypeAndBreakoutCategoryAndBreakoutDate(stock, BreakoutLedger.BreakoutType.NEGATIVE, breakoutCategory, LocalDate.now());
+
 		if(breakoutLedger == null) {
-			if(breakoutCategory == BreakoutLedger.BreakoutCategory.CROSS50) {
-				breakoutLedger = new BreakoutLedger(stock, LocalDate.now(), BreakoutLedger.BreakoutType.NEGATIVE, breakoutCategory, stock.getStockPrice().getCurrentPrice(), stock.getTechnicals().getSma50());
-			}else if(breakoutCategory == BreakoutLedger.BreakoutCategory.CROSS100) {
-				breakoutLedger = new BreakoutLedger(stock, LocalDate.now(), BreakoutLedger.BreakoutType.NEGATIVE, breakoutCategory, stock.getStockPrice().getCurrentPrice(), stock.getTechnicals().getSma100());
-			}else if(breakoutCategory == BreakoutLedger.BreakoutCategory.CROSS200) {
-				breakoutLedger = new BreakoutLedger(stock, LocalDate.now(), BreakoutLedger.BreakoutType.NEGATIVE, breakoutCategory, stock.getStockPrice().getCurrentPrice(), stock.getTechnicals().getSma200());
-			}
-			
+
+				breakoutLedger = new BreakoutLedger(stock, LocalDate.now(), BreakoutLedger.BreakoutType.NEGATIVE, breakoutCategory);
+
 			breakoutLedgerRepository.save(breakoutLedger);
 		}
 	}
 	
 	public List<BreakoutLedger> getBreakouts(Stock stock){
+
 		List<BreakoutLedger> breakoutList = breakoutLedgerRepository.findByStockIdOrderByBreakoutDateDesc(stock);
 		
 		return breakoutList;

@@ -44,6 +44,8 @@ public class StockPrice implements Serializable{
 	@Column(name = "PREV_CLOSE", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevClose;
 
+	@Column(name = "PREV_OPEN", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevOpen;
 
 	@Column(name = "OPEN", columnDefinition="Decimal(10,2) default '0.00'")
 	double open;
@@ -101,6 +103,14 @@ public class StockPrice implements Serializable{
 
 	public void setPrevClose(double prevClose) {
 		this.prevClose = prevClose;
+	}
+
+	public double getPrevOpen() {
+		return prevOpen;
+	}
+
+	public void setPrevOpen(double prevOoen) {
+		this.prevOpen = prevOoen;
 	}
 
 	public double getHigh() {
