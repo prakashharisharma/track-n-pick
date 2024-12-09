@@ -2,12 +2,10 @@ package com.example;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,14 +13,17 @@ import java.util.List;
 
 import com.example.external.factor.FactorRediff;
 import com.example.model.ledger.ResearchLedgerTechnical;
-import com.example.model.ledger.TradeLedger;
-import com.example.model.stocks.StockFactor;
+import com.example.model.stocks.UserPortfolio;
 import com.example.mq.constants.QueueConstants;
 import com.example.repo.ledger.FundsLedgerRepository;
 import com.example.repo.ledger.ResearchLedgerTechnicalRepository;
 import com.example.repo.ledger.TradeLedgerRepository;
 import com.example.repo.master.StockRepository;
+import com.example.repo.stocks.StockTechnicalsRepository;
 import com.example.service.*;
+import com.example.service.calc.AverageDirectionalIndexCalculatorService;
+import com.example.service.calc.ExponentialMovingAverageCalculatorService;
+import com.example.service.calc.RelativeStrengthIndexCalculatorService;
 import com.example.storage.model.*;
 import com.example.ui.service.UiRenderUtil;
 import com.example.util.io.model.MCResult;
@@ -38,7 +39,6 @@ import com.example.external.bhav.service.DownloadBhavService;
 import com.example.external.dylh.service.DylhService;
 import com.example.integration.service.RestClientService;
 import com.example.model.master.Stock;
-import com.example.model.um.UserProfile;
 import com.example.mq.producer.QueueService;
 import com.example.repo.master.HolidayCalendarRepository;
 import com.example.repo.stocks.PortfolioRepository;
@@ -68,7 +68,10 @@ public class AppRunner implements CommandLineRunner {
 
 	@Autowired
 	private FileNameService fileNameService;
-	
+
+	@Autowired
+	private StockTechnicalsRepository stockTechnicalsRepository;
+
 	@Autowired
 	private PortfolioService portfolioService;
 
@@ -149,16 +152,16 @@ public class AppRunner implements CommandLineRunner {
 	private TradeLedgerRepository tradeLedgerRepository;
 
 	@Autowired
-	private RelativeStrengthIndexService rsiService;
+	private RelativeStrengthIndexCalculatorService rsiService;
 
 	@Autowired
-	private ExponentialMovingAverageService exponentialMovingAverageService;
+	private ExponentialMovingAverageCalculatorService exponentialMovingAverageService;
 
 	@Autowired
 	private MovingAverageConvergenceDivergenceService movingAverageConvergenceDivergenceService;
 
 	@Autowired
-	private AverageDirectionalIndexService averageDirectionalIndexService;
+	private AverageDirectionalIndexCalculatorService averageDirectionalIndexService;
 
 	@Autowired
 	private StockRepository stockRepository;
@@ -167,10 +170,30 @@ public class AppRunner implements CommandLineRunner {
 	@Autowired
 	private ResearchLedgerTechnicalRepository researchLedgerTechnicalRepository;
 
+	@Autowired
+	private ResearchLedgerTechnicalService researchLedgerTechnicalService;
+
+	@Autowired
+	private CandleStickExecutorService candleStickExecutorService;
+
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
 
 		log.info("Application started....");
+		//this.scanCandleStickPattern();
+
+		//List<Double> retracements =  formulaService.fibonacciRetracements(380, 489);
+
+		//retracements.forEach(System.out::println);
+
+		//retracements =  formulaService.fibonacciExtensions(380, 489);
+
+		//retracements.forEach(System.out::println);
+
+		//retracements =  formulaService.fibonacciExtensions(380, 489, 421);
+
+		//retracements.forEach(System.out::println);
+
 		//this.getMCOHLP("OLAELEC");
 		//this.getMCOHLP("HAVELLS");
 		//this.getMCOHLP("ARE%26M");
@@ -181,13 +204,13 @@ public class AppRunner implements CommandLineRunner {
 		Collections.reverse(stockPriceList);
 
 		for (StockPrice price : stockPriceList) {
-			System.out.println(price);
+			//System.out.println(price);
 		}
 
 		List<ResearchLedgerTechnical> researchLedgerTechnicals =  researchLedgerTechnicalRepository.getActiveResearch("ANUP", ResearchIO.ResearchTrigger.BUY);
 
 		if(!researchLedgerTechnicals.isEmpty()){
-			System.out.println(researchLedgerTechnicals.get(researchLedgerTechnicals.size() -1 ));
+			//System.out.println(researchLedgerTechnicals.get(researchLedgerTechnicals.size() -1 ));
 		}
 
 		/*
@@ -416,10 +439,71 @@ public class AppRunner implements CommandLineRunner {
 		 */
 		//testDownLoad();
 		System.out.println("STARTED");
+
+		//this.updateDi();
+
 		//this.processBhavFromApi();
 
 		//this.doActivity();
 
+	}
+
+	private void scanCandleStickPattern(){
+
+		System.out.println("******* Scanning Bullish *******");
+		List<Stock> stockList = stockService.getActiveStocks();
+
+
+		for(Stock stock: stockList){
+			System.out.println("******* Scanning ******* " + stock.getNseSymbol());
+			candleStickExecutorService.executeBullish(stock);
+		}
+
+		System.out.println("******* Scanning Bearish From Research *******");
+		List<ResearchLedgerTechnical> researchLedgerTechnicalList = researchLedgerTechnicalService.allActiveResearch();
+
+		for(ResearchLedgerTechnical researchLedgerTechnical: researchLedgerTechnicalList){
+			System.out.println("******* Scanning ******* " + researchLedgerTechnical.getStock().getNseSymbol());
+			candleStickExecutorService.executeBearish(researchLedgerTechnical.getStock());
+		}
+		System.out.println("******* Scanning Bearish From Portfolio *******");
+		List<UserPortfolio> portfolioList =  portfolioService.get();
+
+		for(UserPortfolio userPortfolio: portfolioList){
+			System.out.println("******* Scanning ******* " + userPortfolio.getStock().getNseSymbol());
+			candleStickExecutorService.executeBearish(userPortfolio.getStock());
+		}
+
+	}
+
+	private void updateDi(){
+		List<Stock> stockList = stockService.activeStocks();
+
+		stockList.forEach(stock -> {
+			try{
+
+				StockTechnicals stockTechnicals = technicalsTemplate.getPrevTechnicals(stock.getNseSymbol(), 2);
+
+				System.out.println(stockTechnicals);
+
+				if(stockTechnicals!=null) {
+					AverageDirectionalIndex adx = stockTechnicals.getAdx();
+					if(adx!=null){
+						com.example.model.stocks.StockTechnicals stockTechnicalsTxn = stock.getTechnicals();
+
+						if(stockTechnicalsTxn!=null){
+							stockTechnicalsTxn.setPrevPlusDi(adx.getPlusDi());
+							stockTechnicalsTxn.setPrevMinusDi(adx.getMinusDi());
+							stockTechnicalsRepository.save(stockTechnicalsTxn);
+							System.out.println("Updated DI " + stock.getNseSymbol());
+						}
+					}
+				}
+
+			}catch(Exception e){
+				System.out.println("An error occured while updating DI " + stock.getNseSymbol());
+			}
+		});
 	}
 
 	private void processBhavFromApi(){

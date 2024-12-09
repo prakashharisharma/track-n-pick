@@ -25,7 +25,7 @@ public interface UserRepository extends JpaRepository<UserProfile, Long> {
 	
 	@Query(value = "select u from UserProfile u "
 			+ "  JOIN  u.userDetails as ud"
-			+ " WHERE u.userEmail =:username "
+			+ " WHERE ud.userName =:username "
 			)
 	UserProfile findByUserName(@Param("username") String username);
 	

@@ -89,6 +89,8 @@ public class UIRenderStock {
 
 	boolean bullish;
 
+	double valuation;
+
 	TechnicalsResearchService.RsiTrend rsiTrend;
 
 	public boolean isBullish() {
@@ -179,7 +181,7 @@ public class UIRenderStock {
 
 	}
 	public UIRenderStock(ResearchLedgerFundamental researchLedger, double profitPer, double pe, double pb,
-						 double sectorPe, double sectorPb, boolean isBullish) {
+						 double sectorPe, double sectorPb, boolean isBullish, double valuation) {
 
 		this.symbol = researchLedger.getStock().getNseSymbol();
 		this.currentPrice = researchLedger.getStock().getStockPrice().getCurrentPrice();
@@ -199,7 +201,7 @@ public class UIRenderStock {
 		this.sectorPe = sectorPe;
 		this.sectorPb = sectorPb;
 		this.bullish = isBullish;
-
+		this.valuation = valuation;
 	}
 
 	public UIRenderStock(ResearchLedgerTechnical researchLedger, double profitPer, double pe, double pb,
@@ -504,6 +506,14 @@ public class UIRenderStock {
 
 	public void setRsiTrend(TechnicalsResearchService.RsiTrend rsiTrend) {
 		this.rsiTrend = rsiTrend;
+	}
+
+	public double getValuation() {
+		return valuation;
+	}
+
+	public void setValuation(double valuation) {
+		this.valuation = valuation;
 	}
 
 	@Override

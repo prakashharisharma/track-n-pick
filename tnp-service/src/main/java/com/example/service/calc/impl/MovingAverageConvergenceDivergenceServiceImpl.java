@@ -1,6 +1,6 @@
-package com.example.service.impl;
+package com.example.service.calc.impl;
 
-import com.example.service.ExponentialMovingAverageService;
+import com.example.service.calc.ExponentialMovingAverageCalculatorService;
 import com.example.service.MovingAverageConvergenceDivergenceService;
 import com.example.storage.model.MovingAverageConvergenceDivergence;
 import com.example.storage.model.OHLCV;
@@ -28,7 +28,7 @@ public class MovingAverageConvergenceDivergenceServiceImpl implements MovingAver
     private MiscUtil miscUtil;
 
     @Autowired
-    private ExponentialMovingAverageService exponentialMovingAverageService;
+    private ExponentialMovingAverageCalculatorService exponentialMovingAverageService;
 
     @Override
     public List<MovingAverageConvergenceDivergence> calculate(List<OHLCV> ohlcvList) {

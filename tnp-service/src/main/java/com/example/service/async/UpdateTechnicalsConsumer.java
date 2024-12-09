@@ -1,4 +1,4 @@
-package com.example.mt.service.async;
+package com.example.service.async;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -8,12 +8,17 @@ import javax.jms.Message;
 import javax.jms.Session;
 
 import com.example.service.*;
+import com.example.service.calc.AverageDirectionalIndexCalculatorService;
+import com.example.service.calc.ExponentialMovingAverageCalculatorService;
+import com.example.service.calc.RelativeStrengthIndexCalculatorService;
 import com.example.storage.model.*;
 import com.example.storage.model.assembler.StockPriceOHLCVAssembler;
+import com.example.storage.model.result.HighLowResult;
 import com.example.storage.repo.PriceTemplate;
 import com.example.storage.repo.TechnicalsTemplate;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
+import com.example.util.SupportAndResistanceUtil;
 import com.example.util.io.model.ResearchIO;
 import com.example.util.io.model.StockPriceIO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,16 +69,16 @@ public class UpdateTechnicalsConsumer {
 	@Autowired private ObjectMapper mapper;
 
 	@Autowired
-	private RelativeStrengthIndexService relativeStrengthIndexService;
+	private RelativeStrengthIndexCalculatorService relativeStrengthIndexService;
 
 	@Autowired
-	private ExponentialMovingAverageService exponentialMovingAverageService;
+	private ExponentialMovingAverageCalculatorService exponentialMovingAverageService;
 
 	@Autowired
 	private MovingAverageConvergenceDivergenceService movingAverageConvergenceDivergenceService;
 
 	@Autowired
-	private AverageDirectionalIndexService averageDirectionalIndexService;
+	private AverageDirectionalIndexCalculatorService averageDirectionalIndexService;
 
 	@Autowired
 	private StockPriceOHLCVAssembler stockPriceOHLCVAssembler;
@@ -141,6 +146,8 @@ public class UpdateTechnicalsConsumer {
 
 			StockTechnicals stockTechnicals = this.build(stockPriceIO);
 
+			this.setYearHighLow(stockPriceIO, stockTechnicals);
+
 			technicalsTemplate.upsert(stockTechnicals);
 
 			this.updateTechnicalsTxn(stockTechnicals, stockPriceIO);
@@ -199,7 +206,7 @@ public class UpdateTechnicalsConsumer {
 		stockTechnicals.setBhavDate(stockPriceIO.getBhavDate());
 		stockTechnicals.setNseSymbol(stockPriceIO.getNseSymbol());
 
-		Volume volume = new Volume(stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdqty());
+		Volume volume = new Volume(stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdqty());
 		stockTechnicals.setVolume(volume);
 		SimpleMovingAverage sma = new SimpleMovingAverage(0.00,0.00,0.00,0.00,0.00,0.00);
 		stockTechnicals.setSma(sma);
@@ -229,11 +236,13 @@ public class UpdateTechnicalsConsumer {
 
 		OHLCV ohlcv = ohlcvList.get(ohlcvList.size() -1);
 
-		Long avgVolume10 = technicalsTemplate.getAverageVolume(nseSymbol, 9);
+		Long avgVolume5 = technicalsTemplate.getAverageVolume(nseSymbol, 5);
 
-		avgVolume10 = formulaService.calculateSmoothedMovingAverage(avgVolume10, ohlcv.getVolume(), 10);
+		Long avgVolume30 = technicalsTemplate.getAverageVolume(nseSymbol, 30);
 
-		return new Volume(ohlcv.getVolume(), avgVolume10);
+		//avgVolume5 = formulaService.calculateSmoothedMovingAverage(avgVolume5, ohlcv.getVolume(), 5);
+
+		return new Volume(ohlcv.getVolume(), avgVolume5, avgVolume30);
 	}
 
 private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, SimpleMovingAverage prevSimpleMovingAverage, long tradingDays){
@@ -536,7 +545,8 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 		stockTechnicalsIO.setRsi(stockTechnicals.getRsi().getRsi());
 
 		stockTechnicalsIO.setVolume(stockTechnicals.getVolume().getVolume());
-		stockTechnicalsIO.setAvgVolume(stockTechnicals.getVolume().getAverage());
+		stockTechnicalsIO.setWeeklyVolume(stockTechnicals.getVolume().getWeeklyAverage());
+		stockTechnicalsIO.setMonthlyyVolume(stockTechnicals.getVolume().getMonthlyAverage());
 
 		return stockTechnicalsIO;
 	}
@@ -565,12 +575,14 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 			stockTechnicalsTxn.setStock(stock);
 			stockTechnicalsTxn.setBhavDate(stockPriceIO.getTimestamp());
 
+
 			stockTechnicalsTxn.setPrevSma5(stockTechnicalsTxn.getSma5());
 			stockTechnicalsTxn.setPrevSma10(stockTechnicalsTxn.getSma10());
 			stockTechnicalsTxn.setPrevSma20(stockTechnicalsTxn.getSma20());
 			stockTechnicalsTxn.setPrevSma50(stockTechnicalsTxn.getSma50());
 			stockTechnicalsTxn.setPrevSma100(stockTechnicalsTxn.getSma100());
 			stockTechnicalsTxn.setPrevSma200(stockTechnicalsTxn.getSma200());
+
 
 			stockTechnicalsTxn.setSma5(stockTechnicalsIO.getSma5());
 			stockTechnicalsTxn.setSma10(stockTechnicalsIO.getSma10());
@@ -587,6 +599,7 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 			stockTechnicalsTxn.setPrevEma100(stockTechnicalsTxn.getEma100());
 			stockTechnicalsTxn.setPrevEma200(stockTechnicalsTxn.getEma200());
 
+
 			stockTechnicalsTxn.setEma5(stockTechnicalsIO.getEma5());
 			stockTechnicalsTxn.setEma10(stockTechnicalsIO.getEma10());
 			stockTechnicalsTxn.setEma20(stockTechnicalsIO.getEma20());
@@ -594,23 +607,54 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 			stockTechnicalsTxn.setEma100(stockTechnicalsIO.getEma100());
 			stockTechnicalsTxn.setEma200(stockTechnicalsIO.getEma200());
 
+
 			stockTechnicalsTxn.setPrevAdx(stockTechnicalsTxn.getAdx());
 			stockTechnicalsTxn.setAdx(stockTechnicalsIO.getAdx());
 
+
+			stockTechnicalsTxn.setPrevPlusDi(stockTechnicalsTxn.getPlusDi());
 			stockTechnicalsTxn.setPlusDi(stockTechnicalsIO.getPlusDi());
+
+
+			stockTechnicalsTxn.setPrevMinusDi(stockTechnicalsTxn.getMinusDi());
 			stockTechnicalsTxn.setMinusDi(stockTechnicalsIO.getMinusDi());
+
 
 			stockTechnicalsTxn.setPrevRsi(stockTechnicalsTxn.getRsi());
 			stockTechnicalsTxn.setRsi(stockTechnicalsIO.getRsi());
 
+
 			stockTechnicalsTxn.setPrevMacd(stockTechnicalsTxn.getMacd());
 			stockTechnicalsTxn.setMacd(stockTechnicalsIO.getMacd());
+
 
 			stockTechnicalsTxn.setPrevSignal(stockTechnicalsTxn.getSignal());
 			stockTechnicalsTxn.setSignal(stockTechnicalsIO.getSignal());
 
+
+			stockTechnicalsTxn.setPrevVolume(stockTechnicalsTxn.getVolume());
 			stockTechnicalsTxn.setVolume(stockTechnicalsIO.getVolume());
-			stockTechnicalsTxn.setAvgVolume(stockTechnicalsIO.getAvgVolume());
+			stockTechnicalsTxn.setWeeklyVolume(stockTechnicalsIO.getWeeklyVolume());
+			stockTechnicalsTxn.setMonthlyVolume(stockTechnicalsIO.getMonthlyyVolume());
+
+
+			stockTechnicalsTxn.setPrevPivotPoint(stockTechnicalsTxn.getPivotPoint());
+			stockTechnicalsTxn.setPrevFirstResistance(stockTechnicalsTxn.getFirstResistance());
+			stockTechnicalsTxn.setPrevSecondResistance(stockTechnicalsTxn.getSecondResistance());
+			stockTechnicalsTxn.setPrevThirdResistance(stockTechnicalsTxn.getThirdResistance());
+			stockTechnicalsTxn.setPrevFirstSupport(stockTechnicalsTxn.getFirstSupport());
+			stockTechnicalsTxn.setPrevSecondSupport(stockTechnicalsTxn.getSecondSupport());
+			stockTechnicalsTxn.setPrevThirdSupport(stockTechnicalsTxn.getThirdSupport());
+
+
+			stockTechnicalsTxn.setPivotPoint(SupportAndResistanceUtil.pivotPoint(stockPriceIO.getHigh(), stockPriceIO.getLow(), stockPriceIO.getClose()));
+			stockTechnicalsTxn.setFirstResistance(SupportAndResistanceUtil.firstResistance(stockTechnicalsTxn.getPivotPoint(), stockPriceIO.getHigh(), stockPriceIO.getLow()));
+			stockTechnicalsTxn.setSecondResistance(SupportAndResistanceUtil.secondResistance(stockTechnicalsTxn.getPivotPoint(), stockPriceIO.getHigh(), stockPriceIO.getLow()));
+			stockTechnicalsTxn.setThirdResistance(SupportAndResistanceUtil.thirdResistance(stockTechnicalsTxn.getPivotPoint(), stockPriceIO.getHigh(), stockPriceIO.getLow()));
+			stockTechnicalsTxn.setFirstSupport(SupportAndResistanceUtil.firstSupport(stockTechnicalsTxn.getPivotPoint(), stockPriceIO.getHigh(), stockPriceIO.getLow()));
+			stockTechnicalsTxn.setSecondSupport(SupportAndResistanceUtil.secondSupport(stockTechnicalsTxn.getPivotPoint(), stockPriceIO.getHigh(), stockPriceIO.getLow()));
+			stockTechnicalsTxn.setThirdSupport(SupportAndResistanceUtil.thirdSupport(stockTechnicalsTxn.getPivotPoint(), stockPriceIO.getHigh(), stockPriceIO.getLow()));
+
 
 			stockTechnicalsTxn.setLastModified(LocalDate.now());
 
@@ -622,6 +666,58 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 
 			log.info("{} Updated transactional technicals ", stockPriceIO.getNseSymbol());
 		}
+	}
+
+
+	private void setYearHighLow(StockPriceIO stockPriceIO, StockTechnicals stockTechnicals ){
+
+		stockTechnicals.setYearLow(stockPriceIO.getYearLow());
+		stockTechnicals.setYearHigh(stockPriceIO.getYearHigh());
+	}
+
+
+	private double calculateHigh(HighLowResult highLowResult, StockPriceIO stockPriceIO){
+
+		double high = 0.00;
+
+		if(highLowResult != null && !highLowResult.get_id().equalsIgnoreCase("NO_DATA_FOUND")) {
+
+			high = highLowResult.getHigh();
+
+		}else {
+
+			high = stockPriceIO.getHigh();
+		}
+
+		if (high < stockPriceIO.getHigh()) {
+
+			high = stockPriceIO.getHigh();
+
+		}
+
+		return high;
+	}
+
+	private double calculateLow(HighLowResult highLowResult, StockPriceIO stockPriceIO){
+
+		double low = 0.00;
+
+		if(highLowResult != null && !highLowResult.get_id().equalsIgnoreCase("NO_DATA_FOUND")) {
+
+			low = highLowResult.getLow();
+
+		}else {
+			low = stockPriceIO.getLow();
+
+		}
+
+		if (low > stockPriceIO.getLow()) {
+
+			low = stockPriceIO.getLow();
+
+		}
+
+		return low;
 	}
 
 }

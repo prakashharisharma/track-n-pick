@@ -1,11 +1,11 @@
-package com.example.service;
+package com.example.service.calc;
 
 import com.example.storage.model.OHLCV;
 import com.example.storage.model.RelativeStrengthIndex;
 
 import java.util.List;
 
-public interface RelativeStrengthIndexService {
+public interface RelativeStrengthIndexCalculatorService {
 
     public List<RelativeStrengthIndex> calculate(List<OHLCV> ohlcvList);
 

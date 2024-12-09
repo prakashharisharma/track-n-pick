@@ -4,15 +4,18 @@ public class Volume {
 
 	private Long volume;
 
-	private Long average;
+	private Long weeklyAverage;
+
+	private Long monthlyAverage;
 
 
 	public Volume() {
 	}
 
-	public Volume(Long volume, Long average) {
+	public Volume(Long volume, Long weeklyAverage, Long monthlyAverage) {
 		this.volume = volume;
-		this.average = average;
+		this.weeklyAverage = weeklyAverage;
+		this.monthlyAverage = monthlyAverage;
 	}
 
 	public Long getVolume() {
@@ -23,20 +26,28 @@ public class Volume {
 		this.volume = volume;
 	}
 
-	public Long getAverage() {
-		return average;
+	public Long getWeeklyAverage() {
+		return weeklyAverage;
 	}
 
-	public void setAverage(Long average) {
-		this.average = average;
+	public void setWeeklyAverage(Long weeklyAverage) {
+		this.weeklyAverage = weeklyAverage;
 	}
 
+	public Long getMonthlyAverage() {
+		return monthlyAverage;
+	}
+
+	public void setMonthlyAverage(Long monthlyAverage) {
+		this.monthlyAverage = monthlyAverage;
+	}
 
 	@Override
 	public String toString() {
 		return "Volume{" +
 				"volume=" + volume +
-				", average=" + average +
+				", weeklyAverage=" + weeklyAverage +
+				", monthlyAverage=" + monthlyAverage +
 				'}';
 	}
 }

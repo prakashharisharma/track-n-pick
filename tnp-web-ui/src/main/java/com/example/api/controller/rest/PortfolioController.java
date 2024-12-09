@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.example.model.um.UserProfile;
-import com.example.service.TechnicalsResearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -56,9 +55,6 @@ public class PortfolioController {
 	
 	@PostMapping(value = "/addstock", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> addStock(@RequestBody UIRenderStock stock) {
-
-		System.out.println(stock);
-		
 
 		if(stock.getStockid() > 0) {
 		

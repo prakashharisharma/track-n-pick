@@ -1,7 +1,8 @@
-package com.example.mt.service.async;
+package com.example.service.async;
 
 import javax.jms.Session;
 
+import com.example.service.impl.FundamentalResearchService;
 import org.apache.activemq.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,6 @@ import com.example.model.master.Stock;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.service.ResearchLedgerFundamentalService;
-import com.example.service.RuleService;
 import com.example.service.StockService;
 import com.example.service.ValuationLedgerService;
 import com.example.util.io.model.ResearchIO;
@@ -33,7 +33,7 @@ public class ResearchFundamentalConsumer {
 	private StockService stockService;
 
 	@Autowired
-	private RuleService ruleService;
+	private FundamentalResearchService fundamentalResearchService;
 
 	@Autowired
 	private ValuationLedgerService undervalueLedgerService;
@@ -60,25 +60,25 @@ public class ResearchFundamentalConsumer {
 	private void researchFundamental(Stock stock, ResearchTrigger researchTrigger) {
 
 		if (researchTrigger == ResearchTrigger.BUY) {
-			if (ruleService.isUndervalued(stock)) {
+			if (fundamentalResearchService.isUndervalued(stock)) {
 
 				this.addToUnderValueLedger(stock);
 
 			}
 		} else if (researchTrigger == ResearchTrigger.SELL) {
-			if (ruleService.isOvervalued(stock)) {
+			if (fundamentalResearchService.isOvervalued(stock)) {
 				this.removeFromUnderValueLedger(stock);
 
 			}
 		} else {
 
-			if (ruleService.isUndervalued(stock)) {
+			if (fundamentalResearchService.isUndervalued(stock)) {
 
 				this.addToUnderValueLedger(stock);
 
 			}
 
-			if (ruleService.isOvervalued(stock)) {
+			if (fundamentalResearchService.isOvervalued(stock)) {
 				this.removeFromUnderValueLedger(stock);
 
 			}

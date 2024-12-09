@@ -1,6 +1,6 @@
-package com.example.service.impl;
+package com.example.service.calc.impl;
 
-import com.example.service.ExponentialMovingAverageService;
+import com.example.service.calc.ExponentialMovingAverageCalculatorService;
 import com.example.storage.model.OHLCV;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class ExponentialMovingAverageServiceImpl implements ExponentialMovingAverageService {
+public class ExponentialMovingAverageCalculatorServiceImpl implements ExponentialMovingAverageCalculatorService {
 
     @Autowired
     private FormulaService formulaService;

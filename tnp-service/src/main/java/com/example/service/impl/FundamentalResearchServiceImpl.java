@@ -1,23 +1,21 @@
-package com.example.service;
+package com.example.service.impl;
 
 import javax.transaction.Transactional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.example.service.StockService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.model.master.Sector;
 import com.example.model.master.Stock;
-import com.example.model.stocks.StockPrice;
 import com.example.util.rules.RulesFundamental;
 import com.example.util.rules.RulesResearch;
 
 @Transactional
 @Service
-public class RuleService {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(RuleService.class);
+@Slf4j
+public class FundamentalResearchServiceImpl implements FundamentalResearchService{
 
 	@Autowired
 	private RulesFundamental rules;
@@ -28,6 +26,7 @@ public class RuleService {
 	@Autowired
 	private StockService stockService;
 
+	@Override
 	public boolean isPriceInRange(Stock stock) {
 
 			if (stock.getStockPrice().getCurrentPrice() > rules.getPricegt()
@@ -39,52 +38,19 @@ public class RuleService {
 		return Boolean.FALSE;
 	}
 
-	public boolean isUndervalued(Stock stock) {
-
-		if (this.isUndervaluedPre(stock)) {
-
-			StockPrice stockPrice = stock.getStockPrice();
-
-			if (isPriceInRange(stock)) {
-
-				double pe = stockService.getPe(stock);
-
-				double pb = stockService.getPb(stock);
-
-				double sectorPb = stock.getSector().getSectorPb();
-
-				double sectorPe = stock.getSector().getSectorPe();
-
-				double pbDiff = sectorPb - pb;
-				
-				double peDiff = sectorPe - pe;
-
-				if(pe < sectorPe && pb < sectorPb){
-					return Boolean.TRUE;
-				}
-
-				if(pe <= 20 && pb < sectorPb){
-					return  Boolean.TRUE;
-				}
-
-				if (pe < sectorPe && pb <= 3) {
-					return Boolean.TRUE;
-				}
-			}
-
+	@Override
+	public boolean isMcapInRange(Stock stock){
+		if(stock.getStockFactor().getMarketCap() >= rules.getMcap()){
+			return Boolean.TRUE;
 		}
-
 		return Boolean.FALSE;
-
 	}
 
-	public boolean isOvervalued(Stock stock) {
-		boolean isOvervalued = false;
+	@Override
+	public double calculateValuation(Stock stock){
 
-		if (!this.isUndervaluedPre(stock)) {
-			isOvervalued = true;
-		}/*
-		else {
+			double score = 0.0;
+
 			double pe = stockService.getPe(stock);
 
 			double pb = stockService.getPb(stock);
@@ -93,23 +59,55 @@ public class RuleService {
 
 			double sectorPe = stock.getSector().getSectorPe();
 
-			if (pe <= 0.0 || pe < sectorPe) {
-				isOvervalued = true;
+			if(pe <= 20 && pb <= 3){
+				return 100.0;
 			}
-		}
-		*/
-		return isOvervalued;
+
+			if(pe <= 20 && pb <= sectorPb){
+				return  80.0;
+			}
+
+			if (pe <= sectorPe && pb <= 3) {
+				return 65.0;
+			}
+
+			if(pe <= sectorPe && pb <= sectorPb){
+				return 55.0;
+			}
+
+			if(pe <= sectorPe ){
+				return  50.0;
+			}
+
+		return score;
 	}
 
-	private boolean isUndervaluedPre(Stock stock) {
+	@Override
+	public boolean isGoodValuation(Stock stock){
+		return (this.calculateValuation(stock) >= 50.0) ? Boolean.TRUE : Boolean.FALSE;
+	}
 
-		if (stock != null) {
-				return this.isUndervaluedPre50(stock);
+	@Override
+	public boolean isUndervalued(Stock stock) {
+
+		if (this.isFinancialsStable(stock) && this.isGoodValuation(stock)) {
+			return Boolean.TRUE;
 		}
 
 		return Boolean.FALSE;
 	}
-	private boolean isUndervaluedPre50(Stock stock) {
+
+	@Override
+	public boolean isOvervalued(Stock stock) {
+
+		if (!this.isUndervalued(stock)) {
+			return Boolean.TRUE;
+		}
+
+		return Boolean.FALSE;
+	}
+
+	private boolean isFinancialsStable(Stock stock) {
 
 		boolean isUndervalued = false;
 
@@ -130,7 +128,8 @@ public class RuleService {
 							|| sectorName.equalsIgnoreCase("Private Sector Bank")
 							|| sectorName.equalsIgnoreCase("Public Sector Bank")) {
 
-						if (stock.getStockFactor().getMarketCap() >= rules.getMcap()
+						if (
+								this.isMcapInRange(stock)
 								&& stock.getStockFactor().getDividend() >= rules.getDividend()
 								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoe()
 								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoce()
@@ -141,16 +140,9 @@ public class RuleService {
 
 					} else {
 
-						/*
-						if(stock.getStockFactor().getReturnOnEquity() >= 50.0
-								&& stock.getStockFactor().getReturnOnCapital() >= 50.0){
-							isUndervalued = true;
-						}
-						*/
-
 						if (
-								stock.getStockFactor().getMarketCap() >= rules.getMcap() &&
-								 stock.getStockFactor().getDebtEquity() < rules.getDebtEquity()
+								this.isMcapInRange(stock)
+								&& stock.getStockFactor().getDebtEquity() < rules.getDebtEquity()
 								&& stock.getStockFactor().getDividend() >= rules.getDividend()
 								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoe()
 								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoce()

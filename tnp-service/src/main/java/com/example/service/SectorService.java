@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.example.service.impl.FundamentalResearchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class SectorService {
 	private RulesFundamental rules;
 	
 	@Autowired
-	private RuleService ruleService;
+	private FundamentalResearchService fundamentalResearchService;
 	
 	@Autowired
 	private StockService stockService;
@@ -130,7 +131,7 @@ public Sector add(String sectorName) {
 			try {
 				Set<Stock> stocks = sector.getStocks();
 
-				List<Stock> activeStockList = stocks.stream().filter(stock -> (stock.isActive() && ruleService.isPriceInRange(stock))).collect(Collectors.toList());
+				List<Stock> activeStockList = stocks.stream().filter(stock -> (stock.isActive() && fundamentalResearchService.isPriceInRange(stock))).collect(Collectors.toList());
 
 				avgCmp = activeStockList.stream().map(stock -> stock.getStockPrice()).mapToDouble(sp -> sp.getCurrentPrice()).average().orElse(0.00);
 

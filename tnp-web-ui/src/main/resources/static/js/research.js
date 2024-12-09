@@ -19,7 +19,7 @@ function loadTableFundamental() {
 		"columns" : [ {
 			"data" : "symbol"
 		}, {
-			"data" : "indice"
+			"data" : "valuation"
 		}, {
 			"data" : "researchDate"
 		}, {
@@ -54,6 +54,18 @@ function loadTableFundamental() {
             "data" : "bullish"
          }],
 		rowCallback : function(row, data, index) {
+
+
+            if(data.valuation == 50.0){
+                $(row).find('td:eq(1)').css('color', '#9ACD32');
+            }else if(data.valuation >= 55.0 && data.valuation <= 65.0){
+                $(row).find('td:eq(1)').css('color', '#008000');
+            }else if(data.valuation >= 80.0 && data.valuation <= 100.0){
+                $(row).find('td:eq(1)').css('color', '#006400');
+            }else{
+                $(row).find('td:eq(1)').css('color', 'red');
+            }
+
 			if (data.profitPer > 0.0) {
 				$(row).find('td:eq(11)').css('color', 'green');
 			}
@@ -77,7 +89,7 @@ function loadTableTechnical() {
 		"columns" : [ {
 			"data" : "symbol"
 		}, {
-			"data" : "indice"
+			"data" : "valuation"
 		}, {
 			"data" : "researchDate"
 		}, {
@@ -86,15 +98,10 @@ function loadTableTechnical() {
 			"data" : "currentPrice"
 		}, {
 			"data" : "ema5"
-		}, {
-			"data" : "ema10"
-		}, {
+		},  {
             "data" : "ema20"
         },{
              "data" : "ema50"
-        },
-        {
-            "data" : "ema100"
         },
         {
              "data" : "ema200"
@@ -105,11 +112,23 @@ function loadTableTechnical() {
 			"data" : "profitPer"
 		} ],
 		rowCallback : function(row, data, index) {
+
+            if(data.valuation == 50.0){
+                $(row).find('td:eq(1)').css('color', '#9ACD32');
+            }else if(data.valuation >= 55.0 && data.valuation <= 65.0){
+                $(row).find('td:eq(1)').css('color', '#008000');
+            }else if(data.valuation >= 80.0 && data.valuation <= 100.0){
+                $(row).find('td:eq(1)').css('color', '#006400');
+            }else{
+                $(row).find('td:eq(1)').css('color', 'red');
+            }
+
+
 			if (data.profitPer > 0.0) {
-				$(row).find('td:eq(12)').css('color', 'green');
+				$(row).find('td:eq(10)').css('color', 'green');
 			}
 			if (data.profitPer < 0.0) {
-				$(row).find('td:eq(12)').css('color', 'red');
+				$(row).find('td:eq(10)').css('color', 'red');
 			}
 
             if(data.currentPrice > data.ema5){
@@ -117,30 +136,21 @@ function loadTableTechnical() {
             }else{
                 $(row).find('td:eq(5)').css('color', 'red');
             }
-            if(data.currentPrice > data.ema10){
+
+            if(data.currentPrice > data.ema20){
                 $(row).find('td:eq(6)').css('color', 'green');
             }else{
                 $(row).find('td:eq(6)').css('color', 'red');
             }
-            if(data.currentPrice > data.ema20){
+            if(data.currentPrice > data.ema50){
                 $(row).find('td:eq(7)').css('color', 'green');
             }else{
                 $(row).find('td:eq(7)').css('color', 'red');
             }
-            if(data.currentPrice > data.ema50){
+            if(data.currentPrice > data.ema200){
                 $(row).find('td:eq(8)').css('color', 'green');
             }else{
                 $(row).find('td:eq(8)').css('color', 'red');
-            }
-            if(data.currentPrice > data.ema100){
-                $(row).find('td:eq(9)').css('color', 'green');
-            }else{
-                $(row).find('td:eq(9)').css('color', 'red');
-            }
-            if(data.currentPrice > data.ema200){
-                $(row).find('td:eq(10)').css('color', 'green');
-            }else{
-                $(row).find('td:eq(10)').css('color', 'red');
             }
 		}
 	});

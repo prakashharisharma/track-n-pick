@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -71,19 +72,6 @@ public class FormulaService {
 		
 	}
 	
-	public double calculateRateOfChange(long current, long previous) {
-		double rateOfChange = 0.00;
-		
-		if(previous !=0) {
-		
-			rateOfChange = (((double) current - (double)previous) / (double)previous) * 100;
-		}else {
-			rateOfChange = current;
-		}
-		return rateOfChange;
-		
-	}
-	
 	public double calculatePe(double currentPrice, double eps) {
 
 		double pe = 0.0;
@@ -118,6 +106,15 @@ public class FormulaService {
 		double percentage = (rate / 100) * baseNumber;
 		
 		return percentage;
+	}
+
+	public double percentageChange(double value1, double value2){
+
+		if(value2 == 0.0){
+			return 0.0;
+		}
+
+		return ((value2 - value1) / value1) * 100;
 	}
 	
 	public long calculateOBV(long prevOBV, double prevClose, double currentClose, long currentVolume) {
@@ -274,5 +271,67 @@ public class FormulaService {
 		return 100 * Math.abs(plusDI - minusDI) / (plusDI + minusDI);
 	}
 
+	public double calculateHistogram(double macd, double signal){
+		return macd - signal;
+	}
 
+	public double floorRound(double num){
+		return Math.floor(num * 10) / 10.0;
+	}
+
+
+	public boolean isEpsilonEqual(double num1, double num2){
+
+		double epsilonPer = 0.02;
+
+		double epsilon = this.calculatePercentage(num1, epsilonPer);
+
+		if (Math.abs(num1 - num2) < epsilon) {
+			return Boolean.TRUE;
+		}
+
+		return Boolean.FALSE;
+	}
+
+	public List<Double> fibonacciRetracements(double low, double high){
+
+		List<Double> retracements = new ArrayList<>();
+
+		double move = high - low;
+
+		retracements.add(high - this.calculatePercentage(move, 23.6));
+		retracements.add(high - this.calculatePercentage(move, 38.2));
+		retracements.add(high - this.calculatePercentage(move, 50));
+		retracements.add(high - this.calculatePercentage(move, 61.8));
+
+		return retracements;
+	}
+
+	public List<Double> fibonacciExtensions(double low, double high){
+
+		List<Double> extensions = new ArrayList<>();
+
+		double move = high - low;
+
+		extensions.add(high + this.calculatePercentage(move, 23.6));
+		extensions.add(high + this.calculatePercentage(move, 38.2));
+		extensions.add(high + this.calculatePercentage(move, 50));
+		extensions.add(high + this.calculatePercentage(move, 61.8));
+
+		return extensions;
+	}
+
+	public List<Double> fibonacciExtensions(double low, double high, double entry){
+
+		List<Double> extensions = new ArrayList<>();
+
+		double move = high - low;
+
+		extensions.add(entry + this.calculatePercentage(move, 23.6));
+		extensions.add(entry + this.calculatePercentage(move, 38.2));
+		extensions.add(entry + this.calculatePercentage(move, 50));
+		extensions.add(entry + this.calculatePercentage(move, 61.8));
+
+		return extensions;
+	}
 }

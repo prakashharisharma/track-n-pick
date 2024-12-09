@@ -54,8 +54,23 @@ public class ResearchLedgerTechnical {
 	@Column(name = "EXIT_RULE")
 	Integer exitRule;
 
-	@Column(name = "SCORE", columnDefinition="Decimal(10,2) default '0.00'")
-	double score;
+	@Column(name = "IS_CONFIRMED")
+	boolean confirmed = false;
+
+	@Column(name = "IS_VERIFIED")
+	boolean verified = false;
+
+	@Column(name = "STOP_LOSS", columnDefinition="Decimal(10,2) default '0.00'")
+	double stopLoss;
+
+	@Column(name = "TARGET", columnDefinition="Decimal(10,2) default '0.00'")
+	double target;
+
+	@Column(name = "RESEARCH_SCORE", columnDefinition="Decimal(10,2) default '0.00'")
+	double researchScore;
+
+	@Column(name = "EXIT_SCORE", columnDefinition="Decimal(10,2) default '0.00'")
+	double exitScore;
 
 	public long getSrlId() {
 		return srlId;
@@ -137,12 +152,52 @@ public class ResearchLedgerTechnical {
 		this.exitRule = exitRule;
 	}
 
-	public double getScore() {
-		return score;
+	public double getResearchScore() {
+		return researchScore;
 	}
 
-	public void setScore(double score) {
-		this.score = score;
+	public void setResearchScore(double researchScore) {
+		this.researchScore = researchScore;
+	}
+
+	public double getExitScore() {
+		return exitScore;
+	}
+
+	public void setExitScore(double exitScore) {
+		this.exitScore = exitScore;
+	}
+
+	public boolean isConfirmed() {
+		return confirmed;
+	}
+
+	public void setConfirmed(boolean confirmed) {
+		this.confirmed = confirmed;
+	}
+
+	public boolean isVerified() {
+		return verified;
+	}
+
+	public void setVerified(boolean verified) {
+		this.verified = verified;
+	}
+
+	public double getStopLoss() {
+		return stopLoss;
+	}
+
+	public void setStopLoss(double stopLoss) {
+		this.stopLoss = stopLoss;
+	}
+
+	public double getTarget() {
+		return target;
+	}
+
+	public void setTarget(double target) {
+		this.target = target;
 	}
 
 	@Override

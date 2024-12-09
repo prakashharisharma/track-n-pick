@@ -1,4 +1,4 @@
-package com.example.mt.service.async;
+package com.example.service.async;
 
 
 import com.example.dto.kafka.Message;

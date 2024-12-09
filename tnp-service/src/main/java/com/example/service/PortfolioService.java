@@ -10,9 +10,10 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.example.model.ledger.TradeLedger;
+import com.example.service.impl.FundamentalResearchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -39,19 +40,25 @@ public class PortfolioService {
 	private StockService stockService;
 
 	@Autowired
-	private RuleService ruleService;
+	private FundamentalResearchService fundamentalResearchService;
 
 	@Autowired
 	private TradeLedgerService tradeLedgerService;
 
 	@Autowired
 	private TradeProfitLedgerService tradeProfitLedgerService;
-	
+
+	public List<UserPortfolio> get(){
+		return portfolioRepository.findAll();
+	}
+
 	//@CacheEvict(value = "userportfolio", key = "#userProfile.userId",allEntries = true)
 	public void addStock(UserProfile userProfile, Stock stock, double price, long quantity) {
 
 		Optional<UserPortfolio> portfolioStockOpt = userProfile.getUserPortfolio().stream()
 				.filter(up -> up.getStock().getNseSymbol().equalsIgnoreCase(stock.getNseSymbol())).findFirst();
+
+		TradeLedger tradeLedger = tradeLedgerService.executeBuy(userProfile, stock, price, quantity);
 
 		UserPortfolio portfolioStock = null;
 
@@ -63,11 +70,11 @@ public class PortfolioService {
 
 			double existingTotal = portfolioStock.getAveragePrice() * portfolioStock.getQuantity();
 
-			double newTotal = price * quantity;
+			double newTotal = (price * quantity) + tradeLedger.getTotalCharges();
 
-			double newAverage = (existingTotal + newTotal) / (portfolioStock.getQuantity() + quantity);
+			double newAveragePrice = (existingTotal + newTotal) / (portfolioStock.getQuantity() + quantity);
 
-			portfolioStock.setAveragePrice(newAverage);
+			portfolioStock.setAveragePrice(newAveragePrice);
 
 			portfolioStock.setLastTxnDate(LocalDate.now());
 
@@ -77,7 +84,9 @@ public class PortfolioService {
 
 			portfolioStock.setQuantity(quantity);
 
-			portfolioStock.setAveragePrice(price);
+			double averagePrice = (tradeLedger.getTotalCharges() + ( price * quantity)) / quantity;
+
+			portfolioStock.setAveragePrice(averagePrice);
 
 			portfolioStock.setFirstTxnDate(LocalDate.now());
 
@@ -88,8 +97,6 @@ public class PortfolioService {
 		}
 
 		userProfile.addStockToPortfoliop(portfolioStock);
-
-		tradeLedgerService.executeBuy(userProfile, stock, price, quantity);
 
 		userService.save(userProfile);
 	}
@@ -164,9 +171,9 @@ public class PortfolioService {
 
 		UserPortfolio portfolioStock = portfolioRepository.findByPortfolioIdUserAndPortfolioIdStock(user, stock);
 
-		if (portfolioStock != null) {
+		TradeLedger tradeLedger = tradeLedgerService.executeSell(user, stock, price, quantity);
 
-			System.out.println("Found");
+		if (portfolioStock != null) {
 
 			long newQuantity = portfolioStock.getQuantity() - quantity;
 
@@ -174,7 +181,7 @@ public class PortfolioService {
 
 			double existingTotal = portfolioStock.getAveragePrice() * portfolioStock.getQuantity();
 
-			double newTotal = price * quantity; // 100 * 50; // 50*50
+			double newTotal = (price * quantity) + tradeLedger.getTotalCharges(); // 100 * 50; // 50*50
 
 			double newAverage = (existingTotal - newTotal) / (portfolioStock.getQuantity() - quantity);
 
@@ -187,13 +194,12 @@ public class PortfolioService {
 			if (newQuantity > 0) {
 				portfolioRepository.save(portfolioStock);
 			} else {
-				System.out.println("Found0");
 				portfolioRepository.delete(portfolioStock);
 			}
-			tradeLedgerService.executeSell(user, stock, price, quantity);
-			System.out.println("Found1");
+
+
 			tradeProfitLedgerService.addProfitEntry(user, stock, quantity, netProfit);
-			System.out.println("Found2");
+
 		}
 		log.info("Sold stock {}", stock.getStockId());
 	}
@@ -205,7 +211,7 @@ public class PortfolioService {
 		Set<UserPortfolio> portfolioList = user.getUserPortfolio();
 
 		portfolioList.forEach(up -> {
-			if (ruleService.isUndervalued(up.getStock())) {
+			if (fundamentalResearchService.isUndervalued(up.getStock())) {
 				underValuedStocksList.add(up);
 			}
 
@@ -225,7 +231,7 @@ public class PortfolioService {
 		Set<UserPortfolio> portfolioList = user.getUserPortfolio();
 
 		portfolioList.forEach(stock -> {
-			if (ruleService.isOvervalued(stock.getStock())) {
+			if (fundamentalResearchService.isOvervalued(stock.getStock())) {
 				overValuedStocksList.add(stock);
 			}
 

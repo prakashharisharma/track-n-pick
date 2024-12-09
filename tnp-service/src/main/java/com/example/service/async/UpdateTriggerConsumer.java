@@ -1,9 +1,10 @@
-package com.example.mt.service.async;
+package com.example.service.async;
 
 import java.util.List;
 
 import javax.jms.Session;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ import com.example.util.io.model.UpdateTriggerIO;
 import com.example.util.io.model.UpdateTriggerIO.TriggerType;
 
 @Component
+@Slf4j
 public class UpdateTriggerConsumer {
 
 	@Autowired
@@ -72,13 +74,10 @@ public class UpdateTriggerConsumer {
 	public void receiveMessage(@Payload UpdateTriggerIO updateTriggerIO, @Headers MessageHeaders headers,
 			Message message, Session session) throws InterruptedException {
 
-		LOGGER.info(QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE.toUpperCase() + " : " + updateTriggerIO + " : START");
+		log.info(QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE.toUpperCase() + " : " + updateTriggerIO + " : START");
 
 		if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_RESEARCH) {
-
-			this.updateSectorPEPB();
-			
-			//this.updateResearchStrong();
+			this.updateResearch();
 			
 		} else if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_CYRO) {
 			this.updateCYRO();
@@ -91,7 +90,7 @@ public class UpdateTriggerConsumer {
 		}else if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_FACTORS) {
 			this.processFactorsUpdate();
 		}
-		LOGGER.info(QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE.toUpperCase() + " : " + updateTriggerIO + " : END");
+		log.info(QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE.toUpperCase() + " : " + updateTriggerIO + " : END");
 	}
 
 	private void processFactorsUpdate() {
@@ -143,31 +142,20 @@ public class UpdateTriggerConsumer {
 		}
 	}
 
-	private void updateResearchStrong() {
+	private void updateResearch() {
 
-		List<ResearchLedgerFundamental> researchLedgerList = researchLedgerService.allActiveResearch();
-		
-		List<ResearchLedgerTechnical> researchLedgerTechnicalList = researchLedgerTechnicalService.allActiveResearch();
+		List<Stock> stockList = stockService.getActiveStocks();
 
 		// Sell Research Fundamental
-		researchLedgerList.forEach(researchLedger -> {
+		stockList.forEach(stock -> {
 			ResearchIO researchIO = new ResearchIO();
-
-			researchIO.setNseSymbol(researchLedger.getStock().getNseSymbol());
-			researchIO.setResearchTrigger(ResearchTrigger.SELL);
+			researchIO.setNseSymbol(stock.getNseSymbol());
 			researchIO.setResearchType(ResearchType.FUNDAMENTAL);
 			this.processFundamental(researchIO);
-		});
-
-		// Sell Research Technical
-
-		researchLedgerTechnicalList.forEach(researchLedger -> {
-			ResearchIO researchIO = new ResearchIO();
-			researchIO.setNseSymbol(researchLedger.getStock().getNseSymbol());
-			researchIO.setResearchTrigger(ResearchTrigger.SELL);
 			researchIO.setResearchType(ResearchType.TECHNICAL);
 			this.processTechnical(researchIO);
 		});
+
 
 	}
 

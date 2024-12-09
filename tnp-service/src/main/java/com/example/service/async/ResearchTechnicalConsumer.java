@@ -1,7 +1,8 @@
-package com.example.mt.service.async;
+package com.example.service.async;
 
 import javax.jms.Session;
 
+import com.example.service.impl.FundamentalResearchService;
 import org.apache.activemq.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,6 @@ import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.service.CrossOverLedgerService;
 import com.example.service.ResearchLedgerTechnicalService;
-import com.example.service.RuleService;
 import com.example.service.StockService;
 import com.example.service.TechnicalsResearchService;
 import com.example.util.io.model.ResearchIO;
@@ -48,7 +48,7 @@ public class ResearchTechnicalConsumer {
 	private QueueService queueService;
 
 	@Autowired
-	private RuleService ruleService;
+	private FundamentalResearchService fundamentalResearchService;
 
 	@JmsListener(destination = QueueConstants.MTQueue.RESEARCH_TECHNICAL_QUEUE)
 	public void receiveMessage(@Payload ResearchIO researchIO, @Headers MessageHeaders headers, Message message,
@@ -70,20 +70,14 @@ public class ResearchTechnicalConsumer {
 	private void researchTechnical(Stock stock, ResearchTrigger researchTrigger) {
 
 		if (researchTrigger == ResearchTrigger.BUY) {
-			if (ruleService.isUndervalued(stock)) {
+			if (fundamentalResearchService.isUndervalued(stock)) {
 				if (technicalsResearchService.isBullishCrossOver200(stock)) {
 
 					this.addBullishCrossOverLedger(stock, CrossOverCategory.CROSS200);
 
-				} else if (technicalsResearchService.isPriceVolumeBullish(stock)) {
-					this.addBullishCrossOverLedger(stock, CrossOverCategory.VIPR);
 				}
 
-				else if (technicalsResearchService.isBreakOut50Bullish(stock)) {
-					this.addBullishCrossOverLedger(stock, CrossOverCategory.BO50BULLISH);
-				} else if (technicalsResearchService.isBreakOut200HighVolumeBullish(stock)) {
-					this.addBullishCrossOverLedger(stock, CrossOverCategory.BO200BULLISH);
-				}
+
 			}
 
 		} else if (researchTrigger == ResearchTrigger.SELL) {
@@ -92,12 +86,6 @@ public class ResearchTechnicalConsumer {
 
 				this.addBearishCrossOverLedger(stock, CrossOverCategory.CROSS100);
 
-			} else if (technicalsResearchService.isPriceVolumeBearish(stock)) {
-				this.addBearishCrossOverLedger(stock, CrossOverCategory.VIPF);
-			} else if (technicalsResearchService.isBreakOut50Bearish(stock)) {
-				this.addBearishCrossOverLedger(stock, CrossOverCategory.BO50BEARISH);
-			} else if (technicalsResearchService.isBreakOut200HighVolumeBearish(stock)) {
-				this.addBearishCrossOverLedger(stock, CrossOverCategory.BO200BEARISH);
 			}
 
 		} else {
@@ -108,11 +96,7 @@ public class ResearchTechnicalConsumer {
 
 			}
 
-			if (technicalsResearchService.isBullishCrossOver100(stock)) {
 
-				this.addBullishCrossOverLedger(stock, CrossOverCategory.CROSS100);
-
-			}
 
 			if (technicalsResearchService.isBearishCrossover200(stock)) {
 
@@ -126,13 +110,6 @@ public class ResearchTechnicalConsumer {
 
 			}
 
-			if (technicalsResearchService.isPriceVolumeBullish(stock)) {
-				this.addBullishCrossOverLedger(stock, CrossOverCategory.VIPR);
-			}
-
-			if (technicalsResearchService.isPriceVolumeBearish(stock)) {
-				this.addBearishCrossOverLedger(stock, CrossOverCategory.VIPF);
-			}
 
 		}
 

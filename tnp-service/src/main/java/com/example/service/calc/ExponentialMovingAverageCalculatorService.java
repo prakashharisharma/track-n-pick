@@ -1,11 +1,10 @@
-package com.example.service;
+package com.example.service.calc;
 
 import com.example.storage.model.OHLCV;
-import com.example.storage.model.RelativeStrengthIndex;
 
 import java.util.List;
 
-public interface ExponentialMovingAverageService {
+public interface ExponentialMovingAverageCalculatorService {
 
     public List<Double> calculate(List<OHLCV> ohlcvList,  int days);
 

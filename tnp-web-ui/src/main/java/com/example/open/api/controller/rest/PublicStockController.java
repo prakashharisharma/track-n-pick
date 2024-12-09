@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.example.service.impl.FundamentalResearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,6 @@ import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.StockTechnicals;
 import com.example.service.BreakoutLedgerService;
 import com.example.service.CrossOverLedgerService;
-import com.example.service.RuleService;
 import com.example.service.StockService;
 import com.example.ui.model.RecentCrossOverIO;
 import com.example.ui.model.StockDetailsIO;
@@ -40,7 +40,7 @@ public class PublicStockController {
 	private FormulaService formulaService;
 
 	@Autowired
-	private RuleService ruleService;
+	private FundamentalResearchService fundamentalResearchService;
 
 	@Autowired
 	private CrossOverLedgerService crossOverLedgerService;
@@ -67,9 +67,9 @@ public class PublicStockController {
 
 			String valuation = "NUETRAL";
 
-			if (ruleService.isUndervalued(stock)) {
+			if (fundamentalResearchService.isUndervalued(stock)) {
 				valuation = "UNDERVALUE";
-			}else if (ruleService.isOvervalued(stock)) {
+			}else if (fundamentalResearchService.isOvervalued(stock)) {
 				valuation = "OVERVALUED";
 			}
 			else {

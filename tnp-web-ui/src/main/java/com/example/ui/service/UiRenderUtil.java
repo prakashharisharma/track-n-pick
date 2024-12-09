@@ -11,6 +11,7 @@ import com.example.model.type.FundTransactionType;
 import com.example.model.type.StockTransactionType;
 import com.example.repo.ledger.FundsLedgerRepository;
 import com.example.service.*;
+import com.example.service.impl.FundamentalResearchService;
 import com.example.util.io.model.ResearchIO;
 import org.decampo.xirr.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +64,7 @@ public class UiRenderUtil {
 	private FormulaService formulaService;
 	
 	@Autowired
-	private RuleService ruleService;
+	private FundamentalResearchService fundamentalResearchService;
 
 	@Autowired
 	private TechnicalsResearchService technicalsResearchService;
@@ -188,12 +189,13 @@ public class UiRenderUtil {
 			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(
 					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getResearchPrice())));
 
+			double valuation = fundamentalResearchService.calculateValuation(researchStock.getStock());
 			UIRenderStock uiRenderStock = new UIRenderStock(researchStock.getStock());
 
 			uiRenderStock.setResearchPrice(researchStock.getResearchPrice());
 			uiRenderStock.setProfitPer(profitPer);
 			uiRenderStock.setResearchDate(researchStock.getResearchDate());
-
+			uiRenderStock.setValuation(valuation);
 			StockTechnicals stockTechnicals = researchStock.getStock().getTechnicals();
 
 			if(stockTechnicals!=null) {
@@ -233,13 +235,15 @@ public class UiRenderUtil {
 			double sectorPe = researchStock.getStock().getSector().getSectorPe();
 
 			double sectorPb = researchStock.getStock().getSector().getSectorPb();
+
+			double valuation = fundamentalResearchService.calculateValuation(researchStock.getStock());
 			
 			double profitPer = Double.parseDouble(miscUtil.formatDouble(calculateProfitPer(
 					researchStock.getStock().getStockPrice().getCurrentPrice(), researchStock.getEntryValuation().getPrice())));
 
 			boolean isBullish = researchLedgerTechnicalService.isActive(researchStock.getStock(), ResearchIO.ResearchTrigger.BUY);
 
-			resultList.add(new UIRenderStock(researchStock, profitPer,pe, pb,sectorPe, sectorPb, isBullish));
+			resultList.add(new UIRenderStock(researchStock, profitPer,pe, pb,sectorPe, sectorPb, isBullish, valuation));
 			
 		}
 

@@ -38,7 +38,7 @@ public class UserProfile implements Serializable{
 	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
 	private UserDetails userDetails;
 	
-	@Column(name = "USER_EMAIL", unique=true)
+	@Column(name = "USER_EMAIL")
 	String userEmail;
 	
 	@Column(name = "FIRST_NAME")

@@ -2,8 +2,6 @@ package com.example.util.io.model;
 
 import java.io.Serializable;
 
-import com.example.util.io.model.type.DirectionIO;
-
 public class StockTechnicalsIO implements Serializable{
 
 	/**
@@ -39,7 +37,9 @@ public class StockTechnicalsIO implements Serializable{
 	double prevRsi;
 
 	long volume;
-	long avgVolume;
+	long weeklyVolume;
+
+	long monthlyVolume;
 
 	double adx;
 	double prevAdx;
@@ -215,12 +215,20 @@ public class StockTechnicalsIO implements Serializable{
 		this.volume = volume;
 	}
 
-	public long getAvgVolume() {
-		return avgVolume;
+	public long getWeeklyVolume() {
+		return weeklyVolume;
 	}
 
-	public void setAvgVolume(long avgVolume) {
-		this.avgVolume = avgVolume;
+	public void setWeeklyVolume(long weeklyVolume) {
+		this.weeklyVolume = weeklyVolume;
+	}
+
+	public long getMonthlyyVolume() {
+		return monthlyVolume;
+	}
+
+	public void setMonthlyyVolume(long monthlyyVolume) {
+		this.monthlyVolume = monthlyyVolume;
 	}
 
 	public double getAdx() {
@@ -278,7 +286,7 @@ public class StockTechnicalsIO implements Serializable{
 				", rsi=" + rsi +
 				", prevRsi=" + prevRsi +
 				", volume=" + volume +
-				", avgVolume=" + avgVolume +
+				", avgVolume=" + weeklyVolume +
 				", adx=" + adx +
 				", prevAdx=" + prevAdx +
 				'}';

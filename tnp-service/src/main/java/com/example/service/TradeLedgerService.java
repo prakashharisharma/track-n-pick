@@ -35,7 +35,7 @@ public class TradeLedgerService {
 	@Autowired
 	private MiscUtil miscUtil;
 
-	public void executeBuy(UserProfile user, Stock stock, double price, long quantity) {
+	public TradeLedger executeBuy(UserProfile user, Stock stock, double price, long quantity) {
 
 		TradeLedger tradeLedger = new TradeLedger(user, stock, price, quantity, StockTransactionType.BUY, Exchange.NSE,
 				LocalDate.now());
@@ -43,6 +43,7 @@ public class TradeLedgerService {
 		this.calculateCharges(tradeLedger, user, price, quantity);
 
 		tradeLedgerRepository.save(tradeLedger);
+		return tradeLedger;
 
 	}
 	
@@ -60,7 +61,7 @@ public class TradeLedgerService {
 		tradeLedgerRepository.save(tradeLedger);
 	}
 	
-	public void executeSell(UserProfile user, Stock stock, double price, long quantity) {
+	public TradeLedger executeSell(UserProfile user, Stock stock, double price, long quantity) {
 
 		TradeLedger tradeLedger = new TradeLedger(user, stock, price, quantity, StockTransactionType.SELL, Exchange.NSE,
 				LocalDate.now());
@@ -68,7 +69,7 @@ public class TradeLedgerService {
 		this.calculateCharges(tradeLedger, user, price, quantity);
 
 		tradeLedgerRepository.save(tradeLedger);
-
+		return tradeLedger;
 	}
 
 	private void calculateCharges(TradeLedger tradeLedger, UserProfile user, double price, long quantity) {
@@ -108,7 +109,7 @@ public class TradeLedgerService {
 		tradeLedger.setStampDuty(stampDuty);
 
 		double gst = (taxMasterService.getTaxMaster().getGst()
-				* (brokergaeTotal + nseTxnCharges + sebiTurnoverFee + stampDuty )) / 100;
+				* (brokergaeTotal + nseTxnCharges + sebiTurnoverFee + dpCharge )) / 100;
 		tradeLedger.setGst(gst);
 		double totaL = brokergaeTotal + dpCharge+ nseTxnCharges + sebiTurnoverFee + securityTxnTax + stampDuty + gst;
 

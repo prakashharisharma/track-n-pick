@@ -130,14 +130,18 @@ public class StockTechnicals implements Serializable{
 	
 	@Column(name = "LAST_MODIFIED")
 	LocalDate lastModified = LocalDate.now();
-
 	
 	@Column(name = "VOLUME")
 	Long volume;
-	
-	@Column(name = "AVG_VOLUME")
-	Long avgVolume;
 
+	@Column(name = "PREV_VOLUME")
+	Long prevVolume;
+	
+	@Column(name = "WEEKLY_VOLUME")
+	Long weeklyVolume;
+
+	@Column(name = "MONTHLY_VOLUME")
+	Long monthlyVolume;
 	@Column(name = "ADX", columnDefinition="decimal(10,2) default '0.00'")
 	double adx;
 
@@ -147,8 +151,56 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "PLUS_DI", columnDefinition="decimal(10,2) default '0.00'")
 	double plusDi;
 
+	@Column(name = "PREV_PLUS_DI", columnDefinition="decimal(10,2) default '0.00'")
+	double prevPlusDi;
+
 	@Column(name = "MINUS_DI", columnDefinition="decimal(10,2) default '0.00'")
 	double minusDi;
+
+	@Column(name = "PREV_MINUS_DI", columnDefinition="decimal(10,2) default '0.00'")
+	double prevMinusDi;
+
+	@Column(name = "PIVOT_POINT", columnDefinition="decimal(10,2) default '0.00'")
+	double pivotPoint;
+
+	@Column(name = "S1", columnDefinition="decimal(10,2) default '0.00'")
+	double firstSupport;
+
+	@Column(name = "S2", columnDefinition="decimal(10,2) default '0.00'")
+	double secondSupport;
+
+	@Column(name = "S3", columnDefinition="decimal(10,2) default '0.00'")
+	double thirdSupport;
+
+	@Column(name = "R1", columnDefinition="decimal(10,2) default '0.00'")
+	double firstResistance;
+
+	@Column(name = "R2", columnDefinition="decimal(10,2) default '0.00'")
+	double secondResistance;
+
+	@Column(name = "R3", columnDefinition="decimal(10,2) default '0.00'")
+	double thirdResistance;
+
+	@Column(name = "PREV_PIVOT_POINT", columnDefinition="decimal(10,2) default '0.00'")
+	double prevPivotPoint;
+
+	@Column(name = "PREV_S1", columnDefinition="decimal(10,2) default '0.00'")
+	double prevFirstSupport;
+
+	@Column(name = "PREV_S2", columnDefinition="decimal(10,2) default '0.00'")
+	double prevSecondSupport;
+
+	@Column(name = "PREV_S3", columnDefinition="decimal(10,2) default '0.00'")
+	double prevThirdSupport;
+
+	@Column(name = "PREV_R1", columnDefinition="decimal(10,2) default '0.00'")
+	double prevFirstResistance;
+
+	@Column(name = "PREV_R2", columnDefinition="decimal(10,2) default '0.00'")
+	double prevSecondResistance;
+
+	@Column(name = "PREV_R3", columnDefinition="decimal(10,2) default '0.00'")
+	double prevThirdResistance;
 
 	public long getStockTechnicalsId() {
 		return stockTechnicalsId;
@@ -430,12 +482,28 @@ public class StockTechnicals implements Serializable{
 		this.volume = volume;
 	}
 
-	public Long getAvgVolume() {
-		return avgVolume;
+	public Long getWeeklyVolume() {
+		return weeklyVolume;
 	}
 
-	public void setAvgVolume(Long avgVolume) {
-		this.avgVolume = avgVolume;
+	public void setWeeklyVolume(Long weeklyVolume) {
+		this.weeklyVolume = weeklyVolume;
+	}
+
+	public Long getPrevVolume() {
+		return prevVolume;
+	}
+
+	public void setPrevVolume(Long prevVolume) {
+		this.prevVolume = prevVolume;
+	}
+
+	public Long getMonthlyVolume() {
+		return monthlyVolume;
+	}
+
+	public void setMonthlyVolume(Long monthlyVolume) {
+		this.monthlyVolume = monthlyVolume;
 	}
 
 	public double getAdx() {
@@ -470,6 +538,133 @@ public class StockTechnicals implements Serializable{
 		this.prevAdx = prevAdx;
 	}
 
+	public double getPrevPlusDi() {
+		return prevPlusDi;
+	}
+
+	public void setPrevPlusDi(double prevPlusDi) {
+		this.prevPlusDi = prevPlusDi;
+	}
+
+	public double getPrevMinusDi() {
+		return prevMinusDi;
+	}
+
+	public void setPrevMinusDi(double prevMinusDi) {
+		this.prevMinusDi = prevMinusDi;
+	}
+
+	public double getPivotPoint() {
+		return pivotPoint;
+	}
+
+	public void setPivotPoint(double pivotPoint) {
+		this.pivotPoint = pivotPoint;
+	}
+
+	public double getFirstSupport() {
+		return firstSupport;
+	}
+
+	public void setFirstSupport(double firstSupport) {
+		this.firstSupport = firstSupport;
+	}
+
+	public double getSecondSupport() {
+		return secondSupport;
+	}
+
+	public void setSecondSupport(double secondSupport) {
+		this.secondSupport = secondSupport;
+	}
+
+	public double getThirdSupport() {
+		return thirdSupport;
+	}
+
+	public void setThirdSupport(double thirdSupport) {
+		this.thirdSupport = thirdSupport;
+	}
+
+	public double getFirstResistance() {
+		return firstResistance;
+	}
+
+	public void setFirstResistance(double firstResistance) {
+		this.firstResistance = firstResistance;
+	}
+
+	public double getSecondResistance() {
+		return secondResistance;
+	}
+
+	public void setSecondResistance(double secondResistance) {
+		this.secondResistance = secondResistance;
+	}
+
+	public double getThirdResistance() {
+		return thirdResistance;
+	}
+
+	public void setThirdResistance(double thirdResistance) {
+		this.thirdResistance = thirdResistance;
+	}
+
+	public double getPrevPivotPoint() {
+		return prevPivotPoint;
+	}
+
+	public void setPrevPivotPoint(double prevPivotPoint) {
+		this.prevPivotPoint = prevPivotPoint;
+	}
+
+	public double getPrevFirstSupport() {
+		return prevFirstSupport;
+	}
+
+	public void setPrevFirstSupport(double prevFirstSupport) {
+		this.prevFirstSupport = prevFirstSupport;
+	}
+
+	public double getPrevSecondSupport() {
+		return prevSecondSupport;
+	}
+
+	public void setPrevSecondSupport(double prevSecondSupport) {
+		this.prevSecondSupport = prevSecondSupport;
+	}
+
+	public double getPrevThirdSupport() {
+		return prevThirdSupport;
+	}
+
+	public void setPrevThirdSupport(double prevThirdSupport) {
+		this.prevThirdSupport = prevThirdSupport;
+	}
+
+	public double getPrevFirstResistance() {
+		return prevFirstResistance;
+	}
+
+	public void setPrevFirstResistance(double prevFirstResistance) {
+		this.prevFirstResistance = prevFirstResistance;
+	}
+
+	public double getPrevSecondResistance() {
+		return prevSecondResistance;
+	}
+
+	public void setPrevSecondResistance(double prevSecondResistance) {
+		this.prevSecondResistance = prevSecondResistance;
+	}
+
+	public double getPrevThirdResistance() {
+		return prevThirdResistance;
+	}
+
+	public void setPrevThirdResistance(double prevThirdResistance) {
+		this.prevThirdResistance = prevThirdResistance;
+	}
 
 	@Override
 	public String toString() {
@@ -509,7 +704,7 @@ public class StockTechnicals implements Serializable{
 				", prevSignal=" + prevSignal +
 				", lastModified=" + lastModified +
 				", volume=" + volume +
-				", avgVolume=" + avgVolume +
+				", avgVolume=" + weeklyVolume +
 				", adx=" + adx +
 				", prevAdx=" + prevAdx +
 				", plusDi=" + plusDi +

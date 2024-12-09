@@ -1,10 +1,11 @@
-package com.example.mt.service.async;
+package com.example.service.async;
 
 import java.io.IOException;
 import java.time.LocalDate;
 
 import com.example.mq.producer.EventProducerService;
 import com.example.service.SectorService;
+import com.example.util.SupportAndResistanceUtil;
 import com.example.util.io.model.StockIO;
 import com.example.util.io.model.UpdateTriggerIO;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -150,6 +151,8 @@ public class UpdatePriceConsumer {
 		}
 		*/
 
+		this.setYearHighLow(stockPriceIO);
+
 		this.updatePriceTxn(stockPriceIO);
 
 	}
@@ -175,7 +178,9 @@ public class UpdatePriceConsumer {
 
 			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
 
-			stockPrice.setPrevOoen(stockPrice.getOpen());
+			stockPrice.setPrevOpen(stockPrice.getOpen());
+			stockPrice.setPrevHigh(stockPrice.getHigh());
+			stockPrice.setPrevLow(stockPrice.getLow());
 			stockPrice.setPrevClose(stockPrice.getClose());
 
 			stockPrice.setOpen(stockPriceIO.getOpen());
@@ -213,7 +218,7 @@ public class UpdatePriceConsumer {
 
 
 
-	private void setYearHighLow(StockPriceIO stockPriceIO, StockPrice stockPriceHistory ){
+	private void setYearHighLow(StockPriceIO stockPriceIO ){
 
 		HighLowResult highLowResult = priceTemplate.getHighLowByDate(stockPriceIO.getNseSymbol(), LocalDate.now().minusWeeks(52));
 
@@ -223,9 +228,6 @@ public class UpdatePriceConsumer {
 
 		stockPriceIO.setYearLow(low);
 		stockPriceIO.setYearHigh(high);
-
-		stockPriceHistory.setYearLow(low);
-		stockPriceHistory.setYearHigh(high);
 	}
 	private void set14DaysHighLow(StockPriceIO stockPriceIO, StockPrice stockPriceHistory ){
 

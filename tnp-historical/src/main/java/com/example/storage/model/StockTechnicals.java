@@ -33,6 +33,10 @@ public class StockTechnicals {
 	Trend trend;
 	
 	Momentum momentum;
+
+	private Double yearLow;
+
+	private Double yearHigh;
 	
 	public StockTechnicals() {
 		super();
@@ -146,6 +150,22 @@ public class StockTechnicals {
 
 	public void setMacd(MovingAverageConvergenceDivergence macd) {
 		this.macd = macd;
+	}
+
+	public Double getYearLow() {
+		return yearLow;
+	}
+
+	public void setYearLow(Double yearLow) {
+		this.yearLow = yearLow;
+	}
+
+	public Double getYearHigh() {
+		return yearHigh;
+	}
+
+	public void setYearHigh(Double yearHigh) {
+		this.yearHigh = yearHigh;
 	}
 
 	@Override

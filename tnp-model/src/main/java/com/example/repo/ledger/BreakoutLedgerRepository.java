@@ -24,6 +24,6 @@ public interface BreakoutLedgerRepository extends JpaRepository<BreakoutLedger, 
 	BreakoutLedger findByStockIdAndBreakoutTypeAndBreakoutCategory(Stock stock,BreakoutType breakoutType, BreakoutCategory breakoutCategory);
 	
 	BreakoutLedger findByStockIdAndBreakoutTypeAndBreakoutCategoryAndBreakoutDate(Stock stock,BreakoutType breakoutType, BreakoutCategory breakoutCategory, LocalDate breakoutDate);
-	
+
 	// BreakoutLedger findByStockIdAndBreakoutTypeAndBreakoutCategoryAndPriceAndSma(Stock stock,BreakoutType breakoutType, BreakoutCategory breakoutCategory, double price, double sma);
 }

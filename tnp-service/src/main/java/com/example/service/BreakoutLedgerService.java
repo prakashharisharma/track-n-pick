@@ -21,12 +21,14 @@ public class BreakoutLedgerService {
 	private BreakoutLedgerRepository breakoutLedgerRepository;
 	
 	public void addPositive(Stock stock,BreakoutCategory breakoutCategory) {
-		
-		BreakoutLedger breakoutLedger =  breakoutLedgerRepository.findByStockIdAndBreakoutTypeAndBreakoutCategoryAndBreakoutDate(stock, BreakoutLedger.BreakoutType.POSITIVE, breakoutCategory, LocalDate.now());
+
+		LocalDate bhavDate = stock.getStockPrice().getBhavDate();
+
+		BreakoutLedger breakoutLedger =  breakoutLedgerRepository.findByStockIdAndBreakoutTypeAndBreakoutCategoryAndBreakoutDate(stock, BreakoutLedger.BreakoutType.POSITIVE, breakoutCategory, bhavDate);
 		
 		if(breakoutLedger == null) {
 
-			breakoutLedger = new BreakoutLedger(stock, stock.getStockPrice().getBhavDate(), BreakoutLedger.BreakoutType.POSITIVE, breakoutCategory);
+			breakoutLedger = new BreakoutLedger(stock, bhavDate, BreakoutLedger.BreakoutType.POSITIVE, breakoutCategory);
 
 			breakoutLedgerRepository.save(breakoutLedger);
 		}
@@ -34,11 +36,13 @@ public class BreakoutLedgerService {
 	}
 	public void addNegative(Stock stock,BreakoutCategory breakoutCategory) {
 
-		BreakoutLedger breakoutLedger =  breakoutLedgerRepository.findByStockIdAndBreakoutTypeAndBreakoutCategoryAndBreakoutDate(stock, BreakoutLedger.BreakoutType.NEGATIVE, breakoutCategory, LocalDate.now());
+		LocalDate bhavDate = stock.getStockPrice().getBhavDate();
+
+		BreakoutLedger breakoutLedger =  breakoutLedgerRepository.findByStockIdAndBreakoutTypeAndBreakoutCategoryAndBreakoutDate(stock, BreakoutLedger.BreakoutType.NEGATIVE, breakoutCategory, bhavDate);
 
 		if(breakoutLedger == null) {
 
-				breakoutLedger = new BreakoutLedger(stock, LocalDate.now(), BreakoutLedger.BreakoutType.NEGATIVE, breakoutCategory);
+				breakoutLedger = new BreakoutLedger(stock, bhavDate, BreakoutLedger.BreakoutType.NEGATIVE, breakoutCategory);
 
 			breakoutLedgerRepository.save(breakoutLedger);
 		}
@@ -62,6 +66,14 @@ public class BreakoutLedgerService {
 		}
 		
 		return isBreakout;
+	}
+
+	public BreakoutLedger get(Stock stock,BreakoutType breakoutType,BreakoutCategory breakoutCategory){
+		return   breakoutLedgerRepository.findByStockIdAndBreakoutTypeAndBreakoutCategory(stock, breakoutType, breakoutCategory);
+	}
+
+	public void update(BreakoutLedger breakoutLedger){
+		breakoutLedgerRepository.save(breakoutLedger);
 	}
 	
 }

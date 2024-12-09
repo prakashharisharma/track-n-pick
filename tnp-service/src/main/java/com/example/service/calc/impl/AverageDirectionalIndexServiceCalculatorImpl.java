@@ -1,10 +1,8 @@
-package com.example.service.impl;
+package com.example.service.calc.impl;
 
-import com.example.service.AverageDirectionalIndexService;
+import com.example.service.calc.AverageDirectionalIndexCalculatorService;
 import com.example.storage.model.AverageDirectionalIndex;
-import com.example.storage.model.MovingAverageConvergenceDivergence;
 import com.example.storage.model.OHLCV;
-import com.example.storage.model.RelativeStrengthIndex;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +14,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class AverageDirectionalIndexServiceImpl implements AverageDirectionalIndexService {
+public class AverageDirectionalIndexServiceCalculatorImpl implements AverageDirectionalIndexCalculatorService {
 
     @Autowired
     private FormulaService formulaService;

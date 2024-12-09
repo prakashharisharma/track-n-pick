@@ -1,7 +1,8 @@
-package com.example.mt.service.async;
+package com.example.service.async;
 
 import javax.jms.Session;
 
+import com.example.service.impl.FundamentalResearchService;
 import com.example.storage.repo.FactorTemplate;
 import com.example.util.io.model.StockPriceIO;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,6 @@ import com.example.model.master.Stock;
 import com.example.model.stocks.StockFactor;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
-import com.example.service.RuleService;
 import com.example.service.StockService;
 import com.example.util.io.model.ResearchIO;
 import com.example.util.io.model.ResearchIO.ResearchTrigger;
@@ -35,7 +35,7 @@ public class UpdateFactorConsumer {
 	private StockService stockService;
 
 	@Autowired
-	private RuleService ruleService;
+	private FundamentalResearchService fundamentalResearchService;
 
 	@Autowired
 	private FactorTemplate factorTemplate;

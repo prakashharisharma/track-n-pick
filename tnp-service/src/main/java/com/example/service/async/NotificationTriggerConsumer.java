@@ -1,4 +1,4 @@
-package com.example.mt.service.async;
+package com.example.service.async;
 
 
 
@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.jms.Session;
 
+import com.example.service.impl.FundamentalResearchService;
 import org.apache.activemq.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +31,6 @@ import com.example.service.PortfolioService;
 import com.example.service.PrettyPrintService;
 import com.example.service.ResearchLedgerFundamentalService;
 import com.example.service.ResearchLedgerTechnicalService;
-import com.example.service.RuleService;
-import com.example.service.StockFactorService;
 import com.example.service.UserService;
 import com.example.util.MiscUtil;
 import com.example.util.io.model.EmailIO;
@@ -61,7 +60,7 @@ public class NotificationTriggerConsumer {
 	private PortfolioService portfolioService;
 	
 	@Autowired
-	private RuleService ruleService;
+	private FundamentalResearchService fundamentalResearchService;
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(NotificationTriggerConsumer.class);
 
@@ -267,7 +266,7 @@ public class NotificationTriggerConsumer {
 			currentReseachList = buyResearchLedgerList.stream().map(rl -> rl.getStock()).collect(Collectors.toList());
 
 			currentReseachList.forEach( stk -> {
-				if (ruleService.isUndervalued(stk)) {
+				if (fundamentalResearchService.isUndervalued(stk)) {
 					currentUnderValue.add(stk);
 				}
 			});

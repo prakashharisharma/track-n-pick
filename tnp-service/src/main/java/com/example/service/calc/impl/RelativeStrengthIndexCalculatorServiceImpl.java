@@ -1,7 +1,6 @@
-package com.example.service.impl;
+package com.example.service.calc.impl;
 
-import com.example.service.RelativeStrengthIndexService;
-import com.example.storage.model.AverageDirectionalIndex;
+import com.example.service.calc.RelativeStrengthIndexCalculatorService;
 import com.example.storage.model.OHLCV;
 import com.example.storage.model.RelativeStrengthIndex;
 import com.example.util.FormulaService;
@@ -15,7 +14,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class RelativeStrengthIndexServiceImpl implements RelativeStrengthIndexService {
+public class RelativeStrengthIndexCalculatorServiceImpl implements RelativeStrengthIndexCalculatorService {
 
     @Autowired
     private FormulaService formulaService;
