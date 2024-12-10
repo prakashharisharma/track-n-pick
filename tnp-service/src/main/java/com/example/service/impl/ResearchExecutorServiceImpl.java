@@ -58,27 +58,30 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     }
 
     private void fundamentalBuy(Stock stock){
-
+        log.info("Executing fundamental buy {}", stock.getNseSymbol());
         if(fundamentalResearchService.isUndervalued(stock)){
 
             ValuationLedger entryValuation = valuationLedgerService.addUndervalued(stock);
 
             researchLedgerFundamentalService.addResearch(stock, entryValuation);
         }
+        log.info("Executed fundamental buy {}", stock.getNseSymbol());
     }
 
     private void fundamentalSell(Stock stock){
 
         if(fundamentalResearchService.isOvervalued(stock)){
-
+            log.info("Executing fundamental sell {}", stock.getNseSymbol());
             ValuationLedger exitValuation = valuationLedgerService.addOvervalued(stock);
 
             researchLedgerFundamentalService.updateResearch(stock, exitValuation);
+            log.info("Executed fundamental sell {}", stock.getNseSymbol());
         }
     }
 
 
     private void technicalBuy(Stock stock){
+        log.info("Executing technical buy {}", stock.getNseSymbol());
 
         if (fundamentalResearchService.isMcapInRange(stock) && technicalsResearchService.isBullishMovingAverage(stock)) {
 
@@ -95,17 +98,19 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                 }
             }
         }
+        log.info("Executed technical buy {}", stock.getNseSymbol());
     }
 
     private void technicalSell(Stock stock){
 
         if (technicalsResearchService.isBearishMovingAverage(stock)) {
-
+            log.info("Executing technical sell {}", stock.getNseSymbol());
             double score = technicalsResearchService.breakoutScore(stock);
 
             if(score > 0.5) {
                 researchLedgerTechnicalService.updateResearch(stock, score);
             }
+            log.info("Executing technical sell {}", stock.getNseSymbol());
         }
     }
 }
