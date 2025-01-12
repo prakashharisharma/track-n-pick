@@ -20,6 +20,10 @@ import java.time.LocalDate;
 @Table(name = "STOCK_RESEARCH_LEDGER_TECHNICAL")
 public class ResearchLedgerTechnical {
 
+	public enum Strategy {
+		PRICE_ACTION, MA_WITH_MACD, MACD
+	}
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "SRL_ID")
@@ -32,9 +36,10 @@ public class ResearchLedgerTechnical {
 	@Column(name = "RESEARCH_STATUS")
 	@Enumerated(EnumType.STRING)
 	ResearchTrigger researchStatus;
-	
-	@Column(name = "IS_NOTIFIED")
-	boolean notified = false;
+
+	@Column(name = "STRATEGY")
+	@Enumerated(EnumType.STRING)
+	Strategy strategy;
 
 	@Column(name = "RESEARCH_DATE")
 	LocalDate researchDate;
@@ -42,17 +47,20 @@ public class ResearchLedgerTechnical {
 	@Column(name = "EXIT_DATE")
 	LocalDate exitDate;
 
+	@Column(name = "NEXT_TRADING_DATE")
+	LocalDate nextTradingDate;
+
+	@Column(name = "MODIFIED_DATE")
+	LocalDate modifiedAt;
+
+	@Column(name = "CREATED_DATE")
+	LocalDate createdAt;
+
 	@Column(name = "RESEARCH_PRICE", columnDefinition="Decimal(10,2) default '0.00'")
 	double researchPrice;
 
 	@Column(name = "EXIT_PRICE", columnDefinition="Decimal(10,2) default '0.00'")
 	double exitPrice;
-
-	@Column(name = "RESEARCH_RULE")
-	Integer researchRule;
-
-	@Column(name = "EXIT_RULE")
-	Integer exitRule;
 
 	@Column(name = "IS_CONFIRMED")
 	boolean confirmed = false;
@@ -66,11 +74,11 @@ public class ResearchLedgerTechnical {
 	@Column(name = "TARGET", columnDefinition="Decimal(10,2) default '0.00'")
 	double target;
 
-	@Column(name = "RESEARCH_SCORE", columnDefinition="Decimal(10,2) default '0.00'")
-	double researchScore;
+	@Column(name = "VOLUME")
+	Long volume;
 
-	@Column(name = "EXIT_SCORE", columnDefinition="Decimal(10,2) default '0.00'")
-	double exitScore;
+	@Column(name = "WEEKLY_VOLUME")
+	Long weeklyVolume;
 
 	public long getSrlId() {
 		return srlId;
@@ -94,14 +102,6 @@ public class ResearchLedgerTechnical {
 
 	public void setResearchStatus(ResearchTrigger researchStatus) {
 		this.researchStatus = researchStatus;
-	}
-
-	public boolean isNotified() {
-		return notified;
-	}
-
-	public void setNotified(boolean notified) {
-		this.notified = notified;
 	}
 
 	public LocalDate getResearchDate() {
@@ -136,38 +136,6 @@ public class ResearchLedgerTechnical {
 		this.exitPrice = exitPrice;
 	}
 
-	public Integer getResearchRule() {
-		return researchRule;
-	}
-
-	public void setResearchRule(Integer researchRule) {
-		this.researchRule = researchRule;
-	}
-
-	public Integer getExitRule() {
-		return exitRule;
-	}
-
-	public void setExitRule(Integer exitRule) {
-		this.exitRule = exitRule;
-	}
-
-	public double getResearchScore() {
-		return researchScore;
-	}
-
-	public void setResearchScore(double researchScore) {
-		this.researchScore = researchScore;
-	}
-
-	public double getExitScore() {
-		return exitScore;
-	}
-
-	public void setExitScore(double exitScore) {
-		this.exitScore = exitScore;
-	}
-
 	public boolean isConfirmed() {
 		return confirmed;
 	}
@@ -200,19 +168,64 @@ public class ResearchLedgerTechnical {
 		this.target = target;
 	}
 
+	public LocalDate getNextTradingDate() {
+		return nextTradingDate;
+	}
+
+	public void setNextTradingDate(LocalDate nextTradingDate) {
+		this.nextTradingDate = nextTradingDate;
+	}
+
+	public Long getVolume() {
+		return volume;
+	}
+
+	public void setVolume(Long volume) {
+		this.volume = volume;
+	}
+
+	public Long getWeeklyVolume() {
+		return weeklyVolume;
+	}
+
+	public void setWeeklyVolume(Long weeklyVolume) {
+		this.weeklyVolume = weeklyVolume;
+	}
+
+	public LocalDate getModifiedAt() {
+		return modifiedAt;
+	}
+
+	public void setModifiedAt(LocalDate modifiedAt) {
+		this.modifiedAt = modifiedAt;
+	}
+
+	public LocalDate getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDate createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Strategy getStrategy() {
+		return strategy;
+	}
+
+	public void setStrategy(Strategy strategy) {
+		this.strategy = strategy;
+	}
+
 	@Override
 	public String toString() {
 		return "ResearchLedgerTechnical{" +
 				"srlId=" + srlId +
 				", stock=" + stock +
 				", researchStatus=" + researchStatus +
-				", notified=" + notified +
 				", researchDate=" + researchDate +
 				", exitDate=" + exitDate +
 				", researchPrice=" + researchPrice +
 				", exitPrice=" + exitPrice +
-				", researchRule=" + researchRule +
-				", exitRule=" + exitRule +
 				'}';
 	}
 

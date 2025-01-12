@@ -6,6 +6,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -176,10 +177,42 @@ public class AppRunner implements CommandLineRunner {
 	@Autowired
 	private CandleStickExecutorService candleStickExecutorService;
 
+	@Autowired
+	private CandleStickService candleStickService;
+
+	@Autowired
+	private UpdateTechnicalsService updateTechnicalsService;
+
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
 
 		log.info("Application started....");
+
+		candleStickService.isBuyingWickPresent(1630.0, 1660.25, 1480.50, 1655.15, 100);
+		candleStickService.isSellingWickPresent(1630.0, 1660.25, 1480.50, 1655.15, 100);
+
+		candleStickService.isBuyingWickPresent(264.0, 273.80, 261.20, 262.20, 100);
+		candleStickService.isSellingWickPresent(264.0, 273.80, 261.20, 262.20, 100);
+
+		System.out.println("STARTED " + LocalDateTime.now());
+
+		long start = System.currentTimeMillis();
+
+		StockPriceIO stockPriceIO = new StockPriceIO();
+		stockPriceIO.setNseSymbol("HAVELLS");
+		stockPriceIO.setBhavDate(Instant.now());
+		stockPriceIO.setOpen(123.0);
+		stockPriceIO.setHigh(165.0);
+		stockPriceIO.setLow(121.0);
+		stockPriceIO.setClose(145.0);
+		stockPriceIO.setYearHigh(999.0);
+		stockPriceIO.setYearLow(99.0);
+
+		//updateTechnicalsService.updateTechnicals(stockPriceIO);
+
+		long end = System.currentTimeMillis();
+		System.out.println("DONE " + (end-start));
+
 		//this.scanCandleStickPattern();
 
 		//List<Double> retracements =  formulaService.fibonacciRetracements(380, 489);

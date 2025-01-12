@@ -72,7 +72,7 @@ public class NotificationTriggerConsumer {
 				+ " : START");
 
 		if (notificationTriggerIO.getTriggerType() == NotificationTriggerIO.TriggerType.RESEARCH) {
-			this.processResearchNotification();
+			//this.processResearchNotification();
 		} else if (notificationTriggerIO.getTriggerType() == NotificationTriggerIO.TriggerType.PORTFOLIO) {
 			this.processPortfolioNotification();
 		} else if (notificationTriggerIO.getTriggerType() == NotificationTriggerIO.TriggerType.CURRENT_UNDERVALUE) {
@@ -104,8 +104,9 @@ public class NotificationTriggerConsumer {
 		}
 
 	}
+	 /*
 
-	private void processResearchNotification() throws InterruptedException {
+	private void processResearchNotification() throws InterruptedException{
 
 		List<ResearchLedgerFundamental> buyResearchLedgerList = fundamentalLedger.buyNotificationPending();
 
@@ -157,9 +158,7 @@ public class NotificationTriggerConsumer {
 
 
 			System.out.println("4");
-			buyResearchTechnicalLedgerList.forEach(srl -> {
-				tecnicalLedger.updateResearchNotified(srl);
-			});
+
 
 			System.out.println("5");
 			isBuy = true;
@@ -210,9 +209,7 @@ public class NotificationTriggerConsumer {
 			System.out.println("9");
 
 
-			sellResearchTechnicalLedgerList.forEach(srl -> {
-				tecnicalLedger.updateResearchNotified(srl);
-			});
+
 			System.out.println("10");
 
 			System.out.println("11");
@@ -245,7 +242,7 @@ public class NotificationTriggerConsumer {
 		} else {
 			LOGGER.info("NO RESEARCH");
 		}
-	}
+	}*/
 
 	private void processResearchCurrentUndervalueNotification() throws InterruptedException {
 

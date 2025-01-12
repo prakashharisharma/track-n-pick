@@ -43,6 +43,14 @@ public class StockTechnicals {
 		
 	}
 
+	public StockTechnicals(String nseSymbol, Instant bhavDate, Volume volume, SimpleMovingAverage sma, ExponentialMovingAverage ema) {
+		this.nseSymbol = nseSymbol;
+		this.bhavDate = bhavDate;
+		this.volume = volume;
+		this.sma = sma;
+		this.ema = ema;
+	}
+
 	public StockTechnicals(String nseSymbol, Instant bhavDate, Volume volume, SimpleMovingAverage sma, ExponentialMovingAverage ema, AverageDirectionalIndex adx, RelativeStrengthIndex rsi, MovingAverageConvergenceDivergence macd) {
 		this.nseSymbol = nseSymbol;
 		this.bhavDate = bhavDate;

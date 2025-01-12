@@ -86,13 +86,26 @@ public class UpdateTechnicalsConsumer {
 	@Autowired
 	private MiscUtil miscUtil;
 
+	@Autowired
+	private UpdateTechnicalsService updateTechnicalsService;
+
 	@JmsListener(destination = QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE)
 	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers,
 							   Message message, Session session) throws InterruptedException {
 
 		log.info("{} Starting technicals update.", stockPriceIO.getNseSymbol());
+			try {
+				this.processTechnicalsUpdate(stockPriceIO);
 
-		this.processTechnicalsUpdate(stockPriceIO);
+				if(stockPriceIO.getSeries().equalsIgnoreCase("EQ")) {
+					ResearchIO researchIO = new ResearchIO(stockPriceIO.getNseSymbol(), ResearchIO.ResearchType.TECHNICAL, ResearchIO.ResearchTrigger.BUY_SELL);
+
+					queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
+				}
+
+			}catch(Exception e){
+				log.error("An error occured while processing technicals update {}", stockPriceIO.getNseSymbol(), e);
+			}
 
 		log.info("{} Completed technicals update.", stockPriceIO.getNseSymbol());
 	}
@@ -134,7 +147,8 @@ public class UpdateTechnicalsConsumer {
 
 	public void processTechnicalsUpdate(StockPriceIO stockPriceIO){
 
-		this.updateTechnicalsHistory(stockPriceIO);
+		updateTechnicalsService.updateTechnicals(stockPriceIO);
+
 
 	}
 
@@ -198,9 +212,11 @@ public class UpdateTechnicalsConsumer {
 		MovingAverageConvergenceDivergence macd = this.build(nseSymbol, ohlcvList, prevStockTechnicals.getMacd(), tradingDays);
 
 		return new StockTechnicals(nseSymbol, stockPriceIO.getBhavDate(), volume,  sma, ema, adx, rsi, macd);
+		//return new StockTechnicals(nseSymbol, stockPriceIO.getBhavDate(), volume,  sma, ema);
 	}
 
 	private StockTechnicals init(StockPriceIO stockPriceIO){
+
 		StockTechnicals stockTechnicals = new StockTechnicals();
 
 		stockTechnicals.setBhavDate(stockPriceIO.getBhavDate());
@@ -208,16 +224,31 @@ public class UpdateTechnicalsConsumer {
 
 		Volume volume = new Volume(stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdqty());
 		stockTechnicals.setVolume(volume);
+
+
 		SimpleMovingAverage sma = new SimpleMovingAverage(0.00,0.00,0.00,0.00,0.00,0.00);
 		stockTechnicals.setSma(sma);
+
+
+
 		ExponentialMovingAverage ema = new ExponentialMovingAverage(0.00,0.00,0.00,0.00,0.00,0.00);
 		stockTechnicals.setEma(ema);
+
+
 		AverageDirectionalIndex adx = new AverageDirectionalIndex(0.00, 0.00,0.00, 0.00, 0.00, 0.00, 0.00);
 		stockTechnicals.setAdx(adx);
+
+
+
 		RelativeStrengthIndex rsi = new RelativeStrengthIndex(0.00, 0.00, 0.00, 0.00);
 		stockTechnicals.setRsi(rsi);
+
+
+
 		MovingAverageConvergenceDivergence macd = new MovingAverageConvergenceDivergence(0.00, 0.00, 0.00, 0.00);
 		stockTechnicals.setMacd(macd);
+
+
 		return stockTechnicals;
 	}
 
@@ -241,7 +272,6 @@ public class UpdateTechnicalsConsumer {
 		Long avgVolume30 = technicalsTemplate.getAverageVolume(nseSymbol, 30);
 
 		//avgVolume5 = formulaService.calculateSmoothedMovingAverage(avgVolume5, ohlcv.getVolume(), 5);
-
 		return new Volume(ohlcv.getVolume(), avgVolume5, avgVolume30);
 	}
 
@@ -279,6 +309,7 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 			double ema50 = exponentialMovingAverageService.calculate(ohlcv, prevExponentialMovingAverage.getAvg50(), 50);
 			double ema100 = exponentialMovingAverageService.calculate(ohlcv,prevExponentialMovingAverage.getAvg100(), 100);
 			double ema200 = exponentialMovingAverageService.calculate(ohlcv, prevExponentialMovingAverage.getAvg200(), 200);
+
 			return new ExponentialMovingAverage(ema5, ema10, ema20, ema50, ema100, ema200);
 		}
 
@@ -289,6 +320,7 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 		double ema50 = exponentialMovingAverageService.calculate(ohlcvList, 50).get(resultIndex);
 		double ema100 = exponentialMovingAverageService.calculate(ohlcvList, 100).get(resultIndex);
 		double ema200 = exponentialMovingAverageService.calculate(ohlcvList, 200).get(resultIndex);
+
 		return new ExponentialMovingAverage(ema5, ema10, ema20, ema50, ema100, ema200);
 	}
 
@@ -670,9 +702,11 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 
 
 	private void setYearHighLow(StockPriceIO stockPriceIO, StockTechnicals stockTechnicals ){
-
+		long start = System.currentTimeMillis();
 		stockTechnicals.setYearLow(stockPriceIO.getYearLow());
 		stockTechnicals.setYearHigh(stockPriceIO.getYearHigh());
+		long end  = System.currentTimeMillis();
+		log.info("Time took to calculate year high low {} {}", (end - start), stockPriceIO.getNseSymbol());
 	}
 
 

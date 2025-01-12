@@ -74,11 +74,26 @@ public class CalendarService {
 		if (this.isHoliday(currentDate)) {
 
 			return previousWorkingDay(currentDate);
-		} else {
-
-			return currentDate;
 		}
+		return currentDate;
+
 
 	}
 
+	public LocalDate nextTradingDate(LocalDate localDate) {
+
+		LocalDate nextTradingDate = localDate;
+
+		if (DayOfWeek.FRIDAY == localDate.getDayOfWeek()) {
+			nextTradingDate = localDate.plusDays(3);
+		} else {
+			nextTradingDate = localDate.plusDays(1);
+		}
+
+		if (this.isHoliday(nextTradingDate)) {
+			return nextTradingDate(nextTradingDate);
+		}
+
+		return nextTradingDate;
+	}
 }

@@ -13,28 +13,106 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CandleStickServiceImpl implements CandleStickService {
 
+    private static double DEFAULT_SELLING_WICK_PER = 20.0;
+
+    private static double DEFAULT_BUYING_WICK_PER = 60.0;
     @Autowired
     private FormulaService formulaService;
 
     @Override
     public boolean isSellingWickPresent(Stock stock) {
 
+        return this.isSellingWickPresent(stock, DEFAULT_SELLING_WICK_PER);
+    }
+
+    @Override
+    public boolean isSellingWickPresent(Stock stock, double benchmark) {
         StockPrice stockPrice = stock.getStockPrice();
 
         if(stockPrice.getHigh() == stockPrice.getOpen()){
             return Boolean.FALSE;
         }
 
-        double openHighdiff = stockPrice.getHigh() - stockPrice.getOpen();
-        double closeHighDiff = stockPrice.getHigh() - stockPrice.getClose();
 
-        double highWickPerOfBody =  formulaService.calculatePercentRate(openHighdiff, closeHighDiff);
 
-        if(highWickPerOfBody > 22.0){
+        double bodySize = stockPrice.getHigh() - stockPrice.getLow();
+
+        double upperWickSize = stockPrice.getHigh() - stockPrice.getClose();
+
+        if(this.isRed(stock)) {
+            upperWickSize = stockPrice.getHigh() - stockPrice.getOpen();
+        }
+
+        double highWickPerOfBody =  formulaService.calculatePercentRate(bodySize, upperWickSize);
+
+        log.info("{} -  {} upperWickSize, {} bodySize, {} sellingWick% {}", stock.getNseSymbol(), upperWickSize, bodySize, highWickPerOfBody);
+
+        if(Math.ceil(highWickPerOfBody) >= benchmark){
             return Boolean.TRUE;
         }
 
         return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isSellingWickPresent(double open, double high, double low, double close, double benchmark) {
+
+        return this.isSellingWickPresent(this.buildStockPrice(open, high, low, close), benchmark);
+    }
+
+    @Override
+    public boolean isBuyingWickPresent(Stock stock) {
+
+        return this.isBuyingWickPresent(stock, DEFAULT_BUYING_WICK_PER);
+
+    }
+
+    @Override
+    public boolean isBuyingWickPresent(Stock stock, double benchmark) {
+        StockPrice stockPrice = stock.getStockPrice();
+
+        if(stockPrice.getLow() == stockPrice.getClose()){
+            return Boolean.FALSE;
+        }
+
+        double bodySize =  stockPrice.getHigh() - stockPrice.getLow();
+
+        double lowerWickSize = stockPrice.getClose() - stockPrice.getLow();
+
+        if(this.isGreen(stock)) {
+            lowerWickSize = stockPrice.getOpen() - stockPrice.getLow();
+        }
+
+
+        double lowerWickPerOfBody =  formulaService.calculatePercentRate(bodySize, lowerWickSize);
+        log.info("{} -  {} lowerWickSize, {} bodySize, {} buyingWick% {}", stock.getNseSymbol(), lowerWickSize, bodySize, lowerWickPerOfBody);
+        if(Math.ceil(lowerWickPerOfBody) >= benchmark){
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBuyingWickPresent(double open, double high, double low, double close, double benchmark) {
+
+
+        return this.isBuyingWickPresent(this.buildStockPrice(open, high, low, close), benchmark);
+    }
+
+    private Stock buildStockPrice(double open, double high, double low, double close){
+
+        StockPrice stockPrice = new StockPrice();
+
+        stockPrice.setOpen(open);
+        stockPrice.setHigh(high);
+        stockPrice.setLow(low);
+        stockPrice.setClose(close);
+
+        Stock stock = new Stock();
+        stock.setNseSymbol("NA");
+        stock.setStockPrice(stockPrice);
+
+        return stock;
     }
 
     @Override
@@ -192,16 +270,16 @@ public class CandleStickServiceImpl implements CandleStickService {
         StockPrice stockPrice = stock.getStockPrice();
 
         if(this.isRed(stock)){
-            if(stockPrice.getHigh() > stockPrice.getPrevHigh()){
-                if(stockPrice.getLow() < stockPrice.getPrevLow()){
+           // if(stockPrice.getHigh() > stockPrice.getPrevHigh()){
+             //   if(stockPrice.getLow() < stockPrice.getPrevLow()){
                     if(stockPrice.getOpen() > stockPrice.getPrevClose()){
                         if(stockPrice.getClose() < stockPrice.getPrevOpen()){
                             log.info("Bearish Engulfing candle active {}", stock.getNseSymbol());
                             return Boolean.TRUE;
                         }
                     }
-                }
-            }
+             //   }
+           // }
         }
         return Boolean.FALSE;
     }
@@ -212,16 +290,16 @@ public class CandleStickServiceImpl implements CandleStickService {
         StockPrice stockPrice = stock.getStockPrice();
 
         if(this.isGreen(stock)){
-            if(stockPrice.getHigh() > stockPrice.getPrevHigh()){
-                if(stockPrice.getLow() < stockPrice.getPrevLow()){
+           // if(stockPrice.getHigh() > stockPrice.getPrevHigh()){
+             //   if(stockPrice.getLow() < stockPrice.getPrevLow()){
                     if(stockPrice.getOpen() < stockPrice.getPrevClose()){
                         if(stockPrice.getClose() > stockPrice.getPrevOpen()){
                             log.info("Bullish Engulfing candle active {}", stock.getNseSymbol());
                             return Boolean.TRUE;
                         }
                     }
-                }
-            }
+             //   }
+           // }
         }
 
         return Boolean.FALSE;
@@ -298,6 +376,17 @@ public class CandleStickServiceImpl implements CandleStickService {
             return Boolean.TRUE;
         }
 
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isTweezerTop(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();;
+        if(this.isRed(stock)){
+            if(stockPrice.getPrevClose() == stockPrice.getOpen()){
+                return Boolean.TRUE;
+            }
+        }
         return Boolean.FALSE;
     }
 }

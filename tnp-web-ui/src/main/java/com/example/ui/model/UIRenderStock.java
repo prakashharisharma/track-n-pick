@@ -177,7 +177,7 @@ public class UIRenderStock {
 		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
 		this.rsi = researchLedger.getStock().getTechnicals().getRsi();
 		
-		this.category = researchLedger.getResearchRule().toString();
+		//this.category = researchLedger.getResearchRule().toString();
 
 	}
 	public UIRenderStock(ResearchLedgerFundamental researchLedger, double profitPer, double pe, double pb,

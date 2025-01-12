@@ -89,6 +89,8 @@ public class UpdateTriggerConsumer {
 			this.resetMaster();
 		}else if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_FACTORS) {
 			this.processFactorsUpdate();
+		}else if (updateTriggerIO.getTrigger() == TriggerType.UPDATE_SECGORS_PE_PB) {
+			this.updateSectorPEPB();
 		}
 		log.info(QueueConstants.MTQueue.UPDATE_TRIGGER_QUEUE.toUpperCase() + " : " + updateTriggerIO + " : END");
 	}
@@ -144,6 +146,8 @@ public class UpdateTriggerConsumer {
 
 	private void updateResearch() {
 
+		this.updateSectorPEPB();
+
 		List<Stock> stockList = stockService.getActiveStocks();
 
 		// Sell Research Fundamental
@@ -161,6 +165,7 @@ public class UpdateTriggerConsumer {
 
 
 	private void processFundamental(ResearchIO researchIO) {
+
 		queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
 	}
 	

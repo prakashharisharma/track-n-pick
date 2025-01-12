@@ -68,7 +68,7 @@ public class FundsLedgerService {
 	public void withdrawFund(UserProfile user, double amount, LocalDate transactionDate) {
 		Broker broker = userBrokerageRepository.findByBrokerageIdUserAndActive(user, true).getBrokerageId().getBroker();
 
-		FundsLedger fundLedger = new FundsLedger(user, broker, amount, transactionDate, FundTransactionType.WITHDRAW);
+		FundsLedger fundLedger = new FundsLedger(user, broker, -1 * amount, transactionDate, FundTransactionType.WITHDRAW);
 		fundsLedgerRepository.save(fundLedger);
 	}
 

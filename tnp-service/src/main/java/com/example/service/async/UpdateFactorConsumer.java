@@ -46,7 +46,11 @@ public class UpdateFactorConsumer {
 
 			log.info("{} Starting factors update.", stockPriceIO.getNseSymbol());
 
-			this.updateFactorsTxn(stockPriceIO);
+			try {
+				this.updateFactorsTxn(stockPriceIO);
+			}catch(Exception e){
+				log.error("An error occured while updating factors {}", stockPriceIO.getHigh(), e);
+			}
 
 			log.info("{} Completed factors update.", stockPriceIO.getNseSymbol());
 

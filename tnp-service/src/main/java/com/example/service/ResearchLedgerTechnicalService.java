@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import com.example.util.FormulaService;
+import com.example.util.MiscUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,28 +25,41 @@ public class ResearchLedgerTechnicalService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResearchLedgerTechnicalService.class);
 
+
 	@Autowired
 	private ResearchLedgerTechnicalRepository researchLedgerRepository;
 
-	public void addResearch(Stock stock,  double score) {
+	@Autowired
+	private FormulaService formulaService;
+
+	@Autowired
+	private CalendarService calendarService;
+
+
+	public void addResearch(Stock stock, boolean isConfirmed, ResearchLedgerTechnical.Strategy strategy) {
 
 		ResearchLedgerTechnical researchLedger = researchLedgerRepository.findByStockAndResearchStatus(stock, ResearchTrigger.BUY);
 
 		if (researchLedger == null) {
-			
+
 			researchLedger = new ResearchLedgerTechnical();
-			
+
 			researchLedger.setStock(stock);
 			researchLedger.setResearchStatus(ResearchTrigger.BUY);
-
-			researchLedger.setNotified(false);
-			//researchLedger.setResearchRule(rule);
+			researchLedger.setStrategy(strategy);
+			//researchLedger.setNotified(false);
+			researchLedger.setConfirmed(isConfirmed);
 			researchLedger.setResearchPrice(stock.getStockPrice().getHigh());
 			researchLedger.setResearchDate(stock.getStockPrice().getBhavDate());
 			researchLedger.setStopLoss(stock.getStockPrice().getLow());
-			researchLedger.setTarget(stock.getStockPrice().getHigh() * 2);
-			researchLedger.setResearchScore(score);
-			
+			researchLedger.setTarget(formulaService.calculateTarget(stock.getStockPrice().getHigh(), stock.getStockPrice().getLow()));
+			//researchLedger.setResearchScore(score);
+			researchLedger.setVolume(stock.getTechnicals().getVolume());
+			researchLedger.setWeeklyVolume(stock.getTechnicals().getWeeklyVolume());
+			//researchLedger.setMonthlyVolume(stock.getTechnicals().getMonthlyVolume());
+			researchLedger.setNextTradingDate(calendarService.nextTradingDate(stock.getStockPrice().getBhavDate()));
+			researchLedger.setCreatedAt(LocalDate.now());
+			researchLedger.setModifiedAt(LocalDate.now());
 			researchLedgerRepository.save(researchLedger);
 		} else {
 			LOGGER.debug(stock.getNseSymbol() + " is already in Ledger for " + stock.getNseSymbol());
@@ -52,30 +67,9 @@ public class ResearchLedgerTechnicalService {
 
 	}
 
-	public void addResearch(Stock stock,  double score, boolean isConfirmed) {
-
-		ResearchLedgerTechnical researchLedger = researchLedgerRepository.findByStockAndResearchStatus(stock, ResearchTrigger.BUY);
-
-		if (researchLedger == null) {
-
-			researchLedger = new ResearchLedgerTechnical();
-
-			researchLedger.setStock(stock);
-			researchLedger.setResearchStatus(ResearchTrigger.BUY);
-
-			researchLedger.setNotified(false);
-			//researchLedger.setResearchRule(rule);
-			researchLedger.setConfirmed(isConfirmed);
-			researchLedger.setResearchPrice(stock.getStockPrice().getHigh());
-			researchLedger.setResearchDate(stock.getStockPrice().getBhavDate());
-			researchLedger.setStopLoss(stock.getStockPrice().getLow());
-			researchLedger.setTarget(stock.getStockPrice().getHigh() * 2);
-			researchLedger.setResearchScore(score);
-			researchLedgerRepository.save(researchLedger);
-		} else {
-			LOGGER.debug(stock.getNseSymbol() + " is already in Ledger for " + stock.getNseSymbol());
-		}
-
+	public void update(ResearchLedgerTechnical researchLedgerTechnical){
+		researchLedgerTechnical.setModifiedAt(LocalDate.now());
+		researchLedgerRepository.save(researchLedgerTechnical);
 	}
 
 	public void updateResearch(Stock stock,  double score) {
@@ -86,11 +80,11 @@ public class ResearchLedgerTechnicalService {
 
 			researchLedger.setResearchStatus(ResearchTrigger.SELL);
 			
-			researchLedger.setNotified(false);
+			//researchLedger.setNotified(false);
 			researchLedger.setExitDate(stock.getStockPrice().getBhavDate());
-			researchLedger.setExitPrice(stock.getStockPrice().getCurrentPrice());
+			researchLedger.setExitPrice(stock.getStockPrice().getLow());
 			//researchLedger.setExitRule(rule);
-			researchLedger.setExitScore(score);
+			//researchLedger.setExitScore(score);
 			
 			researchLedgerRepository.save(researchLedger);	
 		}
@@ -98,19 +92,6 @@ public class ResearchLedgerTechnicalService {
 		
 	}
 
-
-	public void updateResearchNotified(ResearchLedgerTechnical researchLedger) {
-		
-		ResearchLedgerTechnical researchLedger1 = researchLedgerRepository.findBySrlId(researchLedger.getSrlId());
-		
-		if (researchLedger1 != null) {
-
-			researchLedger1.setNotified(true);
-
-			researchLedgerRepository.save(researchLedger1);
-		}
-		
-	}
 	
 	
 	public void updateResearchNotifiedStorage(ResearchLedgerTechnical researchLedger) {
@@ -129,17 +110,28 @@ public class ResearchLedgerTechnicalService {
 		return researchLedgerRepository.findByResearchStatus(ResearchTrigger.BUY);
 	}
 
-	public List<ResearchLedgerTechnical> buyNotificationPending() {
-		return researchLedgerRepository.findByResearchStatusAndNotified(ResearchTrigger.BUY, false);
-	}
+	//public List<ResearchLedgerTechnical> buyNotificationPending() {
+	//	return researchLedgerRepository.findByResearchStatusAndNotified(ResearchTrigger.BUY, false);
+	//}
 
-	public List<ResearchLedgerTechnical> sellNotificationPending() {
-		return researchLedgerRepository.findByResearchStatusAndNotified(ResearchTrigger.SELL, false);
-	}
+	//public List<ResearchLedgerTechnical> sellNotificationPending() {
+	//	return researchLedgerRepository.findByResearchStatusAndNotified(ResearchTrigger.SELL, false);
+	//}
 
 	public List<ResearchLedgerTechnical> researchStocksTechnicals() {
 
 		return researchLedgerRepository.findByResearchStatus(ResearchTrigger.BUY);
+	}
+
+	public ResearchLedgerTechnical getActiveResearch(Stock stock){
+
+		List<ResearchLedgerTechnical> researchLedgerTechnicals = researchLedgerRepository.getActiveResearch(stock.getNseSymbol(), ResearchTrigger.BUY);
+
+		if(researchLedgerTechnicals!=null && !researchLedgerTechnicals.isEmpty()){
+			return researchLedgerTechnicals.get(researchLedgerTechnicals.size()-1);
+		}
+
+		return null;
 	}
 
 	public boolean isActive(Stock stock, ResearchTrigger researchStatus){
@@ -162,5 +154,11 @@ public class ResearchLedgerTechnicalService {
 	public boolean isResearchActive(Stock stock){
 		return this.isActive(stock, ResearchTrigger.BUY);
 	}
+
+	public void updateStopLoss(ResearchLedgerTechnical researchLedgerTechnical, double stopLoss){
+		researchLedgerTechnical.setStopLoss(stopLoss);
+		researchLedgerRepository.save(researchLedgerTechnical);
+	}
+
 
 }

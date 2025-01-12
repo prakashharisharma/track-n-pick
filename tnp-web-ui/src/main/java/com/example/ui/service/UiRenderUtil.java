@@ -98,7 +98,7 @@ public class UiRenderUtil {
 
 			UIRenderStock uiRenderStock = new UIRenderStock(userPortfolioStock, profitPer, miscUtil.formatDouble(invested,"00"), miscUtil.formatDouble(currentValue,"00"));
 
-			uiRenderStock.setXirr(this.calculateXirr(userPortfolioStock, userProfile));
+			//uiRenderStock.setXirr(this.calculateXirr(userPortfolioStock, userProfile));
 
 			boolean bearish = researchLedgerTechnicalService.isActive(userPortfolioStock.getStock(), ResearchIO.ResearchTrigger.SELL);
 

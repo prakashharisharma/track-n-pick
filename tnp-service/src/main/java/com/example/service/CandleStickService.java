@@ -7,6 +7,16 @@ public interface CandleStickService {
 
     public boolean isSellingWickPresent(Stock stock);
 
+    public boolean isSellingWickPresent(Stock stock, double benchmark);
+
+    public boolean isSellingWickPresent(double open, double high, double low, double close, double benchmark);
+
+    public boolean isBuyingWickPresent(Stock stock);
+
+    public boolean isBuyingWickPresent(Stock stock, double benchmark);
+
+    public boolean isBuyingWickPresent(double open, double high, double low, double close, double benchmark);
+
     public boolean isGreen(Stock stock);
 
     public boolean isRed(Stock stock);
@@ -52,5 +62,7 @@ public interface CandleStickService {
     public boolean isBullishOpenEqualPrevClose(Stock stock);
 
     public boolean isBearishhOpenEqualPrevClose(Stock stock);
+
+    public boolean isTweezerTop(Stock stock);
 
 }

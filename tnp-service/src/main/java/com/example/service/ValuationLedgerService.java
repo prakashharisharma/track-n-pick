@@ -51,13 +51,13 @@ public class ValuationLedgerService {
 			valuationLedger.setStockId(stock);
 			valuationLedger.setPb(pb);
 			valuationLedger.setPe(pe);
-			valuationLedger.setResearchDate(LocalDate.now());
+			valuationLedger.setResearchDate(stock.getStockPrice().getBhavDate());
 
 			valuationLedger.setType(Type.UNDERVALUE);
 
 			valuationLedger.setStatus(Status.OPEN);
 			
-			valuationLedger.setPrice(stock.getStockPrice().getCurrentPrice());
+			valuationLedger.setPrice(stock.getStockPrice().getHigh());
 
 			valuationLedger.setCurrentRatio(stock.getStockFactor().getCurrentRatio());
 			
@@ -97,7 +97,7 @@ public class ValuationLedgerService {
 			valuationLedger.setStockId(stock);
 			valuationLedger.setPb(pb);
 			valuationLedger.setPe(pe);
-			valuationLedger.setResearchDate(LocalDate.now());
+			valuationLedger.setResearchDate(stock.getStockPrice().getBhavDate());
 
 			//undervalueLedger.setCategory(category);
 

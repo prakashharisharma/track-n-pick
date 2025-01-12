@@ -12,6 +12,9 @@ import java.util.List;
 @Service
 public class FormulaService {
 
+	private static final int RISK_REWARD_RATIO = 2;
+
+	private static final double MIN_TARGET_PER = 10.0;
 	@Autowired
 	private MiscUtil miscUtil;
 
@@ -333,5 +336,16 @@ public class FormulaService {
 		extensions.add(entry + this.calculatePercentage(move, 61.8));
 
 		return extensions;
+	}
+
+	public double calculateTarget(double entryPrice, double stopLoss){
+
+		double target = (RISK_REWARD_RATIO * (entryPrice - stopLoss) ) + entryPrice;
+
+		if( this.percentageChange(entryPrice, target) < MIN_TARGET_PER ){
+			target = entryPrice + this.calculatePercentRate(entryPrice, MIN_TARGET_PER);
+		}
+		
+		return target;
 	}
 }

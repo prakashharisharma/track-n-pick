@@ -322,11 +322,11 @@ public class UpdateBhavProcessor implements Processor {
 
 	private void processNseBhav(StockPriceIN stockPriceIN, String lastSymbolToProcess){
 
-		/*
+
 			if(stockPriceIN.getSeries().equalsIgnoreCase("EQ")
 				|| stockPriceIN.getSeries().equalsIgnoreCase("BE")) {
-		 */
-				if(stockPriceIN.getSeries().equalsIgnoreCase("EQ")) {
+
+				//if(stockPriceIN.getSeries().equalsIgnoreCase("EQ")) {
 
 				StockPriceIO stockPriceIO = new StockPriceIO(stockPriceIN.getSource().toUpperCase(), stockPriceIN.getCompanyName(),stockPriceIN.getNseSymbol(), stockPriceIN.getSeries(), stockPriceIN.getOpen(), stockPriceIN.getHigh(), stockPriceIN.getLow(), stockPriceIN.getClose(), stockPriceIN.getLast(), stockPriceIN.getPrevClose(), stockPriceIN.getTottrdqty(), stockPriceIN.getTottrdval(), stockPriceIN.getTimestamp().toString(), stockPriceIN.getTotaltrades(), stockPriceIN.getIsin());
 

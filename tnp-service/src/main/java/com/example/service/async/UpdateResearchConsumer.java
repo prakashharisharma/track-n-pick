@@ -58,17 +58,21 @@ public class UpdateResearchConsumer {
 			Session session) throws InterruptedException {
 
 		log.info("{} Starting research update.", researchIO.getNseSymbol());
-		Stock stock = stockService.getStockByNseSymbol(researchIO.getNseSymbol());
+		try {
+			Stock stock = stockService.getStockByNseSymbol(researchIO.getNseSymbol());
 
-		if (researchIO.getResearchType() == ResearchType.FUNDAMENTAL) {
+			if (researchIO.getResearchType() == ResearchType.FUNDAMENTAL) {
 
-			this.researchFundamental(stock);
-			
-		}
-		if (researchIO.getResearchType() == ResearchType.TECHNICAL) {
+				this.researchFundamental(stock);
 
-			this.researchTechnical(stock);
-			
+			}
+			if (researchIO.getResearchType() == ResearchType.TECHNICAL) {
+
+				this.researchTechnical(stock);
+
+			}
+		}catch(Exception e){
+			log.error("An error occured while processing research {}", researchIO.getNseSymbol(), e);
 		}
 
 		log.info("{} Completed research update.", researchIO.getNseSymbol());
@@ -184,64 +188,6 @@ public class UpdateResearchConsumer {
 		//log.info("{} Researched technical.", researchIO.getNseSymbol());
 	}
 
-	private void researchTechnical(Stock stock, ResearchIO.ResearchTrigger researchTrigger) {
-
-		if (researchTrigger == ResearchIO.ResearchTrigger.BUY) {
-
-			if (fundamentalResearchService.isMcapInRange(stock) && technicalsResearchService.isBullishMovingAverage(stock)) {
-
-				double score = technicalsResearchService.breakoutScore(stock);
-
-				if(score > 0.5) {
-					this.addBullishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.MOVINGAVERAGE, score);
-				}
-			}
-
-		} else if (researchTrigger == ResearchIO.ResearchTrigger.SELL) {
-
-			if (technicalsResearchService.isBearishMovingAverage(stock)) {
-
-				double score = technicalsResearchService.breakoutScore(stock);
-				if(score > 0.5) {
-					this.addBearishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.RULE1, score);
-				}
-			}
-
-		} else {
-
-			if ( fundamentalResearchService.isMcapInRange(stock) && technicalsResearchService.isBullishMovingAverage(stock)) {
-
-				double score = technicalsResearchService.breakoutScore(stock);
-
-				if(score > 0.5) {
-					this.addBullishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.MOVINGAVERAGE, score);
-				}
-			}
-
-			if (technicalsResearchService.isBearishMovingAverage(stock)) {
-
-				double score = technicalsResearchService.breakoutScore(stock);
-
-				if(score > 0.5) {
-					this.addBearishCrossOverLedger(stock, CrossOverLedger.CrossOverCategory.RULE1, score);
-				}
-
-			}
-
-		}
-
-	}
-
-	private void addBullishCrossOverLedger(Stock stock, CrossOverLedger.CrossOverCategory crossOverCategory, double score) {
-
-		if(!technicalsResearchService.isSellingWickPresent(stock)) {
-
-			this.addToResearchLedgerTechnical(stock, crossOverCategory.ordinal(), score);
-
-			this.addToResearchHistory(stock, ResearchType.TECHNICAL, ResearchIO.ResearchTrigger.BUY);
-		}
-
-	}
 
 	private void addBearishCrossOverLedger(Stock stock, CrossOverLedger.CrossOverCategory crossOverCategory, double score) {
 
@@ -253,17 +199,6 @@ public class UpdateResearchConsumer {
 		researchTechnicalLedgerService.updateResearch(stock, score);
 	}
 
-	private void addToResearchLedgerTechnical(Stock stock, int rule, double score) {
-
-		boolean isYearHigh = technicalsResearchService.isYearHigh(stock);
-
-		if(isYearHigh){
-			researchTechnicalLedgerService.addResearch(stock, score, Boolean.TRUE);
-		}else {
-			researchTechnicalLedgerService.addResearch(stock,  score);
-		}
-
-	}
 
 
 	private void updateResearchHistory(ResearchIO researchIO){

@@ -24,7 +24,7 @@ public interface ResearchLedgerTechnicalRepository extends JpaRepository<Researc
 
 	ResearchLedgerTechnical findByStock(Stock stock);
 	
-	ResearchLedgerTechnical findByStockAndNotified(Stock stock, boolean isNotified);
+	//ResearchLedgerTechnical findByStockAndNotified(Stock stock, boolean isNotified);
 	
 	//ResearchLedgerTechnical findByStockAndNotifiedStorage(Stock stock, ResearchType researchType, boolean notifiedStorage);
 	
@@ -32,11 +32,11 @@ public interface ResearchLedgerTechnicalRepository extends JpaRepository<Researc
 	
 	List<ResearchLedgerTechnical> findByResearchStatus(ResearchTrigger researchStatus);
 
-	List<ResearchLedgerTechnical> findByNotified(boolean isNotified);
+	//List<ResearchLedgerTechnical> findByNotified(boolean isNotified);
 	
 	List<ResearchLedgerTechnical> findAll();
 	
-	List<ResearchLedgerTechnical> findByResearchStatusAndNotified(ResearchTrigger researchStatus,boolean isNotified);
+	//List<ResearchLedgerTechnical> findByResearchStatusAndNotified(ResearchTrigger researchStatus,boolean isNotified);
 
 	@Query(value = "select srlt.* from stock_research_ledger_technical srlt" +
 			" left join stock_master sm on srlt.stock_id = sm.stock_id" +

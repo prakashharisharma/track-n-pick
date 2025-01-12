@@ -29,6 +29,15 @@ public class TechnicalsResearchService {
 	@Autowired
 	private BreakoutService breakoutService;
 
+	@Autowired
+	private VolumeActionService volumeActionService;
+
+	@Autowired
+	private CandleStickService candleStickService;
+
+	@Autowired
+	private StockPriceService stockPriceService;
+
 	/**
 	 * when the price crosses above a moving average
 	 * and RSI moves out of oversold territory (above 30),
@@ -136,19 +145,19 @@ public class TechnicalsResearchService {
 				if(
 						(stockPrice.getClose() > stockPrice.getOpen())
 						&&
-						(stockPrice.getClose() > stockTechnicals.getEma5())
+						(stockPrice.getClose() > stockTechnicals.getEma20())
 				)
 				{
-					if(
-							(stockTechnicals.getEma20() > stockTechnicals.getPrevEma20())
-							&&
-							(stockTechnicals.getEma50() > stockTechnicals.getPrevEma50())
-							&&
-							(stockPrice.getClose() > stockTechnicals.getEma200())
-					)
-					{
+					//if(
+					//		(stockTechnicals.getEma20() > stockTechnicals.getPrevEma20())
+							//&&
+							//(stockTechnicals.getEma50() > stockTechnicals.getPrevEma50())
+							//&&
+							//(stockPrice.getClose() > stockTechnicals.getEma50())
+					//)
+					//{
 							isBullish = Boolean.TRUE;
-					}
+					//}
 				}
 			}
 
@@ -165,151 +174,236 @@ public class TechnicalsResearchService {
 	 */
 	public boolean isBearishMovingAverage(Stock stock) {
 
-		boolean isBearish = Boolean.FALSE;
-
 		StockPrice stockPrice = stock.getStockPrice();
 		StockTechnicals stockTechnicals = stock.getTechnicals();
 
 		if(stockPrice!=null && stockTechnicals!=null){
-
 			if(
 					(stockPrice.getClose() < stockPrice.getOpen())
+					&&
+					(stockPrice.getClose() < stockTechnicals.getEma50())
 			)
 			{
-				if(
-						(stockTechnicals.getEma5() < stockTechnicals.getPrevEma5())
-						&&
-						(stockTechnicals.getEma20() < stockTechnicals.getPrevEma20())
-						&&
-						(stockTechnicals.getEma50() < stockTechnicals.getPrevEma50())
-				){
-					isBearish = Boolean.TRUE;
+					return Boolean.TRUE;
+			}
+		}
+
+		return Boolean.FALSE;
+	}
+
+	public boolean isMovingAverageBreakout(Stock stock){
+
+		StockPrice stockPrice = stock.getStockPrice();
+		StockTechnicals stockTechnicals = stock.getTechnicals();
+
+		if(this.isHistogramIncreased(stock)){
+			if (stockTechnicals.getEma20() > stockTechnicals.getPrevEma20()) {
+				if (stockTechnicals.getEma5() > stockTechnicals.getPrevEma5()) {
+					if (stockPrice.getClose() > stockTechnicals.getEma5()){
+						if (this.isRsiEnteredBullishZone(stock)) {
+							if (!candleStickService.isSellingWickPresent(stock, this.calculateSellingWickBenchmark(stockPrice))) {
+								if (volumeActionService.isLiquidityInVolume(stock)) {
+									if (this.isMacdAndSignalBelowZeroLine(stock)) {
+										//if (stockTechnicals.getEma5() > stockTechnicals.getEma10()){
+											if(stockPrice.getClose() > stockTechnicals.getEma20()) {
+												return Boolean.TRUE;
+											}
+										//}
+									}else {
+										if (stockTechnicals.getEma50() > stockTechnicals.getPrevEma50()) {
+											//if (stockTechnicals.getEma5() > stockTechnicals.getEma20()) {
+												if (stockPrice.getClose() > stockTechnicals.getEma50()) {
+													return Boolean.TRUE;
+												}
+											//}
+										}
+									}
+								}
+							}
+						}
+					}
 				}
+			}
+		}
+
+		return Boolean.FALSE;
+	}
+
+	private double calculateSellingWickBenchmark(StockPrice stockPrice){
+
+		double changePer = stockPriceService.changePer(stockPrice);
+
+		double benchmark = 35.0;
+
+		if(changePer >= 5 ){
+			benchmark =  20.0;
+		}else if (changePer >= 3.5){
+			benchmark =  22.5;
+		}else if (changePer >= 2.5){
+			benchmark =  25.0;
+		}else if (changePer >= 1.5){
+			benchmark =  27.5;
+		}else if (changePer >= 0.5){
+			benchmark =  30.0;
+		}
+
+		return benchmark;
+	}
+
+	public boolean isPriceActionBreakOut(Stock stock){
+
+		StockTechnicals stockTechnicals = stock.getTechnicals();
+		//if(stockTechnicals.getEma20() > stockTechnicals.getPrevEma20()) {
+			//if(stockTechnicals.getEma50() > stockTechnicals.getPrevEma50()) {
+				if (this.positiveBreakoutScore(stock) > 1 && !candleStickService.isSellingWickPresent(stock)) {
+					return Boolean.TRUE;
+				}
+			//}
+		//}
+		return Boolean.FALSE;
+	}
+
+	public boolean isMacdHistogramBreakout(Stock stock){
+
+		if(volumeActionService.isLiquidityInVolume(stock) && this.isHistogramIncreased(stock) && !candleStickService.isSellingWickPresent(stock, 35.0)){
+			if(stock.getStockPrice().getClose() > stock.getTechnicals().getEma5()) {
+				if(stock.getTechnicals().getEma5() > stock.getTechnicals().getPrevEma5()){
+					if(stock.getTechnicals().getMacd() < 0.0 || stock.getTechnicals().getSignal() < 0.0) {
+						if(stock.getTechnicals().getRsi() > 45.0 && stock.getTechnicals().getRsi() < 65.0){
+							breakoutLedgerService.addPositive(stock, BreakoutCategory.HISTOGRAM_REVERSED);
+							return Boolean.TRUE;
+						}
+					}
+				}
+			}
+		}
+		return Boolean.FALSE;
+	}
+
+	public boolean isMacdAndSignalBelowZeroLine(Stock stock){
+		StockTechnicals stockTechnicals = stock.getTechnicals();
+		if(stockTechnicals.getMacd() <= 0.0 && stockTechnicals.getSignal() <= 0.0) {
+			return Boolean.TRUE;
+		}
+		return Boolean.FALSE;
+	}
+
+	public double getHistogram(Stock stock){
+
+		StockTechnicals stockTechnicals = stock.getTechnicals();
+
+		return formulaService.calculateHistogram(stockTechnicals.getMacd(), stockTechnicals.getSignal());
+	}
+
+	public boolean isHistogramIncreased(Stock stock){
+		StockTechnicals stockTechnicals = stock.getTechnicals();
+
+		double histogram = this.getHistogram(stock);
+
+		double prevHistogram = formulaService.calculateHistogram(stockTechnicals.getPrevMacd(), stockTechnicals.getPrevSignal());
+			if(histogram > prevHistogram)  {
+				if(Math.floor(prevHistogram) <= 1.0){
+					if(stockTechnicals.getMacd() > stockTechnicals.getPrevMacd()) {
+						return Boolean.TRUE;
+					}
+				}
+			}
+		return Boolean.FALSE;
+	}
+
+	public boolean isHistogramDecreased(Stock stock){
+		StockTechnicals stockTechnicals = stock.getTechnicals();
+
+		double histogram = formulaService.calculateHistogram(stockTechnicals.getMacd(), stockTechnicals.getSignal());
+
+		double prevHistogram = formulaService.calculateHistogram(stockTechnicals.getPrevMacd(), stockTechnicals.getPrevSignal());
+
+		if(histogram < prevHistogram) {
+			return Boolean.TRUE;
+		}
+		return Boolean.FALSE;
+	}
+
+	public boolean isBreakDownOnTop(Stock stock){
+
+		if(this.isHistogramDecreased(stock)){
+			if(candleStickService.isBearishEngulfing(stock)){
+				return Boolean.TRUE;
+			}else if(this.isGapDown(stock)){
+				return Boolean.TRUE;
+			}else if(candleStickService.isSellingWickPresent(stock, 70.0)){
+				return Boolean.TRUE;
+			}else if(candleStickService.isTweezerTop(stock)){
+				return Boolean.TRUE;
+			}else if(candleStickService.isRed(stock) && candleStickService.isBuyingWickPresent(stock, 70.0)){
+				return Boolean.TRUE;
 			}
 
 		}
-
-		return isBearish;
+		return Boolean.FALSE;
 	}
 
+	public boolean isBreakDown(Stock stock){
+		 if(this.negativeBreakdownScore(stock) > 1.0 && !candleStickService.isBuyingWickPresent(stock, 65.0)){
+			 return Boolean.TRUE;
+		 }
+		return Boolean.FALSE;
+	}
 
-	public boolean isAdxTrendUp(Stock stock){
+	public boolean isHistogramBreakDown(Stock stock){
 
-		boolean isBullish = Boolean.FALSE;
-
-		//if(stock.getStockFactor()!=null && stock.getStockFactor().getMarketCap() > rulesFundamental.getMcap()){
-			StockPrice stockPrice = stock.getStockPrice();
-			StockTechnicals stockTechnicals = stock.getTechnicals();
-			if(stockPrice!=null && stockTechnicals!=null){
-					if(
-							(
-							((stockTechnicals.getAdx() > 25.0)
-							&&
-							(stockTechnicals.getPrevAdx() <= 25))
-							||
-							(stockTechnicals.getAdx() > 25.0)
-							)
-							&&
-							(stockTechnicals.getPlusDi() > stockTechnicals.getMinusDi())
-						    &&
-							(stockTechnicals.getPlusDi() > stockTechnicals.getPrevPlusDi())
-							&&
-							(stockTechnicals.getMinusDi() < stockTechnicals.getPrevMinusDi())
-					){
-								breakoutLedgerService.addPositive(stock, BreakoutCategory.ADX_TREND_UP);
-								isBullish = Boolean.TRUE;
+		if(stock.getStockPrice().getClose() < stock.getStockPrice().getPrevLow()) {
+			if(this.isHistogramDecreased(stock)){
+				breakoutLedgerService.addNegative(stock, BreakoutCategory.MACD_BREAKDOWN_CONFIRMED);
+				return Boolean.TRUE;
+			}else if( !candleStickService.isBuyingWickPresent(stock)){
+				if(stock.getStockPrice().getClose() < stock.getTechnicals().getEma10()){
+					if (stock.getStockPrice().getPrevClose() < stock.getTechnicals().getPrevEma10()) {
+						if (stock.getStockPrice().getPrevClose() < stock.getStockPrice().getPrevOpen()) {
+							breakoutLedgerService.addNegative(stock, BreakoutCategory.MACD_BREAKDOWN_CONFIRMED);
+							return Boolean.TRUE;
 						}
+					}
 				}
-		//}
-		return isBullish;
-	}
-
-	public double breakoutScore(Stock stock){
-
-		StockPrice stockPrice  = stock.getStockPrice();
-
-		if(stockPrice.getClose() > stockPrice.getOpen()){
-			return this.positiveBreakoutScore(stock);
+			}
 		}
-
-		return this.negativeBreakdownScore(stock);
-
+		return Boolean.FALSE;
 	}
 
 	private double positiveBreakoutScore(Stock stock){
 
 		double score = 0.00;
 
-		boolean isVolumeAboveAverage = this.isVolumeAboveAverage(stock);
-
-		boolean isMacdCrossSignal = this.isMacdCrossSignal(stock);
-
-		boolean isRsiEnteredBullishZone = this.isRsiEnteredBullishZone(stock);
-
+		boolean isVolumeAboveAverage = volumeActionService.isHighVolumeAboveWeeklyAverage(stock);
 		boolean isGapUp = this.isGapUp(stock);
-
-		boolean isAdxTrendUp = this.isAdxTrendUp(stock);
-
-		boolean isPositiveBreakout20 = this.isPositiveBreakout20(stock);
-
-		boolean isPositiveBreakout50 = this.isPositiveBreakout50(stock);
-
-		boolean isPositiveBreakout200 = this.isPositiveBreakout200(stock);
-
+		boolean isBullishhMarubozu = candleStickService.isBullishhMarubozu(stock);
 		boolean isDayOpenLowestPointOfTheDay = this.isDayOpenLowestPointOfTheDay(stock);
 
-		boolean isPositiveBreakoutPastResistance = this.isPositiveBreakoutPastResistance(stock);
-
 		boolean isPositiveLowAboveEma20 = this.isPositiveLowAboveEma20(stock);
-
-		//boolean isBullishEngulfing = this.isBullishEngulfing(stock);
-
-		boolean isBullishhMarubozu = this.isBullishhMarubozu(stock);
-
-		boolean isEMA200Increasing = this.isEMA200Increasing(stock);
-
-		boolean isSilverCross = this.isSilverCross(stock);
-
-		score = score + this.validatePendingBreakDownConfirmation(stock);
+		boolean isBreakOut50 = breakoutService.isBreakOut50(stock);
+		boolean isBreakOut200 = breakoutService.isBreakOut200(stock);
+		boolean isYearHigh = this.isYearHigh(stock);
 
 		if(isVolumeAboveAverage){
-			score = score + 0.5;
+
+			score = score + 1;
+
 			if(isGapUp || isBullishhMarubozu || isDayOpenLowestPointOfTheDay ||  isPositiveLowAboveEma20){
-				score = score + 0.5;
 
-				if(isEMA200Increasing){
-					score = score + 0.75;
-				}
+				score = score + 1;
 
-				if(isRsiEnteredBullishZone){
-					score = score + 0.75;
-				}
-
-				if(isPositiveBreakoutPastResistance){
-					score = score + 0.5;
-				}
-
-				if(isPositiveBreakout200){
+				if(isBreakOut200){
 					score = score + 1;
 				}
 
-				if(isSilverCross){
-					score = score + 1.25;
+				if(isBreakOut50){
+					score = score + 1;
 				}
 
-				if(isMacdCrossSignal){
-					score = score + 1.25;
-				}
-
-				if(isAdxTrendUp){
+				if(isYearHigh){
 					score = score + 1;
 				}
 			}
-
-		}
-
-		if(this.isGoldenCross(stock)){
-			score = score + 2;
 		}
 
 		return score;
@@ -320,33 +414,62 @@ public class TechnicalsResearchService {
 		double score = 0.00;
 
 		boolean isGapDown = this.isGapDown(stock);
-		//boolean isVolumeAboveAverage = this.isVolumeAboveAverage(stock);
-		boolean isSignalCrossedMacd = this.isSignalCrossedMacd(stock);
-		//boolean isRsiEnteredBearishZone = this.isRsiEnteredBearishZone(stock);
 
 		boolean isDayOpenHighestPointOfTheDay = this.isDayOpenHighestPointOfTheDay(stock);
 
-		//boolean isBearishEngulfing = this.isBearishEngulfing(stock);
 		boolean isBearishMarubozu = this.isBearishMarubozu(stock);
-		//boolean isDoji = this.isDoji(stock);
-		boolean isCloseBelowEma50 = this.isCloseBelowEma50(stock);
 
-		//StockTechnicals stockTechnicals = stock.getTechnicals();
+		boolean isSignalCrossedMacd = this.isSignalCrossedMacd(stock);
 
-		score = score + this.validatePendingBreakDownConfirmation(stock);
+		StockPrice stockPrice = stock.getStockPrice();
 
-		if(this.isNegativeBreakout50(stock) || this.isNegativeBreakout20(stock) || isCloseBelowEma50){
-			if(isGapDown || isDayOpenHighestPointOfTheDay || isBearishMarubozu || isSignalCrossedMacd ) {
-				breakoutLedgerService.addNegative(stock, BreakoutCategory.BREAKDOWN_PENDING_CONFIRMATION);
+		StockTechnicals stockTechnicals = stock.getTechnicals();
+
+		//double ema10And20Diff = Math.abs(stockTechnicals.getEma20() - stockTechnicals.getEma10());
+		//double ema10And5Diff = Math.abs(stockTechnicals.getEma20() - stockTechnicals.getEma5());
+
+		if(stockPrice.getClose() < stockPrice.getPrevLow()){
+			if(stockPrice.getClose() < stockTechnicals.getEma10()) {
+				//Previous Candle Red
+				if(stockPrice.getPrevClose() < stockPrice.getPrevOpen()){
+					if(stockPrice.getPrevClose() < stockTechnicals.getPrevEma10()){
+						score = score + 1;
+						breakoutLedgerService.addNegative(stock, BreakoutCategory.BREAKDOWN_CONFIRMED);
+						score = score + 1;
+					}
+				}// Closee Below EMA10 and Selling Wick
+				else if(candleStickService.isSellingWickPresent(stock, 65.0)) {
+					score = score + 1;
+				}// Closee Below EMA10 and Bearish Engulfing
+				else if(candleStickService.isBearishEngulfing(stock)){
+					score = score + 1;
+				}//Close Below EMA10 and Prevday Selling Wick
+				else if(candleStickService.isSellingWickPresent(stockPrice.getPrevOpen(), stockPrice.getPrevHigh(), stockPrice.getPrevLow(), stockPrice.getPrevClose(), 65.0)){
+					score = score + 1;
+				}
+				else if(isGapDown || isDayOpenHighestPointOfTheDay || isBearishMarubozu){
+					score = score + 1;
+				}else if(isSignalCrossedMacd){
+					score = score + 1;
+				}
+				/*
+				else if(this.isNegativeBreakout200(stock) ){
+					score = score + 1;
+				}
+
+				else if(this.isNegativeBreakout50(stock) ){
+					score = score + 1;
+				}
+
+				else if(this.isNegativeBreakout20(stock) ){
+					score = score + 1;
+				}
+
+				if(this.isDeathCross(stock)){
+					score = score + 1;
+				}
+				 */
 			}
-		}
-
-		if(this.isNegativeBreakout200(stock) ){
-			score = score + 3;
-		}
-
-		if(this.isDeathCross(stock)){
-			score = score + 3;
 		}
 
 		return score;
@@ -359,7 +482,7 @@ public class TechnicalsResearchService {
 		BreakoutLedger breakoutLedger = breakoutLedgerService.get(stock, BreakoutType.NEGATIVE, BreakoutCategory.BREAKDOWN_PENDING_CONFIRMATION);
 
 		if(breakoutLedger!=null){
-			if((stockPrice.getClose() < stockPrice.getOpen()) && (stockPrice.getClose() < stockPrice.getPrevClose())) {
+			if((stockPrice.getClose() < stockPrice.getOpen()) && (stockPrice.getClose() <= stockPrice.getPrevClose())) {
 				breakoutLedger.setBreakoutCategory(BreakoutCategory.BREAKDOWN_CONFIRMED);
 				breakoutLedgerService.update(breakoutLedger);
 				return 4.0;
@@ -631,8 +754,6 @@ public class TechnicalsResearchService {
 
 		if( stockPrice != null
 				&&
-				(stockPrice.getClose() > stockPrice.getOpen())
-				&&
 				(stockPrice.getOpen() >= stockPrice.getPrevHigh())
 				&&
 				(stockPrice.getLow() >= stockPrice.getPrevClose())
@@ -657,8 +778,6 @@ public class TechnicalsResearchService {
 		StockPrice stockPrice = stock.getStockPrice();
 
 		if(stockPrice != null
-				&&
-				(stockPrice.getClose() < stockPrice.getOpen())
 			    &&
 				(stockPrice.getOpen() <= stockPrice.getPrevLow())
 				&&
@@ -756,22 +875,17 @@ public class TechnicalsResearchService {
 
 		StockTechnicals stockTechnicals  = stock.getTechnicals();
 
-		if( stockTechnicals!=null
-		&&
-				(stockTechnicals.getRsi() > stockTechnicals.getPrevRsi())
+			boolean isRsiEnteredBullishZone = this.isShortCrossedLongFromLow(Math.floor(stockTechnicals.getPrevRsi()), 50.0, Math.ceil(stockTechnicals.getRsi()), 50.0);
 
-		){
-			if(stockTechnicals.getPrevRsi() > 60 ){
-				breakoutLedgerService.addPositive(stock, BreakoutCategory.RSI_CONTINUED_BULLISH);
-				return Boolean.TRUE;
-			}
-			else if(
-					stockTechnicals.getRsi() > 60 && stockTechnicals.getPrevRsi() <= 60
-			) {
+			if(isRsiEnteredBullishZone) {
 				breakoutLedgerService.addPositive(stock, BreakoutCategory.RSI_ENTERED_BULLISH);
 				return Boolean.TRUE;
+			}else if(stockTechnicals.getPrevRsi() >= 50.0){
+				if(stockTechnicals.getRsi() > stockTechnicals.getPrevRsi()){
+					breakoutLedgerService.addPositive(stock, BreakoutCategory.RSI_CONTINUED_BULLISH);
+					return Boolean.TRUE;
+				}
 			}
-		}
 
 		return Boolean.FALSE;
 	}
@@ -831,7 +945,34 @@ public class TechnicalsResearchService {
 
 		StockTechnicals stockTechnicals  = stock.getTechnicals();
 
-			if((stockTechnicals.getVolume() > (stockTechnicals.getWeeklyVolume() * 5))
+
+		if(stockTechnicals.getWeeklyVolume() >= 10000000 &&  (stockTechnicals.getVolume() > (stockTechnicals.getWeeklyVolume() * 2))
+		){
+			breakoutLedgerService.addPositive(stock, BreakoutCategory.VOLUME_HIGH);
+			return Boolean.TRUE;
+		}
+
+		if(stockTechnicals.getWeeklyVolume() >= 5000000 &&  (stockTechnicals.getVolume() > (stockTechnicals.getWeeklyVolume() * 3))
+		){
+			breakoutLedgerService.addPositive(stock, BreakoutCategory.VOLUME_HIGH);
+			return Boolean.TRUE;
+		}
+
+		if(stockTechnicals.getWeeklyVolume() >= 2500000 &&  (stockTechnicals.getVolume() > (stockTechnicals.getWeeklyVolume() * 4))
+		){
+			breakoutLedgerService.addPositive(stock, BreakoutCategory.VOLUME_HIGH);
+			return Boolean.TRUE;
+		}
+
+		/*
+		if(stockTechnicals.getWeeklyVolume() >= 500000 &&  (stockTechnicals.getVolume() > (stockTechnicals.getWeeklyVolume() * 7.5))
+		){
+			breakoutLedgerService.addPositive(stock, BreakoutCategory.VOLUME_HIGH);
+			return Boolean.TRUE;
+		}
+		 */
+
+		if((stockTechnicals.getVolume() > (stockTechnicals.getWeeklyVolume() * 5))
 		){
 			breakoutLedgerService.addPositive(stock, BreakoutCategory.VOLUME_HIGH);
 			return Boolean.TRUE;
