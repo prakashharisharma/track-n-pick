@@ -20,8 +20,17 @@ import java.time.LocalDate;
 @Table(name = "STOCK_RESEARCH_LEDGER_TECHNICAL")
 public class ResearchLedgerTechnical {
 
+	/**
+	 * BREAKOUT - Price Breakout with high volume
+	 * SWING - Swing along with Moving Average
+	 * PRICE_ACTION - Candle Stick
+	 */
 	public enum Strategy {
-		PRICE_ACTION, MA_WITH_MACD, MACD
+		  PRICE_ACTION, VOLUME_ACTION, SWING_ACTION,
+	}
+
+	public enum SubStrategy {
+		CANDLESTICK, HIGH_VOLUME, RSI_MACD, ADX_TEMA, RSI_MACD1, RSI_MACD2
 	}
 
 	@Id
@@ -40,6 +49,10 @@ public class ResearchLedgerTechnical {
 	@Column(name = "STRATEGY")
 	@Enumerated(EnumType.STRING)
 	Strategy strategy;
+
+	@Column(name = "SUB_STRATEGY")
+	@Enumerated(EnumType.STRING)
+	SubStrategy subStrategy;
 
 	@Column(name = "RESEARCH_DATE")
 	LocalDate researchDate;
@@ -74,11 +87,20 @@ public class ResearchLedgerTechnical {
 	@Column(name = "TARGET", columnDefinition="Decimal(10,2) default '0.00'")
 	double target;
 
+	@Column(name = "RISK", columnDefinition="Decimal(10,2) default '0.00'")
+	double risk;
+
+	@Column(name = "CORRECTION", columnDefinition="Decimal(10,2) default '0.00'")
+	double correction;
+
 	@Column(name = "VOLUME")
 	Long volume;
 
-	@Column(name = "WEEKLY_VOLUME")
-	Long weeklyVolume;
+	@Column(name = "VOLUME_AVG5")
+	Long volumeAvg5;
+
+	@Column(name = "VOLUME_AVG20")
+	Long volumeAvg20;
 
 	public long getSrlId() {
 		return srlId;
@@ -168,6 +190,22 @@ public class ResearchLedgerTechnical {
 		this.target = target;
 	}
 
+	public double getRisk() {
+		return risk;
+	}
+
+	public void setRisk(double risk) {
+		this.risk = risk;
+	}
+
+	public double getCorrection() {
+		return correction;
+	}
+
+	public void setCorrection(double correction) {
+		this.correction = correction;
+	}
+
 	public LocalDate getNextTradingDate() {
 		return nextTradingDate;
 	}
@@ -184,12 +222,20 @@ public class ResearchLedgerTechnical {
 		this.volume = volume;
 	}
 
-	public Long getWeeklyVolume() {
-		return weeklyVolume;
+	public Long getVolumeAvg5() {
+		return volumeAvg5;
 	}
 
-	public void setWeeklyVolume(Long weeklyVolume) {
-		this.weeklyVolume = weeklyVolume;
+	public void setVolumeAvg5(Long volumeAvg5) {
+		this.volumeAvg5 = volumeAvg5;
+	}
+
+	public Long getVolumeAvg20() {
+		return volumeAvg20;
+	}
+
+	public void setVolumeAvg20(Long volumeAvg20) {
+		this.volumeAvg20 = volumeAvg20;
 	}
 
 	public LocalDate getModifiedAt() {
@@ -214,6 +260,14 @@ public class ResearchLedgerTechnical {
 
 	public void setStrategy(Strategy strategy) {
 		this.strategy = strategy;
+	}
+
+	public SubStrategy getSubStrategy() {
+		return subStrategy;
+	}
+
+	public void setSubStrategy(SubStrategy subStrategy) {
+		this.subStrategy = subStrategy;
 	}
 
 	@Override

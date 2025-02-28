@@ -1,23 +1,17 @@
 package com.example.service.async;
 
-import java.io.IOException;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 
+import com.example.dto.OHLCV;
 import com.example.mq.producer.EventProducerService;
-import com.example.service.SectorService;
-import com.example.service.UpdateFactorService;
-import com.example.service.UpdateTechnicalsService;
-import com.example.util.SupportAndResistanceUtil;
+import com.example.service.*;
 import com.example.util.io.model.StockIO;
 import com.example.util.io.model.UpdateTriggerIO;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
-import org.springframework.kafka.annotation.KafkaListener;
 import com.example.storage.repo.PriceTemplate;
 import com.example.storage.model.StockPrice;
 import com.example.storage.model.result.HighLowResult;
@@ -25,7 +19,6 @@ import com.example.model.master.Stock;
 import com.example.mq.constants.QueueConstants;
 import com.example.mq.producer.QueueService;
 import com.example.repo.stocks.StockPriceRepository;
-import com.example.service.StockService;
 import com.example.util.io.model.StockPriceIO;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Headers;
@@ -55,6 +48,12 @@ public class UpdatePriceConsumer {
 	@Autowired
 	private PriceTemplate priceTemplate;
 
+	@Autowired
+	private YearlySupportResistanceService yearlySupportResistanceService;
+
+	@Autowired
+	private TrendService trendService;
+
 	@Autowired private ObjectMapper mapper;
 
 	@Autowired private EventProducerService eventProducerService;
@@ -70,9 +69,13 @@ public class UpdatePriceConsumer {
 
 		log.info("{} Starting price update.", stockPriceIO.getNseSymbol());
 
-		if (stockService.getStockByNseSymbol(stockPriceIO.getNseSymbol().trim().toUpperCase()) != null){
-
-			this.processPriceUpdate(stockPriceIO);
+		Stock stock = stockService.getStockByNseSymbol(stockPriceIO.getNseSymbol().trim().toUpperCase());
+		if ( stock != null ){
+			if(stock.getSeries()!=null && stock.getSeries().equalsIgnoreCase(stockPriceIO.getSeries().trim().toUpperCase())) {
+				this.processPriceUpdate(stockPriceIO);
+			}else{
+				this.updateSeries(stock, stockPriceIO);
+			}
 
 		}else {
 
@@ -127,8 +130,6 @@ public class UpdatePriceConsumer {
 	private void processPriceUpdate(StockPriceIO stockPriceIO){
 
 		this.updatePriceHistory(stockPriceIO);
-
-
 	}
 
 	private void updatePriceHistory(StockPriceIO stockPriceIO){
@@ -147,6 +148,8 @@ public class UpdatePriceConsumer {
 
 	}
 
+
+
 	private void updatePriceTxn(StockPriceIO stockPriceIO) {
 
 		log.info("{} Updating transactional price.", stockPriceIO.getNseSymbol());
@@ -162,11 +165,20 @@ public class UpdatePriceConsumer {
 
 			if (stockPrice == null) {
 				stockPrice = new com.example.model.stocks.StockPrice();
+			}else{
+				stockPriceIO.setTrend(trendService.analyze(stock));
 			}
 
 			stockPrice.setStock(stock);
 
+			stockPrice.setBhavDatePrev(stockPrice.getBhavDate());
 			stockPrice.setBhavDate(stockPriceIO.getTimestamp());
+
+			stockPrice.setPrevPrevOpen(stockPrice.getPrevOpen());
+			stockPrice.setPrevPrevHigh(stockPrice.getPrevHigh());
+			stockPrice.setPrevPrevLow(stockPrice.getPrevLow());
+			stockPrice.setPrevPrevClose(stockPrice.getPrevClose());
+
 
 			stockPrice.setPrevOpen(stockPrice.getOpen());
 			stockPrice.setPrevHigh(stockPrice.getHigh());
@@ -181,7 +193,9 @@ public class UpdatePriceConsumer {
 			stockPrice.setCurrentPrice(stockPriceIO.getClose());
 
 			stockPrice.setYearHigh(stockPriceIO.getYearHigh());
+			stockPrice.setYearHighDate(stockPriceIO.getYearHighDate());
 			stockPrice.setYearLow(stockPriceIO.getYearLow());
+			stockPriceIO.setYearLowDate(stockPriceIO.getYearLowDate());
 
 			stockPrice.setLastModified(LocalDate.now());
 
@@ -190,12 +204,10 @@ public class UpdatePriceConsumer {
 			log.info("{} Updated transactional price", stockPriceIO.getNseSymbol());
 		}
 
+
 		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE);
 
-		//updateTechnicalsService.updateTechnicals(stockPriceIO);
-
 		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_FACTOR_TXN_QUEUE);
-		//updateFactorService.updateFactors(stock);
 
 		if(stockPriceIO.isLastRecordToProcess()) {
 
@@ -209,20 +221,30 @@ public class UpdatePriceConsumer {
 		//this.createEvent(stockPriceIO);
 	}
 
-
-
-
-
 	private void setYearHighLow(StockPriceIO stockPriceIO ){
 
-		HighLowResult highLowResult = priceTemplate.getHighLowByDate(stockPriceIO.getNseSymbol(), LocalDate.now().minusWeeks(52));
+		//HighLowResult highLowResult = priceTemplate.getHighLowByDate(stockPriceIO.getNseSymbol(), LocalDate.now().minusWeeks(52));
 
-		double high = this.calculateHigh(highLowResult, stockPriceIO);
+		OHLCV ohlcv = yearlySupportResistanceService.supportAndResistance(stockPriceIO.getNseSymbol(), stockPriceIO.getTimestamp());
 
-		double low = this.calculateLow(highLowResult, stockPriceIO);
+		double high = ohlcv.getHigh();
 
-		stockPriceIO.setYearLow(low);
-		stockPriceIO.setYearHigh(high);
+		double low = ohlcv.getLow();
+
+		if (high <= stockPriceIO.getHigh()) {
+
+			high = stockPriceIO.getHigh();
+			stockPriceIO.setYearHigh(high);
+			stockPriceIO.setYearHighDate(LocalDate.ofInstant(stockPriceIO.getBhavDate(), ZoneOffset.UTC));
+		}
+
+		if (low >= stockPriceIO.getLow()) {
+
+			low = stockPriceIO.getLow();
+			stockPriceIO.setYearLow(low);
+			stockPriceIO.setYearLowDate(LocalDate.ofInstant(stockPriceIO.getBhavDate(), ZoneOffset.UTC));
+		}
+
 	}
 	private void set14DaysHighLow(StockPriceIO stockPriceIO, StockPrice stockPriceHistory ){
 
@@ -252,12 +274,6 @@ public class UpdatePriceConsumer {
 			high = stockPriceIO.getHigh();
 		}
 
-		if (high < stockPriceIO.getHigh()) {
-
-			high = stockPriceIO.getHigh();
-
-		}
-
 		return high;
 	}
 
@@ -274,11 +290,7 @@ public class UpdatePriceConsumer {
 
 		}
 
-		if (low > stockPriceIO.getLow()) {
 
-			low = stockPriceIO.getLow();
-
-		}
 
 		return low;
 	}
@@ -309,10 +321,16 @@ public class UpdatePriceConsumer {
 			stockIO.setExchange(StockIO.Exchange.BSE);
 		}
 
-		Stock stock = stockService.add(stockIO.getExchange(),stockIO.getIsin(), stockIO.getCompanyName(), stockIO.getNseSymbol(), stockIO.getBseCode(), stockIO.getIndice(), sectorService.getOrAddSectorByName(stockIO.getSector()));
+		Stock stock = stockService.add(stockIO.getExchange(), stockIO.getSeries().trim().toUpperCase(), stockIO.getIsin(), stockIO.getCompanyName(), stockIO.getNseSymbol(), stockIO.getBseCode(), stockIO.getIndice(), sectorService.getOrAddSectorByName(stockIO.getSector()));
 
 		log.info("{} Added to master", stockPriceIO.getNseSymbol());
 
+		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
+	}
+
+	private void updateSeries(Stock stock, StockPriceIO stockPriceIO){
+		stock.setSeries(stockPriceIO.getSeries().trim().toUpperCase());
+		stockService.save(stock);
 		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
 	}
 

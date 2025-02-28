@@ -8,7 +8,6 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
-import com.example.model.stocks.StockTechnicals;
 import com.example.util.DownloadCounterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,6 +152,10 @@ public class StockService {
 		return allstocks;
 	}
 
+	public List<Stock> getForActivity() {
+		return stockRepository.findByActivityCompleted(Boolean.FALSE);
+	}
+
 	public void setInactive(List<Stock> discontinueList) {
 
 		for (Stock stock : discontinueList) {
@@ -179,7 +182,7 @@ public class StockService {
 		for (Stock stock : stocksList) {
 			i++;
 			
-			StockFactor stockFactor = stock.getStockFactor();
+			StockFactor stockFactor = stock.getFactor();
 			
 			stockFactor.setLastModified(LocalDate.now().minusDays(20 + i));
 			
@@ -193,7 +196,7 @@ public class StockService {
 		
 	}
 	
-	public Stock add(StockIO.Exchange exchange, String isinCode, String companyName, String nseSymbol, String bseCode, IndiceType primaryIndice,
+	public Stock add(StockIO.Exchange exchange, String series, String isinCode, String companyName, String nseSymbol, String bseCode, IndiceType primaryIndice,
 					 Sector sectorName) {
 
 		Stock stock = new Stock(exchange, isinCode, companyName, nseSymbol,  primaryIndice, sectorName);
@@ -202,6 +205,7 @@ public class StockService {
 			stock.setBseCode(bseCode);
 		}
 
+		stock.setSeries(series);
 		stock.setActive(Boolean.TRUE);
 
 		stock = stockRepository.save(stock);
@@ -247,11 +251,11 @@ public class StockService {
 
 		LOGGER.info("Updating Factor for : " + stock.getNseSymbol());
 
-		StockFactor stockFactor = stock.getStockFactor();
+		StockFactor stockFactor = stock.getFactor();
 
-		if (stock.getStockFactor() != null) {
+		if (stock.getFactor() != null) {
 
-			if (DAYS.between(stock.getStockFactor().getLastModified(), LocalDate.now()) > notificationRules.getFactorIntervalDays()) {
+			if (DAYS.between(stock.getFactor().getLastModified(), LocalDate.now()) > notificationRules.getFactorIntervalDays()) {
 
 				//try {
 
@@ -294,7 +298,7 @@ public class StockService {
 
 		double currentPrice = stockPrice.getCurrentPrice();
 
-		double eps = stock.getStockFactor().getEps();
+		double eps = stock.getFactor().getEps();
 
 		double pe = formulaService.calculatePe(currentPrice, eps);
 
@@ -308,7 +312,7 @@ public class StockService {
 
 		double currentPrice = stockPrice.getCurrentPrice();
 
-		double bookValue = stock.getStockFactor().getBookValue();
+		double bookValue = stock.getFactor().getBookValue();
 
 		double pb = formulaService.calculatePb(currentPrice, bookValue);
 

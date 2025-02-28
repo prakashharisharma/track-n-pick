@@ -40,7 +40,17 @@ public class StockPrice implements Serializable{
 	@JsonProperty("LastTradedPrice")
 	@Column(name = "CURRENT_PRICE", columnDefinition="Decimal(10,2) default '0.00'")
 	double currentPrice;
+	@Column(name = "PREV_PREV_OPEN", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevPrevOpen;
 
+	@Column(name = "PREV_PREV_HIGH", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevPrevHigh;
+
+	@Column(name = "PREV_PREV_LOW", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevPrevLow;
+
+	@Column(name = "PREV_PREV_CLOSE", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevPrevClose;
 
 	@Column(name = "PREV_OPEN", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevOpen;
@@ -69,16 +79,25 @@ public class StockPrice implements Serializable{
 	@JsonProperty("FiftyTwoWeekLow")
 	@Column(name = "YEAR_LOW", columnDefinition="Decimal(10,2) default '0.00'")
 	double yearLow;
+
+	@Column(name = "YEAR_LOW_DATE")
+	LocalDate yearLowDate = LocalDate.now();
 	
 	@JsonProperty("FiftyTwoWeekHigh")
 	@Column(name = "YEAR_HIGH", columnDefinition="Decimal(10,2) default '0.00'")
 	double yearHigh;
+
+	@Column(name = "YEAR_HIGH_DATE")
+	LocalDate yearHighDate = LocalDate.now();
 
 	@Column(name = "LAST_MODIFIED")
 	LocalDate lastModified = LocalDate.now();
 
 	@Column(name = "BHAV_DATE")
 	LocalDate bhavDate = LocalDate.now();
+
+	@Column(name = "BHAV_DATE_PREV")
+	LocalDate bhavDatePrev = LocalDate.now();
 	
 	public long getStockPriceId() {
 		return stockPriceId;
@@ -152,6 +171,22 @@ public class StockPrice implements Serializable{
 		this.yearHigh = yearHigh;
 	}
 
+	public LocalDate getYearLowDate() {
+		return yearLowDate;
+	}
+
+	public void setYearLowDate(LocalDate yearLowDate) {
+		this.yearLowDate = yearLowDate;
+	}
+
+	public LocalDate getYearHighDate() {
+		return yearHighDate;
+	}
+
+	public void setYearHighDate(LocalDate yearHighDate) {
+		this.yearHighDate = yearHighDate;
+	}
+
 	public LocalDate getLastModified() {
 		return lastModified;
 	}
@@ -166,6 +201,14 @@ public class StockPrice implements Serializable{
 
 	public void setBhavDate(LocalDate bhavDate) {
 		this.bhavDate = bhavDate;
+	}
+
+	public LocalDate getBhavDatePrev() {
+		return bhavDatePrev;
+	}
+
+	public void setBhavDatePrev(LocalDate bhavDatePrev) {
+		this.bhavDatePrev = bhavDatePrev;
 	}
 
 	public double getOpen() {
@@ -198,6 +241,38 @@ public class StockPrice implements Serializable{
 
 	public void setPrevLow(double prevLow) {
 		this.prevLow = prevLow;
+	}
+
+	public double getPrevPrevOpen() {
+		return prevPrevOpen;
+	}
+
+	public void setPrevPrevOpen(double prevPrevOpen) {
+		this.prevPrevOpen = prevPrevOpen;
+	}
+
+	public double getPrevPrevHigh() {
+		return prevPrevHigh;
+	}
+
+	public void setPrevPrevHigh(double prevPrevHigh) {
+		this.prevPrevHigh = prevPrevHigh;
+	}
+
+	public double getPrevPrevLow() {
+		return prevPrevLow;
+	}
+
+	public void setPrevPrevLow(double prevPrevLow) {
+		this.prevPrevLow = prevPrevLow;
+	}
+
+	public double getPrevPrevClose() {
+		return prevPrevClose;
+	}
+
+	public void setPrevPrevClose(double prevPrevClose) {
+		this.prevPrevClose = prevPrevClose;
 	}
 
 	@Override

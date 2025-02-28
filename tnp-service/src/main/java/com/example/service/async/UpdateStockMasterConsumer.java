@@ -67,7 +67,7 @@ public class UpdateStockMasterConsumer {
 			LOGGER.debug("UPDATED " + stockIO.getNseSymbol() + " : " + stockIO.getIndice());
 			
 		}else {
-			stock = stockService.add(stockIO.getExchange(),stockIO.getIsin(), stockIO.getCompanyName(), stockIO.getNseSymbol(), stockIO.getBseCode(), stockIO.getIndice(), sectorService.getOrAddSectorByName(stockIO.getSector()));
+			stock = stockService.add(stockIO.getExchange(), stockIO.getSeries(), stockIO.getIsin(), stockIO.getCompanyName(), stockIO.getNseSymbol(), stockIO.getBseCode(), stockIO.getIndice(), sectorService.getOrAddSectorByName(stockIO.getSector()));
 			LOGGER.debug("ADDED " + stockIO.getNseSymbol() + " : " + stockIO.getIndice());
 		}
 		

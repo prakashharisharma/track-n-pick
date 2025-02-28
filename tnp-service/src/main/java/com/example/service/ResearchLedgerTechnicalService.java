@@ -5,15 +5,14 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import com.example.dto.TradeSetup;
 import com.example.util.FormulaService;
-import com.example.util.MiscUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.model.ledger.ResearchLedgerTechnical;
-import com.example.model.ledger.CrossOverLedger;
 import com.example.model.master.Stock;
 
 import com.example.repo.ledger.ResearchLedgerTechnicalRepository;
@@ -36,7 +35,7 @@ public class ResearchLedgerTechnicalService {
 	private CalendarService calendarService;
 
 
-	public void addResearch(Stock stock, boolean isConfirmed, ResearchLedgerTechnical.Strategy strategy) {
+	public void addResearch(Stock stock, TradeSetup tradeSetup) {
 
 		ResearchLedgerTechnical researchLedger = researchLedgerRepository.findByStockAndResearchStatus(stock, ResearchTrigger.BUY);
 
@@ -46,17 +45,23 @@ public class ResearchLedgerTechnicalService {
 
 			researchLedger.setStock(stock);
 			researchLedger.setResearchStatus(ResearchTrigger.BUY);
-			researchLedger.setStrategy(strategy);
+			researchLedger.setStrategy(tradeSetup.getStrategy());
+			researchLedger.setSubStrategy(tradeSetup.getSubStrategy());
 			//researchLedger.setNotified(false);
-			researchLedger.setConfirmed(isConfirmed);
-			researchLedger.setResearchPrice(stock.getStockPrice().getHigh());
+
+
+			researchLedger.setResearchPrice(tradeSetup.getEntryPrice());
 			researchLedger.setResearchDate(stock.getStockPrice().getBhavDate());
-			researchLedger.setStopLoss(stock.getStockPrice().getLow());
-			researchLedger.setTarget(formulaService.calculateTarget(stock.getStockPrice().getHigh(), stock.getStockPrice().getLow()));
+			researchLedger.setStopLoss(tradeSetup.getStopLossPrice());
+			researchLedger.setTarget(tradeSetup.getTargetPrice());
+			researchLedger.setRisk(tradeSetup.getRisk());
+			researchLedger.setCorrection(tradeSetup.getCorrection());
+
 			//researchLedger.setResearchScore(score);
 			researchLedger.setVolume(stock.getTechnicals().getVolume());
-			researchLedger.setWeeklyVolume(stock.getTechnicals().getWeeklyVolume());
-			//researchLedger.setMonthlyVolume(stock.getTechnicals().getMonthlyVolume());
+			researchLedger.setVolumeAvg5(stock.getTechnicals().getVolumeAvg5());
+			researchLedger.setVolumeAvg20(stock.getTechnicals().getVolumeAvg20());
+
 			researchLedger.setNextTradingDate(calendarService.nextTradingDate(stock.getStockPrice().getBhavDate()));
 			researchLedger.setCreatedAt(LocalDate.now());
 			researchLedger.setModifiedAt(LocalDate.now());

@@ -8,12 +8,16 @@ import java.util.List;
 
 import com.example.storage.model.StockTechnicals;
 import com.example.storage.model.result.*;
+import com.mongodb.bulk.BulkWriteResult;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.internal.bulk.UpdateRequest;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.mongodb.BulkOperationException;
+import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
@@ -41,6 +45,19 @@ public class PriceTemplate {
 
 	public void create(StockPrice stockPrice) {
 		mongoTemplate.insert(stockPrice);
+	}
+
+	public void create(List<StockPrice>  stockPriceList) {
+
+		BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, StockPrice.class);
+		bulkOps.insert(stockPriceList);
+		BulkWriteResult result;
+		try {
+			result = bulkOps.execute();
+			System.out.println("Inserted " + result.getInsertedCount());
+		} catch(BulkOperationException e) {
+			result = e.getResult();
+		}
 	}
 
 	public List<YearHighLowResult> getYearLowStocks(LocalDate localdate) {
@@ -240,7 +257,35 @@ public class PriceTemplate {
 
 		return yearLow;
 	}
-	
+
+	public HighLowResult getHighLowByDate(String nseSymbol, LocalDate fromDate, LocalDate toDate) {
+		Instant fromInstant = fromDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+		Instant toInstant = toDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+
+		MatchOperation matchSymbolAndDate = Aggregation.match(new Criteria().andOperator(
+				Criteria.where("bhavDate").gte(Date.from(fromInstant)).lte(Date.from(toInstant)),
+				Criteria.where("nseSymbol").is(nseSymbol)
+		));
+
+		GroupOperation yearLowGroup = Aggregation.group("nseSymbol").min("low").as("yearLow").max("high").as("yearHigh");
+
+		ProjectionOperation projectToMatchModel = Aggregation.project().andExpression("nseSymbol").as("nseSymbol")
+				.andExpression("yearLow").as("low").andExpression("yearHigh").as("high");
+
+		Aggregation aggregation = Aggregation.newAggregation(matchSymbolAndDate,  yearLowGroup, projectToMatchModel);
+
+		AggregationResults<HighLowResult> result = mongoTemplate.aggregate(aggregation, COLLECTION_PH,
+				HighLowResult.class);
+
+		HighLowResult highLowResult = result.getUniqueMappedResult();
+
+		if(highLowResult == null) {
+			highLowResult = new HighLowResult("NO_DATA_FOUND",0.00,0.00);
+		}
+
+		return highLowResult;
+	}
+
 	public HighLowResult getHighLowByDate(String nseSymbol, LocalDate fromDate) {
 		Instant yearBackInstant = fromDate.atStartOfDay().toInstant(ZoneOffset.UTC);
 
@@ -326,6 +371,40 @@ public class PriceTemplate {
 		}
 
 		return stockPrice;
+
+	}
+
+	public long delete(String nseSymbol){
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("nseSymbol").is(nseSymbol)
+				)
+		);
+
+		DeleteResult deleteResult = mongoTemplate.remove(query, COLLECTION_PH);
+
+
+		if(deleteResult!=null && deleteResult.wasAcknowledged()) {
+			return deleteResult.getDeletedCount();
+		}
+
+		return 0l;
+
+	}
+
+	public List<StockPrice> get(String nseSymbol, LocalDate from, LocalDate to){
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("bhavDate").gte(from.atStartOfDay().toInstant(ZoneOffset.UTC)).lte(to.atStartOfDay().toInstant(ZoneOffset.UTC)),
+						Criteria.where("nseSymbol").is(nseSymbol)
+				)
+		);
+
+		query.with(Sort.by(Direction.ASC, "bhavDate"));
+
+		return mongoTemplate.find(query, StockPrice.class);
 
 	}
 

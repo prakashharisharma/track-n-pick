@@ -3,19 +3,19 @@ package com.example.storage.model;
 public class Volume {
 
 	private Long volume;
-
-	private Long weeklyAverage;
-
-	private Long monthlyAverage;
+	private Long avg5;
+	private Long avg20;
+	private Long avg50;
 
 
 	public Volume() {
 	}
 
-	public Volume(Long volume, Long weeklyAverage, Long monthlyAverage) {
+	public Volume(Long volume, Long avg5,Long avg20, Long avg50) {
 		this.volume = volume;
-		this.weeklyAverage = weeklyAverage;
-		this.monthlyAverage = monthlyAverage;
+		this.avg5 = avg5;
+		this.avg20 = avg20;
+		this.avg50 = avg50;
 	}
 
 	public Long getVolume() {
@@ -26,28 +26,36 @@ public class Volume {
 		this.volume = volume;
 	}
 
-	public Long getWeeklyAverage() {
-		return weeklyAverage;
+	public Long getAvg5() {
+		return avg5;
 	}
 
-	public void setWeeklyAverage(Long weeklyAverage) {
-		this.weeklyAverage = weeklyAverage;
+	public void setAvg5(Long avg5) {
+		this.avg5 = avg5;
 	}
 
-	public Long getMonthlyAverage() {
-		return monthlyAverage;
+	public Long getAvg20() {
+		return avg20;
 	}
 
-	public void setMonthlyAverage(Long monthlyAverage) {
-		this.monthlyAverage = monthlyAverage;
+	public void setAvg20(Long avg20) {
+		this.avg20 = avg20;
+	}
+
+	public Long getAvg50() {
+		return avg50;
+	}
+
+	public void setAvg30(Long avg30) {
+		this.avg50 = avg30;
 	}
 
 	@Override
 	public String toString() {
 		return "Volume{" +
 				"volume=" + volume +
-				", weeklyAverage=" + weeklyAverage +
-				", monthlyAverage=" + monthlyAverage +
+				", weeklyAverage=" + avg5 +
+				", monthlyAverage=" + avg50 +
 				'}';
 	}
 }

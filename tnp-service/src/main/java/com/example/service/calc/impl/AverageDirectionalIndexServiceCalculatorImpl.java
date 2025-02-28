@@ -1,8 +1,8 @@
 package com.example.service.calc.impl;
 
+import com.example.dto.OHLCV;
 import com.example.service.calc.AverageDirectionalIndexCalculatorService;
 import com.example.storage.model.AverageDirectionalIndex;
-import com.example.storage.model.OHLCV;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class AverageDirectionalIndexServiceCalculatorImpl implements AverageDire
     @Override
     public List<AverageDirectionalIndex> calculate(List<OHLCV> ohlcvList) {
 
-        long startTime = System.currentTimeMillis();
+        //long startTime = System.currentTimeMillis();
 
         List<Double> plusDMList = new ArrayList<>(ohlcvList.size());
 
@@ -113,7 +113,7 @@ public class AverageDirectionalIndexServiceCalculatorImpl implements AverageDire
                 dxList.add(i, dx);
                 adxList.add(i, 0.00);
 
-                log.debug("atr: {} plusDi: {} minusDi:{} dx: {}", atr, plusDi, minusDi, dx );
+                //log.debug("atr: {} plusDi: {} minusDi:{} dx: {}", atr, plusDi, minusDi, dx );
             }
 
             if(i> 26) {
@@ -132,16 +132,16 @@ public class AverageDirectionalIndexServiceCalculatorImpl implements AverageDire
 
         }
 
-        long endTime = System.currentTimeMillis();
+        //long endTime = System.currentTimeMillis();
 
-        log.info("Time took to calculate EMA {}ms",(endTime - startTime));
+        //log.info("Time took to calculate EMA {}ms",(endTime - startTime));
         return this.mapResult(atrList, smoothedPlusDMList, smoothedMinusDMList, plusDIList, minusDIList, dxList, adxList);
     }
 
     @Override
     public AverageDirectionalIndex calculate(List<OHLCV> ohlcvList, AverageDirectionalIndex prevAverageDirectionalIndex) {
 
-        if(ohlcvList.size()!=2){
+        if(ohlcvList.size() < 2 ){
             throw new IllegalArgumentException("Invalid OHLCV list, Please pass ohlcvList[0] - prevDay and ohlcvList[1] - currentDay");
         }
 

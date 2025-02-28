@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.aspectj.apache.bcel.generic.LOOKUPSWITCH;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -438,13 +437,13 @@ public class FactorRediff implements FactorBaseService {
 
 		StockFactor stockFactor = null;
 
-		if (stock.getStockFactor() == null) {
+		if (stock.getFactor() == null) {
 
 			stockFactor = new StockFactor();
 
 		} else {
 
-			stockFactor = stock.getStockFactor();
+			stockFactor = stock.getFactor();
 
 		}
 

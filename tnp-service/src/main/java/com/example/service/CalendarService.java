@@ -77,7 +77,6 @@ public class CalendarService {
 		}
 		return currentDate;
 
-
 	}
 
 	public LocalDate nextTradingDate(LocalDate localDate) {
@@ -86,7 +85,10 @@ public class CalendarService {
 
 		if (DayOfWeek.FRIDAY == localDate.getDayOfWeek()) {
 			nextTradingDate = localDate.plusDays(3);
-		} else {
+		}else if (DayOfWeek.SATURDAY == localDate.getDayOfWeek()) {
+			nextTradingDate = localDate.plusDays(2);
+		}
+		else {
 			nextTradingDate = localDate.plusDays(1);
 		}
 
@@ -95,5 +97,25 @@ public class CalendarService {
 		}
 
 		return nextTradingDate;
+	}
+
+	public LocalDate previousTradingSession(LocalDate localDate) {
+
+		LocalDate previousSessionDate = localDate;
+
+		if (DayOfWeek.MONDAY == localDate.getDayOfWeek()) {
+			previousSessionDate = localDate.minusDays(3);
+		}else if (DayOfWeek.SUNDAY == localDate.getDayOfWeek()) {
+			previousSessionDate = localDate.minusDays(2);
+		}
+		else {
+			previousSessionDate = localDate.minusDays(1);
+		}
+
+		if (this.isHoliday(previousSessionDate)) {
+			return previousTradingSession(previousSessionDate);
+		}
+
+		return previousSessionDate;
 	}
 }

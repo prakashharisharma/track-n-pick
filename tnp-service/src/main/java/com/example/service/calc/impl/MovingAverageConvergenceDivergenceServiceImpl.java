@@ -1,9 +1,9 @@
 package com.example.service.calc.impl;
 
+import com.example.dto.OHLCV;
 import com.example.service.calc.ExponentialMovingAverageCalculatorService;
-import com.example.service.MovingAverageConvergenceDivergenceService;
+import com.example.service.calc.MovingAverageConvergenceDivergenceService;
 import com.example.storage.model.MovingAverageConvergenceDivergence;
-import com.example.storage.model.OHLCV;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ public class MovingAverageConvergenceDivergenceServiceImpl implements MovingAver
     @Override
     public List<MovingAverageConvergenceDivergence> calculate(List<OHLCV> ohlcvList) {
 
-        long startTime = System.currentTimeMillis();
+        //long startTime = System.currentTimeMillis();
         List<Double> ema12List = new ArrayList<>(ohlcvList.size());
         List<Double> ema26List = new ArrayList<>(ohlcvList.size());
         List<Double> macdList = new ArrayList<>(ohlcvList.size());
@@ -63,9 +63,9 @@ public class MovingAverageConvergenceDivergenceServiceImpl implements MovingAver
                 signalList.add(i, ema);
             }
         }
-        long endTime = System.currentTimeMillis();
+        //long endTime = System.currentTimeMillis();
 
-        log.info("Time took to calculate MACD {}ms",(endTime - startTime));
+        //log.info("Time took to calculate MACD {}ms",(endTime - startTime));
         return this.mapResult(ema12List, ema26List,macdList, signalList);
     }
 

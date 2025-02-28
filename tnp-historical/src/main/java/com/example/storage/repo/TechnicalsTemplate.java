@@ -545,6 +545,29 @@ public class TechnicalsTemplate {
 		
 	}
 
+	public StockTechnicals getPreviousSessionTechnicals(String nseSymbol, LocalDate from, LocalDate to){
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("bhavDate").gte(from.atStartOfDay().toInstant(ZoneOffset.UTC)).lte(to.atStartOfDay().toInstant(ZoneOffset.UTC)),
+						Criteria.where("nseSymbol").is(nseSymbol)
+				)
+		);
+
+		query.with(Sort.by(Direction.ASC, "bhavDate"));
+
+		List<StockTechnicals> stockTechnicalsList = mongoTemplate.find(query, StockTechnicals.class);
+
+		StockTechnicals stockTechnicals = new StockTechnicals();
+
+		if(stockTechnicals !=null && !stockTechnicalsList.isEmpty()  ) {
+			stockTechnicals = stockTechnicalsList.get(stockTechnicalsList.size()-1);
+		}
+
+		return stockTechnicals;
+
+	}
+
 	public StockTechnicals getForDate(String nseSymbol, LocalDate date){
 		Query query = new Query();
 		query.addCriteria(
@@ -563,6 +586,23 @@ public class TechnicalsTemplate {
 		}
 
 		return stockTechnicals;
+
+	}
+
+
+
+	public List<StockTechnicals> get(String nseSymbol, LocalDate from, LocalDate to){
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("bhavDate").gte(from.atStartOfDay().toInstant(ZoneOffset.UTC)).lte(to.atStartOfDay().toInstant(ZoneOffset.UTC)),
+						Criteria.where("nseSymbol").is(nseSymbol)
+				)
+		);
+
+		query.with(Sort.by(Direction.ASC, "bhavDate"));
+
+		return mongoTemplate.find(query, StockTechnicals.class);
 
 	}
 

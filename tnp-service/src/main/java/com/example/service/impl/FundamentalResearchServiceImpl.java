@@ -2,6 +2,7 @@ package com.example.service.impl;
 
 import javax.transaction.Transactional;
 
+import com.example.model.stocks.StockFactor;
 import com.example.service.StockService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,10 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 
 	@Override
 	public boolean isMcapInRange(Stock stock){
-		if(stock.getStockFactor().getMarketCap() >= rules.getMcap()){
+
+		StockFactor stockFactor = stock.getFactor();
+
+		if(stockFactor!=null && stockFactor.getMarketCap() >= rules.getMcap()){
 			return Boolean.TRUE;
 		}
 		return Boolean.FALSE;
@@ -59,23 +63,23 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 
 			double sectorPe = stock.getSector().getSectorPe();
 
-			if(pe <= 20 && pb <= 3){
+			if(pe < 20 && pb < 3){
 				return 100.0;
 			}
 
-			if(pe <= 20 && pb <= sectorPb){
+			if(pe < 20 && pb < sectorPb){
 				return  80.0;
 			}
 
-			if (pe <= sectorPe && pb <= 3) {
+			if (pe < sectorPe && pb < 3) {
 				return 65.0;
 			}
 
-			if(pe <= sectorPe && pb <= sectorPb){
+			if(pe < sectorPe && pb < sectorPb){
 				return 55.0;
 			}
 
-			if(pe <= sectorPe ){
+			if(pe < sectorPe ){
 				return  50.0;
 			}
 
@@ -101,6 +105,7 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 	public boolean isOvervalued(Stock stock) {
 
 		if (!this.isUndervalued(stock)) {
+		//if (!this.isFinancialsStable(stock)) {
 			return Boolean.TRUE;
 		}
 
@@ -130,11 +135,11 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 
 						if (
 								this.isMcapInRange(stock)
-								&& stock.getStockFactor().getDividend() >= rules.getDividend()
-								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoe()
-								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoce()
-								&& stock.getStockFactor().getCurrentRatio() >= rules.getCurrentRatio()
-								&& stock.getStockFactor().getQuickRatio() >= rules.getQuickRatioBanks()) {
+								&& stock.getFactor().getDividend() >= rules.getDividend()
+								&& stock.getFactor().getReturnOnEquity() >= rules.getRoe()
+								&& stock.getFactor().getReturnOnCapital() >= rules.getRoce()
+								&& stock.getFactor().getCurrentRatio() >= rules.getCurrentRatio()
+								&& stock.getFactor().getQuickRatio() >= rules.getQuickRatioBanks()) {
 							isUndervalued = true;
 						}
 
@@ -142,11 +147,11 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 
 						if (
 								this.isMcapInRange(stock)
-								&& stock.getStockFactor().getDebtEquity() < rules.getDebtEquity()
-								&& stock.getStockFactor().getDividend() >= rules.getDividend()
-								&& stock.getStockFactor().getReturnOnEquity() >= rules.getRoe()
-								&& stock.getStockFactor().getReturnOnCapital() >= rules.getRoce()
-								&& stock.getStockFactor().getCurrentRatio() >= rules.getCurrentRatio()
+								&& stock.getFactor().getDebtEquity() < rules.getDebtEquity()
+								&& stock.getFactor().getDividend() >= rules.getDividend()
+								&& stock.getFactor().getReturnOnEquity() >= rules.getRoe()
+								&& stock.getFactor().getReturnOnCapital() >= rules.getRoce()
+								&& stock.getFactor().getCurrentRatio() >= rules.getCurrentRatio()
 
 						) {
 

@@ -158,9 +158,9 @@ public class UiRenderUtil {
 
 			double currentPrice = researchStock.getStock().getStockPrice().getCurrentPrice();
 			
-			double bookValue = researchStock.getStock().getStockFactor().getBookValue();
+			double bookValue = researchStock.getStock().getFactor().getBookValue();
 			
-			double eps = researchStock.getStock().getStockFactor().getEps();
+			double eps = researchStock.getStock().getFactor().getEps();
 			
 			double pe= formulaService.calculatePe(currentPrice, eps);
 			
@@ -224,9 +224,9 @@ public class UiRenderUtil {
 
 			double currentPrice = researchStock.getStock().getStockPrice().getCurrentPrice();
 			
-			double bookValue = researchStock.getStock().getStockFactor().getBookValue();
+			double bookValue = researchStock.getStock().getFactor().getBookValue();
 			
-			double eps = researchStock.getStock().getStockFactor().getEps();
+			double eps = researchStock.getStock().getFactor().getEps();
 			
 			double pe = formulaService.calculatePe(currentPrice, eps);
 			
@@ -260,9 +260,9 @@ public class UiRenderUtil {
 
 			double currentPrice = researchStock.getStock().getStockPrice().getCurrentPrice();
 			
-			double bookValue= researchStock.getStock().getStockFactor().getBookValue();
+			double bookValue= researchStock.getStock().getFactor().getBookValue();
 			
-			double eps = researchStock.getStock().getStockFactor().getEps();
+			double eps = researchStock.getStock().getFactor().getEps();
 			
 			double pe= formulaService.calculatePe(currentPrice, eps);
 			
@@ -323,9 +323,9 @@ public class UiRenderUtil {
 		
 		double ytdUnrealizedGain = currentValue - ytdInvestmentValue;
 		
-		double ytdRealizedGainPer = formulaService.calculatePercentRate(ytdInvestmentValue, ytdRealizedGain);
+		double ytdRealizedGainPer = formulaService.calculatePercentage(ytdInvestmentValue, ytdRealizedGain);
 		
-		double ytdUnrealizedGainPer = formulaService.calculatePercentRate(ytdInvestmentValue, ytdUnrealizedGain);
+		double ytdUnrealizedGainPer = formulaService.calculatePercentage(ytdInvestmentValue, ytdUnrealizedGain);
 		
 		uIOverallGainLoss.setYtdInvestmentValue(ytdInvestmentValue);
 		
@@ -351,9 +351,9 @@ public class UiRenderUtil {
 		
 		double fyUnrealizedGain = currentValue - fyInvestmentValue;
 		
-		double fyRealizedGainPer = formulaService.calculatePercentRate(fyInvestmentValue, fyRealizedGain);
+		double fyRealizedGainPer = formulaService.calculatePercentage(fyInvestmentValue, fyRealizedGain);
 		
-		double fyUnrealizedGainPer = formulaService.calculatePercentRate(fyInvestmentValue, fyUnrealizedGain);
+		double fyUnrealizedGainPer = formulaService.calculatePercentage(fyInvestmentValue, fyUnrealizedGain);
 
 		uIOverallGainLoss.setFyInvestmentValue(fyInvestmentValue);
 		uIOverallGainLoss.setFyRealizedGainPer(fyRealizedGainPer);
@@ -447,7 +447,7 @@ public class UiRenderUtil {
 		
 		sectorWiseValueList.forEach( sw -> {
 			
-			renderList.add(new RenderSectorWiseValue(sw.getSectorName(), formulaService.calculatePercentRate(currentInvestmentValue, sw.getAllocation())));
+			renderList.add(new RenderSectorWiseValue(sw.getSectorName(), formulaService.calculatePercentage(currentInvestmentValue, sw.getAllocation())));
 		});
 		
 		return renderList;
@@ -464,7 +464,7 @@ public class UiRenderUtil {
 		
 		indiceWiseValueList.forEach( sw -> {
 			
-			renderList.add(new RenderIndiceAllocation(sw.getIndice().toString(), formulaService.calculatePercentRate(currentInvestmentValue, sw.getAllocation())));
+			renderList.add(new RenderIndiceAllocation(sw.getIndice().toString(), formulaService.calculatePercentage(currentInvestmentValue, sw.getAllocation())));
 		});
 		
 		return renderList;

@@ -1,124 +1,82 @@
 package com.example.service.impl;
 
-import com.example.model.ledger.BreakoutLedger;
+import com.example.dto.TradeSetup;
+import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.master.Stock;
-import com.example.model.stocks.StockTechnicals;
-import com.example.service.BreakoutLedgerService;
-import com.example.service.VolumeActionService;
+import com.example.model.stocks.StockPrice;
+import com.example.service.*;
+import com.example.util.FormulaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Service
+import static com.example.service.CandleStickService.MIN_RANGE;
+
 @Slf4j
+@Service
 public class VolumeActionServiceImpl implements VolumeActionService {
 
-    private static final int WEEKLY_FACTOR = 5;
-    private static final int MONTHLY_FACTOR = 3;
 
-    private static long MIN_VOLUME = 500000;
-
-    private static double MIN_VALUE = 1000.0;
     @Autowired
-    private BreakoutLedgerService breakoutLedgerService;
+    private CandleStickHelperService candleStickHelperService;
+    @Autowired
+    private CandleStickService candleStickService;
+    @Autowired
+    private StockPriceService stockPriceService;
+    @Autowired
+    private MacdIndicatorService macdActionService;
+    @Autowired
+    private VolumeService volumeActionService;
+    @Autowired
+    private BreakoutService breakoutService;
+    @Autowired
+    private FormulaService formulaService;
 
     @Override
-    public boolean isHighVolumeAboveWeeklyAverage(Stock stock) {
+    public TradeSetup breakOut(Stock stock) {
 
-        boolean isAboveAverage = Boolean.FALSE;
+        if(volumeActionService.isVolumeHigherThanMonthlyAverage(stock, 10.0)){
+            if(candleStickService.range(stock) >= MIN_RANGE){
+                if(candleStickService.isGreen(stock) && candleStickHelperService.isUpperWickSizeConfirmed(stock)) {
+                    if (candleStickService.body(stock) >= CandleStickService.MIN_BODY_SIZE) {
+                        if (candleStickService.isGapUp(stock)
+                            || candleStickService.isRisingWindow(stock)
+                            || candleStickService.isBullishhMarubozu(stock)
+                            || candleStickService.isOpenAndLowEqual(stock)) {
 
-        StockTechnicals stockTechnicals  = stock.getTechnicals();
+                            if ( //breakoutService.isBreakOut200(stock)
+                               // || breakoutService.isBreakOut50(stock)
+                            //    ||
+                            stockPriceService.isYearHigh(stock)
+                                || macdActionService.isMacdCrossedSignal(stock)) {
 
-        /*
-        if(stockTechnicals.getWeeklyVolume() >= 4000000 &&  (stockTechnicals.getVolume() > (stockTechnicals.getWeeklyVolume() * 2))
-        ){
-            isAboveAverage =  Boolean.TRUE;
-        }else if(stockTechnicals.getWeeklyVolume() >= 2000000 &&  (stockTechnicals.getVolume() > (stockTechnicals.getWeeklyVolume() * 3))
-        ){
-            isAboveAverage =  Boolean.TRUE;
-        }else if(stockTechnicals.getWeeklyVolume() >= 1000000 &&  (stockTechnicals.getVolume() > (stockTechnicals.getWeeklyVolume() * 4))
-        ){
-            isAboveAverage =  Boolean.TRUE;
-        }else if(stockTechnicals.getWeeklyVolume() >= 500000 &&(stockTechnicals.getVolume() > (stockTechnicals.getWeeklyVolume() * 5))
-        ){
-                isAboveAverage = Boolean.TRUE;
-        }else
-         */
-        if((stockTechnicals.getVolume() > (stockTechnicals.getWeeklyVolume() * 10))){
-            isAboveAverage = Boolean.TRUE;
-        }else if((stockTechnicals.getVolume() > (stockTechnicals.getWeeklyVolume() * 5))){
-                if(this.isLiquidityInVolume(stock)) {
-                    isAboveAverage = Boolean.TRUE;
+                                StockPrice stockPrice = stock.getStockPrice();
+
+                                double entryPrice = stockPrice.getHigh();
+                                double stopLossPrice = stockPrice.getLow();
+                                double targetPrice = formulaService.calculateTarget(entryPrice, stopLossPrice, VOLUME_ACTION_RISK_REWARD);
+                                double risk = formulaService.calculateChangePercentage(stopLossPrice, entryPrice);
+                                double correction = stockPriceService.correction(stock);
+                                log.info("Volume Action active for {}, entryPrice:{}, targetPrice:{}, stopLossPrice:{}"
+                                    , stock.getNseSymbol(), entryPrice, targetPrice, stopLossPrice);
+
+                                return TradeSetup.builder()
+                                    .active(Boolean.TRUE)
+                                        .strategy(ResearchLedgerTechnical.Strategy.VOLUME_ACTION)
+                                        .subStrategy(ResearchLedgerTechnical.SubStrategy.HIGH_VOLUME)
+                                    .entryPrice(entryPrice)
+                                    .stopLossPrice(stopLossPrice)
+                                    .targetPrice(targetPrice)
+                                        .risk(risk)
+                                        .correction(correction)
+                                    .build();
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        if(isAboveAverage){
-            this.createLedgerEntry(stock);
-        }
-
-        return isAboveAverage;
-    }
-
-    @Override
-    public boolean isVolumeAboveWeeklyAverage(Stock stock) {
-        StockTechnicals stockTechnicals  = stock.getTechnicals();
-        if((stockTechnicals.getVolume() > stockTechnicals.getWeeklyVolume() * 2 )){
-            return Boolean.TRUE;
-        }
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isVolumeAbovePreviousDay(Stock stock) {
-
-        boolean isAboveAverage = Boolean.FALSE;
-        StockTechnicals stockTechnicals  = stock.getTechnicals();
-
-        if(stockTechnicals.getVolume() > stockTechnicals.getPrevVolume() * 1.5){
-            //if(this.isLiquidityInVolume(stock)) {
-                return Boolean.TRUE;
-            //}
-        }
-
-        return Boolean.FALSE;
-    }
-
-    private void createLedgerEntry(Stock stock){
-        breakoutLedgerService.addPositive(stock, BreakoutLedger.BreakoutCategory.VOLUME_HIGH);
-    }
-
-    @Override
-    public boolean isVolumeAboveMonthlyAverage(Stock stock) {
-
-        StockTechnicals stockTechnicals  = stock.getTechnicals();
-
-        if(stockTechnicals.getVolume() >= (stockTechnicals.getMonthlyVolume() * MONTHLY_FACTOR)){
-            return Boolean.TRUE;
-        }
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isLiquidityInVolume(Stock stock) {
-
-        StockTechnicals stockTechnicals  = stock.getTechnicals();
-
-        if((stockTechnicals.getVolume()) >= MIN_VOLUME){
-            return Boolean.TRUE;
-        }
-
-        return Boolean.FALSE;
-    }
-
-    private double getPriceFactor(Stock stock){
-
-        double factor = MIN_VALUE / stock.getStockPrice().getClose();
-
-        if(factor <= 1.0){
-            return 1.0;
-        }
-
-        return factor;
+        return TradeSetup.builder().active(Boolean.FALSE).build();
     }
 }

@@ -1,11 +1,7 @@
-package com.example.storage.model;
+package com.example.dto;
 
 import java.time.Instant;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
-//@Document(collection = "ohlcv_history")
 public class OHLCV {
     //@Id
     //private String id;
@@ -22,7 +18,15 @@ public class OHLCV {
     public OHLCV() {
     }
 
-    public OHLCV( Instant bhavDate, Double open, Double high, Double low, Double close, Long volume) {
+    public OHLCV(Double open, Double high, Double low, Double close, Long volume) {
+        this.open = open;
+        this.high = high;
+        this.low = low;
+        this.close = close;
+        this.volume = volume;
+    }
+
+    public OHLCV(Instant bhavDate, Double open, Double high, Double low, Double close, Long volume) {
         //this.nseSymbol = nseSymbol;
         this.bhavDate = bhavDate;
         this.open = open;

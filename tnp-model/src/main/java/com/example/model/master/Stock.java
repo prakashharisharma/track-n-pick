@@ -42,7 +42,10 @@ public class Stock implements Serializable{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "STOCK_ID")
 	long stockId;
-	
+
+	@Column(name = "SERIES")
+	String series;
+
 	@Column(name = "ISIN_CODE")
 	String isinCode;
 	
@@ -81,7 +84,7 @@ public class Stock implements Serializable{
 	private StockPrice stockPrice;
 	
 	@OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
-	private StockFactor stockFactor;
+	private StockFactor factor;
 	
 	@OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
 	private StockTechnicals technicals;
@@ -134,6 +137,14 @@ public class Stock implements Serializable{
 
 	public void setStockId(long stockId) {
 		this.stockId = stockId;
+	}
+
+	public String getSeries() {
+		return series;
+	}
+
+	public void setSeries(String series) {
+		this.series = series;
 	}
 
 	public String getCompanyName() {
@@ -200,13 +211,13 @@ public class Stock implements Serializable{
 		this.stockPrice = stockPrice;
 	}
 
-	public StockFactor getStockFactor() {
+	public StockFactor getFactor() {
 		
-		return stockFactor;
+		return factor;
 	}
 
-	public void setStockFactor(StockFactor stockFactor) {
-		this.stockFactor = stockFactor;
+	public void setFactor(StockFactor factor) {
+		this.factor = factor;
 	}
 
 	public StockTechnicals getTechnicals() {
@@ -237,7 +248,7 @@ public class Stock implements Serializable{
 	public String toString() {
 		return "Stock [stockId=" + stockId + ", isinCode=" + isinCode + ", companyName=" + companyName + ", nseSymbol="
 				+ nseSymbol + ", bseCode=" + bseCode + ", sector=" + sectorName + ", active=" + active + ", IndiceType=" + primaryIndice+ ", stockPrice="
-				+ stockPrice + ", stockFactor=" + stockFactor + "]";
+				+ stockPrice + ", stockFactor=" + factor + "]";
 	}
 
 	@Override

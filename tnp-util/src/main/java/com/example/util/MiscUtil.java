@@ -13,6 +13,9 @@ import java.util.Random;
 
 import org.springframework.stereotype.Service;
 
+import static java.time.temporal.TemporalAdjusters.nextOrSame;
+import static java.time.temporal.TemporalAdjusters.previousOrSame;
+
 @Service
 public class MiscUtil {
 
@@ -94,12 +97,64 @@ public class MiscUtil {
 		return yearFirstdate;
 	}
 
+	public LocalDate previousMonthLastDay() {
+
+		LocalDate previousMonthLastDay = LocalDate.now().minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
+
+		return previousMonthLastDay;
+	}
+
+	public LocalDate previousMonthFirstDay() {
+
+		LocalDate previousMonthFirstDay = LocalDate.now().minusMonths(1).with(TemporalAdjusters.firstDayOfMonth());
+
+		return previousMonthFirstDay;
+	}
+
+	public LocalDate currentQuarterFirstDay(){
+		final Month yearStart = Month.JANUARY;
+		final int yearStartValue = yearStart.getValue();
+		int monthInQuarter = (this.currentDate().getMonthValue() + 12 - yearStartValue) % 3;
+		LocalDate currentQuarterStart
+				= this.currentDate().withDayOfMonth(1).minusMonths(monthInQuarter);
+
+		return currentQuarterStart;
+	}
+
+	public LocalDate previousQuarterLastDay() {
+
+		LocalDate previousQuarterLastDay = this.currentQuarterFirstDay().minusDays(1);
+
+		return previousQuarterLastDay;
+	}
+
+	public LocalDate previousQuarterFirstDay() {
+
+		LocalDate previousQuarterStart = this.currentQuarterFirstDay().minusMonths(3);
+
+		return previousQuarterStart;
+	}
+
 	public LocalDate currentYearLastDay() {
 
 		LocalDate yearLasttdate = LocalDate.now().with(TemporalAdjusters.lastDayOfYear());
 
 		return yearLasttdate;
 	}
+	public LocalDate previousWeekLastDay() {
+
+		LocalDate previousWeekLastDay = LocalDate.now().with(nextOrSame(DayOfWeek.SUNDAY)).minusWeeks(1);
+
+		return previousWeekLastDay;
+	}
+
+	public LocalDate previousWeekFirstDay() {
+
+		LocalDate previousWeekFirstDay = LocalDate.now().with(previousOrSame(DayOfWeek.MONDAY)).minusWeeks(1);
+
+		return previousWeekFirstDay;
+	}
+
 
 	public LocalDate currentMonthFirstDay() {
 

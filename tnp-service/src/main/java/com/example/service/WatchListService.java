@@ -37,11 +37,11 @@ public class WatchListService {
 	}
 
 	private Comparator<Stock> byRoeComparator() {
-		return Comparator.comparing(stock -> stock.getStockFactor().getReturnOnEquity(), Comparator.reverseOrder());
+		return Comparator.comparing(stock -> stock.getFactor().getReturnOnEquity(), Comparator.reverseOrder());
 	}
 
 	private Comparator<Stock> byDebtEquityComparator() {
-		return Comparator.comparing(stock -> stock.getStockFactor().getDebtEquity());
+		return Comparator.comparing(stock -> stock.getFactor().getDebtEquity());
 	}
 
 }

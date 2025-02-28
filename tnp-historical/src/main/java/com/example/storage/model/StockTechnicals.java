@@ -17,6 +17,8 @@ public class StockTechnicals {
 	
 	private Volume volume;
 
+	private OnBalanceVolume obv;
+
 	private SimpleMovingAverage sma;
 
 	private ExponentialMovingAverage ema;
@@ -26,13 +28,6 @@ public class StockTechnicals {
 	private RelativeStrengthIndex rsi;
 
 	private MovingAverageConvergenceDivergence macd;
-
-
-	MovingAverage movingAverage;
-
-	Trend trend;
-	
-	Momentum momentum;
 
 	private Double yearLow;
 
@@ -51,10 +46,11 @@ public class StockTechnicals {
 		this.ema = ema;
 	}
 
-	public StockTechnicals(String nseSymbol, Instant bhavDate, Volume volume, SimpleMovingAverage sma, ExponentialMovingAverage ema, AverageDirectionalIndex adx, RelativeStrengthIndex rsi, MovingAverageConvergenceDivergence macd) {
+	public StockTechnicals(String nseSymbol, Instant bhavDate, Volume volume, OnBalanceVolume onBalanceVolume,  SimpleMovingAverage sma, ExponentialMovingAverage ema, AverageDirectionalIndex adx, RelativeStrengthIndex rsi, MovingAverageConvergenceDivergence macd) {
 		this.nseSymbol = nseSymbol;
 		this.bhavDate = bhavDate;
 		this.volume = volume;
+		this.obv = onBalanceVolume;
 		this.sma = sma;
 		this.ema = ema;
 		this.adx = adx;
@@ -68,8 +64,6 @@ public class StockTechnicals {
 		this.nseSymbol = nseSymbol;
 		this.bhavDate = bhavDate;
 		this.volume = volume;
-		this.trend = trend;
-		this.momentum = momentum;
 	}
 	
 	public String getId() {
@@ -104,20 +98,12 @@ public class StockTechnicals {
 		this.volume = volume;
 	}
 
-	public Trend getTrend() {
-		return trend;
+	public OnBalanceVolume getObv() {
+		return obv;
 	}
 
-	public void setTrend(Trend trend) {
-		this.trend = trend;
-	}
-
-	public Momentum getMomentum() {
-		return momentum;
-	}
-
-	public void setMomentum(Momentum momentum) {
-		this.momentum = momentum;
+	public void setObv(OnBalanceVolume obv) {
+		this.obv = obv;
 	}
 
 	public SimpleMovingAverage getSma() {

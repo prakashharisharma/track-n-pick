@@ -9,11 +9,6 @@ public class ExponentialMovingAverage {
 	private Double avg100;
 	private Double avg200;
 
-
-	private Double avg12;
-	private Double avg26;
-
-
 	public ExponentialMovingAverage(Double avg5, Double avg10, Double avg20, Double avg50, Double avg100, Double avg200) {
 		super();
 		this.avg5 = avg5 != null ? avg5 : 0.00;
@@ -42,23 +37,6 @@ public class ExponentialMovingAverage {
 
 	public Double getAvg20() {
 		return avg20;
-	}
-
-
-	public Double getAvg12() {
-		return avg12;
-	}
-
-	public void setAvg12(Double avg12) {
-		this.avg12 = avg12;
-	}
-
-	public Double getAvg26() {
-		return avg26;
-	}
-
-	public void setAvg26(Double avg26) {
-		this.avg26 = avg26;
 	}
 
 	public void setAvg20(Double avg20) {

@@ -1,5 +1,7 @@
 package com.example.util.io.model;
 
+import com.example.util.io.model.type.Trend;
+
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -52,12 +54,17 @@ public class StockPriceIO implements Serializable {
 
 	private double change;
 	private double yearLow;
+
+	private LocalDate yearLowDate;
 	private double yearHigh;
 
+	private LocalDate yearHighDate;
 	private double low14;
 	private double high14;
 
 	private boolean lastRecordToProcess;
+
+	private Trend trend;
 	
 	public StockPriceIO() {
 		super();
@@ -319,13 +326,62 @@ public class StockPriceIO implements Serializable {
 		this.lastRecordToProcess = lastRecordToProcess;
 	}
 
+	public Trend getTrend() {
+		return trend;
+	}
+
+	public void setTrend(Trend trend) {
+		this.trend = trend;
+	}
+
+	public LocalDate getYearLowDate() {
+		return yearLowDate;
+	}
+
+	public void setYearLowDate(LocalDate yearLowDate) {
+		this.yearLowDate = yearLowDate;
+	}
+
+	public LocalDate getYearHighDate() {
+		return yearHighDate;
+	}
+
+	public void setYearHighDate(LocalDate yearHighDate) {
+		this.yearHighDate = yearHighDate;
+	}
+
 	@Override
 	public String toString() {
-		return "StockPriceIO [nseSymbol=" + nseSymbol + ", series=" + series + ", open=" + open + ", high=" + high
-				+ ", low=" + low + ", close=" + close + ", last=" + last + ", prevClose=" + prevClose + ", tottrdqty="
-				+ tottrdqty + ", tottrdval=" + tottrdval + ", timestamp=" + timestamp + ", totaltrades=" + totaltrades
-				+ ", isin=" + isin + ", change=" + change + ", yearLow=" + yearLow + ", yearHigh=" + yearHigh + "]";
+		return "StockPriceIO{" +
+				"exchange='" + exchange + '\'' +
+				", nseSymbol='" + nseSymbol + '\'' +
+				", bseCode='" + bseCode + '\'' +
+				", companyName='" + companyName + '\'' +
+				", series='" + series + '\'' +
+				", open=" + open +
+				", high=" + high +
+				", low=" + low +
+				", close=" + close +
+				", last=" + last +
+				", prevClose=" + prevClose +
+				", tottrdqty=" + tottrdqty +
+				", tottrdval=" + tottrdval +
+				", timestamp=" + timestamp +
+				", bhavDate=" + bhavDate +
+				", totaltrades=" + totaltrades +
+				", isin='" + isin + '\'' +
+				", change=" + change +
+				", yearLow=" + yearLow +
+				", yearLowDate=" + yearLowDate +
+				", yearHigh=" + yearHigh +
+				", yearHighDate=" + yearHighDate +
+				", low14=" + low14 +
+				", high14=" + high14 +
+				", lastRecordToProcess=" + lastRecordToProcess +
+				", trend=" + trend +
+				'}';
 	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

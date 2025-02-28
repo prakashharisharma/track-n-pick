@@ -39,7 +39,7 @@ public class UpdateStockFactorConsumer {
 
 		StockFactor newStockFactor = null;
 
-		prevStockFactor = stock.getStockFactor();
+		prevStockFactor = stock.getFactor();
 
 		newStockFactor = stockService.updateFactor(stock);
 

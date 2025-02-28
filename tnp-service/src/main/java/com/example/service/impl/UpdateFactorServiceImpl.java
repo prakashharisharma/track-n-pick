@@ -5,9 +5,6 @@ import com.example.model.stocks.StockFactor;
 import com.example.service.StockService;
 import com.example.service.UpdateFactorService;
 import com.example.storage.repo.FactorTemplate;
-import com.example.util.io.model.ResearchIO;
-import com.example.util.io.model.StockFactorIO;
-import com.example.util.io.model.StockPriceIO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,7 +44,7 @@ public class UpdateFactorServiceImpl implements UpdateFactorService {
 
         StockFactor newStockFactor = null;
 
-        prevStockFactor = stock.getStockFactor();
+        prevStockFactor = stock.getFactor();
 
         newStockFactor = stockService.updateFactor(stock);
 

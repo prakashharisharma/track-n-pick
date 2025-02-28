@@ -57,7 +57,7 @@ public class PublicStockController {
 
 			StockPrice stockPrice = stock.getStockPrice();
 
-			StockFactor stockFactor = stock.getStockFactor();
+			StockFactor stockFactor = stock.getFactor();
 
 			StockTechnicals stockTechnicals = stock.getTechnicals();
 

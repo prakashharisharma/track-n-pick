@@ -1,6 +1,6 @@
 package com.example.storage.model.assembler;
 
-import com.example.storage.model.OHLCV;
+import com.example.dto.OHLCV;
 import com.example.storage.model.StockPrice;
 import com.example.util.CustomBeanUtils;
 import org.springframework.stereotype.Service;
@@ -14,6 +14,7 @@ public class StockPriceOHLCVAssembler {
     public OHLCV toModel(StockPrice stockPrice) {
         OHLCV ohlcv = new OHLCV();
         CustomBeanUtils.copyNonNullProperties(stockPrice, ohlcv);
+
         return ohlcv;
     }
 

@@ -15,7 +15,7 @@ public class StockPrice {
 	private Double high;
 	private Double low;
 	private Double close;
-	private Long volume;
+	private Long volume = 0l;
 
 	@Deprecated
 	private Double prevClose;

@@ -1,13 +1,9 @@
 package com.example.external.chyl.service.bl;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.time.LocalDate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.example.external.common.ServiceProvider;
 import com.example.model.master.Stock;

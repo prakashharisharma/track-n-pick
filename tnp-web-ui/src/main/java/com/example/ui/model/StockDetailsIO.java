@@ -3,7 +3,6 @@ package com.example.ui.model;
 import java.io.Serializable;
 
 import com.example.util.io.model.StockIO.IndiceType;
-import com.example.util.io.model.type.DirectionIO;
 
 public class StockDetailsIO implements Serializable {
 

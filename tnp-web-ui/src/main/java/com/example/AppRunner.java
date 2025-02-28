@@ -1,34 +1,32 @@
 package com.example;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import com.example.dto.OHLCV;
+import com.example.dto.TradeSetup;
 import com.example.external.factor.FactorRediff;
+import com.example.external.ta.service.McService;
 import com.example.model.ledger.ResearchLedgerTechnical;
+import com.example.model.stocks.StockTechnicals;
 import com.example.model.stocks.UserPortfolio;
-import com.example.mq.constants.QueueConstants;
 import com.example.repo.ledger.FundsLedgerRepository;
 import com.example.repo.ledger.ResearchLedgerTechnicalRepository;
 import com.example.repo.ledger.TradeLedgerRepository;
 import com.example.repo.master.StockRepository;
+import com.example.repo.stocks.StockPriceRepository;
 import com.example.repo.stocks.StockTechnicalsRepository;
 import com.example.service.*;
-import com.example.service.calc.AverageDirectionalIndexCalculatorService;
-import com.example.service.calc.ExponentialMovingAverageCalculatorService;
-import com.example.service.calc.RelativeStrengthIndexCalculatorService;
-import com.example.storage.model.*;
+import com.example.service.calc.*;
+import com.example.service.impl.FundamentalResearchService;
+import com.example.service.util.StockPriceUtil;
+import com.example.storage.model.assembler.StockPriceOHLCVAssembler;
 import com.example.ui.service.UiRenderUtil;
-import com.example.util.io.model.MCResult;
 import com.example.util.io.model.ResearchIO;
+import com.example.util.io.model.type.Trend;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +51,8 @@ import com.example.util.io.model.StockPriceIO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.springframework.web.client.RestTemplate;
+import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 
 @Component
 @Slf4j
@@ -73,6 +72,8 @@ public class AppRunner implements CommandLineRunner {
 	@Autowired
 	private StockTechnicalsRepository stockTechnicalsRepository;
 
+	@Autowired
+	private StockPriceRepository stockPricesRepository;
 	@Autowired
 	private PortfolioService portfolioService;
 
@@ -130,12 +131,18 @@ public class AppRunner implements CommandLineRunner {
 	private FormulaService formulaService;
 
 	@Autowired
+	private StockPriceOHLCVAssembler stockPriceOHLCVAssembler;
+
+	@Autowired
 	private QueueService queueService;
 	@Autowired
 	private ResearchLedgerTechnicalService tecnicalLedger;
 	
 	@Autowired
 	private TechnicalsResearchService technicalsResearchService;
+
+	@Autowired
+	private MovingAverageActionService movingAverageActionService;
 
 	@Autowired
 	private UiRenderUtil uiRenderUtil;
@@ -153,6 +160,11 @@ public class AppRunner implements CommandLineRunner {
 	private TradeLedgerRepository tradeLedgerRepository;
 
 	@Autowired
+	private ResearchExecutorService researchExecutorService;
+	@Autowired
+	private OnBalanceVolumeCalculatorService onBalanceVolumeCalculatorService;
+
+	@Autowired
 	private RelativeStrengthIndexCalculatorService rsiService;
 
 	@Autowired
@@ -165,8 +177,19 @@ public class AppRunner implements CommandLineRunner {
 	private AverageDirectionalIndexCalculatorService averageDirectionalIndexService;
 
 	@Autowired
+	private McService mcService;
+
+	@Autowired
+	private ResearchLedgerTechnicalRepository researchLedgerRepository;
+
+	@Autowired
 	private StockRepository stockRepository;
 
+	@Autowired
+	private StockPriceService stockPriceService;
+
+	@Autowired
+	private BreakoutService breakoutService;
 
 	@Autowired
 	private ResearchLedgerTechnicalRepository researchLedgerTechnicalRepository;
@@ -178,378 +201,422 @@ public class AppRunner implements CommandLineRunner {
 	private CandleStickExecutorService candleStickExecutorService;
 
 	@Autowired
+	private CandleStickHelperService candleStickHelperService;
+	@Autowired
+	private SwingActionService swingActionService;
+
+	@Autowired
+	private PriceActionService priceActionService;
+	@Autowired
+	private FundamentalResearchService fundamentalResearchService;
+	@Autowired
 	private CandleStickService candleStickService;
 
 	@Autowired
 	private UpdateTechnicalsService updateTechnicalsService;
+
+	@Autowired
+	private VolumeService volumeActionService;
+
+	@Autowired
+	private TrendService trendService;
+
+	@Autowired
+	private QuarterlySupportResistanceService quarterlySupportResistanceService;
+	@Autowired
+	private MonthlySupportResistanceService monthlySupportResistanceService;
+
+	@Autowired
+	private WeeklySupportResistanceService weeklySupportResistanceService;
+
+	@Autowired
+	private YearlySupportResistanceService yearlySupportResistanceService;
+
+	@Autowired
+	private TimeframeSupportResistanceService timeframeSupportResistanceService;
 
 	@Override
 	public void run(String... arg0) throws InterruptedException, IOException {
 
 		log.info("Application started....");
 
-		candleStickService.isBuyingWickPresent(1630.0, 1660.25, 1480.50, 1655.15, 100);
-		candleStickService.isSellingWickPresent(1630.0, 1660.25, 1480.50, 1655.15, 100);
-
-		candleStickService.isBuyingWickPresent(264.0, 273.80, 261.20, 262.20, 100);
-		candleStickService.isSellingWickPresent(264.0, 273.80, 261.20, 262.20, 100);
-
-		System.out.println("STARTED " + LocalDateTime.now());
-
-		long start = System.currentTimeMillis();
-
-		StockPriceIO stockPriceIO = new StockPriceIO();
-		stockPriceIO.setNseSymbol("HAVELLS");
-		stockPriceIO.setBhavDate(Instant.now());
-		stockPriceIO.setOpen(123.0);
-		stockPriceIO.setHigh(165.0);
-		stockPriceIO.setLow(121.0);
-		stockPriceIO.setClose(145.0);
-		stockPriceIO.setYearHigh(999.0);
-		stockPriceIO.setYearLow(99.0);
-
-		//updateTechnicalsService.updateTechnicals(stockPriceIO);
-
-		long end = System.currentTimeMillis();
-		System.out.println("DONE " + (end-start));
-
-		//this.scanCandleStickPattern();
-
-		//List<Double> retracements =  formulaService.fibonacciRetracements(380, 489);
-
-		//retracements.forEach(System.out::println);
-
-		//retracements =  formulaService.fibonacciExtensions(380, 489);
-
-		//retracements.forEach(System.out::println);
-
-		//retracements =  formulaService.fibonacciExtensions(380, 489, 421);
-
-		//retracements.forEach(System.out::println);
-
-		//this.getMCOHLP("OLAELEC");
-		//this.getMCOHLP("HAVELLS");
-		//this.getMCOHLP("ARE%26M");
-		//this.doActivity();
-
-		List<StockPrice> stockPriceList =  priceTemplate.get("HAVELLS", 700);
-
-		Collections.reverse(stockPriceList);
-
-		for (StockPrice price : stockPriceList) {
-			//System.out.println(price);
-		}
-
-		List<ResearchLedgerTechnical> researchLedgerTechnicals =  researchLedgerTechnicalRepository.getActiveResearch("ANUP", ResearchIO.ResearchTrigger.BUY);
-
-		if(!researchLedgerTechnicals.isEmpty()){
-			//System.out.println(researchLedgerTechnicals.get(researchLedgerTechnicals.size() -1 ));
-		}
-
-		/*
-		System.out.println("Running Runner");
-		List<Stock> stocks = stockService.getActiveStocks();
-
-		System.out.println("Total stocks " + stocks.size());
-		for(Stock stock : stocks){
-			System.out.println("Factors updating "+ stock.getNseSymbol());
-			StockFactor stockFactor = stock.getStockFactor();
-			if(stock.getNseSymbol().equalsIgnoreCase("DIVISLAB")){
-				continue;
-			}
-
-			if(stockFactor.getMarketCap() == 0.0 || stockFactor.getFaceValue() == 0.0) {
-				try {
-					stockService.updateFactor(stock);
-				}catch(Exception e){
-					LOGGER.error("An error occured {}", stock.getNseSymbol(), e );
-				}
-				System.out.println("Factors updated {}"+ stock.getNseSymbol());
-			}else{
-				System.out.println("Factors Already Up to date {}"+ stock.getNseSymbol());
-
-			}
-
-		}
-
-
-		System.out.println("Completed Runner");
-				*/
-
-		/*
-		  LOGGER.info("PREV50 " + technicalsTemplate.getPrevSessionSma50("ZEEL"));
-		  LOGGER.info("PREV200 " + technicalsTemplate.getPrevSessionSma200("ZEEL"));
-		  LOGGER.info("SMA50 " + storageService.getSMA("ZEEL", 50));
-		  LOGGER.info("SMA200 " + storageService.getSMA("ZEEL", 200));
-		  
-		  LOGGER.info("LOw " + storageService.getyearLow("ZEEL"));
-		  
-		  LOGGER.info("LOW1 " + priceTemplate.getyearLow("ZEEL"));
-		  
-		  LOGGER.info("HIgh " + storageService.getyearHigh("ZEEL"));
-		  
-		  LOGGER.info("HIgh " + priceTemplate.getyearHigh("ZEEL"));
-		  
-		  LOGGER.info("RSI " + storageService.getRSI("ZEEL", 14));
-		  
-		  LOGGER.info("RSI1 " + technicalsTemplate.getCurrentRSI("ZEEL"));
-		  
-		  LOGGER.info("RSI2 " + technicalsTemplate.getCurrentSmoothedRSI("ZEEL"));
-		  
-		  LOGGER.info("PREV OBV " + technicalsTemplate.getOBV("ZEEL"));
-		  
-		  LOGGER.info("PREV OBV " + priceTemplate.getTotalTradedQuantity("ZEEL"));
-		  
-		  StockTechnicals prevStockTechnicals =
-		  technicalsTemplate.getPrevTechnicals("ZEEL", 1);
-		  System.out.println("BHAV_DATE : " + prevStockTechnicals.getBhavDate());
-		  this.printJson(prevStockTechnicals);
-		 */
-
-		//List<Stock> sl = stockFactorService.stocksToUpdateFactor();
-		
-		//sl.forEach(System.out::println);
-		
-		//List<Stock> stocksList = stockService.activeStocks();
-
-		
-		//List<UserProfile> allActiveUsers = userService.subsribedCurrentUnderValueUsers();
-		
-		//allActiveUsers.forEach(System.out::println);
-		
-		//sectorService.updateSectorPEPB();
-		
-		//restTemplate();
-		
-		/*List<ResearchLedgerTechnical> buyResearchTechnicalLedgerList = tecnicalLedger.buyNotificationPending();
-		
-		buyResearchTechnicalLedgerList.forEach(System.out::println);
-		*/
-		// Buy Research Fundamental
-		/*stocksList.forEach(stock -> {
-			ResearchIO researchIO = new ResearchIO();
-
-			researchIO.setNseSymbol(stock.getNseSymbol());
-			researchIO.setResearchTrigger(ResearchTrigger.BUY);
-			researchIO.setResearchType(ResearchType.FUNDAMENTAL);
-			// this.processFundamental(researchIO);
-
-			queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
-		});
-*/
-		// Buy Research Technical
-
-		/*stocksList.forEach(stock -> {
-			ResearchIO researchIO = new ResearchIO();
-			researchIO.setNseSymbol(stock.getNseSymbol());
-			researchIO.setResearchTrigger(ResearchTrigger.BUY);
-			researchIO.setResearchType(ResearchType.TECHNICAL);
-			// this.processTechnical(researchIO);
-
-			queueService.send(researchIO, QueueConstants.MTQueue.RESEARCH_QUEUE);
-		});*/
-
-		/*
-		 * double ema20 = formulaService.calculateRateOfChange(150, 100);
-		 * 
-		 * System.out.println(ema20);
-		 */
-
-		/*
-		 * ema20 = formulaService.calculateEMA(22.15, 22.22, 50);
-		 * 
-		 * System.out.println(ema20);
-		 * 
-		 * ema20 = formulaService.calculateEMA(22.15, 22.22,100);
-		 * 
-		 * System.out.println(ema20);
-		 * 
-		 * ema20 = formulaService.calculateEMA(22.15, 22.22,200);
-		 * 
-		 * System.out.println(ema20);
-		 */
-		/*
-		 * double K = formulaService.getEMAMultiplier(20); System.out.println(K);
-		 * 
-		 * K = formulaService.getEMAMultiplier(50); System.out.println(K);
-		 */
-		// StockTechnicals stockTechnicals =
-		// technicalsTemplate.getPrevTechnicals("ZEEL");
-
-		// System.out.println(stockTechnicals);
-
-		// stockService.resetFactors();
-
-		/*
-		 * LOGGER.info("DAYS HIGH " + priceTemplate.getDaysHigh("TEST6", 14));
-		 * 
-		 * LOGGER.info("DAYS LOW " + priceTemplate.getDaysLow("TEST6", 14));
-		 * 
-		 * LOGGER.info("DATE HIGH " + priceTemplate.getHighFromDate("ZEEL",
-		 * LocalDate.now().minusWeeks(52)));
-		 * 
-		 * LOGGER.info("DATE LOW " + priceTemplate.getLowFromDate("ZEEL",
-		 * LocalDate.now().minusWeeks(52)));
-		 * 
-		 * LOGGER.info("AVG PRICe " + priceTemplate.getAveragePrice("ZEEL", 2));
-		 * 
-		 * HighLowResult result = priceTemplate.getHighLowByDate("ZEEL",
-		 * LocalDate.now().minusWeeks(52));
-		 * 
-		 * System.out.println(result);
-		 * 
-		 * result = priceTemplate.getHighLowByDays("ZEEL", 2);
-		 * 
-		 * System.out.println(result);
-		 * 
-		 * double r = tradingSessionTemplate.getTotalGain("ZEEL", 14);
-		 * 
-		 * System.out.println(r);
-		 * 
-		 * r = priceTemplate.getTotalGain("ZEEL", 14);
-		 * 
-		 * System.out.println(r);
-		 * 
-		 * r = storageService.getAverageGain("ZEEL", 14);
-		 * 
-		 * System.out.println(r);
-		 * 
-		 * r = priceTemplate.getAverageGain("ZEEL", 14);
-		 * 
-		 * System.out.println(r);
-		 * 
-		 * 
-		 * r = tradingSessionTemplate.getTotalLoss("ZEEL", 14);
-		 * 
-		 * System.out.println(r);
-		 * 
-		 * r = priceTemplate.getTotalLoss("ZEEL", 14);
-		 * 
-		 * System.out.println(r);
-		 * 
-		 * r = storageService.getAverageLoss("ZEEL", 14);
-		 * 
-		 * System.out.println(r);
-		 * 
-		 * r = priceTemplate.getAverageLoss("ZEEL", 14);
-		 * 
-		 * System.out.println(r);
-		 */
-
-		// LOGGER.info("AVG PRICe " +
-		// technicalsTemplate.getAverageStochasticOscillatorK("ZEEL",2));
-
-		// stockService.resetFactors();
-
-		/*
-		 * List<Stock> sm = stockService.getActiveStocks();
-		 * 
-		 * for (Stock s : sm) { stockService.updateFactor(s);
-		 * 
-		 * Thread.sleep(100);
-		 * 
-		 * }
-		 */
-
-		// sectorService.updateSectorPEPB();
-
-		/*
-		 * List<Stock> stkList = stockService.getActiveStocks();
-		 * 
-		 * stkList.forEach( s -> { stockService.updateFactor(s);
-		 * 
-		 * });
-		 */
-
-		
-		 /* UserProfile user1 = userService.getUserById(1); 
-		  UserProfile user2 = userService.getUserById(2);
-		  
-		  Stock stock = stockService.getStockByNseSymbol("RITES");
-		  
-		  portfolioService.addBonus(user1, stock, 4, 1);
-		  portfolioService.addBonus(user2, stock, 4, 1);
-		 */
-		//testDownLoad();
-		System.out.println("STARTED");
-
-		//this.updateDi();
+		this.testCandleStick();
+		//this.testObv();
+		//this.testTimeFrameSR();
+		this.scanCandleStickPattern();
 
 		//this.processBhavFromApi();
+		//this.updateSupportAndResistance();
+		//updateTechnicalsService.updateTechnicals();
+		//this.syncTechnicals();
+		/*
+		System.out.println(miscUtil.previousMonthFirstDay());
+		System.out.println(miscUtil.previousMonthLastDay());
+		LocalDate from = calendarService.nextTradingDate(miscUtil.previousMonthFirstDay().minusDays(1));
+		LocalDate to  = calendarService.previousTradingSession(miscUtil.currentMonthFirstDay());
 
-		//this.doActivity();
+		List<StockPrice> stockPriceListNew =  priceTemplate.get("BAJFINANCE", LocalDate.of(2024, 12, 27), LocalDate.of(2025,1,28));
+
+		stockPriceListNew.forEach(stockPrice -> {
+			System.out.println(stockPrice);
+		});
+
+		System.out.println("*************");
+		StockPrice monthlyHigh = Collections.max(stockPriceListNew, Comparator.comparingDouble(p -> p.getHigh()));
+		System.out.println(monthlyHigh);
+		System.out.println("monthlyHigh: " + monthlyHigh.getHigh());
+		System.out.println("*************");
+		StockPrice monthlyLow = Collections.min(stockPriceListNew, Comparator.comparingDouble(p -> p.getLow()));
+		System.out.println(monthlyLow);
+		System.out.println("monthlyLow: " + monthlyLow.getLow());
+
+		stockPriceListNew =  priceTemplate.get("BAJFINANCE", 20);
+
+
+		stockPriceListNew.forEach(stockPrice -> {
+			System.out.println(stockPrice);
+		});
+
+		System.out.println("*************");
+		 monthlyHigh = Collections.max(stockPriceListNew, Comparator.comparingDouble(p -> p.getHigh()));
+		System.out.println(monthlyHigh);
+		System.out.println("monthlyHigh: " + monthlyHigh.getHigh());
+		System.out.println("*************");
+		 monthlyLow = Collections.min(stockPriceListNew, Comparator.comparingDouble(p -> p.getLow()));
+		System.out.println(monthlyLow);
+		System.out.println("monthlyLow: " + monthlyLow.getLow());
+
+		System.out.println("*************");
+		 */
+
+
+
+		System.out.println("STARTED");
 
 	}
+
+	private void updateSupportAndResistance(){
+		List<Stock> stockList = stockService.getForActivity();
+		AtomicInteger count = new AtomicInteger(stockList.size());
+		stockList.forEach(stk ->{
+			try {
+				StockTechnicals stockTechnicals = stk.getTechnicals();
+
+			/*
+				OHLCV ohlcv = weeklySupportResistanceService.supportAndResistance(stk);
+				stockTechnicals.setPrevWeekOpen(ohlcv.getOpen());
+				stockTechnicals.setPrevWeekHigh(ohlcv.getHigh());
+				stockTechnicals.setPrevWeekLow(ohlcv.getLow());
+				stockTechnicals.setPrevWeekClose(ohlcv.getClose());
+			 */
+				/*
+				OHLCV ohlcv = monthlySupportResistanceService.supportAndResistance(stk);
+				stockTechnicals.setPrevMonthOpen(ohlcv.getOpen());
+				stockTechnicals.setPrevMonthHigh(ohlcv.getHigh());
+				stockTechnicals.setPrevMonthLow(ohlcv.getLow());
+				stockTechnicals.setPrevMonthClose(ohlcv.getClose());
+				*/
+
+				OHLCV ohlcv = quarterlySupportResistanceService.supportAndResistance(stk);
+				stockTechnicals.setPrevQuarterOpen(ohlcv.getOpen());
+				stockTechnicals.setPrevQuarterHigh(ohlcv.getHigh());
+				stockTechnicals.setPrevQuarterLow(ohlcv.getLow());
+				stockTechnicals.setPrevQuarterClose(ohlcv.getClose());
+
+/*
+				OHLCV ohlcv = yearlySupportResistanceService.supportAndResistance(stk);
+				stockTechnicals.setPrevYearOpen(ohlcv.getOpen());
+				stockTechnicals.setPrevYearHigh(ohlcv.getHigh());
+				stockTechnicals.setPrevYearLow(ohlcv.getLow());
+				stockTechnicals.setPrevYearClose(ohlcv.getClose());
+				*/
+
+				stockTechnicalsRepository.save(stockTechnicals);
+
+				System.out.println("Completed for " + stk.getNseSymbol());
+
+				stk.setActivityCompleted(Boolean.TRUE);
+				stockRepository.save(stk);
+				System.out.println("Remaining " + count.decrementAndGet());
+			}catch(Exception e){
+				System.out.println("An error occured while updating SR " + stk.getNseSymbol() +" " + e);
+			}
+		});
+	}
+
+	private void testCandleStick(){
+		System.out.println("******* Testing CandleSticks *******");
+		Stock stock = StockPriceUtil.buildStockPrice("KEI", LocalDate.of(2025,02,14), 3410.0, 3475.0, 3330.95, 3411.65
+				,3518.10, 3518.10, 3390.40, 3404.0);
+
+		candleStickService.isDoji(stock);
+		// 31-Jan-25
+		stock = StockPriceUtil.buildStockPrice("JINDALSTEL", LocalDate.of(2025,01,31), 785.05, 796.80, 723.35, 791.55
+				,849.0, 864.20, 821.30, 840.05);
+		candleStickService.isHammer(stock);
+		stock = StockPriceUtil.buildStockPrice("BHEL", 184.14, 200.52, 184.14, 199.86
+				,196.25, 197.45, 186.0, 187.62);
+		candleStickService.isBullishEngulfing(stock);
+		stock = StockPriceUtil.buildStockPrice("INDIASHLTR", 628.0, 645.0, 607.0, 641.85
+				,628.0, 634.95, 607.35, 615.75);
+		candleStickService.isBullishOutsideBar(stock);
+		stock = StockPriceUtil.buildStockPrice("GABRIEL", 397.25, 422.35, 397.25, 420.0
+				,418.0, 422.45, 387.0, 397.25);
+		candleStickService.isTweezerBottom(stock);
+
+		stock = StockPriceUtil.buildStockPrice("FDC", 608.0, 625.0, 592.55, 597.25
+				,585.0, 658.85, 582.80, 612.65);
+		candleStickService.isBearishInsideBar(stock);
+		stock = StockPriceUtil.buildStockPrice("FDC", 608.0, 625.0, 592.55, 597.25
+				,585.0, 658.85, 582.80, 612.65);
+		candleStickService.isBearishHarami(stock);
+
+ 		candleStickService.isBullishKicker(stock);
+		candleStickService.isBullishSash(stock);
+		candleStickService.isBullishSeparatingLine(stock);
+		candleStickService.isBullishhMarubozu(stock);
+
+		candleStickService.isDoubleBottom(stock);
+		candleStickService.isBullishHarami(stock);
+		candleStickService.isRisingWindow(stock);
+
+	}
+
+	private void ta4J(){
+		BarSeries barSeries = new BaseBarSeriesBuilder().withName("my_2017_series").build();
+	}
+
+	private void testObv(){
+		List<OHLCV> ohlcvList = new ArrayList<>();
+		ohlcvList.add(new OHLCV(76.0,91.2,76.0,91.2,525179173l));
+		ohlcvList.add(new OHLCV(97.0,109.44,95.0,109.44,210295560l));
+		ohlcvList.add(new OHLCV(120.98,129.4,105.21,108.17,365044065l));
+		ohlcvList.add(new OHLCV(110.0,113.4,100.36,110.9,160539788l));
+		ohlcvList.add(new OHLCV(121.0,133.08,117.0,133.08,338763140l));
+		ohlcvList.add(new OHLCV(139.39,146.38,136.0,146.38,192359284l));
+		ohlcvList.add(new OHLCV(153.8,157.4,132.65,137.79,309136273l));
+		ohlcvList.add(new OHLCV(143.0,143.5,135.22,138.05,113015397l));
+		ohlcvList.add(new OHLCV(139.0,139.0,126.05,131.32,107214397l));
+		ohlcvList.add(new OHLCV(131.0,132.47,125.55,126.26,58941772l));
+		ohlcvList.add(new OHLCV(123.43,132.7,118.6,125.3,162419382l));
+		ohlcvList.add(new OHLCV(126.0,131.0,125.75,127.53,62973982l));
+		ohlcvList.add(new OHLCV(128.7,129.19,125.0,125.69,36055940l));
+		ohlcvList.add(new OHLCV(125.95,126.99,119.6,120.28,32236138l));
+		ohlcvList.add(new OHLCV(121.3,122.97,117.11,117.93,39363549l));
+		ohlcvList.add(new OHLCV(118.5,119.95,114.0,114.93,32100435l));
+		ohlcvList.add(new OHLCV(114.0,119.3,112.66,113.49,34112725l));
+		ohlcvList.add(new OHLCV(112.55,115.0,109.8,110.8,30257994l));
+		ohlcvList.add(new OHLCV(111.36,119.17,110.33,115.16,88498741l));
+		ohlcvList.add(new OHLCV(111.1,115.05,109.0,109.57,58560417l));
+		ohlcvList.add(new OHLCV(110.0,116.2,103.5,114.58,93620725l));
+		ohlcvList.add(new OHLCV(114.8,119.0,113.39,115.5,51113502l));
+		ohlcvList.add(new OHLCV(115.49,116.5,109.86,113.02,44903854l));
+		ohlcvList.add(new OHLCV(114.6,115.49,111.44,112.64,33770388l));
+		ohlcvList.add(new OHLCV(112.7,114.25,111.0,111.58,18101301l));
+		ohlcvList.add(new OHLCV(112.0,112.18,106.9,107.6,27173576l));
+		ohlcvList.add(new OHLCV(112.95,118.36,110.26,117.96,163398289l));
+		ohlcvList.add(new OHLCV(118.0,123.9,116.1,116.95,118683852l));
+		ohlcvList.add(new OHLCV(116.7,117.49,109.5,111.67,61441099l));
+		ohlcvList.add(new OHLCV(113.0,113.95,110.4,110.99,26659658l));
+		ohlcvList.add(new OHLCV(112.0,112.4,107.5,108.15,30248266l));
+		ohlcvList.add(new OHLCV(108.15,109.9,103.42,104.05,52943938l));
+		ohlcvList.add(new OHLCV(105.37,107.5,101.4,103.02,54743574l));
+		ohlcvList.add(new OHLCV(105.79,106.34,102.3,103.49,31139206l));
+		ohlcvList.add(new OHLCV(104.6,104.87,101.0,102.18,36452821l));
+		ohlcvList.add(new OHLCV(101.71,102.38,97.84,99.62,51879596l));
+		ohlcvList.add(new OHLCV(100.0,103.49,99.15,102.62,61227119l));
+		ohlcvList.add(new OHLCV(100.0,102.19,99.0,99.26,27994702l));
+		ohlcvList.add(new OHLCV(100.0,100.0,95.39,99.05,43646598l));
+		ohlcvList.add(new OHLCV(99.9,100.0,89.55,90.82,90107948l));
+		ohlcvList.add(new OHLCV(86.0,96.78,86.0,95.41,113352923l));
+		ohlcvList.add(new OHLCV(95.32,98.69,93.79,95.78,57074037l));
+		ohlcvList.add(new OHLCV(94.0,95.17,90.0,90.79,49223674l));
+		ohlcvList.add(new OHLCV(91.0,92.25,89.66,90.2,34321755l));
+		ohlcvList.add(new OHLCV(90.0,90.5,87.15,87.46,36287243l));
+		ohlcvList.add(new OHLCV(88.79,91.87,88.65,89.51,56875452l));
+		ohlcvList.add(new OHLCV(90.0,90.39,88.62,89.17,20025845l));
+		ohlcvList.add(new OHLCV(89.39,90.0,87.2,87.57,16578506l));
+		ohlcvList.add(new OHLCV(85.75,88.0,85.02,86.95,25522239l));
+		ohlcvList.add(new OHLCV(87.19,87.48,81.0,81.65,34971218l));
+		ohlcvList.add(new OHLCV(83.98,85.29,80.5,81.08,41665695l));
+		ohlcvList.add(new OHLCV(81.2,83.0,79.15,81.76,33119468l));
+		ohlcvList.add(new OHLCV(81.81,82.1,79.77,80.0,17908438l));
+		ohlcvList.add(new OHLCV(80.05,80.49,76.73,77.29,22420692l));
+		ohlcvList.add(new OHLCV(77.99,80.5,77.12,77.59,31800879l));
+		ohlcvList.add(new OHLCV(77.7,78.5,74.84,76.32,29301711l));
+		ohlcvList.add(new OHLCV(76.32,80.67,75.08,79.83,47417740l));
+		ohlcvList.add(new OHLCV(80.0,83.25,79.16,80.88,34098220l));
+		ohlcvList.add(new OHLCV(82.39,83.65,82.01,82.84,7901472l));
+		ohlcvList.add(new OHLCV(84.45,84.8,79.61,80.84,30671468l));
+		ohlcvList.add(new OHLCV(80.04,80.29,73.84,74.18,89679787l));
+		ohlcvList.add(new OHLCV(75.41,75.43,73.5,74.4,51882572l));
+		ohlcvList.add(new OHLCV(75.0,78.25,74.07,74.56,55664096l));
+		ohlcvList.add(new OHLCV(74.92,74.99,72.6,72.72,30134626l));
+		ohlcvList.add(new OHLCV(72.72,77.6,70.55,74.33,98999523l));
+		ohlcvList.add(new OHLCV(75.2,76.65,73.71,74.29,36932621l));
+		ohlcvList.add(new OHLCV(73.8,74.19,70.55,70.95,29804499l));
+		ohlcvList.add(new OHLCV(71.04,71.88,69.54,70.12,34166367l));
+		ohlcvList.add(new OHLCV(70.0,70.9,68.1,68.93,38573962l));
+		ohlcvList.add(new OHLCV(68.99,71.18,68.99,69.32,22429780l));
+		ohlcvList.add(new OHLCV(69.5,69.7,66.86,67.21,29121532l));
+		ohlcvList.add(new OHLCV(67.21,69.74,66.66,69.14,28730513l));
+		ohlcvList.add(new OHLCV(70.55,72.3,69.3,69.58,21405109l));
+		ohlcvList.add(new OHLCV(69.58,74.8,69.58,73.42,57391461l));
+		ohlcvList.add(new OHLCV(77.7,88.1,75.26,88.1,244701933l));
+		ohlcvList.add(new OHLCV(90.65,94.5,88.77,92.99,186599196l));
+		ohlcvList.add(new OHLCV(92.15,92.49,86.7,87.41,76161884l));
+		ohlcvList.add(new OHLCV(84.11,94.47,81.2,93.29,168055394l));
+		ohlcvList.add(new OHLCV(94.09,101.78,92.51,98.54,236992751l));
+		ohlcvList.add(new OHLCV(98.75,102.5,97.61,98.36,133838392l));
+		ohlcvList.add(new OHLCV(98.73,100.2,95.48,98.52,76865512l));
+		ohlcvList.add(new OHLCV(96.9,98.3,95.25,95.91,48472086l));
+		ohlcvList.add(new OHLCV(96.4,97.0,91.5,92.25,40583292l));
+		ohlcvList.add(new OHLCV(92.25,95.5,92.23,94.57,50853886l));
+		ohlcvList.add(new OHLCV(94.89,98.13,93.01,96.12,66954410l));
+		ohlcvList.add(new OHLCV(96.12,96.6,93.75,93.99,24825087l));
+		ohlcvList.add(new OHLCV(93.5,94.88,93.0,93.81,29241541l));
+		ohlcvList.add(new OHLCV(93.81,99.62,93.56,96.8,67357404l));
+		ohlcvList.add(new OHLCV(97.3,100.4,96.91,97.43,47461145l));
+		ohlcvList.add(new OHLCV(97.95,98.2,94.8,96.42,37709666l));
+		ohlcvList.add(new OHLCV(94.0,96.39,93.15,95.12,26289361l));
+		ohlcvList.add(new OHLCV(95.6,97.83,92.13,93.67,38323235l));
+		ohlcvList.add(new OHLCV(93.97,95.24,92.1,92.69,30468393l));
+		ohlcvList.add(new OHLCV(93.4,95.66,92.78,93.98,22492287l));
+		ohlcvList.add(new OHLCV(97.0,99.95,93.1,93.55,69591245l));
+		ohlcvList.add(new OHLCV(93.85,94.25,88.51,89.93,37601364l));
+		ohlcvList.add(new OHLCV(87.1,88.08,84.5,85.07,37606547l));
+		ohlcvList.add(new OHLCV(85.19,87.64,84.87,85.73,29578957l));
+		ohlcvList.add(new OHLCV(86.4,86.67,85.25,86.22,16274841l));
+		ohlcvList.add(new OHLCV(86.24,88.59,83.58,84.71,37564777l));
+		ohlcvList.add(new OHLCV(84.7,85.11,82.26,82.71,30982641l));
+		ohlcvList.add(new OHLCV(82.8,83.1,77.5,77.95,33396475l));
+		ohlcvList.add(new OHLCV(78.9,81.18,78.55,79.16,30769069l));
+		ohlcvList.add(new OHLCV(77.0,80.15,75.16,79.51,61605465l));
+		ohlcvList.add(new OHLCV(79.4,79.6,75.27,75.66,24971633l));
+		ohlcvList.add(new OHLCV(75.5,76.5,72.7,73.39,38606186l));
+		ohlcvList.add(new OHLCV(71.0,72.83,70.0,70.18,32634298l));
+		ohlcvList.add(new OHLCV(71.5,73.47,70.39,72.88,34095762l));
+		ohlcvList.add(new OHLCV(73.9,75.6,72.1,73.25,28969720l));
+		ohlcvList.add(new OHLCV(75.0,75.48,74.01,74.81,16453514l));
+		ohlcvList.add(new OHLCV(74.5,75.18,73.91,74.41,13403086l));
+		ohlcvList.add(new OHLCV(75.0,77.0,74.33,76.33,15293544l));
+		ohlcvList.add(new OHLCV(77.14,78.78,76.01,76.24,27328395l));
+		ohlcvList.add(new OHLCV(76.6,76.89,73.8,74.31,15524482l));
+		ohlcvList.add(new OHLCV(74.79,74.79,73.17,73.49,11531639l));
+		ohlcvList.add(new OHLCV(73.34,73.75,71.0,71.34,14299599l));
+		ohlcvList.add(new OHLCV(70.1,70.44,67.5,68.08,22699796l));
+		ohlcvList.add(new OHLCV(68.16,68.79,64.6,65.16,31301577l));
+		ohlcvList.add(new OHLCV(65.82,68.31,65.24,65.98,26430739l));
+		ohlcvList.add(new OHLCV(66.71,68.47,66.29,66.79,20575646l));
+		ohlcvList.add(new OHLCV(67.85,76.53,67.62,74.8,116622091l));
+		ohlcvList.add(new OHLCV(75.99,80.8,73.66,74.33,85425148l));
+		ohlcvList.add(new OHLCV(74.51,76.47,72.37,73.08,45904119l));
+		ohlcvList.add(new OHLCV(74.2,75.46,73.72,74.85,22868898l));
+		ohlcvList.add(new OHLCV(76.98,77.0,73.51,74.6,23581873l));
+		ohlcvList.add(new OHLCV(74.6,74.99,71.56,71.84,22284387l));
+		ohlcvList.add(new OHLCV(72.11,72.3,68.3,69.97,36396886l));
+		ohlcvList.add(new OHLCV(68.91,68.97,67.16,67.6,27920171l));
+		ohlcvList.add(new OHLCV(67.9,67.9,64.36,65.26,28376783l));
+		ohlcvList.add(new OHLCV(65.5,65.6,63.3,64.62,37541843l));
+		ohlcvList.add(new OHLCV(65.0,66.12,63.81,64.28,24482682l));
+		ohlcvList.add(new OHLCV(64.56,64.8,60.15,60.87,35125401l));
+		ohlcvList.add(new OHLCV(60.95,62.11,59.29,61.29,36043235l));
+		ohlcvList.add(new OHLCV(60.6,61.65,58.8,60.27,25503226l));
+		ohlcvList.add(new OHLCV(59.4,61.6,58.58,60.55,27181781l));
+		ohlcvList.add(new OHLCV(60.24,62.7,59.81,61.71,26475985l));
+		ohlcvList.add(new OHLCV(61.7,63.1,60.56,60.9,19439120l));
+
+		onBalanceVolumeCalculatorService.calculate(ohlcvList);
+	}
+
+
+	private void testTimeFrameSR(){
+		Stock stock = stockService.getStockByNseSymbol("AUBANK");
+		Trend trend = trendService.isDownTrend(stock);
+		candleStickHelperService.isBullishConfirmed(StockPriceUtil.buildStockPricePreviousWeek(stock, miscUtil.previousWeekFirstDay()), Boolean.FALSE);
+		candleStickHelperService.isBullishConfirmed(StockPriceUtil.buildStockPricePreviousMonth(stock, miscUtil.previousMonthFirstDay()), Boolean.FALSE);
+		System.out.println("******MONTHYL******");
+		monthlySupportResistanceService.isBullish(stock);
+		System.out.println("******WEEKLY******");
+		weeklySupportResistanceService.isBullish(stock);
+		System.out.println("******SCAN******");
+		boolean result = timeframeSupportResistanceService.isBullish(stock, trend);
+
+		System.out.println("******SCAN******" + result);
+	}
+
 
 	private void scanCandleStickPattern(){
 
 		System.out.println("******* Scanning Bullish *******");
 		List<Stock> stockList = stockService.getActiveStocks();
 
+		for(Stock stock: stockList) {
+
+			if(stock.getSeries()!=null && stock.getSeries().equalsIgnoreCase("EQ")){
+				if (fundamentalResearchService.isMcapInRange(stock)) {
+					candleStickExecutorService.executeBullish(stock);
+					swingActionService.breakOut(stock);
+
+				}
+			}
+		}
+
+		System.out.println("******* Scanning Bearish From Master *******");
 
 		for(Stock stock: stockList){
-			System.out.println("******* Scanning ******* " + stock.getNseSymbol());
-			candleStickExecutorService.executeBullish(stock);
+			if(stock.getSeries()!=null && stock.getSeries().equalsIgnoreCase("EQ")) {
+					if (fundamentalResearchService.isMcapInRange(stock)) {
+						candleStickExecutorService.executeBearish(stock);
+						//movingAverageActionService.breakDown(stock);
+					}
+			}
 		}
 
 		System.out.println("******* Scanning Bearish From Research *******");
 		List<ResearchLedgerTechnical> researchLedgerTechnicalList = researchLedgerTechnicalService.allActiveResearch();
 
 		for(ResearchLedgerTechnical researchLedgerTechnical: researchLedgerTechnicalList){
-			System.out.println("******* Scanning ******* " + researchLedgerTechnical.getStock().getNseSymbol());
 			candleStickExecutorService.executeBearish(researchLedgerTechnical.getStock());
+			movingAverageActionService.breakDown(researchLedgerTechnical.getStock());
 		}
+
 		System.out.println("******* Scanning Bearish From Portfolio *******");
 		List<UserPortfolio> portfolioList =  portfolioService.get();
 
 		for(UserPortfolio userPortfolio: portfolioList){
-			System.out.println("******* Scanning ******* " + userPortfolio.getStock().getNseSymbol());
 			candleStickExecutorService.executeBearish(userPortfolio.getStock());
+			movingAverageActionService.breakDown(userPortfolio.getStock());
 		}
 
 	}
 
-	private void updateDi(){
-		List<Stock> stockList = stockService.activeStocks();
-
-		stockList.forEach(stock -> {
-			try{
-
-				StockTechnicals stockTechnicals = technicalsTemplate.getPrevTechnicals(stock.getNseSymbol(), 2);
-
-				System.out.println(stockTechnicals);
-
-				if(stockTechnicals!=null) {
-					AverageDirectionalIndex adx = stockTechnicals.getAdx();
-					if(adx!=null){
-						com.example.model.stocks.StockTechnicals stockTechnicalsTxn = stock.getTechnicals();
-
-						if(stockTechnicalsTxn!=null){
-							stockTechnicalsTxn.setPrevPlusDi(adx.getPlusDi());
-							stockTechnicalsTxn.setPrevMinusDi(adx.getMinusDi());
-							stockTechnicalsRepository.save(stockTechnicalsTxn);
-							System.out.println("Updated DI " + stock.getNseSymbol());
-						}
-					}
-				}
-
-			}catch(Exception e){
-				System.out.println("An error occured while updating DI " + stock.getNseSymbol());
-			}
-		});
-	}
 
 	private void processBhavFromApi(){
 
 		List<Stock> stockList = stockRepository.findByActivityCompleted(false);
 
-		stockList.forEach(stock -> {
+		int countTotal = stockList.size();
+
+		for(Stock stock : stockList){
 			long startTime = System.currentTimeMillis();
 			System.out.println("Starting activity for " + stock.getNseSymbol());
 
 			try {
 
-				OHLCV ohlcv = this.getMCOHLCV(stock.getNseSymbol());
+				List<OHLCV> ohlcvList = mcService.getMCOHLP(stock.getNseSymbol(), 5, 700);
+
+				if(!ohlcvList.isEmpty()){
+					long count = priceTemplate.delete(stock.getNseSymbol());
+					miscUtil.delay(25);
+					System.out.println("Deleted existing bhav " + count + " "+ stock.getNseSymbol());
+				}
+
+
+				List<com.example.storage.model.StockPrice> stockPriceList = new ArrayList<>();
+				com.example.storage.model.StockPrice stockPrice = null;
+
+				for(OHLCV ohlcv :  ohlcvList) {
 
 				 StockPriceIO stockPriceIO = new StockPriceIO("NSE",
 						stock.getCompanyName(),
@@ -563,515 +630,95 @@ public class AppRunner implements CommandLineRunner {
 						ohlcv.getOpen(),
 						ohlcv.getVolume(),
 						0.00,
-						LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+						 LocalDate.now().toString(),
 						1,
 						stock.getIsinCode());
 
-				queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
+				 stockPriceIO.setBhavDate(ohlcv.getBhavDate());
+				 stockPriceIO.setTimestamp(ohlcv.getBhavDate().atZone(ZoneOffset.UTC).toLocalDate());
+				 stockPriceIO.setLastRecordToProcess(Boolean.TRUE);
+				 System.out.println(stockPriceIO);
+
+				 stockPrice = new com.example.storage.model.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
+						 stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getTottrdqty());
+
+				//queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_PRICE_TXN_QUEUE);
+					stockPriceList.add(stockPrice);
+
+						}
+				priceTemplate.create(stockPriceList);
 
 				stock.setActivityCompleted(true);
 
 				stockRepository.save(stock);
+				--countTotal;
+				long endTime = System.currentTimeMillis();
+
+				System.out.println("Completed activity for " + stock.getNseSymbol() + " took " + (endTime - startTime) +"ms");
+				System.out.println("Remaining " + countTotal);
+				miscUtil.delay(25);
+				//miscUtil.delay(miscUtil.getInterval());
 
 			}catch(Exception e){
 				System.out.println("An error occured while getting data " + stock.getNseSymbol());
 			}
 
-			long endTime = System.currentTimeMillis();
-			System.out.println("Completed activity for " + stock.getNseSymbol() + " took " + (endTime - startTime) +"ms");
 
-			try {
-				Thread.sleep(miscUtil.getInterval());
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-
-		});
+		}
 	}
 
-	private void doActivity(){
-		List<String> symbolList = new ArrayList<>();
-		symbolList.add("MUFIN");
-		symbolList.add("ARE&M");
-		symbolList.add("M&M");
-		symbolList.add("J&KBANK");
-		symbolList.add("GMRP&UI");
-		symbolList.add("M&MFIN");
-		// symbolList.add("PSUBANK");
-		symbolList.add("UNIVPHOTO");
-		symbolList.add("AGIIL");
+	private void syncTechnicals(){
+		List<Stock> stockList = stockRepository.findByActivityCompleted(false);
 
-		//List<Stock> stockList = stockRepository.findByActivityCompleted(false);
+		int countTotal = stockList.size();
 
-		//stockList.forEach(stock -> {
-			symbolList.forEach(symbol -> {
-				Stock stock = stockService.getStockByNseSymbol(symbol);
-
+		for(Stock stock : stockList) {
 			long startTime = System.currentTimeMillis();
-
+			System.out.println("Starting activity for " + stock.getNseSymbol());
 
 			try {
 
-				System.out.println("Starting activity for " + stock.getNseSymbol());
-				List<OHLCV> ohlcvList = this.getMCOHLP(stock.getNseSymbol());
-				technicalsTemplate.upsert(this.construct(stock.getNseSymbol(), ohlcvList));
+				com.example.storage.model.StockTechnicals stockTechnicals = technicalsTemplate.getForDate(stock.getNseSymbol(), LocalDate.now());
+				if(stockTechnicals!=null){
+					com.example.storage.model.StockPrice stockPrice = priceTemplate.getForDate(stock.getNseSymbol(), LocalDate.now());
 
+					StockPriceIO stockPriceIO = new StockPriceIO("NSE",
+							stock.getCompanyName(),
+							stock.getNseSymbol(),
+							"EQ",
+							stockPrice.getOpen(),
+							stockPrice.getHigh(),
+							stockPrice.getLow(),
+							stockPrice.getClose(),
+							stockPrice.getClose(),
+							stockPrice.getOpen(),
+							stockPrice.getVolume(),
+							0.00,
+							LocalDate.now().toString(),
+							1,
+							stock.getIsinCode());
+
+					stockPriceIO.setBhavDate(Instant.from(LocalDate.now()).atZone(ZoneOffset.UTC).toInstant());
+					stockPriceIO.setTimestamp(LocalDate.now());
+					stockPriceIO.setLastRecordToProcess(Boolean.TRUE);
+					updateTechnicalsService.updateTechnicalsTxn(stockTechnicals, stockPriceIO);
+					System.out.println("Updated Technicals  " + stock.getNseSymbol());
+				}else{
+					System.out.println("No Technicals  " + stock.getNseSymbol());
+				}
 
 				stock.setActivityCompleted(true);
 
 				stockRepository.save(stock);
 
+				System.out.println("Remaioning  " + --countTotal);
+
 			}catch(Exception e){
 				System.out.println("An error occured while getting data " + stock.getNseSymbol());
 			}
-
-			long endTime = System.currentTimeMillis();
-			System.out.println("Completed activity for " + stock.getNseSymbol() + " took " + (endTime - startTime) +"ms");
-
-			try {
-				Thread.sleep(miscUtil.getInterval());
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-
-		});
-
-
-
-	}
-
-	private StockTechnicals construct(String nseSymbol, List<OHLCV> ohlcvList){
-
-		OHLCV currentOHLCV = ohlcvList.get(ohlcvList.size() - 1);
-
-		Volume volume = new Volume();
-
-		volume.setVolume(currentOHLCV.getVolume());
-
-		SimpleMovingAverage sma = this.constructSMA(nseSymbol, currentOHLCV);
-
-		ExponentialMovingAverage ema = this.constructEMA(ohlcvList);
-
-		int resultIndex= ohlcvList.size()-1;
-
-		AverageDirectionalIndex adx = averageDirectionalIndexService.calculate(ohlcvList).get(resultIndex);
-
-		RelativeStrengthIndex rsi = rsiService.calculate(ohlcvList).get(resultIndex);
-
-		MovingAverageConvergenceDivergence macd = movingAverageConvergenceDivergenceService.calculate(ohlcvList).get(resultIndex);
-
-		StockTechnicals stockTechnicals = new StockTechnicals(nseSymbol, currentOHLCV.getBhavDate(), volume,  sma, ema, adx, rsi, macd);
-
-		return  stockTechnicals;
-
-	}
-
-	private SimpleMovingAverage constructSMA(String nseSymbol, OHLCV current){
-
-		double close = 0.00;
-
-		double sma5 = priceTemplate.getAveragePrice(nseSymbol, close, 5);
-
-		double sma10 = priceTemplate.getAveragePrice(nseSymbol, close, 10);
-
-		double sma20 = priceTemplate.getAveragePrice(nseSymbol, close, 20);
-
-		double sma50 = priceTemplate.getAveragePrice(nseSymbol, close, 50);
-
-		double sma100 = priceTemplate.getAveragePrice(nseSymbol, close, 100);
-
-		double sma200 = priceTemplate.getAveragePrice(nseSymbol,close, 200);
-
-		return new SimpleMovingAverage(sma5, sma10, sma20, sma50, sma100, sma200);
-	}
-
-	private ExponentialMovingAverage constructEMA(List<OHLCV> ohlcvList){
-		int resultIndex= ohlcvList.size()-1;
-		double ema5 = exponentialMovingAverageService.calculate(ohlcvList, 5).get(resultIndex);
-		double ema10 = exponentialMovingAverageService.calculate(ohlcvList, 10).get(resultIndex);
-		double ema20 = exponentialMovingAverageService.calculate(ohlcvList, 20).get(resultIndex);
-		double ema50 = exponentialMovingAverageService.calculate(ohlcvList, 50).get(resultIndex);
-		double ema100 = exponentialMovingAverageService.calculate(ohlcvList, 100).get(resultIndex);
-		double ema200 = exponentialMovingAverageService.calculate(ohlcvList, 200).get(resultIndex);
-	return new ExponentialMovingAverage(ema5, ema10, ema20, ema50, ema100, ema200);
-	}
-	private OHLCV getMCOHLCV(String nseSymbol)
-	{
-		long startTime = System.currentTimeMillis();
-
-		if(nseSymbol.contains("&")){
-			nseSymbol = nseSymbol.replace("&", "%26");
 		}
-
-		final String uri;
-
-		try {
-			uri = "https://priceapi.moneycontrol.com/techCharts/indianMarket/stock/history?symbol="+ URLEncoder.encode(nseSymbol, StandardCharsets.UTF_8.toString())+"&resolution=1D&from=1727782150&to=1727782150&countback=1&currencyCode=INR";
-		} catch (UnsupportedEncodingException e) {
-			throw new RuntimeException(e);
-		}
-
-		System.out.println("mc url: " + uri);
-
-		RestTemplate restTemplate = new RestTemplate();
-
-		MCResult ohlc = restTemplate.getForObject(uri, MCResult.class);
-
-		long endTime = System.currentTimeMillis();
-
-		System.out.println("Time took to get MC data for " + nseSymbol +" is "+ (endTime - startTime) +"ms");
-
-		List<OHLCV> ohlcvList = this.map(ohlc);
-
-		if(ohlcvList !=null && ohlcvList.size()!=0){
-			return ohlcvList.get(ohlcvList.size()-1);
-		}
-
-		return new OHLCV();
-
 	}
 
-
-	private List<OHLCV> getMCOHLP(String nseSymbol)
-	{
-		long startTime = System.currentTimeMillis();
-
-		/*
-		if(nseSymbol.contains("&")){
-			nseSymbol = nseSymbol.replace("&", "%26");
-		}
-		 */
-
-		final String uri = "https://priceapi.moneycontrol.com/techCharts/indianMarket/stock/history?symbol="+URLEncoder.encode(nseSymbol, StandardCharsets.UTF_8)+"&resolution=1D&from=1643241600&to=1727913600&countback=700&currencyCode=INR";
-
-		System.out.println("mc url: " + uri);
-
-		RestTemplate restTemplate = new RestTemplate();
-
-		MCResult ohlc = restTemplate.getForObject(uri, MCResult.class);
-
-		long endTime = System.currentTimeMillis();
-
-		System.out.println("Time took to get MC data for " + nseSymbol +" is "+ (endTime - startTime) +"ms");
-
-		List<OHLCV> ohlcvList = this.map(ohlc);
-
-		return ohlcvList;
-
-		/*
-		List<RelativeStrengthIndex> relativeStrengthIndexList = rsiService.calculate(ohlcvList);
-
-		relativeStrengthIndexList.forEach(r -> {
-			System.out.println("RSI " + r);
-		});
-
-		System.out.println("TEST Single");
-
-		RelativeStrengthIndex prevRelativeStrengthIndex = new RelativeStrengthIndex(1.7699406364986499, 1.961918811746544, 0.902147747348938, 47.43);
-
-		List<OHLCV> ohlcvParam = new ArrayList<>();
-		ohlcvParam.add(ohlcvList.get(ohlcvList.size()-2));
-		ohlcvParam.add(ohlcvList.get(ohlcvList.size()-1));
-
-		prevRelativeStrengthIndex = rsiService.calculate(ohlcvParam, prevRelativeStrengthIndex);
-
-		System.out.println("RSI " + prevRelativeStrengthIndex);
-
-		double ema = this.calculate(ohlcvList, 5);
-		System.out.println( "5 EMA: " + ema);
-		ema = exponentialMovingAverageService.calculate(ohlcvList, 5).get(ohlcvList.size()-1);
-		System.out.println( "5 EMAn: " + ema);
-
-		ema = this.calculate(ohlcvList, 10);
-		System.out.println( "10 EMA: " + ema);
-
-		ema = this.calculate(ohlcvList, 12);
-		System.out.println( "12 EMA: " + ema);
-
-		ema = this.calculate(ohlcvList, 20);
-		System.out.println( "20 EMA: " + ema);
-
-		ema = this.calculate(ohlcvList, 26);
-		System.out.println( "26 EMA: " + ema);
-
-		List<MovingAverageConvergenceDivergence> movingAverageConvergenceDivergenceList =  movingAverageConvergenceDivergenceService.calculate(ohlcvList);
-
-		movingAverageConvergenceDivergenceList.forEach(m -> {
-			System.out.println(m);
-		});
-
-		List<AverageDirectionalIndex> averageDirectionalIndexList =  averageDirectionalIndexService.calculate(ohlcvList);
-
-		averageDirectionalIndexList.forEach(m -> {
-			System.out.println(m);
-		});
-
-		AverageDirectionalIndex prevAverageDirectionalIndex =  new AverageDirectionalIndex(7.843693101984988, 2.132895110207555, 2.0239300105933364, 27.192485510018077, 25.80327894370503, 2.6213539527788625, 23.74);
-
-		AverageDirectionalIndex averageDirectionalIndex = averageDirectionalIndexService.calculate(ohlcvParam, prevAverageDirectionalIndex);
-
-		System.out.println("New " + averageDirectionalIndex);
-
-		StockPrice sp = new StockPrice();
-		sp.setNseSymbol("TEST");
-		sp.setBhavDate(LocalDate.now().atStartOfDay().toInstant(ZoneOffset.UTC));
-		sp.setClose(123.90);
-
-		priceTemplate.upsert(sp);
-
-		long count = priceTemplate.count("HAVELLS");
-
-		System.out.println(count);
-		*/
-	}
-
-	private List<OHLCV> map(MCResult ohlc){
-
-		long startTime = System.currentTimeMillis();
-
-		List<OHLCV> ohlcvList = new ArrayList<>();
-
-		List<Long>  dates = ohlc.getT();
-
-		List<Double> opens = ohlc.getO();
-
-		List<Double> highs = ohlc.getH();
-
-		List<Double> lows = ohlc.getL();
-
-		List<Double> closes = ohlc.getC();
-
-		List<Long> volumes = ohlc.getV();
-
-		for(int i=0; i < dates.size(); i++){
-
-			OHLCV ohlcv = new OHLCV(Instant.ofEpochSecond(dates.get(i)), opens.get(i), highs.get(i), lows.get(i), closes.get(i), volumes.get(i));
-
-			ohlcvList.add(ohlcv);
-
-			System.out.println(ohlcv);
-		}
-		long endTime = System.currentTimeMillis();
-
-		System.out.println("Time took to map OHLCV " + (endTime - startTime) + "ms");
-
-		return ohlcvList;
-	}
-
-	private Double calculate(List<OHLCV> ohlcvList, int days){
-		long startTime = System.currentTimeMillis();
-
-		List<Double> emaList = new ArrayList<>(ohlcvList.size());
-
-		for(int i=0; i < ohlcvList.size(); i++){
-
-			if(i < days-1){
-				emaList.add(i, 0.00);
-			}else if(i == days-1){
-				double sma = this.calculateSimpleAverage(ohlcvList, days);
-				//System.out.println(sma);
-				//System.out.println(miscUtil.formatDouble(sma,"0000"));
-				//emaList.add(i, miscUtil.formatDouble(sma,"0000"));
-				emaList.add(i, sma);
-			}else{
-
-				//System.out.println("i " + i );
-				//System.out.println(ohlcvList.get(i).getClose() );
-				//System.out.println(emaList.get(i-1) );
-				double ema=  formulaService.calculateEMA(ohlcvList.get(i).getClose(), emaList.get(i-1), days);
-				//System.out.println(ema);
-				//System.out.println(miscUtil.formatDouble(ema,"0000"));
-				emaList.add(i, miscUtil.formatDouble(ema,"0000"));
-				emaList.add(i, ema);
-			}
-
-		}
-
-		long endTime = System.currentTimeMillis();
-
-		System.out.println("Time took to calculate EMA " + (endTime - startTime) + "ms");
-		return emaList.get(ohlcvList.size()-1);
-	}
-
-	private double calculateSimpleAverage(List<OHLCV> ohlcvList, int days){
-
-		double sum = 0.00;
-
-		for(int i =0; i < days; i++){
-			sum = sum + ohlcvList.get(i).getClose();
-		}
-
-		return sum / days;
-	}
-
-/*
-	private RelativeStrengthIndex calculate(MCResult ohlc){
-
-		long startTime = System.currentTimeMillis();
-
-		List<Long> times = ohlc.getT();
-
-		List<Long> volumes = ohlc.getV();
-
-		List<Double> opens = ohlc.getO();
-
-		List<Double> highs = ohlc.getH();
-
-		List<Double> lows = ohlc.getL();
-
-		List<Double> closes = ohlc.getC();
-
-		List<Double> upMoves = new ArrayList<>(times.size());
-
-		List<Double> downMoves = new ArrayList<>(times.size());
-
-		List<Double> avgUp = new ArrayList<>(times.size());
-
-		List<Double> avgDown = new ArrayList<>(times.size());
-		List<Double> rsList = new ArrayList<>(times.size());
-		List<Double> rsiList = new ArrayList<>(times.size());
-
-		upMoves.add(0, 0.00);
-		downMoves.add(0, 0.00);
-		//double avgUp = 0.00;
-		for(int i=0; i < times.size(); i++){
-
-			Instant instant = Instant.ofEpochSecond(times.get(i));
-			LocalDateTime localDateTime =
-					LocalDateTime.ofInstant(instant, ZoneId.of("UTC"));
-
-			System.out.println(localDateTime+","+opens.get(i)+","+highs.get(i)+","+lows.get(i)+","+closes.get(i));
-			avgUp.add(i, 0.00);
-			avgDown.add(i, 0.00);
-			rsList.add(i, 0.00);
-			rsiList.add(i, 0.00);
-			if(i>0) {
-
-				double upMove = (closes.get(i) - closes.get(i-1) ) > 0 ? (closes.get(i) - closes.get(i-1) ) : 0;
-				double downMove = (closes.get(i-1) - closes.get(i) ) > 0 ? (closes.get(i-1) - closes.get(i) ) : 0;
-
-				System.out.println("Upmove: " +upMove +" DownMove: "+downMove);
-				upMoves.add(i, upMove);
-				downMoves.add(i, downMove);
-				if(i==14){
-					double sumU=0.00;
-					double sumD=0.00;
-					for(int j=1; j<=14; j++){
-
-						//System.out.println(upMoves.get(j));
-						sumU = sumU + upMoves.get(j);
-						sumD = sumD + downMoves.get(j);
-					}
-					avgUp.add(i, sumU/14);
-					avgDown.add(i, sumD/14);
-					double rs = avgUp.get(i) / avgDown.get(i);
-					double rsi = formulaService.calculateRsi(rs);
-					rsList.add(i, rs);
-					rsiList.add(i, rsi);
-
-				}else{
-					//double avgUpc = ((avgUp.get(i-1) * 13 ) + upMoves.get(i)) / 14;
-					double avgUpc = formulaService.calculateSmoothedMovingAverage(avgUp.get(i-1), upMoves.get(i), 14);
-					//double avgDownc = ((avgDown.get(i-1) * 13 ) + downMoves.get(i)) / 14;
-					double avgDownc = formulaService.calculateSmoothedMovingAverage(avgDown.get(i-1), downMoves.get(i), 14);
-
-					avgUp.add(i, avgUpc);
-					avgDown.add(i, avgDownc);
-
-					double rs = avgUp.get(i) / avgDown.get(i);
-					double rsi = formulaService.calculateRsi(rs);
-					rsList.add(i, rs);
-					rsiList.add(i, rsi);
-				}
-				System.out.println("AvgUp: " +avgUp.get(i) +" AvgUp: "+avgDown.get(i)+" rs: "+ rsList.get(i)+" rsi: "+miscUtil.formatDouble(rsiList.get(i)));
-
-			}
-
-		}
-
-		long endTime = System.currentTimeMillis();
-
-		System.out.println("Time took to calculate RSI " + (endTime - startTime)+"ms");
-		int resultIndex= times.size() -1;
-
-		return new RelativeStrengthIndex(upMoves.get(resultIndex), downMoves.get(resultIndex), avgUp.get(resultIndex), avgDown.get(resultIndex),rsList.get(resultIndex), rsiList.get(resultIndex) );
-	}
-
-	private RelativeStrengthIndex calculate2(List<OHLCV> ohlcvList){
-
-		long startTime = System.currentTimeMillis();
-
-		List<Double> upMoves = new ArrayList<>(ohlcvList.size());
-		List<Double> downMoves = new ArrayList<>(ohlcvList.size());
-		List<Double> avgUp = new ArrayList<>(ohlcvList.size());
-		List<Double> avgDown = new ArrayList<>(ohlcvList.size());
-		List<Double> rsList = new ArrayList<>(ohlcvList.size());
-		List<Double> rsiList = new ArrayList<>(ohlcvList.size());
-
-		upMoves.add(0, 0.00);
-		downMoves.add(0, 0.00);
-
-		for(int i=0; i < ohlcvList.size(); i++){
-			LocalDateTime localDateTime =
-					LocalDateTime.ofInstant(ohlcvList.get(i).getBhavDate(), ZoneId.of("UTC"));
-
-			avgUp.add(i, 0.00);
-			avgDown.add(i, 0.00);
-			rsList.add(i, 0.00);
-			rsiList.add(i, 0.00);
-
-			if(i>0) {
-
-				double upMove = (ohlcvList.get(i).getClose() - ohlcvList.get(i-1).getClose() ) > 0 ? (ohlcvList.get(i).getClose() - ohlcvList.get(i-1).getClose() ) : 0;
-				double downMove = (ohlcvList.get(i-1).getClose() - ohlcvList.get(i).getClose() ) > 0 ? (ohlcvList.get(i-1).getClose() - ohlcvList.get(i).getClose() ) : 0;
-
-				upMoves.add(i, upMove);
-				downMoves.add(i, downMove);
-
-				if(i==14){
-
-					double sumU=0.00;
-					double sumD=0.00;
-					for(int j=1; j<=14; j++){
-
-						sumU = sumU + upMoves.get(j);
-						sumD = sumD + downMoves.get(j);
-					}
-					avgUp.add(i, sumU/14);
-					avgDown.add(i, sumD/14);
-					double rs = avgUp.get(i) / avgDown.get(i);
-					double rsi = formulaService.calculateRsi(rs);
-					rsList.add(i, rs);
-					rsiList.add(i, rsi);
-
-				}else{
-
-					double avgUpc = formulaService.calculateSmoothedMovingAverage(avgUp.get(i-1), upMoves.get(i), 14);
-
-					double avgDownc = formulaService.calculateSmoothedMovingAverage(avgDown.get(i-1), downMoves.get(i), 14);
-
-					avgUp.add(i, avgUpc);
-					avgDown.add(i, avgDownc);
-
-					double rs = avgUp.get(i) / avgDown.get(i);
-					double rsi = formulaService.calculateRsi(rs);
-					rsList.add(i, rs);
-					rsiList.add(i, rsi);
-				}
-				//System.out.println("AvgUp: " +avgUp.get(i) +" AvgUp: "+avgDown.get(i)+" rs: "+ rsList.get(i)+" rsi: "+miscUtil.formatDouble(rsiList.get(i)));
-
-			}
-
-		}
-
-		long endTime = System.currentTimeMillis();
-
-		System.out.println("Time took to calculate RSI " + (endTime - startTime)+"ms");
-		int resultIndex= ohlcvList.size() -1;
-
-		return new RelativeStrengthIndex(upMoves.get(resultIndex), downMoves.get(resultIndex), avgUp.get(resultIndex), avgDown.get(resultIndex),rsList.get(resultIndex), rsiList.get(resultIndex) );
-	}
-	*/
 
 	private void testDownLoad() {
 		String referrerURI = fileNameService.getNSEBhavReferrerURI(LocalDate.now().minusDays(3));

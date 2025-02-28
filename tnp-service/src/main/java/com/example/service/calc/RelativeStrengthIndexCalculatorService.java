@@ -1,6 +1,6 @@
 package com.example.service.calc;
 
-import com.example.storage.model.OHLCV;
+import com.example.dto.OHLCV;
 import com.example.storage.model.RelativeStrengthIndex;
 
 import java.util.List;

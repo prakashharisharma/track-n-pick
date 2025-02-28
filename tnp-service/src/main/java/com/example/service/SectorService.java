@@ -131,7 +131,7 @@ public Sector add(String sectorName) {
 			try {
 				Set<Stock> stocks = sector.getStocks();
 
-				List<Stock> activeStockList = stocks.stream().filter(stock -> (stock.isActive() && fundamentalResearchService.isPriceInRange(stock))).collect(Collectors.toList());
+				List<Stock> activeStockList = stocks.stream().filter(stock -> (stock.isActive() && stock.getFactor()!=null)).collect(Collectors.toList());
 
 				avgCmp = activeStockList.stream().map(stock -> stock.getStockPrice()).mapToDouble(sp -> sp.getCurrentPrice()).average().orElse(0.00);
 
@@ -139,25 +139,25 @@ public Sector add(String sectorName) {
 
 				//System.out.println("AVERAGE_CMP : " + avgCmp);
 
-				avgEps = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getEps()).average().orElse(0.00);
+				avgEps = activeStockList.stream().map(stock -> stock.getFactor()).mapToDouble(sf -> sf.getEps()).average().orElse(0.00);
 
 				//System.out.println("AVERAGE_EPS : " + avgEps);
 
 				sectorPe = formulaService.calculatePe(avgCmp, avgEps);
 
-				variationPe = formulaService.calculatePercentage(sectorPe, 5);
+				variationPe = formulaService.calculateFraction(sectorPe, 5);
 
 				//System.out.println(sector.getSectorName() + " : PE : " + sectorPe);
 
-				avgBookValue = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getBookValue()).average().orElse(0.00);
+				avgBookValue = activeStockList.stream().map(stock -> stock.getFactor()).mapToDouble(sf -> sf.getBookValue()).average().orElse(0.00);
 
 				//System.out.println("AVERAGE_BV : " + avgBookValue);
 
 				sectorPb = formulaService.calculatePb(avgCmp, avgBookValue);
 
-				variationPb = formulaService.calculatePercentage(sectorPb, 10);
+				variationPb = formulaService.calculateFraction(sectorPb, 10);
 
-				sectorCurrentRatio = activeStockList.stream().map(stock -> stock.getStockFactor()).mapToDouble(sf -> sf.getCurrentRatio()).average().orElse(0.00);
+				sectorCurrentRatio = activeStockList.stream().map(stock -> stock.getFactor()).mapToDouble(sf -> sf.getCurrentRatio()).average().orElse(0.00);
 
 				//System.out.println(sector.getSectorName() + " : PB : " + sectorPb);
 

@@ -29,6 +29,9 @@ public class UpdateBhavProcessor implements Processor {
 	private static Set<String> ignoreSet = new HashSet<>();
 
 	static {
+		ignoreSet.add("NEXT30ADD");
+		ignoreSet.add("GROWWRAIL");
+		ignoreSet.add("UNIONGOLD");
 		ignoreSet.add("BFSI");
 		ignoreSet.add("MOQUALITY");
 		ignoreSet.add("QGOLDHALF");

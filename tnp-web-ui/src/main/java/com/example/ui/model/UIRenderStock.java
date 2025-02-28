@@ -147,8 +147,8 @@ public class UIRenderStock {
 		this.indice = researchLedger.getStock().getPrimaryIndice();
 		this.pe = pe;
 		this.pb = pb;
-		this.debtEquity = researchLedger.getStock().getStockFactor().getDebtEquity();
-		this.roe = researchLedger.getStock().getStockFactor().getReturnOnEquity();
+		this.debtEquity = researchLedger.getStock().getFactor().getDebtEquity();
+		this.roe = researchLedger.getStock().getFactor().getReturnOnEquity();
 
 		this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
 		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
@@ -170,8 +170,8 @@ public class UIRenderStock {
 		this.indice = researchLedger.getStock().getPrimaryIndice();
 		this.pe = pe;
 		this.pb = pb;
-		this.debtEquity = researchLedger.getStock().getStockFactor().getDebtEquity();
-		this.roe = researchLedger.getStock().getStockFactor().getReturnOnEquity();
+		this.debtEquity = researchLedger.getStock().getFactor().getDebtEquity();
+		this.roe = researchLedger.getStock().getFactor().getReturnOnEquity();
 
 		this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
 		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();
@@ -195,9 +195,9 @@ public class UIRenderStock {
 		this.indice = researchLedger.getStock().getPrimaryIndice();
 		this.pe = pe;
 		this.pb = pb;
-		this.debtEquity = researchLedger.getStock().getStockFactor().getDebtEquity();
-		this.roe = researchLedger.getStock().getStockFactor().getReturnOnEquity();
-		this.roc = researchLedger.getStock().getStockFactor().getReturnOnCapital();
+		this.debtEquity = researchLedger.getStock().getFactor().getDebtEquity();
+		this.roe = researchLedger.getStock().getFactor().getReturnOnEquity();
+		this.roc = researchLedger.getStock().getFactor().getReturnOnCapital();
 		this.sectorPe = sectorPe;
 		this.sectorPb = sectorPb;
 		this.bullish = isBullish;
@@ -219,8 +219,8 @@ public class UIRenderStock {
 		this.indice = researchLedger.getStock().getPrimaryIndice();
 		this.pe = pe;
 		this.pb = pb;
-		this.debtEquity = researchLedger.getStock().getStockFactor().getDebtEquity();
-		this.roe = researchLedger.getStock().getStockFactor().getReturnOnEquity();
+		this.debtEquity = researchLedger.getStock().getFactor().getDebtEquity();
+		this.roe = researchLedger.getStock().getFactor().getReturnOnEquity();
 
 		this.sma50 = researchLedger.getStock().getTechnicals().getSma50();
 		this.sma200 = researchLedger.getStock().getTechnicals().getSma200();

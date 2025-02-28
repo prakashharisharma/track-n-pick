@@ -32,4 +32,6 @@ public class SupportAndResistanceUtil {
     public static double thirdSupport(double pivotPoint,double high, double low){
         return low - 2 * (high - pivotPoint);
     }
+
+
 }

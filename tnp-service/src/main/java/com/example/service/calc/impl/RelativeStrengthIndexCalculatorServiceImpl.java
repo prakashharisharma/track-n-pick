@@ -1,7 +1,7 @@
 package com.example.service.calc.impl;
 
+import com.example.dto.OHLCV;
 import com.example.service.calc.RelativeStrengthIndexCalculatorService;
-import com.example.storage.model.OHLCV;
 import com.example.storage.model.RelativeStrengthIndex;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
@@ -106,7 +106,7 @@ public class RelativeStrengthIndexCalculatorServiceImpl implements RelativeStren
     @Override
     public RelativeStrengthIndex calculate(List<OHLCV> ohlcvList, RelativeStrengthIndex prevRelativeStrengthIndex) {
 
-        if(ohlcvList.size()!=2){
+        if(ohlcvList.size() < 2){
             throw new IllegalArgumentException("Invalid OHLCV list, Please pass ohlcvList[0] - prevDay and ohlcvList[1] - currentDay");
         }
 

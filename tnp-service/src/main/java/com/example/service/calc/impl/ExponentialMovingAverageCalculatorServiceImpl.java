@@ -1,7 +1,7 @@
 package com.example.service.calc.impl;
 
+import com.example.dto.OHLCV;
 import com.example.service.calc.ExponentialMovingAverageCalculatorService;
-import com.example.storage.model.OHLCV;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +24,6 @@ public class ExponentialMovingAverageCalculatorServiceImpl implements Exponentia
     @Override
     public List<Double> calculate(List<OHLCV> ohlcvList, int days){
 
-        long startTime = System.currentTimeMillis();
-
         List<Double> emaList = new ArrayList<>(ohlcvList.size());
 
         for(int i=0; i < ohlcvList.size(); i++){
@@ -41,10 +39,6 @@ public class ExponentialMovingAverageCalculatorServiceImpl implements Exponentia
             }
 
         }
-
-        long endTime = System.currentTimeMillis();
-
-        log.info("Time took to calculate EMA {}ms",(endTime - startTime));
 
         return emaList;
     }

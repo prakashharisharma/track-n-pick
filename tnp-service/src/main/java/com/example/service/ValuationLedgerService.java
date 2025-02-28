@@ -59,11 +59,11 @@ public class ValuationLedgerService {
 			
 			valuationLedger.setPrice(stock.getStockPrice().getHigh());
 
-			valuationLedger.setCurrentRatio(stock.getStockFactor().getCurrentRatio());
+			valuationLedger.setCurrentRatio(stock.getFactor().getCurrentRatio());
 			
-			valuationLedger.setDebtEquity(stock.getStockFactor().getDebtEquity());
+			valuationLedger.setDebtEquity(stock.getFactor().getDebtEquity());
 			
-			valuationLedger.setDividend(stock.getStockFactor().getDividend());
+			valuationLedger.setDividend(stock.getFactor().getDividend());
 			
 			valuationLedger.setSectorPb(stock.getSector().getSectorPb());
 			
@@ -108,11 +108,11 @@ public class ValuationLedgerService {
 			
 			valuationLedger.setPrice(stock.getStockPrice().getCurrentPrice());
 
-			valuationLedger.setCurrentRatio(stock.getStockFactor().getCurrentRatio());
+			valuationLedger.setCurrentRatio(stock.getFactor().getCurrentRatio());
 			
-			valuationLedger.setDebtEquity(stock.getStockFactor().getDebtEquity());
+			valuationLedger.setDebtEquity(stock.getFactor().getDebtEquity());
 			
-			valuationLedger.setDividend(stock.getStockFactor().getDividend());
+			valuationLedger.setDividend(stock.getFactor().getDividend());
 			
 			valuationLedger.setSectorPb(stock.getSector().getSectorPb());
 			

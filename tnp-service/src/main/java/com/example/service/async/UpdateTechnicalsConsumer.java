@@ -7,9 +7,11 @@ import java.util.List;
 import javax.jms.Message;
 import javax.jms.Session;
 
+import com.example.dto.OHLCV;
 import com.example.service.*;
 import com.example.service.calc.AverageDirectionalIndexCalculatorService;
 import com.example.service.calc.ExponentialMovingAverageCalculatorService;
+import com.example.service.calc.MovingAverageConvergenceDivergenceService;
 import com.example.service.calc.RelativeStrengthIndexCalculatorService;
 import com.example.storage.model.*;
 import com.example.storage.model.assembler.StockPriceOHLCVAssembler;
@@ -149,7 +151,6 @@ public class UpdateTechnicalsConsumer {
 
 		updateTechnicalsService.updateTechnicals(stockPriceIO);
 
-
 	}
 
 	public void updateTechnicalsHistory(StockPriceIO stockPriceIO){
@@ -201,6 +202,8 @@ public class UpdateTechnicalsConsumer {
 
 		Volume volume = this.build(nseSymbol, ohlcvList, prevStockTechnicals.getVolume(), tradingDays);
 
+		//OnBalanceVolume onBalanceVolume = this.build(nseSymbol, ohlcvList, prevStockTechnicals.getObv(), tradingDays);
+
 		SimpleMovingAverage sma = this.build(nseSymbol, ohlcvList, prevStockTechnicals.getSma(), tradingDays);
 
 		ExponentialMovingAverage ema = this.build(nseSymbol, ohlcvList,prevStockTechnicals.getEma(), tradingDays);
@@ -211,7 +214,7 @@ public class UpdateTechnicalsConsumer {
 
 		MovingAverageConvergenceDivergence macd = this.build(nseSymbol, ohlcvList, prevStockTechnicals.getMacd(), tradingDays);
 
-		return new StockTechnicals(nseSymbol, stockPriceIO.getBhavDate(), volume,  sma, ema, adx, rsi, macd);
+		return new StockTechnicals(nseSymbol, stockPriceIO.getBhavDate(), volume, null,  sma, ema, adx, rsi, macd);
 		//return new StockTechnicals(nseSymbol, stockPriceIO.getBhavDate(), volume,  sma, ema);
 	}
 
@@ -222,7 +225,7 @@ public class UpdateTechnicalsConsumer {
 		stockTechnicals.setBhavDate(stockPriceIO.getBhavDate());
 		stockTechnicals.setNseSymbol(stockPriceIO.getNseSymbol());
 
-		Volume volume = new Volume(stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdqty());
+		Volume volume = new Volume(stockPriceIO.getTottrdqty(),stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdqty(), stockPriceIO.getTottrdqty());
 		stockTechnicals.setVolume(volume);
 
 
@@ -269,10 +272,11 @@ public class UpdateTechnicalsConsumer {
 
 		Long avgVolume5 = technicalsTemplate.getAverageVolume(nseSymbol, 5);
 
+		Long avgVolume20 = technicalsTemplate.getAverageVolume(nseSymbol, 20);
 		Long avgVolume30 = technicalsTemplate.getAverageVolume(nseSymbol, 30);
 
 		//avgVolume5 = formulaService.calculateSmoothedMovingAverage(avgVolume5, ohlcv.getVolume(), 5);
-		return new Volume(ohlcv.getVolume(), avgVolume5, avgVolume30);
+		return new Volume(ohlcv.getVolume(), avgVolume5,avgVolume20, avgVolume30);
 	}
 
 private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, SimpleMovingAverage prevSimpleMovingAverage, long tradingDays){
@@ -384,57 +388,6 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 		return currentLoss;
 	}
 
-	private RSI getRSI(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals) {
-
-		log.info("{} Calculating RSI.", stockPriceIO.getNseSymbol());
-
-		double currentAverageGain = priceTemplate.getAverageGain(stockPriceIO.getNseSymbol(), 14);
-
-		double currentAverageLoss = priceTemplate.getAverageLoss(stockPriceIO.getNseSymbol(), 14);
-
-		double rs = formulaService.calculateRs(currentAverageGain, currentAverageLoss);
-
-		double rsi = formulaService.calculateRsi(rs);
-
-		double currentGain = this.getCurrentGain(stockPriceIO);
-
-		double currentLoss = this.getCurrentLoss(stockPriceIO);
-
-		double prevAverageGain = 0.00;
-		double prevAverageLoss = 0.00;
-
-		if (prevStockTechnicals != null) {
-			if (prevStockTechnicals.getMomentum() != null) {
-				if (prevStockTechnicals.getMomentum().getRsi() != null) {
-
-					prevAverageGain = prevStockTechnicals.getMomentum().getRsi().getAvgGain() != null
-							? prevStockTechnicals.getMomentum().getRsi().getAvgGain()
-							: 0.00;
-					prevAverageLoss = prevStockTechnicals.getMomentum().getRsi().getAvgLoss() != null
-							? prevStockTechnicals.getMomentum().getRsi().getAvgLoss()
-							: 0.00;
-				}
-			}
-		}
-
-		double smoothedRs = formulaService.calculateSmoothedRs(prevAverageGain, prevAverageLoss, currentGain,
-				currentLoss);
-
-		double smoothedRsi = formulaService.calculateSmoothedRsi(smoothedRs);
-
-		RSI rsiObj = new RSI(rs, rsi, smoothedRs, smoothedRsi, currentAverageGain, currentAverageLoss);
-
-		log.info("{} Calculated RSI {} ", stockPriceIO.getNseSymbol(), rsi);
-
-		double avg3 = technicalsTemplate.getAverageRsi(stockPriceIO.getNseSymbol(), 2);
-
-		avg3 = formulaService.calculateSmoothedMovingAverage(avg3, smoothedRsi, 3);
-
-		rsiObj.setAvg3(avg3);
-
-		return rsiObj;
-	}
-
 	private StochasticOscillator getStochasticOscillator(StockPriceIO stockPriceIO,
 														 StockTechnicals prevStockTechnicals) {
 
@@ -463,88 +416,6 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 		return stochasticOscillator;
 	}
 
-	private MovingAverage getMovingAverage(StockPriceIO stockPriceIO, StockTechnicals prevStockTechnicals) {
-
-		log.info("{} Calculating moving average.", stockPriceIO.getNseSymbol());
-
-		double close = stockPriceIO.getClose();
-
-		double sma5 = priceTemplate.getAveragePrice(stockPriceIO.getNseSymbol(), close, 5);
-
-		double sma10 = priceTemplate.getAveragePrice(stockPriceIO.getNseSymbol(), close, 10);
-
-		double sma20 = priceTemplate.getAveragePrice(stockPriceIO.getNseSymbol(), close, 20);
-
-		double sma50 = priceTemplate.getAveragePrice(stockPriceIO.getNseSymbol(), close, 50);
-
-		double sma100 = priceTemplate.getAveragePrice(stockPriceIO.getNseSymbol(), close, 100);
-
-		double sma200 = priceTemplate.getAveragePrice(stockPriceIO.getNseSymbol(),close, 200);
-
-		SimpleMovingAverage simple = new SimpleMovingAverage(sma5, sma10, sma20, sma50, sma100, sma200);
-
-
-		double prevEma5 = close;
-		double prevEma10 = close;
-		double prevEma12 = close;
-		double prevEma20 = close;
-		double prevEma26 = close;
-		double prevEma50 = close;
-		double prevEma100 = close;
-		double prevEma200 = close;
-
-		if (prevStockTechnicals != null) {
-
-			if (prevStockTechnicals.getTrend() != null) {
-				if (prevStockTechnicals.getTrend().getMovingAverage() != null) {
-					if (prevStockTechnicals.getTrend().getMovingAverage().getExponential() != null) {
-
-						Double avg5 = prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg5();
-						Double avg10 = prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg10();
-						Double avg12 = prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg12();
-						Double avg20 = prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg20();
-						Double avg26 = prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg26();
-						Double avg50 = prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg50();
-						Double avg100 = prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg100();
-						Double avg200 = prevStockTechnicals.getTrend().getMovingAverage().getExponential().getAvg200();
-
-						prevEma5 = avg5 != null ? avg5 : close;
-
-						prevEma10 = avg10 != null ? avg10 : close;
-						prevEma12 = avg12 != null ? avg12 : close;
-						prevEma20 = avg20 != null ? avg20 : close;
-						prevEma26 = avg26 != null ? avg26 : close;
-						prevEma50 = avg50 != null ? avg50 : close;
-						prevEma100 = avg100 != null ? avg100 : close;
-						prevEma200 = avg200 != null ? avg200 : close;
-					}
-				}
-			}
-		}
-
-		double ema5 = formulaService.calculateEMA(close, prevEma5, 5);
-
-		double ema10 = formulaService.calculateEMA(close, prevEma10, 10);
-		double ema12 = formulaService.calculateEMA(close, prevEma12, 12);
-		double ema20 = formulaService.calculateEMA(close, prevEma20, 20);
-		double ema26 = formulaService.calculateEMA(close, prevEma26, 26);
-		double ema50 = formulaService.calculateEMA(close, prevEma50, 50);
-
-		double ema100 = formulaService.calculateEMA(close, prevEma100, 100);
-
-		double ema200 = formulaService.calculateEMA(close, prevEma200, 200);
-
-		ExponentialMovingAverage exponential = new ExponentialMovingAverage(ema5, ema10, ema20, ema50, ema100, ema200);
-
-		exponential.setAvg12(ema12);
-		exponential.setAvg26(ema26);
-
-		MovingAverage movingAverage = new MovingAverage(simple, exponential);
-
-		log.info("{} Calculated moving average.", stockPriceIO.getNseSymbol());
-
-		return movingAverage;
-	}
 
 
 	private StockTechnicalsIO createStockTechnicalsIO(StockPriceIO stockPriceIO, StockTechnicals stockTechnicals) {
@@ -577,8 +448,9 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 		stockTechnicalsIO.setRsi(stockTechnicals.getRsi().getRsi());
 
 		stockTechnicalsIO.setVolume(stockTechnicals.getVolume().getVolume());
-		stockTechnicalsIO.setWeeklyVolume(stockTechnicals.getVolume().getWeeklyAverage());
-		stockTechnicalsIO.setMonthlyyVolume(stockTechnicals.getVolume().getMonthlyAverage());
+		stockTechnicalsIO.setVolumeAvg5(stockTechnicals.getVolume().getAvg5());
+		stockTechnicalsIO.setVolumeAvg20(stockTechnicals.getVolume().getAvg20());
+		stockTechnicalsIO.setVolumeAvg50(stockTechnicals.getVolume().getAvg50());
 
 		return stockTechnicalsIO;
 	}
@@ -664,10 +536,15 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 			stockTechnicalsTxn.setSignal(stockTechnicalsIO.getSignal());
 
 
-			stockTechnicalsTxn.setPrevVolume(stockTechnicalsTxn.getVolume());
+			stockTechnicalsTxn.setVolumePrev(stockTechnicalsTxn.getVolume());
+			stockTechnicalsTxn.setVolumeAvg5Prev(stockTechnicalsTxn.getVolumeAvg5());
+			stockTechnicalsTxn.setVolumeAvg20Prev(stockTechnicalsTxn.getVolumeAvg20());
+			stockTechnicalsTxn.setVolumeAvg50Prev(stockTechnicalsTxn.getVolumeAvg50());
+
 			stockTechnicalsTxn.setVolume(stockTechnicalsIO.getVolume());
-			stockTechnicalsTxn.setWeeklyVolume(stockTechnicalsIO.getWeeklyVolume());
-			stockTechnicalsTxn.setMonthlyVolume(stockTechnicalsIO.getMonthlyyVolume());
+			stockTechnicalsTxn.setVolumeAvg5(stockTechnicalsIO.getVolumeAvg5());
+			stockTechnicalsTxn.setVolumeAvg20(stockTechnicalsIO.getVolumeAvg20());
+			stockTechnicalsTxn.setVolumeAvg50(stockTechnicalsIO.getVolumeAvg50());
 
 
 			stockTechnicalsTxn.setPrevPivotPoint(stockTechnicalsTxn.getPivotPoint());

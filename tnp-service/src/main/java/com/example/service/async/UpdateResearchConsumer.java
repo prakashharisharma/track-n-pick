@@ -61,6 +61,7 @@ public class UpdateResearchConsumer {
 		try {
 			Stock stock = stockService.getStockByNseSymbol(researchIO.getNseSymbol());
 
+
 			if (researchIO.getResearchType() == ResearchType.FUNDAMENTAL) {
 
 				this.researchFundamental(stock);

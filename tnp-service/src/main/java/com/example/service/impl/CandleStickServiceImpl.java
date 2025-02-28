@@ -1,9 +1,10 @@
 package com.example.service.impl;
 
-import com.example.model.ledger.BreakoutLedger;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockPrice;
 import com.example.service.CandleStickService;
+import com.example.service.util.StockPriceUtil;
+import com.example.util.FibonacciRatio;
 import com.example.util.FormulaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +14,197 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CandleStickServiceImpl implements CandleStickService {
 
-    private static double DEFAULT_SELLING_WICK_PER = 20.0;
 
-    private static double DEFAULT_BUYING_WICK_PER = 60.0;
     @Autowired
     private FormulaService formulaService;
+
+    @Override
+    public boolean isDead(Stock stock) {
+
+        StockPrice stockPrice = stock.getStockPrice();
+        if(stockPrice.getOpen() == stockPrice.getHigh()){
+            if(stockPrice.getOpen() == stockPrice.getLow()){
+                if(stockPrice.getOpen() == stockPrice.getClose()){
+                    return Boolean.TRUE;
+                }
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public double upperWickSize(Stock stock) {
+
+        StockPrice stockPrice = stock.getStockPrice();
+        if(this.isGreen(stock)) {
+            return Math.abs(formulaService.calculateChangePercentage(stockPrice.getClose(), stockPrice.getHigh()));
+        }
+        return Math.abs(formulaService.calculateChangePercentage(stockPrice.getOpen(), stockPrice.getHigh()));
+    }
+
+    @Override
+    public double lowerWickSize(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+        if(this.isGreen(stock)) {
+            return Math.abs(formulaService.calculateChangePercentage(stockPrice.getOpen(), stockPrice.getLow()));
+        }
+
+        return Math.abs(formulaService.calculateChangePercentage(stockPrice.getClose(), stockPrice.getLow()));
+    }
+
+    @Override
+    public double body(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+        if(this.isGreen(stock)) {
+            return Math.abs(formulaService.calculateChangePercentage(stockPrice.getOpen(), stockPrice.getClose()));
+        }
+
+        return Math.abs(formulaService.calculateChangePercentage(stockPrice.getClose(), stockPrice.getOpen()));
+
+    }
+
+    @Override
+    public double bodyPrev(Stock stock) {
+
+        StockPrice stockPrice = stock.getStockPrice();;
+
+        return this.body(StockPriceUtil.buildStockPrice(stock.getNseSymbol(), stockPrice.getPrevOpen(), stockPrice.getPrevHigh(), stockPrice.getPrevLow(), stockPrice.getPrevClose()));
+    }
+
+    @Override
+    public double range(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+        return Math.abs(formulaService.calculateChangePercentage(stockPrice.getLow(), stockPrice.getHigh()));
+    }
+
+    @Override
+    public double rangePrev(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();;
+
+        return this.range(StockPriceUtil.buildStockPrice(stock.getNseSymbol(), stockPrice.getPrevOpen(), stockPrice.getPrevHigh(), stockPrice.getPrevLow(), stockPrice.getPrevClose()));
+    }
+
+    @Override
+    public boolean isCloseAbovePrevClose(Stock stock) {
+
+            return stock.getStockPrice().getClose() > stock.getStockPrice().getPrevClose();
+
+    }
+
+    @Override
+    public boolean isCloseBelowPrevClose(Stock stock) {
+
+            return stock.getStockPrice().getClose() < stock.getStockPrice().getPrevClose();
+
+    }
+
+    @Override
+    public boolean isOpenAbovePrevClose(Stock stock) {
+        return stock.getStockPrice().getOpen() > stock.getStockPrice().getPrevClose();
+    }
+
+    @Override
+    public boolean isOpenBelowPrevClose(Stock stock) {
+        return stock.getStockPrice().getOpen() < stock.getStockPrice().getPrevClose();
+    }
+
+    @Override
+    public boolean isOpenAtPrevOpen(Stock stock) {
+        return stock.getStockPrice().getOpen() == stock.getStockPrice().getPrevOpen();
+    }
+
+    @Override
+    public boolean isOpenAtPrevClose(Stock stock) {
+        return stock.getStockPrice().getOpen() == stock.getStockPrice().getPrevClose();
+    }
+
+    @Override
+    public boolean isOpenAbovePrevOpen(Stock stock) {
+        return stock.getStockPrice().getOpen() > stock.getStockPrice().getPrevOpen();
+    }
+
+    @Override
+    public boolean isOpenBelowPrevOpen(Stock stock) {
+        return stock.getStockPrice().getOpen() < stock.getStockPrice().getPrevOpen();
+    }
+
+    @Override
+    public boolean isCloseAbovePrevOpen(Stock stock) {
+        return stock.getStockPrice().getClose() > stock.getStockPrice().getPrevOpen();
+    }
+
+    @Override
+    public boolean isCloseBelowPrevOpen(Stock stock) {
+        return stock.getStockPrice().getClose() < stock.getStockPrice().getPrevOpen();
+    }
+
+    @Override
+    public boolean isOpenAndLowEqual(Stock stock) {
+        return stock.getStockPrice().getOpen() == stock.getStockPrice().getLow();
+    }
+
+    @Override
+    public boolean isOpenAndHighEqual(Stock stock) {
+        return stock.getStockPrice().getOpen() == stock.getStockPrice().getHigh();
+    }
+
+    @Override
+    public boolean isCloseAndLowEqual(Stock stock) {
+        return stock.getStockPrice().getClose() == stock.getStockPrice().getLow();
+    }
+
+    @Override
+    public boolean isCloseAndHighEqual(Stock stock) {
+        return stock.getStockPrice().getClose() == stock.getStockPrice().getHigh();
+    }
+
+    @Override
+    public boolean isCloseBelowPrevLow(Stock stock) {
+        return stock.getStockPrice().getClose() < stock.getStockPrice().getPrevLow();
+    }
+
+    @Override
+    public boolean isHigherHigh(Stock stock){
+        StockPrice stockPrice = stock.getStockPrice();
+
+        if(stockPrice.getHigh() > stockPrice.getPrevHigh()) {
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isHigherLow(Stock stock){
+        StockPrice stockPrice = stock.getStockPrice();
+        if (stockPrice.getLow() > stockPrice.getPrevLow()) {
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isLowerHigh(Stock stock){
+        StockPrice stockPrice = stock.getStockPrice();
+
+        if(stockPrice.getHigh() < stockPrice.getPrevHigh()) {
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isLowerLow(Stock stock){
+        StockPrice stockPrice = stock.getStockPrice();
+        if (stockPrice.getLow() < stockPrice.getPrevLow()) {
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
 
     @Override
     public boolean isSellingWickPresent(Stock stock) {
@@ -33,21 +220,20 @@ public class CandleStickServiceImpl implements CandleStickService {
             return Boolean.FALSE;
         }
 
-
-
-        double bodySize = stockPrice.getHigh() - stockPrice.getLow();
+        double bodySize = stockPrice.getHigh() - stockPrice.getOpen();
 
         double upperWickSize = stockPrice.getHigh() - stockPrice.getClose();
 
         if(this.isRed(stock)) {
+            bodySize = stockPrice.getHigh() - stockPrice.getClose();
             upperWickSize = stockPrice.getHigh() - stockPrice.getOpen();
         }
 
-        double highWickPerOfBody =  formulaService.calculatePercentRate(bodySize, upperWickSize);
+        double highWickPerOfBody =  formulaService.calculatePercentage(bodySize, upperWickSize);
 
-        log.info("{} -  {} upperWickSize, {} bodySize, {} sellingWick% {}", stock.getNseSymbol(), upperWickSize, bodySize, highWickPerOfBody);
+        //log.debug("{} -  {} upperWickSize, {} bodySize, {} sellingWick% {}", stock.getNseSymbol(), upperWickSize, bodySize, highWickPerOfBody);
 
-        if(Math.ceil(highWickPerOfBody) >= benchmark){
+        if(highWickPerOfBody >= benchmark){
             return Boolean.TRUE;
         }
 
@@ -57,13 +243,13 @@ public class CandleStickServiceImpl implements CandleStickService {
     @Override
     public boolean isSellingWickPresent(double open, double high, double low, double close, double benchmark) {
 
-        return this.isSellingWickPresent(this.buildStockPrice(open, high, low, close), benchmark);
+        return this.isSellingWickPresent(StockPriceUtil.buildStockPrice("NA",open, high, low, close), benchmark);
     }
 
     @Override
     public boolean isBuyingWickPresent(Stock stock) {
 
-        return this.isBuyingWickPresent(stock, DEFAULT_BUYING_WICK_PER);
+        return this.isBuyingWickPresent(stock, BUYING_WICK_PER);
 
     }
 
@@ -75,17 +261,18 @@ public class CandleStickServiceImpl implements CandleStickService {
             return Boolean.FALSE;
         }
 
-        double bodySize =  stockPrice.getHigh() - stockPrice.getLow();
+        double bodySize =  stockPrice.getClose() - stockPrice.getLow();
 
-        double lowerWickSize = stockPrice.getClose() - stockPrice.getLow();
+        double lowerWickSize = stockPrice.getOpen() - stockPrice.getLow();
 
-        if(this.isGreen(stock)) {
-            lowerWickSize = stockPrice.getOpen() - stockPrice.getLow();
+        if(this.isRed(stock)) {
+            bodySize =  stockPrice.getOpen() - stockPrice.getLow();
+            lowerWickSize = stockPrice.getClose() - stockPrice.getLow();
         }
 
 
-        double lowerWickPerOfBody =  formulaService.calculatePercentRate(bodySize, lowerWickSize);
-        log.info("{} -  {} lowerWickSize, {} bodySize, {} buyingWick% {}", stock.getNseSymbol(), lowerWickSize, bodySize, lowerWickPerOfBody);
+        double lowerWickPerOfBody =  formulaService.calculatePercentage(bodySize, lowerWickSize);
+        //log.debug("{} -  {} lowerWickSize, {} bodySize, {} buyingWick% {}", stock.getNseSymbol(), lowerWickSize, bodySize, lowerWickPerOfBody);
         if(Math.ceil(lowerWickPerOfBody) >= benchmark){
             return Boolean.TRUE;
         }
@@ -96,24 +283,9 @@ public class CandleStickServiceImpl implements CandleStickService {
     public boolean isBuyingWickPresent(double open, double high, double low, double close, double benchmark) {
 
 
-        return this.isBuyingWickPresent(this.buildStockPrice(open, high, low, close), benchmark);
+        return this.isBuyingWickPresent(StockPriceUtil.buildStockPrice("NA" ,open, high, low, close), benchmark);
     }
 
-    private Stock buildStockPrice(double open, double high, double low, double close){
-
-        StockPrice stockPrice = new StockPrice();
-
-        stockPrice.setOpen(open);
-        stockPrice.setHigh(high);
-        stockPrice.setLow(low);
-        stockPrice.setClose(close);
-
-        Stock stock = new Stock();
-        stock.setNseSymbol("NA");
-        stock.setStockPrice(stockPrice);
-
-        return stock;
-    }
 
     @Override
     public boolean isGreen(Stock stock) {
@@ -121,6 +293,69 @@ public class CandleStickServiceImpl implements CandleStickService {
         StockPrice stockPrice = stock.getStockPrice();
 
         if(stockPrice!=null && stockPrice.getOpen() < stockPrice.getClose()){
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isGapUp(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+        if(this.isOpenAbovePrevClose(stock) || this.isOpenAtPrevClose(stock)){
+           // if(this.isHigherHigh(stock) && this.isHigherLow(stock)){
+                //if(stockPrice.getLow() > stockPrice.getPrevClose()){
+                    return Boolean.TRUE;
+                //}
+            //}
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isGapDown(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+        if(this.isOpenBelowPrevClose(stock) || this.isOpenAtPrevClose(stock)){
+           // if(this.isLowerHigh(stock) && this.isLowerLow(stock)){
+                //if(stockPrice.getHigh() < stockPrice.getPrevOpen()){
+                    return Boolean.TRUE;
+                //}
+           // }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isRisingWindow(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+        if(this.isGreen(stock)) {
+            if (stockPrice.getLow() > stockPrice.getPrevHigh()) {
+                log.info("Rising window active {}", stock.getNseSymbol());
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isFallingWindow(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+        if(this.isRed(stock)) {
+            if (stockPrice.getHigh() < stockPrice.getPrevLow()) {
+                log.info("Falling window active {}", stock.getNseSymbol());
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isPreviousDayGreen(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+
+        if(stockPrice!=null && stockPrice.getPrevOpen() < stockPrice.getPrevClose()){
             return Boolean.TRUE;
         }
 
@@ -140,12 +375,10 @@ public class CandleStickServiceImpl implements CandleStickService {
     }
 
     @Override
-    public boolean isDoji(Stock stock) {
-
+    public boolean isPreviousDayRed(Stock stock) {
         StockPrice stockPrice = stock.getStockPrice();
 
-        if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getClose())){
-            log.info("Doji candle active {}", stock.getNseSymbol());
+        if(stockPrice!=null && stockPrice.getPrevOpen() > stockPrice.getPrevClose()){
             return Boolean.TRUE;
         }
 
@@ -153,14 +386,45 @@ public class CandleStickServiceImpl implements CandleStickService {
     }
 
     @Override
+    public boolean isDoji(Stock stock) {
+
+        StockPrice stockPrice = stock.getStockPrice();
+
+        if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getClose(), FibonacciRatio.RATIO_261_8)){
+            log.info("Doji candle active {}", stock.getNseSymbol());
+            if (this.upperWickSize(stock) <= this.lowerWickSize(stock) * 3) {
+            if (this.lowerWickSize(stock) <= this.upperWickSize(stock) * 3) {
+            if (this.upperWickSize(stock) >= this.body(stock) * 2) {
+              if (this.lowerWickSize(stock) >= this.body(stock) * 2) {
+            return Boolean.TRUE;
+                   }
+                 }
+               }
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isDojiPrev(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+
+        stock = StockPriceUtil.buildStockPrice(stock.getNseSymbol(),
+                stockPrice.getPrevOpen(), stockPrice.getPrevHigh(), stockPrice.getPrevLow(), stockPrice.getPrevClose());
+
+        return isDoji(stock);
+    }
+
+    @Override
     public boolean isGravestoneDoji(Stock stock) {
 
         StockPrice stockPrice = stock.getStockPrice();
 
-        if(this.isDoji(stock)){
-            if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getLow())){
-                log.info("GraveStone Doji candle active {}", stock.getNseSymbol());
-                return Boolean.TRUE;
+        if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getClose(), FibonacciRatio.RATIO_261_8)){
+            if(stockPrice.getOpen() == stockPrice.getLow()){
+                        log.info("GraveStone Doji candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
             }
         }
 
@@ -172,136 +436,280 @@ public class CandleStickServiceImpl implements CandleStickService {
 
         StockPrice stockPrice = stock.getStockPrice();
 
-        if(this.isDoji(stock)){
-            if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getHigh())){
-                log.info("GragonFly Doji candle active {}", stock.getNseSymbol());
+        if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getClose(), FibonacciRatio.RATIO_261_8)){
+            if(stockPrice.getOpen() == stockPrice.getHigh()){
+
+                                log.info("DragonFly Doji candle active {}", stock.getNseSymbol());
+
                 return Boolean.TRUE;
             }
         }
 
         return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBullishPinBar(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+
+
+        if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getClose(), FibonacciRatio.RATIO_261_8)){
+            if(this.lowerWickSize(stock) > this.upperWickSize(stock) * 3) {
+                log.info("Bullish PinBar candle active {}", stock.getNseSymbol());
+                return Boolean.TRUE;
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBearishPinBar(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+
+        if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getClose(), FibonacciRatio.RATIO_261_8)){
+            if(this.upperWickSize(stock) > this.lowerWickSize(stock) * 3) {
+                log.info("Bearish candle active {}", stock.getNseSymbol());
+                return Boolean.TRUE;
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isSpinningTop(Stock stock) {
+
+        double bodySize = this.body(stock);
+        if (bodySize > FibonacciRatio.RATIO_261_8 && bodySize <= MIN_BODY_SIZE) {
+            if (this.upperWickSize(stock) <= this.lowerWickSize(stock) * 3) {
+                if (this.lowerWickSize(stock) <= this.upperWickSize(stock) * 3) {
+                    if (this.upperWickSize(stock) >= this.body(stock) * 2) {
+                        if (this.lowerWickSize(stock) >= this.body(stock) * 2) {
+                            log.info("Spinning Top candle active {}", stock.getNseSymbol());
+                            return Boolean.TRUE;
+                        }
+                    }
+                }
+            }
+    }
+
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isSpinningTopPrev(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+
+        stock = StockPriceUtil.buildStockPrice(stock.getNseSymbol(),
+                stockPrice.getPrevOpen(), stockPrice.getPrevHigh(), stockPrice.getPrevLow(), stockPrice.getPrevClose());
+
+        return this.isSpinningTop(stock);
+    }
+
+    @Override
+    public boolean isInDecision(Stock stock) {
+        return this.isDoji(stock) || this.isSpinningTop(stock);
+    }
+
+    @Override
+    public boolean isInDecisionPrev(Stock stock) {
+        return this.isDojiPrev(stock) || this.isSpinningTopPrev(stock);
+    }
+
+    @Override
+    public boolean isInDecisionPrevConfirmationBullish(Stock stock) {
+        boolean isConfirmation = Boolean.FALSE;
+
+        if(this.isGreen(stock) && this.isInDecisionPrev(stock)){
+            if(!this.isInDecision(stock)) {
+                if (this.isHigherHigh(stock)) {
+                    if (this.isPreviousDayRed(stock) && this.isCloseAbovePrevOpen(stock)) {
+                        isConfirmation = Boolean.TRUE;
+                    } else if (this.isPreviousDayGreen(stock) && this.isCloseAbovePrevClose(stock)) {
+                        isConfirmation = Boolean.TRUE;
+                    }
+                } else if (this.isHammer(stock)) {
+                    isConfirmation = Boolean.TRUE;
+                }
+            }
+        }
+
+        if(isConfirmation){
+            log.info("Bullish Doji confirmed {}", stock.getNseSymbol());
+        }
+
+        return isConfirmation;
+    }
+
+    @Override
+    public boolean isInDecisionPrevConfirmationBearish(Stock stock) {
+        boolean isConfirmation = Boolean.FALSE;
+        //
+        if(this.isRed(stock) && this.isInDecisionPrev(stock)) {
+            if(!this.isInDecision(stock)) {
+                if (this.isLowerLow(stock)) {
+                    if (this.isPreviousDayRed(stock) && this.isCloseBelowPrevClose(stock)) {
+                        isConfirmation = Boolean.TRUE;
+                    } else if (this.isPreviousDayGreen(stock) && this.isCloseBelowPrevOpen(stock)) {
+                        isConfirmation = Boolean.TRUE;
+                    }
+                }else if (this.isShootingStar(stock)) {
+                    isConfirmation = Boolean.TRUE;
+                }
+            }
+        }
+
+        if(isConfirmation){
+            log.info("Bearish Doji confirmed {}", stock.getNseSymbol());
+        }
+
+        return isConfirmation;
     }
 
     @Override
     public boolean isHangingMan(Stock stock) {
 
-        StockPrice stockPrice = stock.getStockPrice();
-
-            double bodySize = 0.0;
-            double lowerWickSize = 0.0;
-            boolean upperWick = true;
-
-
-            if(this.isRed(stock)){
-                bodySize = stockPrice.getOpen() - stockPrice.getClose();
-                lowerWickSize = stockPrice.getClose() - stockPrice.getLow();
-                if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getHigh())){
-                    upperWick = false;
-                }
-            }else{
-                bodySize = stockPrice.getClose() - stockPrice.getOpen();
-                lowerWickSize = stockPrice.getOpen() - stockPrice.getLow();
-                if(formulaService.isEpsilonEqual(stockPrice.getClose(), stockPrice.getHigh())){
-                    upperWick = false;
+        double bodySize = this.body(stock);
+        if(this.lowerWickSize(stock) > bodySize * 3){
+            if (this.upperWickSize(stock) < bodySize) {
+                if (bodySize > FibonacciRatio.RATIO_261_8) {
+                    if (this.isGreen(stock) || (this.isRed(stock) && bodySize <= FibonacciRatio.RATIO_100_0 * 10)) {
+                        log.info("HangingMan / Hammer candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
                 }
             }
-
-
-            double bodyPerOfLowerWick =  formulaService.calculatePercentRate(bodySize+lowerWickSize, bodySize);
-
-            if(bodyPerOfLowerWick < 33.0 && !upperWick){
-                log.info("HangingMan / Hammer candle active {}", stock.getNseSymbol());
-                return Boolean.TRUE;
-            }
-
-
+        }
         return Boolean.FALSE;
     }
 
     @Override
     public boolean isHammer(Stock stock) {
-        return this.isHangingMan(stock);
+        //if(this.isPreviousDayRed(stock)) {
+            return this.isHangingMan(stock);
+        //}
+        //return Boolean.FALSE;
     }
 
     @Override
     public boolean isShootingStar(Stock stock) {
 
-        StockPrice stockPrice = stock.getStockPrice();
-
-        double bodySize = 0.0;
-        double upperWickSize = 0.0;
-        boolean lowerWick = true;
-
-
-        if(this.isRed(stock)){
-            bodySize = stockPrice.getOpen() - stockPrice.getClose();
-            upperWickSize = stockPrice.getHigh() - stockPrice.getOpen();
-            if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getLow())){
-                lowerWick = false;
-            }
-        }else{
-            bodySize = stockPrice.getClose() - stockPrice.getOpen();
-            upperWickSize = stockPrice.getHigh() - stockPrice.getClose();
-            if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getLow())){
-                lowerWick = false;
-            }
+        double bodySize = this.body(stock);
+        if(this.upperWickSize(stock) > bodySize * 3) {
+            if (this.lowerWickSize(stock) < bodySize){
+                if (bodySize > FibonacciRatio.RATIO_261_8) {
+                    if (this.isRed(stock) || (this.isGreen(stock) && bodySize <= FibonacciRatio.RATIO_100_0 * 10)) {
+                        log.info("Shooting Start / Inverted Hammer candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
+                }
         }
-
-
-        double bodyPerOfUpperWick =  formulaService.calculatePercentRate(bodySize+upperWickSize, bodySize);
-
-        if(bodyPerOfUpperWick < 33.0 && !lowerWick){
-            log.info("Shooting Start / Inverted Hammer candle active {}", stock.getNseSymbol());
-            return Boolean.TRUE;
         }
-
 
         return Boolean.FALSE;
     }
 
     @Override
     public boolean isInvertedHammer(Stock stock) {
-        return this.isShootingStar(stock);
+        //if(this.isPreviousDayRed(stock)) {
+            return this.isShootingStar(stock);
+        //}
+        //return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isOpenHigh(Stock stock) {
+
+        double bodySize = this.body(stock);
+
+        if (bodySize > FibonacciRatio.RATIO_261_8) {
+            if(this.isOpenAndHighEqual(stock) && !this.isHammer(stock)){
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isOpenLow(Stock stock) {
+        double bodySize = this.body(stock);
+
+        if (bodySize > FibonacciRatio.RATIO_261_8) {
+            if(this.isOpenAndLowEqual(stock) && !this.isShootingStar(stock)){
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
     }
 
     @Override
     public boolean isBearishEngulfing(Stock stock) {
 
-        StockPrice stockPrice = stock.getStockPrice();
-
-        if(this.isRed(stock)){
-           // if(stockPrice.getHigh() > stockPrice.getPrevHigh()){
-             //   if(stockPrice.getLow() < stockPrice.getPrevLow()){
-                    if(stockPrice.getOpen() > stockPrice.getPrevClose()){
-                        if(stockPrice.getClose() < stockPrice.getPrevOpen()){
-                            log.info("Bearish Engulfing candle active {}", stock.getNseSymbol());
-                            return Boolean.TRUE;
-                        }
+        if(this.isRed(stock) && (this.isPreviousDayGreen(stock))){
+            if(this.body(stock) > this.bodyPrev(stock)  && this.body(stock) >= MIN_BODY_SIZE ) {
+                if (this.isOpenAbovePrevClose(stock)) {
+                    if (this.isCloseBelowPrevOpen(stock)) {
+                        log.info("Bearish Engulfing candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
                     }
-             //   }
-           // }
+                }
+            }
         }
         return Boolean.FALSE;
     }
 
     @Override
     public boolean isBullishEngulfing(Stock stock) {
+        if(this.isGreen(stock) && (this.isPreviousDayRed(stock))){
+            if(this.body(stock) > this.bodyPrev(stock)  && this.body(stock) >= MIN_BODY_SIZE) {
+                if (this.isOpenBelowPrevClose(stock)) {
+                    if (this.isCloseAbovePrevOpen(stock)) {
+                        log.info("Bullish Engulfing candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+        }
 
-        StockPrice stockPrice = stock.getStockPrice();
+        return Boolean.FALSE;
+    }
 
-        if(this.isGreen(stock)){
-           // if(stockPrice.getHigh() > stockPrice.getPrevHigh()){
-             //   if(stockPrice.getLow() < stockPrice.getPrevLow()){
-                    if(stockPrice.getOpen() < stockPrice.getPrevClose()){
-                        if(stockPrice.getClose() > stockPrice.getPrevOpen()){
-                            log.info("Bullish Engulfing candle active {}", stock.getNseSymbol());
+    @Override
+    public boolean isBullishOutsideBar(Stock stock) {
+
+        if(this.isGreen(stock) && (this.isPreviousDayRed(stock))){
+            if( this.range(stock) > this.rangePrev(stock)  && this.range(stock) >= MIN_RANGE) {
+                if(this.body(stock) >= this.bodyPrev(stock) ){
+                    if (this.isLowerLow(stock)) {
+                        if (this.isHigherHigh(stock)) {
+                            log.info("Bullish Outside bar candle active {}", stock.getNseSymbol());
                             return Boolean.TRUE;
                         }
                     }
-             //   }
-           // }
+                }
+            }
         }
 
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBearishOutsideBar(Stock stock) {
+
+        if(this.isRed(stock) && (this.isPreviousDayGreen(stock))){
+            if(this.range(stock) > this.rangePrev(stock)  && this.range(stock) >= MIN_RANGE) {
+                if(this.body(stock) >= this.bodyPrev(stock) ) {
+                    if (this.isHigherHigh(stock)) {
+                        if (this.isLowerLow(stock)) {
+                            log.info("Bearish Outside bar candle active {}", stock.getNseSymbol());
+                            return Boolean.TRUE;
+                        }
+                    }
+                }
+            }
+        }
         return Boolean.FALSE;
     }
 
@@ -312,12 +720,14 @@ public class CandleStickServiceImpl implements CandleStickService {
 
             if( this.isRed(stock)
                 &&
-                formulaService.isEpsilonEqual(stockPrice.getClose(), stockPrice.getLow())
+                this.isOpenAndHighEqual(stock)
                 &&
-                formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getHigh())
+                this.isCloseAndLowEqual(stock)
             ){
-                log.info("Bearish Marubozu candle active {}", stock.getNseSymbol());
-                return Boolean.TRUE;
+                if(this.body(stock) >= MIN_BODY_SIZE) {
+                    log.info("Bearish Marubozu candle active {}", stock.getNseSymbol());
+                    return Boolean.TRUE;
+                }
             }
 
         return Boolean.FALSE;
@@ -330,63 +740,313 @@ public class CandleStickServiceImpl implements CandleStickService {
 
             if(this.isGreen(stock)
                 &&
-                formulaService.isEpsilonEqual(stockPrice.getClose(), stockPrice.getHigh())
+                this.isOpenAndLowEqual(stock)
                 &&
-                formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getLow())
+                this.isCloseAndHighEqual(stock)
             ){
-                log.info("Bullish Marubozu candle active {}", stock.getNseSymbol());
-                return Boolean.TRUE;
+                if(this.body(stock) >= MIN_BODY_SIZE) {
+                    log.info("Bullish Marubozu candle active {}", stock.getNseSymbol());
+                    return Boolean.TRUE;
+                }
             }
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isBullishOpenEqualPrevClose(Stock stock) {
-        StockPrice stockPrice = stock.getStockPrice();
-            if(this.isGreen(stock)
-                    &&
-                    formulaService.isEpsilonEqual(stockPrice.getPrevClose(), stockPrice.getOpen())
-                    &&
-                    (stockPrice.getClose() >= stockPrice.getPrevOpen())
-                    &&
-                    !this.isSellingWickPresent(stock)
-                    &&
-                    (stockPrice.getPrevOpen() > stockPrice.getPrevClose())
-            ) {
-                return Boolean.TRUE;
-            }
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isBearishhOpenEqualPrevClose(Stock stock) {
-        StockPrice stockPrice = stock.getStockPrice();
-        if(this.isRed(stock)
-                &&
-                formulaService.isEpsilonEqual(stockPrice.getPrevClose(), stockPrice.getOpen())
-                &&
-                (stockPrice.getClose() <= stockPrice.getPrevOpen())
-                &&
-                this.isSellingWickPresent(stock)
-                &&
-                (stockPrice.getPrevOpen() > stockPrice.getPrevClose())
-        ) {
-            return Boolean.TRUE;
-        }
 
         return Boolean.FALSE;
     }
 
     @Override
     public boolean isTweezerTop(Stock stock) {
-        StockPrice stockPrice = stock.getStockPrice();;
+        StockPrice stockPrice = stock.getStockPrice();
         if(this.isRed(stock)){
-            if(stockPrice.getPrevClose() == stockPrice.getOpen()){
-                return Boolean.TRUE;
+            if((this.isPreviousDayRed(stock) && this.isOpenAtPrevOpen(stock)) || ( this.isPreviousDayGreen(stock) && this.isOpenAtPrevClose(stock))){
+                if(this.body(stock) >= MIN_BODY_SIZE) {
+                    log.info("Tweezer Top candle active {}", stock.getNseSymbol());
+                    return Boolean.TRUE;
+                }
             }
         }
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isDoubleTop(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+        if(this.isRed(stock)){
+            if(formulaService.isEpsilonEqual(stockPrice.getHigh(), stockPrice.getPrevHigh(), FibonacciRatio.RATIO_161_8)){
+                if(this.range(stock) >= MIN_RANGE) {
+                    log.info("Double Top candle active {}", stock.getNseSymbol());
+                    return Boolean.TRUE;
+                }
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isTweezerBottom(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+        if(this.isGreen(stock)){
+            if((this.isPreviousDayRed(stock) && this.isOpenAtPrevClose(stock)) || ( this.isPreviousDayGreen(stock) && this.isOpenAtPrevOpen(stock))){
+                if(this.body(stock) >= MIN_BODY_SIZE) {
+                    log.info("Tweezer Bottom candle active {}", stock.getNseSymbol());
+                    return Boolean.TRUE;
+                }
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isDoubleBottom(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+        if(this.isGreen(stock)){
+            if(formulaService.isEpsilonEqual(stockPrice.getLow(), stockPrice.getPrevLow(), FibonacciRatio.RATIO_161_8)){
+                if(this.range(stock) >= MIN_RANGE) {
+                    log.info("Double Bottom candle active {}", stock.getNseSymbol());
+                    return Boolean.TRUE;
+                }
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isDarkCloudCover(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+        if(this.isRed(stock) && this.isPreviousDayGreen(stock)){
+            double prevMid = (stockPrice.getPrevOpen() + stockPrice.getPrevClose())/2;
+            if(stockPrice.getOpen() > stockPrice.getPrevClose()){
+                if(stockPrice.getClose() <= prevMid){
+                    if(this.bodyPrev(stock) >= MIN_BODY_SIZE ) {
+                        if(this.isCloseAbovePrevOpen(stock)) {
+                            log.info("Dark Cloud Cover candle active {}", stock.getNseSymbol());
+                            return Boolean.TRUE;
+                        }
+                    }
+                }
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isPiercingPattern(Stock stock) {
+        StockPrice stockPrice = stock.getStockPrice();
+        if(this.isGreen(stock) && this.isPreviousDayRed(stock)){
+            double prevMid = (stockPrice.getPrevOpen() + stockPrice.getPrevClose())/2;
+            if(stockPrice.getOpen() < stockPrice.getPrevClose()){
+                if(stockPrice.getClose() >= prevMid){
+                    if(this.bodyPrev(stock) >= MIN_BODY_SIZE) {
+                        if(this.isCloseBelowPrevOpen(stock)) {
+                            log.info("Piercing Pattern candle active {}", stock.getNseSymbol());
+                            return Boolean.TRUE;
+                        }
+                    }
+                }
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+
+
+    @Override
+    public boolean isBullishKicker(Stock stock) {
+
+        if (this.isGreen(stock) && this.isPreviousDayRed(stock)) {
+            if(this.isGapUp(stock)) {
+                if (this.bodyPrev(stock) >= MIN_BODY_SIZE) {
+                    if (this.isOpenAbovePrevOpen(stock)) {
+                        log.info("Bullish Kicker candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+        }
+        return Boolean.FALSE;
+    }
+    @Override
+    public boolean isBearishKicker(Stock stock) {
+
+        if (this.isRed(stock) && this.isPreviousDayGreen(stock)) {
+            if (this.isGapDown(stock)) {
+                if (this.bodyPrev(stock) >= MIN_BODY_SIZE) {
+                    if (this.isOpenBelowPrevOpen(stock)) {
+                        log.info("Bearish Kicker candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBullishSash(Stock stock) {
+
+        if(this.isGreen(stock) && this.isPreviousDayRed(stock)){
+            if(this.isGapUp(stock)){
+                if(this.body(stock) >= MIN_BODY_SIZE){
+                    if(this.isOpenBelowPrevOpen(stock) && this.isCloseAbovePrevOpen(stock)) {
+                        log.info("Bullish Sash candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBearishSash(Stock stock) {
+        if(this.isRed(stock) && this.isPreviousDayGreen(stock)){
+            if(this.isGapDown(stock)){
+                if(this.body(stock) >= MIN_BODY_SIZE){
+                    if(this.isOpenAbovePrevOpen(stock) && this.isCloseBelowPrevOpen(stock)) {
+                        log.info("Bearish Sash candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBullishSeparatingLine(Stock stock) {
+        if(this.isGreen(stock) && (this.isPreviousDayRed(stock))){
+            if(this.isGapUp(stock)){
+                if(this.body(stock) >= MIN_BODY_SIZE){
+                    if(this.isOpenAtPrevOpen(stock)) {
+                        log.info("Bullish Separating Line candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBearishSeparatingLine(Stock stock) {
+        if(this.isRed(stock) && (this.isPreviousDayGreen(stock))){
+            if(this.isGapDown(stock)){
+                if(this.body(stock) >= MIN_BODY_SIZE){
+                    if(this.isOpenAtPrevOpen(stock)) {
+                        log.info("Bearish Separating Line candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBearishHarami(Stock stock) {
+
+        if(this.isRed(stock) && this.isPreviousDayGreen(stock)){
+                    if (this.isOpenBelowPrevClose(stock)) {
+                        if (this.isCloseAbovePrevOpen(stock)) {
+                            if (this.bodyPrev(stock) >= FibonacciRatio.RATIO_161_8 * 10) {
+                                //if (this.isLowerHigh(stock) && this.isHigherLow(stock)) {
+                                    log.info("Bearish Harami candle active {}", stock.getNseSymbol());
+                                    return Boolean.TRUE;
+                                //}
+                            }
+                        }
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBullishHarami(Stock stock) {
+
+        if(this.isGreen(stock) && this.isPreviousDayRed(stock)) {
+                    if (this.isOpenAbovePrevClose(stock)) {
+                        if (this.isCloseBelowPrevOpen(stock)) {
+                            if (this.bodyPrev(stock) >= MIN_BODY_SIZE) {
+                                //if (this.isLowerHigh(stock) && this.isHigherLow(stock)) {
+                                    log.info("Bullish Harami candle active {}", stock.getNseSymbol());
+                                    return Boolean.TRUE;
+                                //}
+                            }
+                        }
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBullishInsideBar(Stock stock) {
+
+        if(this.isGreen(stock) && (this.isPreviousDayRed(stock))){
+            if(this.range(stock) <= this.rangePrev(stock)  && this.rangePrev(stock) >= FibonacciRatio.RATIO_38_2 * 100) {
+                if (this.isLowerHigh(stock)) {
+                    if (this.isHigherLow(stock)) {
+                        log.info("Bullish Inside bar candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBearishInsideBar(Stock stock) {
+
+        if(this.isRed(stock) && (this.isPreviousDayGreen(stock))){
+            if(this.range(stock) < this.rangePrev(stock)  && this.rangePrev(stock) >= MIN_RANGE) {
+                if (this.isLowerHigh(stock)) {
+                    if (this.isHigherLow(stock)) {
+                        log.info("Bearish Inside bar candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBullishSoldiers(Stock stock) {
+
+        if(this.isGreen(stock) && (this.isPreviousDayGreen(stock))){
+            if(!this.isShootingStar(stock)) {
+                if (this.isHigherHigh(stock) && this.isHigherLow(stock)) {
+                    if (this.body(stock) > MIN_BODY_SIZE || ((this.body(stock) > this.bodyPrev(stock)) && this.range(stock) > MIN_RANGE)) {
+                        log.info("Bullish Soldiers candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBearishSoldiers(Stock stock) {
+        if(this.isRed(stock) && (this.isPreviousDayRed(stock))){
+            if(!this.isHammer(stock)) {
+                if (this.isLowerHigh(stock) && this.isLowerLow(stock)) {
+                    if (this.body(stock) > MIN_BODY_SIZE || ((this.body(stock) > this.bodyPrev(stock)) && this.range(stock) > MIN_RANGE)) {
+                        log.info("Bearish Soldiers candle active {}", stock.getNseSymbol());
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+        }
+
         return Boolean.FALSE;
     }
 }

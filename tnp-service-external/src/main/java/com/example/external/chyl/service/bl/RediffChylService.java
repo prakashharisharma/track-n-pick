@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.external.chyl.model.RediffResult;
-import com.example.external.chyl.service.bl.CylhBaseService;
 import com.example.external.common.ServiceProvider;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockPrice;

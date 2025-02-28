@@ -5,7 +5,6 @@ import org.decampo.xirr.Xirr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +14,9 @@ public class FormulaService {
 	private static final int RISK_REWARD_RATIO = 2;
 
 	private static final double MIN_TARGET_PER = 10.0;
+
+	public static final double EPSILON_PER = 0.01;
+	//public static final double EPSILON_PER = 0.1618;
 	@Autowired
 	private MiscUtil miscUtil;
 
@@ -97,27 +99,31 @@ public class FormulaService {
 		return pb;
 	}
 	
-	public double calculatePercentRate(double baseNumber, double percentage) {
+	public double calculatePercentage(double baseNumber, double fraction) {
 
-		double rate = (percentage / baseNumber) * 100;
+		double rate = (fraction / baseNumber) * 100;
 
 		return rate;
 	}
 	
-	public double calculatePercentage(double baseNumber, double rate) {
+	public double calculateFraction(double baseNumber, double rate) {
 		
 		double percentage = (rate / 100) * baseNumber;
 		
 		return percentage;
 	}
 
-	public double percentageChange(double value1, double value2){
+	public double calculateChangePercentage(double num1, double num2){
 
-		if(value2 == 0.0){
+		if(num2 == 0.0){
 			return 0.0;
 		}
 
-		return ((value2 - value1) / value1) * 100;
+		return ((num2 - num1) / num1) * 100;
+	}
+
+	public double applyPercentChange(double num, double percentChange) {
+		return num * (1 + percentChange / 100);
 	}
 	
 	public long calculateOBV(long prevOBV, double prevClose, double currentClose, long currentVolume) {
@@ -284,12 +290,24 @@ public class FormulaService {
 
 
 	public boolean isEpsilonEqual(double num1, double num2){
+		return this.isEpsilonEqual(num1, num2, FibonacciRatio.RATIO_23_6);
+	}
 
-		double epsilonPer = 0.02;
+	public boolean isEpsilonEqual(double num1, double num2, double ratio){
 
-		double epsilon = this.calculatePercentage(num1, epsilonPer);
+		double epsilonPer = 0.0786;
 
-		if (Math.abs(num1 - num2) < epsilon) {
+		double smallNum = num1;
+		double bigNum = num2;
+
+		if(num1 > num2){
+			smallNum = num2;
+			bigNum = num1;
+		}
+
+		double epsilon = this.calculateFraction(smallNum, ratio);
+
+		if (Math.abs(bigNum - smallNum) <= epsilon) {
 			return Boolean.TRUE;
 		}
 
@@ -302,10 +320,10 @@ public class FormulaService {
 
 		double move = high - low;
 
-		retracements.add(high - this.calculatePercentage(move, 23.6));
-		retracements.add(high - this.calculatePercentage(move, 38.2));
-		retracements.add(high - this.calculatePercentage(move, 50));
-		retracements.add(high - this.calculatePercentage(move, 61.8));
+		retracements.add(high - this.calculateFraction(move, 23.6));
+		retracements.add(high - this.calculateFraction(move, 38.2));
+		retracements.add(high - this.calculateFraction(move, 50));
+		retracements.add(high - this.calculateFraction(move, 61.8));
 
 		return retracements;
 	}
@@ -316,10 +334,10 @@ public class FormulaService {
 
 		double move = high - low;
 
-		extensions.add(high + this.calculatePercentage(move, 23.6));
-		extensions.add(high + this.calculatePercentage(move, 38.2));
-		extensions.add(high + this.calculatePercentage(move, 50));
-		extensions.add(high + this.calculatePercentage(move, 61.8));
+		extensions.add(high + this.calculateFraction(move, 23.6));
+		extensions.add(high + this.calculateFraction(move, 38.2));
+		extensions.add(high + this.calculateFraction(move, 50));
+		extensions.add(high + this.calculateFraction(move, 61.8));
 
 		return extensions;
 	}
@@ -330,22 +348,26 @@ public class FormulaService {
 
 		double move = high - low;
 
-		extensions.add(entry + this.calculatePercentage(move, 23.6));
-		extensions.add(entry + this.calculatePercentage(move, 38.2));
-		extensions.add(entry + this.calculatePercentage(move, 50));
-		extensions.add(entry + this.calculatePercentage(move, 61.8));
+		extensions.add(entry + this.calculateFraction(move, 23.6));
+		extensions.add(entry + this.calculateFraction(move, 38.2));
+		extensions.add(entry + this.calculateFraction(move, 50));
+		extensions.add(entry + this.calculateFraction(move, 61.8));
 
 		return extensions;
 	}
 
-	public double calculateTarget(double entryPrice, double stopLoss){
+	public double calculateTarget(double entryPrice, double stopLoss, double riskRewardRatio){
 
-		double target = (RISK_REWARD_RATIO * (entryPrice - stopLoss) ) + entryPrice;
-
-		if( this.percentageChange(entryPrice, target) < MIN_TARGET_PER ){
-			target = entryPrice + this.calculatePercentRate(entryPrice, MIN_TARGET_PER);
+		return (riskRewardRatio * (entryPrice - stopLoss) ) + entryPrice;
+		/*
+		if( this.calculateChangePercentage(entryPrice, target) < MIN_TARGET_PER ){
+			target = entryPrice + this.calculatePercentage(entryPrice, MIN_TARGET_PER);
 		}
-		
 		return target;
+ 		*/
+	}
+
+	public boolean inRange(double min, double max, double num){
+		return Math.max(min, num) == Math.min(num, max);
 	}
 }

@@ -36,10 +36,15 @@ public class StockTechnicalsIO implements Serializable{
 	double rsi;
 	double prevRsi;
 
-	long volume;
-	long weeklyVolume;
+	long obv;
 
-	long monthlyVolume;
+	long obvAvg;
+
+	long volume;
+	long volumeAvg5;
+
+	long volumeAvg20;
+	long volumeAvg50;
 
 	double adx;
 	double prevAdx;
@@ -207,6 +212,22 @@ public class StockTechnicalsIO implements Serializable{
 		this.prevRsi = prevRsi;
 	}
 
+	public long getObv() {
+		return obv;
+	}
+
+	public void setObv(long obv) {
+		this.obv = obv;
+	}
+
+	public long getObvAvg() {
+		return obvAvg;
+	}
+
+	public void setObvAvg(long obvAvg) {
+		this.obvAvg = obvAvg;
+	}
+
 	public long getVolume() {
 		return volume;
 	}
@@ -215,20 +236,28 @@ public class StockTechnicalsIO implements Serializable{
 		this.volume = volume;
 	}
 
-	public long getWeeklyVolume() {
-		return weeklyVolume;
+	public long getVolumeAvg5() {
+		return volumeAvg5;
 	}
 
-	public void setWeeklyVolume(long weeklyVolume) {
-		this.weeklyVolume = weeklyVolume;
+	public void setVolumeAvg5(long volumeAvg5) {
+		this.volumeAvg5 = volumeAvg5;
 	}
 
-	public long getMonthlyyVolume() {
-		return monthlyVolume;
+	public long getVolumeAvg20() {
+		return volumeAvg20;
 	}
 
-	public void setMonthlyyVolume(long monthlyyVolume) {
-		this.monthlyVolume = monthlyyVolume;
+	public void setVolumeAvg20(long volumeAvg20) {
+		this.volumeAvg20 = volumeAvg20;
+	}
+
+	public long getVolumeAvg50() {
+		return volumeAvg50;
+	}
+
+	public void setVolumeAvg50(long volumeAvg50) {
+		this.volumeAvg50 = volumeAvg50;
 	}
 
 	public double getAdx() {
@@ -286,7 +315,7 @@ public class StockTechnicalsIO implements Serializable{
 				", rsi=" + rsi +
 				", prevRsi=" + prevRsi +
 				", volume=" + volume +
-				", avgVolume=" + weeklyVolume +
+				", avgVolume=" + volumeAvg5 +
 				", adx=" + adx +
 				", prevAdx=" + prevAdx +
 				'}';

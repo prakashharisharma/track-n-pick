@@ -42,7 +42,7 @@ public class CrossOverLedgerService {
 				crossOverLedger = new CrossOverLedger(stock, LocalDate.now(), CrossOverLedger.CrossOverType.BULLISH,crossOverCategory, stock.getStockPrice().getCurrentPrice(),stock.getTechnicals().getSma200(), CrossOverLedger.Status.OPEN );
 			}
 			
-			crossOverLedger.setAvgVolume(stock.getTechnicals().getWeeklyVolume());
+			crossOverLedger.setAvgVolume(stock.getTechnicals().getVolumeAvg5());
 			
 			crossOverLedger.setVolume(stock.getTechnicals().getVolume());
 			
@@ -88,7 +88,7 @@ public class CrossOverLedgerService {
 				crossOverLedger = new CrossOverLedger(stock, LocalDate.now(), CrossOverLedger.CrossOverType.BEARISH,crossOverCategory, stock.getStockPrice().getCurrentPrice(),stock.getTechnicals().getSma200(), CrossOverLedger.Status.OPEN );
 			}
 			
-			crossOverLedger.setAvgVolume(stock.getTechnicals().getWeeklyVolume());
+			crossOverLedger.setAvgVolume(stock.getTechnicals().getVolumeAvg5());
 			
 			crossOverLedger.setVolume(stock.getTechnicals().getVolume());
 			
