@@ -5,6 +5,10 @@ import com.example.util.io.model.type.Momentum;
 import com.example.util.io.model.type.Trend;
 
 public interface RelevanceService {
-    public boolean isBullish(Stock stock, Trend trend, Momentum momentum, double minimumScore);
-    public boolean isBearish(Stock stock,Trend trend,Momentum momentum, double minimumScore);
+    public boolean isBullishTimeFrame(Stock stock, Trend trend,  double minimumScore);
+    public boolean isBullishMovingAverage(Stock stock, Trend trend,  double minimumScore);
+    public boolean isBullishIndicator(Stock stock, Trend trend);
+    public boolean isBearishTimeFrame(Stock stock, Trend trend,  double minimumScore);
+    public boolean isBearishMovingAverage(Stock stock, Trend trend, double minimumScore);
+    public boolean isBearishIndicator(Stock stock, Trend trend);
 }

@@ -8,6 +8,7 @@ import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.StockTechnicals;
 import com.example.util.FibonacciRatio;
 import com.example.util.FormulaService;
+import com.example.util.io.model.type.Momentum;
 import com.example.util.io.model.type.Trend;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,8 @@ public class StockPriceService {
 
 	public boolean isTmaConvergenceAndDivergence(Stock stock, Trend trend){
 
-		if(this.isTmaDivergence(stock, trend) && this.isTmaInAverageRange(stock, trend)){
+		//if(this.isTmaDivergence(stock, trend) && this.isTmaInAverageRange(stock, trend)){
+		if(this.isTmaDivergence(stock, trend)){
 			return Boolean.TRUE;
 		}
 
@@ -48,36 +50,57 @@ public class StockPriceService {
 	public boolean isTmaInPriceRange(Stock stock, Trend trend){
 		StockTechnicals stockTechnicals = stock.getTechnicals();
 		StockPrice stockPrice = stock.getStockPrice();
-		if(trend == Trend.LONG){
+		if(trend.getMomentum() == Momentum.TOP){
 			return this.isTmaInPriceRange(stockPrice.getLow(), stockPrice.getHigh(), stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getEma200());
-		}else if(trend == Trend.MEDIUM){
+		}else if(trend.getMomentum() == Momentum.ADVANCE){
 			return this.isTmaInPriceRange(stockPrice.getLow(), stockPrice.getHigh(),stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma100());
-		}else if(trend == Trend.SHORT){
+		}else if(trend .getMomentum()== Momentum.RECOVERY){
 			return this.isTmaInPriceRange(stockPrice.getLow(), stockPrice.getHigh(),stockTechnicals.getEma5(), stockTechnicals.getEma10(), stockTechnicals.getEma20());
 		}
 
 		return Boolean.FALSE;
 	}
 
+	/**
+	 * All 3 EMA increasing
+	 * shorter greater than short
+	 * short greater than average
+	 * @param stock
+	 * @param trend
+	 * @return
+	 */
 	private boolean isTmaDivergence(Stock stock, Trend trend){
 		StockTechnicals stockTechnicals = stock.getTechnicals();
 
-		if(trend == Trend.LONG){
-			return this.isTmaDivergence(stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getEma200());
-		}else if(trend == Trend.MEDIUM){
-			return this.isTmaDivergence(stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma100());
-		}else if(trend == Trend.SHORT){
-			return this.isTmaDivergence(stockTechnicals.getEma5(), stockTechnicals.getEma10(), stockTechnicals.getEma20());
+
+		/*
+		if(trend.getStrength() == Trend.Strength.SHORT ){
+			return this.isTmaDivergence(stockTechnicals.getEma5(), stockTechnicals.getEma10(), stockTechnicals.getEma20(), stockTechnicals.getPrevEma5(), stockTechnicals.getPrevEma10(), stockTechnicals.getPrevEma20());
+			//return this.isTmaDivergence(stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getEma200(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100(), stockTechnicals.getPrevEma200());
+		}else if(trend.getStrength() == Trend.Strength.MEDIUM){
+			return this.isTmaDivergence(stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100());
+		}else if(trend.getStrength() == Trend.Strength.LONG){
+			return this.isTmaDivergence(stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getEma200(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100(), stockTechnicals.getPrevEma200());
+			//return this.isTmaDivergence(stockTechnicals.getEma5(), stockTechnicals.getEma10(), stockTechnicals.getEma20(), stockTechnicals.getPrevEma5(), stockTechnicals.getPrevEma10(), stockTechnicals.getPrevEma20());
 		}
 
 		return Boolean.FALSE;
+		 */
+
+
+		//return this.isTmaDivergence(stockTechnicals.getEma10(), stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getPrevEma10(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50());
+		//return this.isTmaDivergence(stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma200(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma200());
+		return this.isTmaDivergence(stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma200(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma200());
+
 	}
 
-	private boolean isTmaDivergence(double immediateLow, double average, double immediateHigh){
+	private boolean isTmaDivergence(double immediateLow, double average, double immediateHigh, double prevImmediateLow, double prevAverage, double prevImmediateHigh){
 
 		if(immediateLow > average){
 			if(average > immediateHigh){
-				return Boolean.TRUE;
+				//if(average > prevAverage) {
+					return Boolean.TRUE;
+				//}
 			}
 		}
 
@@ -87,15 +110,23 @@ public class StockPriceService {
 	private boolean isTmaInAverageRange(Stock stock, Trend trend){
 		StockTechnicals stockTechnicals = stock.getTechnicals();
 
-		if(trend == Trend.LONG){
-			return this.isTmaInAverageRange(stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getEma200());
-		}else if(trend == Trend.MEDIUM){
-			return this.isTmaInAverageRange(stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma100());
-		}else if(trend == Trend.SHORT){
-			return this.isTmaInAverageRange(stockTechnicals.getEma5(), stockTechnicals.getEma10(), stockTechnicals.getEma20());
-		}
 
+		if(trend.getStrength() == Trend.Strength.LONG){
+			return this.isTmaInAverageRange(stockTechnicals.getEma5(), stockTechnicals.getEma10(), stockTechnicals.getEma20());
+			//return this.isTmaInAverageRange(stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getEma200());
+		}else if(trend.getStrength() == Trend.Strength.MEDIUM){
+			return this.isTmaInAverageRange(stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma100());
+		}else if(trend.getStrength() == Trend.Strength.SHORT){
+			return this.isTmaInAverageRange(stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getEma200());
+			//return this.isTmaInAverageRange(stockTechnicals.getEma5(), stockTechnicals.getEma10(), stockTechnicals.getEma20());
+		}
 		return Boolean.FALSE;
+
+
+		//return this.isTmaInAverageRange(stockTechnicals.getEma10(), stockTechnicals.getEma20(), stockTechnicals.getEma50());
+		//return this.isTmaInAverageRange(stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma200());
+		//return this.isTmaInAverageRange(stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma100());
+
 	}
 
 	private boolean isTmaInAverageRange(double immediateLow, double average, double immediateHigh){

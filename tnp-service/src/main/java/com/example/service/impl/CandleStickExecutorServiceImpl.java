@@ -2,13 +2,14 @@ package com.example.service.impl;
 
 import com.example.model.master.Stock;
 import com.example.service.*;
-import com.example.service.util.StockPriceUtil;
 import com.example.util.FormulaService;
 import com.example.util.io.model.type.Momentum;
 import com.example.util.io.model.type.Trend;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import static com.example.util.io.model.type.Trend.Strength.INVALID;
 
 @Service
 @Slf4j
@@ -43,9 +44,9 @@ public class CandleStickExecutorServiceImpl implements CandleStickExecutorServic
         if (!candleStickService.isDead(stock)) {
             Trend trend = trendService.isDownTrend(stock);
             Momentum momentum = trendService.scanBullish(stock);
-            if (trend != Trend.INVALID) {
+            if (trend.getStrength() != INVALID) {
                 if (candleStickHelperService.isBullishConfirmed(stock, Boolean.TRUE)){
-                    if (relevanceService.isBullish(stock, trend,momentum, 1.5)) {
+                    if (relevanceService.isBullishTimeFrame(stock, trend, 1.5)) {
                         log.info("Candlestick confirmed {}", stock.getNseSymbol());
                     }
                 }
@@ -63,9 +64,9 @@ public class CandleStickExecutorServiceImpl implements CandleStickExecutorServic
         if (!candleStickService.isDead(stock)) {
             Trend trend = trendService.isUpTrend(stock);
             Momentum momentum = trendService.scanBearish(stock);
-            if(trend != Trend.INVALID) {
+            if(trend.getStrength() != INVALID) {
                 if (candleStickHelperService.isBearishConfirmed(stock, Boolean.TRUE)){
-                    if (relevanceService.isBearish(stock, trend,momentum, 1.5)) {
+                    if (relevanceService.isBearishTimeFrame(stock, trend, 1.5)) {
                         log.info("Candlestick confirmed {}", stock.getNseSymbol());
                     }
                 }

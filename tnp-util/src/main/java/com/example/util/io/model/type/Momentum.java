@@ -5,5 +5,5 @@ import java.io.Serializable;
 public enum Momentum implements Serializable {
     SIDEWAYS,
     PULLBACK, CORRECTION, BOTTOM,
-    PUSHBACK, ADVANCE, TOP
+    RECOVERY, ADVANCE, TOP
 }

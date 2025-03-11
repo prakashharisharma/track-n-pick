@@ -7,16 +7,15 @@ import com.example.util.io.model.type.Trend;
 
 public interface TrendService {
 
-    public Trend analyze(Stock stock);
-
     public Trend isUpTrend(Stock stock);
 
     public Trend isDownTrend(Stock stock);
+
+    public Momentum detect(Stock stock);
 
     public Momentum scanBullish(Stock stock);
 
     public Momentum scanBearish(Stock stock);
 
-    public int strength(Stock stock);
 
 }

@@ -88,6 +88,16 @@ public class FundsLedgerService {
 		return totalInvestment;
 	}
 
+	public  double allTimeInvestment(UserProfile user){
+		Double totalInvestment = fundsLedgerRepository.getTotalFund(user);
+
+		if (totalInvestment == null) {
+			totalInvestment = 0.00;
+		}
+
+		return totalInvestment;
+	}
+
 	public double currentFinYearInvestment(UserProfile user) {
 
 		Double totalInvestment = fundsLedgerRepository.getTotalFYFundBetweenTwoDates(user,

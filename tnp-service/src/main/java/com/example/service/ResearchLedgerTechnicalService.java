@@ -6,6 +6,7 @@ import java.util.List;
 import javax.transaction.Transactional;
 
 import com.example.dto.TradeSetup;
+import com.example.model.stocks.StockTechnicals;
 import com.example.util.FormulaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,7 @@ public class ResearchLedgerTechnicalService {
 			researchLedger.setVolumeAvg5(stock.getTechnicals().getVolumeAvg5());
 			researchLedger.setVolumeAvg20(stock.getTechnicals().getVolumeAvg20());
 
+			researchLedger.setScore(this.calculateScore(researchLedger));
 			researchLedger.setNextTradingDate(calendarService.nextTradingDate(stock.getStockPrice().getBhavDate()));
 			researchLedger.setCreatedAt(LocalDate.now());
 			researchLedger.setModifiedAt(LocalDate.now());
@@ -70,6 +72,85 @@ public class ResearchLedgerTechnicalService {
 			LOGGER.debug(stock.getNseSymbol() + " is already in Ledger for " + stock.getNseSymbol());
 		}
 
+	}
+
+	public double calculateScore(ResearchLedgerTechnical researchLedger){
+
+		double score = 0.0;
+		double bullishScore = this.calculateBullishScore(researchLedger.getStock());
+
+		ResearchLedgerTechnical.Strategy strategy = researchLedger.getStrategy();
+		ResearchLedgerTechnical.SubStrategy subStrategy = researchLedger.getSubStrategy();
+
+		if(strategy == ResearchLedgerTechnical.Strategy.SWING){
+			if(subStrategy == ResearchLedgerTechnical.SubStrategy.TEMA){
+				if(bullishScore > 0.0) {
+					return RiskFactor.SWING_TEMA + bullishScore;
+				}
+			} else if(subStrategy == ResearchLedgerTechnical.SubStrategy.RM){
+				if(bullishScore > 0.0) {
+					return RiskFactor.SWING_RM + bullishScore;
+				}
+			}
+		}
+
+		if(strategy == ResearchLedgerTechnical.Strategy.PRICE){
+			if(subStrategy == ResearchLedgerTechnical.SubStrategy.RMAO){
+				if(bullishScore > 0.0) {
+					return RiskFactor.PRICE_RMAO + bullishScore;
+				}
+			}
+			else if(subStrategy == ResearchLedgerTechnical.SubStrategy.SRTF){
+				if(bullishScore > 0.0) {
+					return RiskFactor.PRICE_SRTF + bullishScore;
+				}
+			}
+			else if(subStrategy == ResearchLedgerTechnical.SubStrategy.SRMA){
+				if(bullishScore > 0.0) {
+					return RiskFactor.PRICE_SRMA + bullishScore;
+				}
+			}
+		}
+
+		if(strategy == ResearchLedgerTechnical.Strategy.VOLUME){
+			if(subStrategy == ResearchLedgerTechnical.SubStrategy.HV) {
+				if (bullishScore > 0.0) {
+					return RiskFactor.VOLUME_HV + bullishScore;
+				}
+			}
+		}
+
+		return score;
+	}
+
+	private double calculateBullishScore(Stock stock){
+
+		double close = stock.getStockPrice().getClose();
+
+		StockTechnicals stockTechnicals = stock.getTechnicals();
+
+		double score = 0.0;
+
+		score = this.checkAndIncrease(close, stockTechnicals.getEma5(), score);
+		score = this.checkAndIncrease(close, stockTechnicals.getEma20(), score);
+		score = this.checkAndIncrease(close, stockTechnicals.getEma50(), score);
+		score = this.checkAndIncrease(close, stockTechnicals.getEma100(), score);
+		score = this.checkAndIncrease(close, stockTechnicals.getEma200(), score);
+
+		return score;
+	}
+
+	private double checkAndIncrease(double close, double ema, double score){
+
+		if( close >= ema && ema > 0.0){
+			score = score + 1.0;
+		}
+
+		if(ema == 0.0){
+			score = score - 0.5;
+		}
+
+		return score;
 	}
 
 	public void update(ResearchLedgerTechnical researchLedgerTechnical){

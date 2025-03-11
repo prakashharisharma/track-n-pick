@@ -22,8 +22,9 @@ public interface VolumeService {
 
     public boolean isVolumeWeeklyAboveMonthlyAverage(Stock stock, double benchmark);
 
-    public boolean isVolumeHigherThanMonthlyAverage(Stock stock);
-    public boolean isVolumeHigherThanMonthlyAverage(Stock stock, double benchmark);
+    public boolean isPreviousSessionVolumeWeeklyAboveMonthlyAverage(Stock stock, double benchmark);
+    public boolean isVolumeAboveMonthlyAverage(Stock stock);
+    public boolean isVolumeAboveMonthlyAverage(Stock stock, double benchmark);
 
     public boolean isPreviousSessionVolumeAboveMonthlyAverage(Stock stock);
 
@@ -31,6 +32,10 @@ public interface VolumeService {
 
     public boolean isVolumeAboveWeeklyAverage(Stock stock);
     public boolean isVolumeAboveWeeklyAverage(Stock stock, double benchmark);
+
+    public boolean isPreviousSessionVolumeAboveWeeklyAverage(Stock stock);
+    public boolean isPreviousSessionVolumeAboveWeeklyAverage(Stock stock, double benchmark);
+
     public boolean isVolumeHigherThanPreviousSession(Stock stock);
     public boolean isVolumeHigherThanPreviousSession(Stock stock, double benchmark);
 
@@ -40,6 +45,11 @@ public interface VolumeService {
     public boolean isVolumeIncreasedDailyMonthly(Stock stock);
 
     public boolean isVolumeIncreasedDailyMonthly(Stock stock, double benchMark, double benchMarkPreviousSession);
+
+    public boolean isVolumeIncreasedDailyWeekly(Stock stock);
+
+    public boolean isVolumeIncreasedDailyWeekly(Stock stock, double benchMark, double benchMarkPreviousSession);
+
 
     public boolean isVolumeIncreasedWeeklyMonthly(Stock stock);
 

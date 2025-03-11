@@ -32,6 +32,11 @@ public class UpdateBhavProcessor implements Processor {
 		ignoreSet.add("NEXT30ADD");
 		ignoreSet.add("GROWWRAIL");
 		ignoreSet.add("UNIONGOLD");
+		ignoreSet.add("MSCIINDIA");
+		ignoreSet.add("GROWWN200");
+		ignoreSet.add("BOHRAIND");
+		ignoreSet.add("NIFTY100EW");
+		ignoreSet.add("AONETOTAL");
 		ignoreSet.add("BFSI");
 		ignoreSet.add("MOQUALITY");
 		ignoreSet.add("QGOLDHALF");
@@ -296,7 +301,7 @@ public class UpdateBhavProcessor implements Processor {
 
 	private void processBhav(StockPriceIN stockPriceIN, String lastSymbolToProcess){
 
-		log.info("{} Processing Bhav  {} {} {} {} {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(),
+		log.info("{} processing bhav  {} {} {} {} {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(),
 				stockPriceIN.getIsin(),
 				stockPriceIN.getNseSymbol(),
 				stockPriceIN.getSeries(),
@@ -312,7 +317,7 @@ public class UpdateBhavProcessor implements Processor {
 	}
 
 	private void sendToUpdateQueue(StockPriceIO stockPriceIO, String lastSymbolToProcess ){
-		log.info("{} Queuing to update price.", stockPriceIO.getNseSymbol());
+		log.info("{} queuing to update price.", stockPriceIO.getNseSymbol());
 
 		if(stockPriceIO.getNseSymbol().equalsIgnoreCase(lastSymbolToProcess)){
 			stockPriceIO.setLastRecordToProcess(Boolean.TRUE);
@@ -336,7 +341,7 @@ public class UpdateBhavProcessor implements Processor {
 			this.sendToUpdateQueue(stockPriceIO, lastSymbolToProcess);
 
 		}else{
-			log.info("{} Ignored to process NSE Bhav as Series is {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(), stockPriceIN.getSeries());
+			log.info("{} ignored to process NSE bhav as series is {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(), stockPriceIN.getSeries());
 		}
 	}
 
@@ -353,7 +358,7 @@ public class UpdateBhavProcessor implements Processor {
 			this.sendToUpdateQueue(stockPriceIO, lastSymbolToProcess);
 
 		}else{
-			log.info("{} Ignored to process BSE Bhav as series is {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(), stockPriceIN.getSeries());
+			log.info("{} ignored to process BSE bhav as series is {}", stockPriceIN.getNseSymbol(), stockPriceIN.getSource(), stockPriceIN.getSeries());
 		}
 	}
 

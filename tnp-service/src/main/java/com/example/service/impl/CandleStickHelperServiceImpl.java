@@ -1,7 +1,6 @@
 package com.example.service.impl;
 
 import com.example.model.master.Stock;
-import com.example.model.stocks.StockPrice;
 import com.example.service.CandleStickHelperService;
 import com.example.service.CandleStickService;
 import com.example.util.FibonacciRatio;
@@ -45,7 +44,7 @@ public class CandleStickHelperServiceImpl implements CandleStickHelperService {
 
             if(
                 candleStickService.isBullishhMarubozu(stock) ||
-                        candleStickService.isBullishSoldiers(stock)||
+                        (!isWickCheck && candleStickService.isBullishSoldiers(stock))||
                         candleStickService.isBullishKicker(stock) ||
                         candleStickService.isBullishSeparatingLine(stock) ||
                         candleStickService.isBullishSash(stock) ||
@@ -55,18 +54,18 @@ public class CandleStickHelperServiceImpl implements CandleStickHelperService {
                         candleStickService.isHammer(stock) ||
                         candleStickService.isOpenAndLowEqual(stock) ||
                         candleStickService.isBullishPinBar(stock) ||
-                        candleStickService.isDoubleBottom(stock) ||
+                        candleStickService.isDoubleLow(stock) ||
                         candleStickService.isTweezerBottom(stock) ||
                         candleStickService.isBullishInsideBar(stock) ||
                         candleStickService.isBullishHarami(stock) ||
                         candleStickService.isInDecisionPrevConfirmationBullish(stock)) {
                 if (isWickCheck) {
                      if(this.isUpperWickSizeConfirmed(stock)){
-                    log.info("Candlestick active {} on {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate());
+                    log.info("{} bullish candlestick active on {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate());
                     return Boolean.TRUE;
                      }
                 }else {
-                    log.info("Candlestick active {} on {} wickCheck {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate(),isWickCheck);
+                    log.info("{} bullish candlestick active on {} wickCheck {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate(),isWickCheck);
                     return Boolean.TRUE;
                 }
             }
@@ -74,7 +73,7 @@ public class CandleStickHelperServiceImpl implements CandleStickHelperService {
 
                 if(candleStickService.isHammer(stock) || (candleStickService.isGreen(stock) && candleStickService.isCloseAbovePrevOpen(stock))
                     || (candleStickService.isOpenBelowPrevClose(stock) && candleStickService.isCloseAbovePrevClose(stock))) {
-                log.info("Candlestick higher high & higher low {} on {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate());
+                log.info("{} bullish candlestick higher high and higher low on {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate());
                 return Boolean.TRUE;
             }
 
@@ -87,7 +86,7 @@ public class CandleStickHelperServiceImpl implements CandleStickHelperService {
 
         if (
                 candleStickService.isBearishMarubozu(stock) ||
-                        candleStickService.isBearishSoldiers(stock) ||
+                        (!isWickCheck && candleStickService.isBearishSoldiers(stock) )||
                         candleStickService.isBearishKicker(stock) ||
                         candleStickService.isBearishSeparatingLine(stock) ||
                         candleStickService.isBearishSash(stock) ||
@@ -97,25 +96,25 @@ public class CandleStickHelperServiceImpl implements CandleStickHelperService {
                         candleStickService.isShootingStar(stock) ||
                         candleStickService.isOpenHigh(stock) ||
                         candleStickService.isBearishPinBar(stock) ||
-                        candleStickService.isDoubleTop(stock) ||
+                        candleStickService.isDoubleHigh(stock) ||
                         candleStickService.isTweezerTop(stock) ||
                         candleStickService.isBearishInsideBar(stock) ||
                         candleStickService.isBearishHarami(stock) ||
                         candleStickService.isInDecisionPrevConfirmationBearish(stock)) {
             if (isWickCheck) {
                 if (this.isLowerWickSizeConfirmed(stock)) {
-                    log.info("Candlestick active {} on {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate());
+                    log.info("{} bearish candlestick active on {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate());
                     return Boolean.TRUE;
                 }
             } else {
-                log.info("Candlestick active {} on {} wickCheck {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate(), isWickCheck);
+                log.info("{} bearish candlestick active on {} wickCheck {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate(), isWickCheck);
                 return Boolean.TRUE;
             }
         } else if (!isWickCheck && (candleStickService.isLowerHigh(stock) && candleStickService.isLowerLow(stock))) {
             if (candleStickService.isShootingStar(stock)
                     || (candleStickService.isRed(stock) && candleStickService.isCloseBelowPrevOpen(stock))
                     || (candleStickService.isOpenAbovePrevClose(stock) && candleStickService.isCloseBelowPrevClose(stock))) {
-                log.info("Candlestick lower high & lower low {} on {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate());
+                log.info("{} bearish candlestick lower high & lower low on {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate());
                 return Boolean.TRUE;
             }
 

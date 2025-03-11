@@ -3,7 +3,7 @@ package com.example.service;
 import com.example.model.master.Stock;
 import com.example.util.io.model.type.Trend;
 
-public interface MovingAverageSupportResistanceService {
+public interface MediumTermMovingAverageSupportResistanceService {
 
     /**
      *
@@ -13,11 +13,11 @@ public interface MovingAverageSupportResistanceService {
      * @param stock
      * @return
      */
-    public boolean isBullish(Stock stock, Trend trend);
+    public boolean isBullish(Stock stock);
 
-    public boolean isBreakout(Stock stock, Trend trend);
+    public boolean isBreakout(Stock stock);
 
-    public boolean isNearSupport(Stock stock, Trend trend);
+    public boolean isNearSupport(Stock stock);
 
     /**
      * 1. Breakdown 50, 100, 200
@@ -26,9 +26,9 @@ public interface MovingAverageSupportResistanceService {
      * @param stock
      * @return
      */
-    public boolean isBearish(Stock stock, Trend trend);
+    public boolean isBearish(Stock stock);
 
-    public boolean isBreakdown(Stock stock, Trend trend);
+    public boolean isBreakdown(Stock stock);
 
-    public boolean isNearResistance(Stock stock, Trend trend);
+    public boolean isNearResistance(Stock stock);
 }

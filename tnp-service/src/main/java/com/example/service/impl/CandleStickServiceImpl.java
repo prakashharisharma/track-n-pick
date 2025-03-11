@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CandleStickServiceImpl implements CandleStickService {
 
-
     @Autowired
     private FormulaService formulaService;
 
@@ -231,8 +230,6 @@ public class CandleStickServiceImpl implements CandleStickService {
 
         double highWickPerOfBody =  formulaService.calculatePercentage(bodySize, upperWickSize);
 
-        //log.debug("{} -  {} upperWickSize, {} bodySize, {} sellingWick% {}", stock.getNseSymbol(), upperWickSize, bodySize, highWickPerOfBody);
-
         if(highWickPerOfBody >= benchmark){
             return Boolean.TRUE;
         }
@@ -332,7 +329,7 @@ public class CandleStickServiceImpl implements CandleStickService {
         StockPrice stockPrice = stock.getStockPrice();
         if(this.isGreen(stock)) {
             if (stockPrice.getLow() > stockPrice.getPrevHigh()) {
-                log.info("Rising window active {}", stock.getNseSymbol());
+                log.info("{} rising window active", stock.getNseSymbol());
                 return Boolean.TRUE;
             }
         }
@@ -344,7 +341,7 @@ public class CandleStickServiceImpl implements CandleStickService {
         StockPrice stockPrice = stock.getStockPrice();
         if(this.isRed(stock)) {
             if (stockPrice.getHigh() < stockPrice.getPrevLow()) {
-                log.info("Falling window active {}", stock.getNseSymbol());
+                log.info("{} falling window active", stock.getNseSymbol());
                 return Boolean.TRUE;
             }
         }
@@ -391,12 +388,13 @@ public class CandleStickServiceImpl implements CandleStickService {
         StockPrice stockPrice = stock.getStockPrice();
 
         if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getClose(), FibonacciRatio.RATIO_261_8)){
-            log.info("Doji candle active {}", stock.getNseSymbol());
+
             if (this.upperWickSize(stock) <= this.lowerWickSize(stock) * 3) {
             if (this.lowerWickSize(stock) <= this.upperWickSize(stock) * 3) {
             if (this.upperWickSize(stock) >= this.body(stock) * 2) {
               if (this.lowerWickSize(stock) >= this.body(stock) * 2) {
-            return Boolean.TRUE;
+                  log.info("{} doji candle active", stock.getNseSymbol());
+                    return Boolean.TRUE;
                    }
                  }
                }
@@ -423,7 +421,7 @@ public class CandleStickServiceImpl implements CandleStickService {
 
         if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getClose(), FibonacciRatio.RATIO_261_8)){
             if(stockPrice.getOpen() == stockPrice.getLow()){
-                        log.info("GraveStone Doji candle active {}", stock.getNseSymbol());
+                        log.info("{} graveStone doji candle active", stock.getNseSymbol());
                         return Boolean.TRUE;
             }
         }
@@ -439,7 +437,7 @@ public class CandleStickServiceImpl implements CandleStickService {
         if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getClose(), FibonacciRatio.RATIO_261_8)){
             if(stockPrice.getOpen() == stockPrice.getHigh()){
 
-                                log.info("DragonFly Doji candle active {}", stock.getNseSymbol());
+                                log.info("{} dragonFly doji candle active", stock.getNseSymbol());
 
                 return Boolean.TRUE;
             }
@@ -455,7 +453,7 @@ public class CandleStickServiceImpl implements CandleStickService {
 
         if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getClose(), FibonacciRatio.RATIO_261_8)){
             if(this.lowerWickSize(stock) > this.upperWickSize(stock) * 3) {
-                log.info("Bullish PinBar candle active {}", stock.getNseSymbol());
+                log.info("{} bullish pin bar active", stock.getNseSymbol());
                 return Boolean.TRUE;
             }
         }
@@ -469,7 +467,7 @@ public class CandleStickServiceImpl implements CandleStickService {
 
         if(formulaService.isEpsilonEqual(stockPrice.getOpen(), stockPrice.getClose(), FibonacciRatio.RATIO_261_8)){
             if(this.upperWickSize(stock) > this.lowerWickSize(stock) * 3) {
-                log.info("Bearish candle active {}", stock.getNseSymbol());
+                log.info("{} bearish pin bar active", stock.getNseSymbol());
                 return Boolean.TRUE;
             }
         }
@@ -486,7 +484,7 @@ public class CandleStickServiceImpl implements CandleStickService {
                 if (this.lowerWickSize(stock) <= this.upperWickSize(stock) * 3) {
                     if (this.upperWickSize(stock) >= this.body(stock) * 2) {
                         if (this.lowerWickSize(stock) >= this.body(stock) * 2) {
-                            log.info("Spinning Top candle active {}", stock.getNseSymbol());
+                            log.info("{} spinning top candle active", stock.getNseSymbol());
                             return Boolean.TRUE;
                         }
                     }
@@ -537,7 +535,7 @@ public class CandleStickServiceImpl implements CandleStickService {
         }
 
         if(isConfirmation){
-            log.info("Bullish Doji confirmed {}", stock.getNseSymbol());
+            log.info("{} bullish doji confirmed", stock.getNseSymbol());
         }
 
         return isConfirmation;
@@ -562,7 +560,7 @@ public class CandleStickServiceImpl implements CandleStickService {
         }
 
         if(isConfirmation){
-            log.info("Bearish Doji confirmed {}", stock.getNseSymbol());
+            log.info("{} bearish doji confirmed", stock.getNseSymbol());
         }
 
         return isConfirmation;
@@ -576,7 +574,7 @@ public class CandleStickServiceImpl implements CandleStickService {
             if (this.upperWickSize(stock) < bodySize) {
                 if (bodySize > FibonacciRatio.RATIO_261_8) {
                     if (this.isGreen(stock) || (this.isRed(stock) && bodySize <= FibonacciRatio.RATIO_100_0 * 10)) {
-                        log.info("HangingMan / Hammer candle active {}", stock.getNseSymbol());
+                        log.info("{} hangingMan / hammer candle active", stock.getNseSymbol());
                         return Boolean.TRUE;
                     }
                 }
@@ -601,7 +599,7 @@ public class CandleStickServiceImpl implements CandleStickService {
             if (this.lowerWickSize(stock) < bodySize){
                 if (bodySize > FibonacciRatio.RATIO_261_8) {
                     if (this.isRed(stock) || (this.isGreen(stock) && bodySize <= FibonacciRatio.RATIO_100_0 * 10)) {
-                        log.info("Shooting Start / Inverted Hammer candle active {}", stock.getNseSymbol());
+                        log.info("{} shooting star / inverted hammer candle active", stock.getNseSymbol());
                         return Boolean.TRUE;
                     }
                 }
@@ -651,7 +649,7 @@ public class CandleStickServiceImpl implements CandleStickService {
             if(this.body(stock) > this.bodyPrev(stock)  && this.body(stock) >= MIN_BODY_SIZE ) {
                 if (this.isOpenAbovePrevClose(stock)) {
                     if (this.isCloseBelowPrevOpen(stock)) {
-                        log.info("Bearish Engulfing candle active {}", stock.getNseSymbol());
+                        log.info("{} bearish engulfing candle active", stock.getNseSymbol());
                         return Boolean.TRUE;
                     }
                 }
@@ -666,7 +664,7 @@ public class CandleStickServiceImpl implements CandleStickService {
             if(this.body(stock) > this.bodyPrev(stock)  && this.body(stock) >= MIN_BODY_SIZE) {
                 if (this.isOpenBelowPrevClose(stock)) {
                     if (this.isCloseAbovePrevOpen(stock)) {
-                        log.info("Bullish Engulfing candle active {}", stock.getNseSymbol());
+                        log.info("{} bullish engulfing candle active", stock.getNseSymbol());
                         return Boolean.TRUE;
                     }
                 }
@@ -768,7 +766,7 @@ public class CandleStickServiceImpl implements CandleStickService {
     }
 
     @Override
-    public boolean isDoubleTop(Stock stock) {
+    public boolean isDoubleHigh(Stock stock) {
         StockPrice stockPrice = stock.getStockPrice();
         if(this.isRed(stock)){
             if(formulaService.isEpsilonEqual(stockPrice.getHigh(), stockPrice.getPrevHigh(), FibonacciRatio.RATIO_161_8)){
@@ -780,6 +778,12 @@ public class CandleStickServiceImpl implements CandleStickService {
         }
         return Boolean.FALSE;
     }
+
+    @Override
+    public boolean isDoubleTop(Stock stock) {
+        return false;
+    }
+
 
     @Override
     public boolean isTweezerBottom(Stock stock) {
@@ -796,7 +800,7 @@ public class CandleStickServiceImpl implements CandleStickService {
     }
 
     @Override
-    public boolean isDoubleBottom(Stock stock) {
+    public boolean isDoubleLow(Stock stock) {
         StockPrice stockPrice = stock.getStockPrice();
         if(this.isGreen(stock)){
             if(formulaService.isEpsilonEqual(stockPrice.getLow(), stockPrice.getPrevLow(), FibonacciRatio.RATIO_161_8)){
@@ -807,6 +811,11 @@ public class CandleStickServiceImpl implements CandleStickService {
             }
         }
         return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isDoubleBottom(Stock stock) {
+        return false;
     }
 
     @Override

@@ -536,10 +536,10 @@ private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, Simpl
 			stockTechnicalsTxn.setSignal(stockTechnicalsIO.getSignal());
 
 
-			stockTechnicalsTxn.setVolumePrev(stockTechnicalsTxn.getVolume());
+			stockTechnicalsTxn.setPrevVolume(stockTechnicalsTxn.getVolume());
 			stockTechnicalsTxn.setVolumeAvg5Prev(stockTechnicalsTxn.getVolumeAvg5());
 			stockTechnicalsTxn.setVolumeAvg20Prev(stockTechnicalsTxn.getVolumeAvg20());
-			stockTechnicalsTxn.setVolumeAvg50Prev(stockTechnicalsTxn.getVolumeAvg50());
+			stockTechnicalsTxn.setPrevVolumeAvg50(stockTechnicalsTxn.getVolumeAvg50());
 
 			stockTechnicalsTxn.setVolume(stockTechnicalsIO.getVolume());
 			stockTechnicalsTxn.setVolumeAvg5(stockTechnicalsIO.getVolumeAvg5());

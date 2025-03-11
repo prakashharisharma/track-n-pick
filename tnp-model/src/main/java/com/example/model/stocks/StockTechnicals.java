@@ -30,9 +30,6 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "BHAV_DATE")
 	LocalDate bhavDate = LocalDate.now();
 
-	@Column(name = "TREND")
-	@Enumerated(EnumType.STRING)
-	private Trend trend = Trend.UP;
 	@Column(name = "SMA_5", columnDefinition="decimal(10,2) default '0.00'")
 	double sma5;
 
@@ -146,47 +143,59 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "LAST_MODIFIED")
 	LocalDate lastModified = LocalDate.now();
 
-	@Column(name = "OBV", columnDefinition="decimal(10,2) default '0.00'")
+	@Column(name = "OBV", columnDefinition="bigint default '0'")
 	Long obv;
 
-	@Column(name = "OBV_AVG", columnDefinition="decimal(10,2) default '0.00'")
+	@Column(name = "OBV_AVG", columnDefinition="bigint default '0'")
 	Long obvAvg;
 
-	@Column(name = "PREV_OBV", columnDefinition="decimal(10,2) default '0.00'")
+	@Column(name = "PREV_OBV", columnDefinition="bigint default '0'")
 	Long prevObv;
 
-	@Column(name = "PREV_OBV_AVG", columnDefinition="decimal(10,2) default '0.00'")
+	@Column(name = "PREV_OBV_AVG", columnDefinition="bigint default '0'")
 	Long prevObvAvg;
 
-	@Column(name = "PREV_PREV_OBV", columnDefinition="decimal(10,2) default '0.00'")
+	@Column(name = "PREV_PREV_OBV", columnDefinition="bigint default '0'")
 	Long prevPrevObv;
 
-	@Column(name = "PREV_PREV_OBV_AVG", columnDefinition="decimal(10,2) default '0.00'")
+	@Column(name = "PREV_PREV_OBV_AVG", columnDefinition="bigint default '0'")
 	Long prevPrevObvAvg;
 
-	@Column(name = "VOLUME")
+	@Column(name = "VOLUME", columnDefinition="bigint default '0'")
 	Long volume;
 
-	@Column(name = "VOLUME_PREV")
-	Long volumePrev;
+	@Column(name = "PREV_VOLUME", columnDefinition="bigint default '0'")
+	Long prevVolume;
+
+	@Column(name = "PREV_PREV_VOLUME", columnDefinition="bigint default '0'")
+	Long prevPrevVolume;
 	
-	@Column(name = "VOLUME_AVG5")
+	@Column(name = "VOLUME_AVG5", columnDefinition="bigint default '0'")
 	Long volumeAvg5;
 
-	@Column(name = "VOLUME_AVG5_PREV")
-	Long volumeAvg5Prev;
+	@Column(name = "PREV_VOLUME_AVG5", columnDefinition="bigint default '0'")
+	Long prevVolumeAvg5;
 
-	@Column(name = "VOLUME_AVG20")
+
+	@Column(name = "PREV_PREV_VOLUME_AVG5", columnDefinition="bigint default '0'")
+	Long prevPrevVolumeAvg5;
+	@Column(name = "VOLUME_AVG20", columnDefinition="bigint default '0'")
 	Long volumeAvg20;
 
-	@Column(name = "VOLUME_AVG20_PREV")
-	Long volumeAvg20Prev;
+	@Column(name = "PREV_VOLUME_AVG20", columnDefinition="bigint default '0'")
+	Long prevVolumeAvg20;
 
-	@Column(name = "VOLUME_AVG50")
+	@Column(name = "PREV_PREV_VOLUME_AVG20", columnDefinition="bigint default '0'")
+	Long prevPrevVolumeAvg20;
+
+	@Column(name = "VOLUME_AVG50", columnDefinition="bigint default '0'")
 	Long volumeAvg50;
 
-	@Column(name = "VOLUME_AVG50_PREV")
-	Long volumeAvg50Prev;
+	@Column(name = "PREV_VOLUME_AVG50", columnDefinition="bigint default '0'")
+	Long prevVolumeAvg50;
+
+	@Column(name = "PREV_PREV_VOLUME_AVG50", columnDefinition="bigint default '0'")
+	Long prevPrevVolumeAvg50;
 
 	@Column(name = "ADX", columnDefinition="decimal(10,2) default '0.00'")
 	double adx;
@@ -257,6 +266,15 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "PREV_YEAR_CLOSE", columnDefinition="decimal(10,2) default '0.00'")
 	double prevYearClose;
 
+	@Column(name = "PREV_PREV_YEAR_OPEN", columnDefinition="decimal(10,2) default '0.00'")
+	double prevPrevYearOpen;
+	@Column(name = "PREV_PREV_YEAR_HIGH", columnDefinition="decimal(10,2) default '0.00'")
+	double prevPrevYearHigh;
+	@Column(name = "PREV_PREV_YEAR_LOW", columnDefinition="decimal(10,2) default '0.00'")
+	double prevPrevYearLow;
+	@Column(name = "PREV_PREV_YEAR_CLOSE", columnDefinition="decimal(10,2) default '0.00'")
+	double prevPrevYearClose;
+
 	@Column(name = "PREV_QUARTER_OPEN", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevQuarterOpen;
 	@Column(name = "PREV_QUARTER_HIGH", columnDefinition="decimal(10,2) default '0.00'")
@@ -275,6 +293,15 @@ public class StockTechnicals implements Serializable{
 	@Column(name = "PREV_PREV_QUARTER_CLOSE", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevPrevQuarterClose;
 
+
+	@Column(name = "PREV_PREV_PREV_QUARTER_OPEN", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevPrevPrevQuarterOpen;
+	@Column(name = "PREV_PREV_PREV_QUARTER_HIGH", columnDefinition="decimal(10,2) default '0.00'")
+	double prevPrevPrevQuarterHigh;
+	@Column(name = "PREV_PREV_PREV_QUARTER_LOW", columnDefinition="decimal(10,2) default '0.00'")
+	double prevPrevPrevQuarterLow;
+	@Column(name = "PREV_PREV_PREV_QUARTER_CLOSE", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevPrevPrevQuarterClose;
 
 	@Column(name = "PREV_MONTH_OPEN", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevMonthOpen;
@@ -295,6 +322,15 @@ public class StockTechnicals implements Serializable{
 	double prevPrevMonthClose;
 
 
+	@Column(name = "PREV_PREV_PREV_MONTH_OPEN", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevPrevPrevMonthOpen;
+	@Column(name = "PREV_PREV_PREV_MONTH_HIGH", columnDefinition="decimal(10,2) default '0.00'")
+	double prevPrevPrevMonthHigh;
+	@Column(name = "PREV_PREV_PREV_MONTH_LOW", columnDefinition="decimal(10,2) default '0.00'")
+	double prevPrevPrevMonthLow;
+	@Column(name = "PREV_PREV_PREV_MONTH_CLOSE", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevPrevPrevMonthClose;
+
 	@Column(name = "PREV_WEEK_OPEN", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevWeekOpen;
 	@Column(name = "PREV_WEEK_HIGH", columnDefinition="decimal(10,2) default '0.00'")
@@ -312,6 +348,15 @@ public class StockTechnicals implements Serializable{
 	double prevPrevWeekLow;
 	@Column(name = "PREV_PREV_WEEK_CLOSE", columnDefinition="Decimal(10,2) default '0.00'")
 	double prevPrevWeekClose;
+
+	@Column(name = "PREV_PREV_PREV_WEEK_OPEN", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevPrevPrevWeekOpen;
+	@Column(name = "PREV_PREV_PREV_WEEK_HIGH", columnDefinition="decimal(10,2) default '0.00'")
+	double prevPrevPrevWeekHigh;
+	@Column(name = "PREV_PREV_PREV_WEEK_LOW", columnDefinition="decimal(10,2) default '0.00'")
+	double prevPrevPrevWeekLow;
+	@Column(name = "PREV_PREV_PREV_WEEK_CLOSE", columnDefinition="Decimal(10,2) default '0.00'")
+	double prevPrevPrevWeekClose;
 
 	public long getStockTechnicalsId() {
 		return stockTechnicalsId;
@@ -337,13 +382,6 @@ public class StockTechnicals implements Serializable{
 		this.bhavDate = bhavDate;
 	}
 
-	public Trend getTrend() {
-		return trend;
-	}
-
-	public void setTrend(Trend trend) {
-		this.trend = trend;
-	}
 
 	public double getSma5() {
 		return sma5;
@@ -690,19 +728,19 @@ public class StockTechnicals implements Serializable{
 	}
 
 	public Long getVolumeAvg5Prev() {
-		return volumeAvg5Prev;
+		return prevVolumeAvg5;
 	}
 
 	public void setVolumeAvg5Prev(Long volumeAvg5Prev) {
-		this.volumeAvg5Prev = volumeAvg5Prev;
+		this.prevVolumeAvg5 = volumeAvg5Prev;
 	}
 
-	public Long getVolumePrev() {
-		return volumePrev;
+	public Long getPrevVolume() {
+		return prevVolume;
 	}
 
-	public void setVolumePrev(Long volumePrev) {
-		this.volumePrev = volumePrev;
+	public void setPrevVolume(Long prevVolume) {
+		this.prevVolume = prevVolume;
 	}
 
 	public Long getVolumeAvg20() {
@@ -714,13 +752,60 @@ public class StockTechnicals implements Serializable{
 	}
 
 	public Long getVolumeAvg20Prev() {
-		return volumeAvg20Prev;
+		return prevVolumeAvg20;
 	}
 
 	public void setVolumeAvg20Prev(Long volumeAvg20Prev) {
-		this.volumeAvg20Prev = volumeAvg20Prev;
+		this.prevVolumeAvg20 = volumeAvg20Prev;
 	}
 
+	public Long getPrevPrevVolume() {
+		return prevPrevVolume;
+	}
+
+	public void setPrevPrevVolume(Long prevPrevVolume) {
+		this.prevPrevVolume = prevPrevVolume;
+	}
+
+	public Long getPrevVolumeAvg5() {
+		return prevVolumeAvg5;
+	}
+
+	public void setPrevVolumeAvg5(Long prevVolumeAvg5) {
+		this.prevVolumeAvg5 = prevVolumeAvg5;
+	}
+
+	public Long getPrevPrevVolumeAvg5() {
+		return prevPrevVolumeAvg5;
+	}
+
+	public void setPrevPrevVolumeAvg5(Long prevPrevVolumeAvg5) {
+		this.prevPrevVolumeAvg5 = prevPrevVolumeAvg5;
+	}
+
+	public Long getPrevVolumeAvg20() {
+		return prevVolumeAvg20;
+	}
+
+	public void setPrevVolumeAvg20(Long prevVolumeAvg20) {
+		this.prevVolumeAvg20 = prevVolumeAvg20;
+	}
+
+	public Long getPrevPrevVolumeAvg20() {
+		return prevPrevVolumeAvg20;
+	}
+
+	public void setPrevPrevVolumeAvg20(Long prevPrevVolumeAvg20) {
+		this.prevPrevVolumeAvg20 = prevPrevVolumeAvg20;
+	}
+
+	public Long getPrevPrevVolumeAvg50() {
+		return prevPrevVolumeAvg50;
+	}
+
+	public void setPrevPrevVolumeAvg50(Long prevPrevVolumeAvg50) {
+		this.prevPrevVolumeAvg50 = prevPrevVolumeAvg50;
+	}
 
 	public double getAdx() {
 		return adx;
@@ -890,12 +975,12 @@ public class StockTechnicals implements Serializable{
 		this.volumeAvg50 = volumeAvg50;
 	}
 
-	public Long getVolumeAvg50Prev() {
-		return volumeAvg50Prev;
+	public Long getPrevVolumeAvg50() {
+		return prevVolumeAvg50;
 	}
 
-	public void setVolumeAvg50Prev(Long volumeAvg50Prev) {
-		this.volumeAvg50Prev = volumeAvg50Prev;
+	public void setPrevVolumeAvg50(Long prevVolumeAvg50) {
+		this.prevVolumeAvg50 = prevVolumeAvg50;
 	}
 
 	public double getPrevPrevEma100() {
@@ -1136,6 +1221,134 @@ public class StockTechnicals implements Serializable{
 
 	public void setPrevPrevMonthClose(double prevPrevMonthClose) {
 		this.prevPrevMonthClose = prevPrevMonthClose;
+	}
+
+	public double getPrevPrevYearOpen() {
+		return prevPrevYearOpen;
+	}
+
+	public void setPrevPrevYearOpen(double prevPrevYearOpen) {
+		this.prevPrevYearOpen = prevPrevYearOpen;
+	}
+
+	public double getPrevPrevYearHigh() {
+		return prevPrevYearHigh;
+	}
+
+	public void setPrevPrevYearHigh(double prevPrevYearHigh) {
+		this.prevPrevYearHigh = prevPrevYearHigh;
+	}
+
+	public double getPrevPrevYearLow() {
+		return prevPrevYearLow;
+	}
+
+	public void setPrevPrevYearLow(double prevPrevYearLow) {
+		this.prevPrevYearLow = prevPrevYearLow;
+	}
+
+	public double getPrevPrevYearClose() {
+		return prevPrevYearClose;
+	}
+
+	public void setPrevPrevYearClose(double prevPrevYearClose) {
+		this.prevPrevYearClose = prevPrevYearClose;
+	}
+
+	public double getPrevPrevPrevQuarterOpen() {
+		return prevPrevPrevQuarterOpen;
+	}
+
+	public void setPrevPrevPrevQuarterOpen(double prevPrevPrevQuarterOpen) {
+		this.prevPrevPrevQuarterOpen = prevPrevPrevQuarterOpen;
+	}
+
+	public double getPrevPrevPrevQuarterHigh() {
+		return prevPrevPrevQuarterHigh;
+	}
+
+	public void setPrevPrevPrevQuarterHigh(double prevPrevPrevQuarterHigh) {
+		this.prevPrevPrevQuarterHigh = prevPrevPrevQuarterHigh;
+	}
+
+	public double getPrevPrevPrevQuarterLow() {
+		return prevPrevPrevQuarterLow;
+	}
+
+	public void setPrevPrevPrevQuarterLow(double prevPrevPrevQuarterLow) {
+		this.prevPrevPrevQuarterLow = prevPrevPrevQuarterLow;
+	}
+
+	public double getPrevPrevPrevQuarterClose() {
+		return prevPrevPrevQuarterClose;
+	}
+
+	public void setPrevPrevPrevQuarterClose(double prevPrevPrevQuarterClose) {
+		this.prevPrevPrevQuarterClose = prevPrevPrevQuarterClose;
+	}
+
+	public double getPrevPrevPrevMonthOpen() {
+		return prevPrevPrevMonthOpen;
+	}
+
+	public void setPrevPrevPrevMonthOpen(double prevPrevPrevMonthOpen) {
+		this.prevPrevPrevMonthOpen = prevPrevPrevMonthOpen;
+	}
+
+	public double getPrevPrevPrevMonthHigh() {
+		return prevPrevPrevMonthHigh;
+	}
+
+	public void setPrevPrevPrevMonthHigh(double prevPrevPrevMonthHigh) {
+		this.prevPrevPrevMonthHigh = prevPrevPrevMonthHigh;
+	}
+
+	public double getPrevPrevPrevMonthLow() {
+		return prevPrevPrevMonthLow;
+	}
+
+	public void setPrevPrevPrevMonthLow(double prevPrevPrevMonthLow) {
+		this.prevPrevPrevMonthLow = prevPrevPrevMonthLow;
+	}
+
+	public double getPrevPrevPrevMonthClose() {
+		return prevPrevPrevMonthClose;
+	}
+
+	public void setPrevPrevPrevMonthClose(double prevPrevPrevMonthClose) {
+		this.prevPrevPrevMonthClose = prevPrevPrevMonthClose;
+	}
+
+	public double getPrevPrevPrevWeekOpen() {
+		return prevPrevPrevWeekOpen;
+	}
+
+	public void setPrevPrevPrevWeekOpen(double prevPrevPrevWeekOpen) {
+		this.prevPrevPrevWeekOpen = prevPrevPrevWeekOpen;
+	}
+
+	public double getPrevPrevPrevWeekHigh() {
+		return prevPrevPrevWeekHigh;
+	}
+
+	public void setPrevPrevPrevWeekHigh(double prevPrevPrevWeekHigh) {
+		this.prevPrevPrevWeekHigh = prevPrevPrevWeekHigh;
+	}
+
+	public double getPrevPrevPrevWeekLow() {
+		return prevPrevPrevWeekLow;
+	}
+
+	public void setPrevPrevPrevWeekLow(double prevPrevPrevWeekLow) {
+		this.prevPrevPrevWeekLow = prevPrevPrevWeekLow;
+	}
+
+	public double getPrevPrevPrevWeekClose() {
+		return prevPrevPrevWeekClose;
+	}
+
+	public void setPrevPrevPrevWeekClose(double prevPrevPrevWeekClose) {
+		this.prevPrevPrevWeekClose = prevPrevPrevWeekClose;
 	}
 
 	@Override

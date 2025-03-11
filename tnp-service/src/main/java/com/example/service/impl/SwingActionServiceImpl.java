@@ -6,6 +6,7 @@ import com.example.model.master.Stock;
 import com.example.model.stocks.StockPrice;
 import com.example.service.*;
 import com.example.util.FormulaService;
+import com.example.util.io.model.type.Momentum;
 import com.example.util.io.model.type.Trend;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +16,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class SwingActionServiceImpl implements SwingActionService {
 
-    private static final double SWING_ACTION_FACTOR = 2.0;
-
-    private static final double RSI_MACD_RISK_REWARD = 2.0;
-
-    private static final double ADX_TMA_RISK_REWARD = 5.0;
 
     @Autowired
     private SupportResistanceUtilService supportResistanceService;
@@ -33,8 +29,7 @@ public class SwingActionServiceImpl implements SwingActionService {
     private RsiIndicatorService rsiTrendService;
     @Autowired
     private StockPriceService stockPriceService;
-    @Autowired
-    private RelevanceService relevanceService;
+
     @Autowired
     private BreakoutService breakoutService;
     @Autowired
@@ -43,9 +38,20 @@ public class SwingActionServiceImpl implements SwingActionService {
     private FormulaService formulaService;
     @Autowired
     private VolumeService volumeService;
+
+    @Autowired
+    private VolumeIndicatorService volumeIndicatorService;
     @Autowired
     private TrendService trendService;
 
+    @Autowired
+    private RsiIndicatorService rsiIndicatorService;
+
+    @Autowired
+    private ObvIndicatorService obvIndicatorService;
+
+    @Autowired
+    private AdxIndicatorService adxIndicatorService;
 
     /**
      * Volume > Weekly && Volume > Monthly
@@ -57,11 +63,11 @@ public class SwingActionServiceImpl implements SwingActionService {
     @Override
     public TradeSetup breakOut(Stock stock) {
         Trend trend = trendService.isUpTrend(stock);
-        if(trend!=Trend.INVALID) {
-            if (volumeService.isVolumeAboveWeeklyAndMonthlyAverage(stock, 3.0, 1.5) || volumeService.isVolumeAboveDailyAndWeeklyAverage(stock, 3.0, 1.5)) {
+        if(trend.getMomentum() == Momentum.RECOVERY || trend.getMomentum() == Momentum.ADVANCE) {
+            //if (volumeService.isVolumeAboveWeeklyAndMonthlyAverage(stock, 3.0, 1.5) || volumeService.isVolumeAboveDailyAndWeeklyAverage(stock, 3.0, 1.5)) {
                 if (candleStickService.isGreen(stock) && candleStickHelperService.isUpperWickSizeConfirmed(stock)) {
 
-                            ResearchLedgerTechnical.SubStrategy subStrategy = ResearchLedgerTechnical.SubStrategy.RSI_MACD;
+                            ResearchLedgerTechnical.SubStrategy subStrategy = ResearchLedgerTechnical.SubStrategy.RM;
                             boolean isTmaConvergenceAndDivergence = this.isTmaConvergenceAndDivergence(stock, trend);
                             boolean isRsiMacdBreakout = this.isRsiMacdBreakout(stock, trend);
                             StockPrice stockPrice = stock.getStockPrice();
@@ -70,28 +76,28 @@ public class SwingActionServiceImpl implements SwingActionService {
                             double stopLossPrice = stockPrice.getLow();
 
                             double targetPrice = 0.0;
-                            double risk = formulaService.calculateChangePercentage(stopLossPrice, entryPrice);
+                            double risk = Math.abs(formulaService.calculateChangePercentage(entryPrice, stopLossPrice));
                             double correction = stockPriceService.correction(stock);
                             boolean isSwingAction = Boolean.FALSE;
 
                             if (isTmaConvergenceAndDivergence) {
-                                subStrategy = ResearchLedgerTechnical.SubStrategy.ADX_TEMA;
-                                targetPrice = formulaService.calculateTarget(entryPrice, stopLossPrice, ADX_TMA_RISK_REWARD);
+                                subStrategy = ResearchLedgerTechnical.SubStrategy.TEMA;
+                                targetPrice = formulaService.calculateTarget(entryPrice, stopLossPrice, RiskReward.SWING_TEMA);
                                 isSwingAction = Boolean.TRUE;
                             }
                             else if(isRsiMacdBreakout){
-                                subStrategy = ResearchLedgerTechnical.SubStrategy.RSI_MACD;
-                                targetPrice = formulaService.calculateTarget(entryPrice, stopLossPrice, RSI_MACD_RISK_REWARD);
+                                subStrategy = ResearchLedgerTechnical.SubStrategy.RM;
+                                targetPrice = formulaService.calculateTarget(entryPrice, stopLossPrice, RiskReward.SWING_RM);
                                 isSwingAction = Boolean.TRUE;
                             }
 
                             if(isSwingAction){
-
-                                log.info("{} Swing Action active for {}, entryPrice:{}, targetPrice:{}, stopLossPrice:{}", trend
-                                        , stock.getNseSymbol(), entryPrice, targetPrice, stopLossPrice);
+                                log.info("{} bullish swing action confirmed using {}:{}", stock.getNseSymbol(), ResearchLedgerTechnical.Strategy.PRICE, subStrategy);
+                                log.info("{} bullish swing action active for trend:{}, momentum:{}, entryPrice:{}, targetPrice:{}, stopLossPrice:{}, risk {}, correction {}"
+                                        , stock.getNseSymbol(), trend.getStrength(), trend.getMomentum(), entryPrice, targetPrice, stopLossPrice, risk, correction);
 
                                 return TradeSetup.builder()
-                                        .strategy(ResearchLedgerTechnical.Strategy.SWING_ACTION)
+                                        .strategy(ResearchLedgerTechnical.Strategy.SWING)
                                         .subStrategy(subStrategy)
                                         .active(Boolean.TRUE)
                                         .entryPrice(entryPrice)
@@ -102,7 +108,7 @@ public class SwingActionServiceImpl implements SwingActionService {
                                         .build();
                             }
                         }
-                }
+                //}
         }
 
         return TradeSetup.builder().active(Boolean.FALSE).build();
@@ -119,25 +125,17 @@ public class SwingActionServiceImpl implements SwingActionService {
      */
     private boolean isRsiMacdBreakout(Stock stock, Trend trend){
 
-                if (rsiTrendService.isBullish(stock)) {
-                    if (macdIndicatorService.isHistogramGreen(stock) && macdIndicatorService.isHistogramIncreased(stock)) {
-                        if (macdIndicatorService.isSignalNearHistogram(stock)) {
-                            if ( trend == Trend.SHORT &&  stockPriceService.isCloseAboveEma20(stock)) {
-                                log.info("RSI MACD Breakout active for {}", stock.getNseSymbol());
-                                return Boolean.TRUE;
-                            }else if ( trend == Trend.MEDIUM &&  stockPriceService.isCloseAboveEma50(stock)) {
-                                log.info("RSI MACD Breakout active for {}", stock.getNseSymbol());
-                                return Boolean.TRUE;
-                            }
-                            else if ( trend == Trend.LONG &&  stockPriceService.isCloseAboveEma200(stock)) {
-                                log.info("RSI MACD Breakout active for {}", stock.getNseSymbol());
-                                return Boolean.TRUE;
-                            }
-
+        if(obvIndicatorService.isBullish(stock) || volumeIndicatorService.isBullish(stock)) {
+            if (rsiTrendService.isBullish(stock)) {
+                if (macdIndicatorService.isHistogramGreen(stock) && macdIndicatorService.isHistogramIncreased(stock)) {
+                    if (macdIndicatorService.isSignalNearHistogram(stock)) {
+                        if (stockPriceService.isCloseAboveEma20(stock)) {
+                            return Boolean.TRUE;
                         }
                     }
                 }
-
+            }
+        }
         return Boolean.FALSE;
     }
 
@@ -152,18 +150,17 @@ public class SwingActionServiceImpl implements SwingActionService {
      */
     private boolean isTmaConvergenceAndDivergence(Stock stock, Trend trend){
 
-            if (adxService.isAdxIncreasing(stock)) {
-                if (stockPriceService.isTmaConvergenceAndDivergence(stock, trend)) {
-                    log.info("ADX TMA in average range breakout active for {}", stock.getNseSymbol());
-                    return Boolean.TRUE;
-                }else if(stockPriceService.isTmaInPriceRange(stock, trend)){
-                    log.info("ADX TMA in price range breakout active for {}", stock.getNseSymbol());
-                    return Boolean.TRUE;
-                }
+        if(obvIndicatorService.isBullish(stock) || volumeIndicatorService.isBullish(stock)) {
+            if (adxService.isBullish(stock)) {
+                //if (adxService.isPlusDiIncreasing(stock) && adxService.isMinusDiDecreasing(stock)) {
+                    if (stockPriceService.isTmaConvergenceAndDivergence(stock, trend)) {
+                        return Boolean.TRUE;
+                    }
+                //}
             }
+        }
 
         return Boolean.FALSE;
     }
-
 
 }

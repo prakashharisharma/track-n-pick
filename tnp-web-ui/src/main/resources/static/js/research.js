@@ -89,7 +89,7 @@ function loadTableTechnical() {
 		"columns" : [ {
 			"data" : "symbol"
 		}, {
-			"data" : "valuation"
+			"data" : "positionSize"
 		}, {
 			"data" : "researchDate"
 		}, {
@@ -107,9 +107,16 @@ function loadTableTechnical() {
              "data" : "ema200"
         },
         {
-			"data" : "rsi"
-		}, {
-			"data" : "profitPer"
+			"data" : "strategy"
+		},
+		{
+        	"data" : "subStrategy"
+        },
+        {
+            "data" : "score"
+        },
+        {
+		    "data" : "profitPer"
 		} ],
 		rowCallback : function(row, data, index) {
 
@@ -122,21 +129,11 @@ function loadTableTechnical() {
             }else{
                 $(row).find('td:eq(1)').css('color', 'red');
             }
-
-
-			if (data.profitPer > 0.0) {
-				$(row).find('td:eq(10)').css('color', 'green');
-			}
-			if (data.profitPer < 0.0) {
-				$(row).find('td:eq(10)').css('color', 'red');
-			}
-
             if(data.currentPrice > data.ema5){
                 $(row).find('td:eq(5)').css('color', 'green');
             }else{
                 $(row).find('td:eq(5)').css('color', 'red');
             }
-
             if(data.currentPrice > data.ema20){
                 $(row).find('td:eq(6)').css('color', 'green');
             }else{
@@ -151,6 +148,12 @@ function loadTableTechnical() {
                 $(row).find('td:eq(8)').css('color', 'green');
             }else{
                 $(row).find('td:eq(8)').css('color', 'red');
+            }
+            if (data.profitPer > 0.0) {
+            	$(row).find('td:eq(12)').css('color', 'green');
+            }
+            if (data.profitPer < 0.0) {
+            	$(row).find('td:eq(12)').css('color', 'red');
             }
 		}
 	});

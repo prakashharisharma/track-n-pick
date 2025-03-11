@@ -15,9 +15,9 @@ public interface CandleStickService {
     public static final double MAX_WICK_SIZE = FibonacciRatio.RATIO_78_6 * 10;
 
     //FibonacciRatio.RATIO_161_8 * 10;  //2.0;
-    public static final double MIN_BODY_SIZE = FibonacciRatio.RATIO_23_6 * 100;
+    public static final double MIN_BODY_SIZE = (FibonacciRatio.RATIO_23_6 * 100)/2;
     //FibonacciRatio.RATIO_261_8 * 10;// 3.0;
-    public static final double MIN_RANGE = FibonacciRatio.RATIO_38_2 * 100;
+    public static final double MIN_RANGE = (FibonacciRatio.RATIO_38_2 * 100)/2;
 
     public static final double MAX_RANGE = 20.0;
 
@@ -176,11 +176,14 @@ public interface CandleStickService {
 
     public boolean isTweezerTop(Stock stock);
 
+    public boolean isDoubleHigh(Stock stock);
+
     public boolean isDoubleTop(Stock stock);
 
     public boolean isTweezerBottom(Stock stock);
-    public boolean isDoubleBottom(Stock stock);
+    public boolean isDoubleLow(Stock stock);
 
+    public boolean isDoubleBottom(Stock stock);
     public boolean isDarkCloudCover(Stock stock);
 
     public boolean isPiercingPattern(Stock stock);

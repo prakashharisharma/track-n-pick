@@ -73,6 +73,9 @@ public class UiRenderUtil {
 
 	@Autowired
 	private ResearchLedgerTechnicalService researchLedgerTechnicalService;
+
+	@Autowired
+	private PositionService positionService;
 	
 	public List<UIRenderStock> renderPortfolio(List<UserPortfolio> userPortfolioList,UserProfile userProfile) {
 
@@ -180,7 +183,7 @@ public class UiRenderUtil {
 		return portfolioList;
 	}
 
-	public List<UIRenderStock> renderResearchTechnicalList(List<ResearchLedgerTechnical> researchList) {
+	public List<UIRenderStock> renderResearchTechnicalList(UserProfile userProfile, List<ResearchLedgerTechnical> researchList) {
 
 		List<UIRenderStock> portfolioList = new ArrayList<>();
 
@@ -198,6 +201,12 @@ public class UiRenderUtil {
 			uiRenderStock.setValuation(valuation);
 			StockTechnicals stockTechnicals = researchStock.getStock().getTechnicals();
 
+			uiRenderStock.setStrategy(researchStock.getStrategy().name());
+			uiRenderStock.setSubStrategy(researchStock.getSubStrategy().name());
+
+			uiRenderStock.setScore(researchStock.getScore());
+			uiRenderStock.setPositionSize(positionService.calculate(userProfile, researchStock));
+
 			if(stockTechnicals!=null) {
 				uiRenderStock.setEma5(stockTechnicals.getEma5());
 				uiRenderStock.setEma10(stockTechnicals.getEma10());
@@ -205,14 +214,84 @@ public class UiRenderUtil {
 				uiRenderStock.setEma50(stockTechnicals.getEma50());
 				uiRenderStock.setEma100(stockTechnicals.getEma100());
 				uiRenderStock.setEma200(stockTechnicals.getEma200());
-				uiRenderStock.setRsi(stockTechnicals.getRsi());
 			}
+
+			//this.setScore(uiRenderStock, researchStock);
 
 			portfolioList.add(uiRenderStock);
 
 		}
 
 		return portfolioList;
+	}
+
+	private void setScore(UIRenderStock uiRenderStock, ResearchLedgerTechnical researchLedgerTechnical){
+
+		int score = 0;
+		int emaScore = this.calculateEmaScore(uiRenderStock);
+		uiRenderStock.setScore(0);
+		ResearchLedgerTechnical.Strategy strategy = researchLedgerTechnical.getStrategy();
+		ResearchLedgerTechnical.SubStrategy subStrategy = researchLedgerTechnical.getSubStrategy();
+
+		if(strategy == ResearchLedgerTechnical.Strategy.SWING){
+			if(subStrategy == ResearchLedgerTechnical.SubStrategy.TEMA){
+
+
+				if(emaScore > 0) {
+					uiRenderStock.setScore(20 + emaScore);
+				}
+				return;
+			}
+			if(subStrategy == ResearchLedgerTechnical.SubStrategy.RM){
+				if(emaScore > 0) {
+					uiRenderStock.setScore(15 + emaScore);
+				}
+				return;
+			}
+		}
+
+		if(strategy == ResearchLedgerTechnical.Strategy.PRICE){
+			if(subStrategy == ResearchLedgerTechnical.SubStrategy.RMAO){
+				if(emaScore > 0) {
+					uiRenderStock.setScore(10 + emaScore);
+				}
+				return;
+			}
+			if(subStrategy == ResearchLedgerTechnical.SubStrategy.SRTF){
+				if(emaScore > 0) {
+					uiRenderStock.setScore(5 + emaScore);
+				}
+				return;
+			}
+		}
+
+		if(strategy == ResearchLedgerTechnical.Strategy.VOLUME){
+			if(emaScore > 0) {
+				uiRenderStock.setScore(0 + emaScore);
+			}
+		}
+
+	}
+
+	private int calculateEmaScore(UIRenderStock uiRenderStock){
+		int score = 0;
+		if( uiRenderStock.getCurrentPrice() >= uiRenderStock.getEma5()){
+			score = score + 1;
+		}
+		if( uiRenderStock.getCurrentPrice() >= uiRenderStock.getEma20()){
+			score = score + 1;
+		}
+		if( uiRenderStock.getCurrentPrice() >= uiRenderStock.getEma50()){
+			score = score + 1;
+		}
+		if( uiRenderStock.getCurrentPrice() >= uiRenderStock.getEma100()){
+			score = score + 1;
+		}
+		if( uiRenderStock.getCurrentPrice() >= uiRenderStock.getEma200()){
+			score = score + 1;
+		}
+
+		return score;
 	}
 
 	

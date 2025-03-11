@@ -7,12 +7,13 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.example.dto.OHLCV;
-import com.example.dto.TradeSetup;
 import com.example.external.factor.FactorRediff;
 import com.example.external.ta.service.McService;
 import com.example.model.ledger.ResearchLedgerTechnical;
+import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.StockTechnicals;
 import com.example.model.stocks.UserPortfolio;
+import com.example.model.um.UserProfile;
 import com.example.repo.ledger.FundsLedgerRepository;
 import com.example.repo.ledger.ResearchLedgerTechnicalRepository;
 import com.example.repo.ledger.TradeLedgerRepository;
@@ -51,8 +52,22 @@ import com.example.util.io.model.StockPriceIO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseBarSeriesBuilder;
+import org.ta4j.core.*;
+import org.ta4j.core.backtest.BarSeriesManager;
+import org.ta4j.core.criteria.pnl.ReturnCriterion;
+import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.MACDIndicator;
+import org.ta4j.core.indicators.RSIIndicator;
+import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.adx.ADXIndicator;
+import org.ta4j.core.indicators.adx.MinusDIIndicator;
+import org.ta4j.core.indicators.adx.PlusDIIndicator;
+import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.indicators.volume.OnBalanceVolumeIndicator;
+import org.ta4j.core.rules.CrossedDownIndicatorRule;
+import org.ta4j.core.rules.CrossedUpIndicatorRule;
+import org.ta4j.core.rules.OverIndicatorRule;
+import org.ta4j.core.rules.UnderIndicatorRule;
 
 @Component
 @Slf4j
@@ -67,6 +82,9 @@ public class AppRunner implements CommandLineRunner {
 	private UserService userService;
 
 	@Autowired
+	private ResearchLedgerFundamentalService researchLedgerFundamentalService;
+
+	@Autowired
 	private FileNameService fileNameService;
 
 	@Autowired
@@ -74,6 +92,9 @@ public class AppRunner implements CommandLineRunner {
 
 	@Autowired
 	private StockPriceRepository stockPricesRepository;
+
+	@Autowired
+	private OhlcvService ohlcvService;
 	@Autowired
 	private PortfolioService portfolioService;
 
@@ -219,6 +240,9 @@ public class AppRunner implements CommandLineRunner {
 	private VolumeService volumeActionService;
 
 	@Autowired
+	private  PositionService positionService;
+
+	@Autowired
 	private TrendService trendService;
 
 	@Autowired
@@ -240,11 +264,14 @@ public class AppRunner implements CommandLineRunner {
 
 		log.info("Application started....");
 
-		this.testCandleStick();
+		//this.testCandleStick();
+		//this.updateYearHighLow();
 		//this.testObv();
 		//this.testTimeFrameSR();
+		//this.testTrend();
 		this.scanCandleStickPattern();
-
+		//this.allocatePositions();
+		//this.testScore();
 		//this.processBhavFromApi();
 		//this.updateSupportAndResistance();
 		//updateTechnicalsService.updateTechnicals();
@@ -293,6 +320,138 @@ public class AppRunner implements CommandLineRunner {
 
 		System.out.println("STARTED");
 
+	}
+
+	private void testScore(){
+		List<ResearchLedgerTechnical> researchLedgerTechnicalList = researchLedgerTechnicalService.allActiveResearch();
+
+		for(ResearchLedgerTechnical researchLedgerTechnical: researchLedgerTechnicalList){
+			//candleStickExecutorService.executeBearish(researchLedgerTechnical.getStock());
+			double score = researchLedgerTechnicalService.calculateScore(researchLedgerTechnical);
+
+			System.out.println(" SYMBOL " + researchLedgerTechnical.getStock().getNseSymbol() + " SCORE " + score);
+		}
+	}
+
+	/**
+	 * Position Size = (Total trading fund * Risk%)/SL%
+	 */
+	private void allocatePositions(){
+
+
+		double capital = 750000.0;
+		double risk = 1.0;
+
+		List<UserPortfolio> portfolioList =  new ArrayList<>();
+
+		UserProfile user = userService.getUserByUsername("phsdhan");
+
+		List<ResearchLedgerTechnical> researchLedgerTechnicalList = researchLedgerTechnicalService.allActiveResearch();
+
+		for(ResearchLedgerTechnical researchLedgerTechnical : researchLedgerTechnicalList){
+
+			/*
+			if(researchLedgerTechnical.getStrategy() == ResearchLedgerTechnical.Strategy.VOLUME){
+				risk = RiskFactor.VOLUME_VOLUME;
+			}
+			else if(researchLedgerTechnical.getStrategy() == ResearchLedgerTechnical.Strategy.PRICE){
+				if(researchLedgerTechnical.getSubStrategy() == ResearchLedgerTechnical.SubStrategy.SRMA) {
+					risk = RiskFactor.PRICE_SRMA;
+				}
+				else if(researchLedgerTechnical.getSubStrategy() == ResearchLedgerTechnical.SubStrategy.SRTF) {
+					risk = RiskFactor.PRICE_SRTF;
+				}else if(researchLedgerTechnical.getSubStrategy() == ResearchLedgerTechnical.SubStrategy.RMAO) {
+					risk = RiskFactor.PRICE_RMAO;
+				}
+			}
+			else if(researchLedgerTechnical.getStrategy() == ResearchLedgerTechnical.Strategy.SWING){
+				if(researchLedgerTechnical.getSubStrategy() == ResearchLedgerTechnical.SubStrategy.RM) {
+					risk = RiskFactor.SWING_RM;
+				}
+				else if(researchLedgerTechnical.getSubStrategy() == ResearchLedgerTechnical.SubStrategy.TEMA) {
+					risk = RiskFactor.SWING_TEMA;
+				}
+			}*/
+
+			double allottedAmount = ((capital * risk) / researchLedgerTechnical.getRisk());
+
+			long positionSize = (long) (allottedAmount / researchLedgerTechnical.getResearchPrice());
+
+			double reward = formulaService.calculateChangePercentage(researchLedgerTechnical.getResearchPrice(), researchLedgerTechnical.getTarget());
+
+			//if(researchLedgerTechnical.getResearchDate().isEqual(LocalDate.now()) || researchLedgerTechnical.getResearchDate().isEqual(calendarService.previousTradingSession(LocalDate.now()))) {
+				System.out.println(researchLedgerTechnical.getStock().getNseSymbol() + " date: " + researchLedgerTechnical.getResearchDate() +" strategy: "+ researchLedgerTechnical.getStrategy() +" sub strategy: "+ researchLedgerTechnical.getSubStrategy() +" risk: "+ risk + " reward: "+ miscUtil.formatDouble(reward) + " amount:" + miscUtil.formatDouble(allottedAmount) + " positions : " + positionSize +" entry: " +researchLedgerTechnical.getResearchPrice());
+			//}
+
+			double perTradeRisk = formulaService.calculateFraction(capital, risk);
+			double sl = (researchLedgerTechnical.getResearchPrice()  - researchLedgerTechnical.getStopLoss());
+			positionSize = (long) (perTradeRisk / sl);
+			positionService.calculate(user, researchLedgerTechnical);
+			System.out.println(researchLedgerTechnical.getStock().getNseSymbol() + " date: " + researchLedgerTechnical.getResearchDate() +" strategy: "+ researchLedgerTechnical.getStrategy() +" sub strategy: "+ researchLedgerTechnical.getSubStrategy() +" risk: "+ perTradeRisk + " sl: "+ miscUtil.formatDouble(sl) + " amount:" + miscUtil.formatDouble(allottedAmount) + " positions : " + positionSize +" entry: " +researchLedgerTechnical.getResearchPrice());
+
+		}
+
+	}
+
+	private void  testTrend(){
+		List<Stock> stockList = new ArrayList<>();
+		Stock stock = stockService.getStockByNseSymbol("ACC");
+		stockList.add(stock);
+		stock = stockService.getStockByNseSymbol("AUBANK");
+		stockList.add(stock);
+		stock = stockService.getStockByNseSymbol("AWL");
+		stockList.add(stock);
+		stock = stockService.getStockByNseSymbol("BALRAMCHIN");
+		stockList.add(stock);
+
+		stockList.forEach(s ->{
+			Trend trend = trendService.isUpTrend(s);
+			System.out.println(s.getNseSymbol() +  " UP " + trend);
+			trend = trendService.isDownTrend(s);
+			System.out.println(s.getNseSymbol() + " DOWN " + trend);
+		});
+
+	}
+
+	private void updateYearHighLow(){
+
+
+		List<Stock> stockList = stockService.getForActivity();
+		AtomicInteger count = new AtomicInteger(stockList.size());
+		stockList.forEach(stk ->{
+			try {
+
+				StockPrice stockPrice = stk.getStockPrice();
+
+				OHLCV ohlcv = yearlySupportResistanceService.supportAndResistance(stk.getNseSymbol(), LocalDate.now());
+
+				double yearHigh = ohlcv.getHigh();
+				com.example.storage.model.StockPrice stockPrice1 = priceTemplate.getByHigh(stk.getNseSymbol(), yearHigh);
+				LocalDate yearHighDate = LocalDate.ofInstant(stockPrice1.getBhavDate(), ZoneOffset.UTC);
+				double yearLow = ohlcv.getLow();
+				stockPrice1 = priceTemplate.getByLow(stk.getNseSymbol(), ohlcv.getLow());
+				LocalDate yearLowDate = LocalDate.ofInstant(stockPrice1.getBhavDate(), ZoneOffset.UTC);
+
+				System.out.println(stk.getNseSymbol() + " yearHigh: " + yearHigh +" on " + yearHighDate +" yearLow: " + yearLow + " on " + yearLowDate);
+
+				stockPrice.setYearHigh(yearHigh);
+				stockPrice.setYearHighDate(yearHighDate);
+				stockPrice.setYearLow(yearLow);
+				stockPrice.setYearLowDate(yearLowDate);
+
+				stockPricesRepository.save(stockPrice);
+
+				System.out.println("Completed for " + stk.getNseSymbol());
+
+				stk.setActivityCompleted(Boolean.TRUE);
+				stockRepository.save(stk);
+				System.out.println("Remaining " + count.decrementAndGet());
+
+
+			}catch (Exception e){
+				System.out.println("An error occured while updating year high Low " + stk.getNseSymbol() + " " +e);
+			}
+		});
 	}
 
 	private void updateSupportAndResistance(){
@@ -376,14 +535,91 @@ public class AppRunner implements CommandLineRunner {
 		candleStickService.isBullishSeparatingLine(stock);
 		candleStickService.isBullishhMarubozu(stock);
 
-		candleStickService.isDoubleBottom(stock);
+		candleStickService.isDoubleLow(stock);
 		candleStickService.isBullishHarami(stock);
 		candleStickService.isRisingWindow(stock);
 
 	}
 
-	private void ta4J(){
+
+	public Strategy buildStrategy(BarSeries series) {
+		if (series == null) {
+			throw new IllegalArgumentException("Series cannot be null");
+		}
+
+		final ClosePriceIndicator closePriceIndicator = new ClosePriceIndicator(series);
+		final SMAIndicator smaIndicator = new SMAIndicator(closePriceIndicator, 50);
+
+		final int adxBarCount = 14;
+		final ADXIndicator adxIndicator = new ADXIndicator(series, adxBarCount);
+		final OverIndicatorRule adxOver20Rule = new OverIndicatorRule(adxIndicator, 20);
+
+		final PlusDIIndicator plusDIIndicator = new PlusDIIndicator(series, adxBarCount);
+		final MinusDIIndicator minusDIIndicator = new MinusDIIndicator(series, adxBarCount);
+
+		final Rule plusDICrossedUpMinusDI = new CrossedUpIndicatorRule(plusDIIndicator, minusDIIndicator);
+		final Rule plusDICrossedDownMinusDI = new CrossedDownIndicatorRule(plusDIIndicator, minusDIIndicator);
+		final OverIndicatorRule closePriceOverSma = new OverIndicatorRule(closePriceIndicator, smaIndicator);
+		final Rule entryRule = adxOver20Rule.and(plusDICrossedUpMinusDI).and(closePriceOverSma);
+
+		final UnderIndicatorRule closePriceUnderSma = new UnderIndicatorRule(closePriceIndicator, smaIndicator);
+		final Rule exitRule = adxOver20Rule.and(plusDICrossedDownMinusDI).and(closePriceUnderSma);
+
+		return new BaseStrategy("ADX", entryRule, exitRule, adxBarCount);
+	}
+	private void ta4J(String nseSymbol){
+
 		BarSeries barSeries = new BaseBarSeriesBuilder().withName("my_2017_series").build();
+
+		LocalDate to  = calendarService.previousTradingSession(LocalDate.now());
+		LocalDate from = to.minusYears(3);
+		List<OHLCV> ohlcvList =  ohlcvService.fetch(nseSymbol, from, to);
+		ohlcvList.forEach(ohlcv -> {
+			barSeries.addBar(ZonedDateTime.ofInstant(ohlcv.getBhavDate(), ZoneOffset.UTC), ohlcv.getOpen(), ohlcv.getHigh(), ohlcv.getLow(), ohlcv.getClose(), ohlcv.getVolume());
+		});
+
+		ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
+
+		SMAIndicator shortSma = new SMAIndicator(closePrice, 5);
+		// Here is the 5-bars-SMA value at the 42nd index
+		System.out.println("5-bars-SMA : " + shortSma.getValue(ohlcvList.size()-1).doubleValue());
+
+		EMAIndicator emaIndicator = new EMAIndicator(closePrice, 5);
+		System.out.println("5-bars-EMA : " + emaIndicator.getValue(ohlcvList.size()-1).doubleValue());
+		emaIndicator = new EMAIndicator(closePrice, 20);
+		System.out.println("20-bars-EMA : " + emaIndicator.getValue(ohlcvList.size()-1).doubleValue());
+		emaIndicator = new EMAIndicator(closePrice, 50);
+		System.out.println("50-bars-EMA : " + emaIndicator.getValue(ohlcvList.size()-1).doubleValue());
+		emaIndicator = new EMAIndicator(closePrice, 200);
+		System.out.println("200-bars-EMA : " + emaIndicator.getValue(ohlcvList.size()-1).doubleValue());
+
+
+		RSIIndicator rsiIndicator = new RSIIndicator(closePrice, 14);
+		System.out.println("RSI : " + rsiIndicator.getValue(ohlcvList.size()-1).doubleValue());
+
+		MACDIndicator macdIndicator = new MACDIndicator(closePrice);
+		System.out.println("MACD : " + macdIndicator.getValue(ohlcvList.size()-1).doubleValue());
+		System.out.println("Signal : " + macdIndicator.getSignalLine(ohlcvList.size()-1));
+		ADXIndicator adxIndicator = new ADXIndicator(barSeries,14);
+		System.out.println("ADX : " + adxIndicator.getValue(ohlcvList.size()-1).doubleValue());
+
+		OnBalanceVolumeIndicator onBalanceVolumeIndicator = new OnBalanceVolumeIndicator(barSeries);
+		SMAIndicator obvAverage = new SMAIndicator(onBalanceVolumeIndicator, 9);
+		System.out.println("OBV : " + onBalanceVolumeIndicator.getValue(ohlcvList.size()-1));
+		System.out.println("OBV AVERAGE : " + obvAverage.getValue(ohlcvList.size()-1));
+
+
+		// Building the trading strategy
+		Strategy strategy = buildStrategy(barSeries);
+
+		// Running the strategy
+		BarSeriesManager seriesManager = new BarSeriesManager(barSeries);
+		TradingRecord tradingRecord = seriesManager.run(strategy);
+		System.out.println("Number of positions for the strategy: " + tradingRecord.getPositionCount());
+
+		// Analysis
+		System.out.println(nseSymbol + " Total return for the strategy: " + new ReturnCriterion().calculate(barSeries, tradingRecord));
+
 	}
 
 	private void testObv(){
@@ -555,39 +791,62 @@ public class AppRunner implements CommandLineRunner {
 
 			if(stock.getSeries()!=null && stock.getSeries().equalsIgnoreCase("EQ")){
 				if (fundamentalResearchService.isMcapInRange(stock)) {
-					candleStickExecutorService.executeBullish(stock);
+					//candleStickExecutorService.executeBullish(stock);
+					if(researchLedgerFundamentalService.isResearchActive(stock)){
+						System.out.println("FUNDAMENTAL " + stock.getNseSymbol());
+					}
+					priceActionService.breakOut(stock);
 					swingActionService.breakOut(stock);
 
 				}
 			}
 		}
+		/*
+		System.out.println("******* Scanning Bullish from fundamental research *******");
+
+		List<ResearchLedgerFundamental> researchLedgerFundamentalList = researchLedgerFundamentalService.allActiveResearch();
+
+		for(ResearchLedgerFundamental researchLedgerFundamental: researchLedgerFundamentalList){
+			priceActionService.breakOut(researchLedgerFundamental.getStock());
+			swingActionService.breakOut(researchLedgerFundamental.getStock());
+		}*/
 
 		System.out.println("******* Scanning Bearish From Master *******");
 
 		for(Stock stock: stockList){
 			if(stock.getSeries()!=null && stock.getSeries().equalsIgnoreCase("EQ")) {
 					if (fundamentalResearchService.isMcapInRange(stock)) {
-						candleStickExecutorService.executeBearish(stock);
-						//movingAverageActionService.breakDown(stock);
+						//candleStickExecutorService.executeBearish(stock);
+						if(researchLedgerTechnicalService.isActive(stock, ResearchIO.ResearchTrigger.BUY)){
+							System.out.println("RESEARCH " + stock.getNseSymbol());
+						}
+						if(portfolioService.isPortfolioStock(stock)){
+							System.out.println("PORTFOLIO " + stock.getNseSymbol());
+						}
+						priceActionService.breakDown(stock);
 					}
 			}
 		}
 
+		/*
 		System.out.println("******* Scanning Bearish From Research *******");
 		List<ResearchLedgerTechnical> researchLedgerTechnicalList = researchLedgerTechnicalService.allActiveResearch();
 
 		for(ResearchLedgerTechnical researchLedgerTechnical: researchLedgerTechnicalList){
-			candleStickExecutorService.executeBearish(researchLedgerTechnical.getStock());
+			//candleStickExecutorService.executeBearish(researchLedgerTechnical.getStock());
+			priceActionService.breakDown(researchLedgerTechnical.getStock());
 			movingAverageActionService.breakDown(researchLedgerTechnical.getStock());
-		}
+		}*/
 
+		/*
 		System.out.println("******* Scanning Bearish From Portfolio *******");
 		List<UserPortfolio> portfolioList =  portfolioService.get();
 
 		for(UserPortfolio userPortfolio: portfolioList){
-			candleStickExecutorService.executeBearish(userPortfolio.getStock());
+			//candleStickExecutorService.executeBearish(userPortfolio.getStock());
+			priceActionService.breakDown(userPortfolio.getStock());
 			movingAverageActionService.breakDown(userPortfolio.getStock());
-		}
+		}*/
 
 	}
 
@@ -611,7 +870,6 @@ public class AppRunner implements CommandLineRunner {
 					miscUtil.delay(25);
 					System.out.println("Deleted existing bhav " + count + " "+ stock.getNseSymbol());
 				}
-
 
 				List<com.example.storage.model.StockPrice> stockPriceList = new ArrayList<>();
 				com.example.storage.model.StockPrice stockPrice = null;

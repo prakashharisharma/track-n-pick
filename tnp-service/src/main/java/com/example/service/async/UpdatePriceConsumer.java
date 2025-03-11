@@ -6,6 +6,7 @@ import java.time.ZoneOffset;
 import com.example.dto.OHLCV;
 import com.example.mq.producer.EventProducerService;
 import com.example.service.*;
+import com.example.util.MiscUtil;
 import com.example.util.io.model.StockIO;
 import com.example.util.io.model.UpdateTriggerIO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +36,9 @@ public class UpdatePriceConsumer {
 //public class UpdatePriceConsumer extends AbstractEventConsumer<StockPriceIO> {
 	@Autowired
 	private QueueService queueService;
+
+	@Autowired
+	private MiscUtil miscUtil;
 
 	@Autowired
 	private StockService stockService;
@@ -67,7 +71,7 @@ public class UpdatePriceConsumer {
 	public void receiveMessage(@Payload StockPriceIO stockPriceIO, @Headers MessageHeaders headers, Message message,
 							   Session session) throws InterruptedException {
 
-		log.info("{} Starting price update.", stockPriceIO.getNseSymbol());
+		log.info("{} starting price update.", stockPriceIO.getNseSymbol());
 
 		Stock stock = stockService.getStockByNseSymbol(stockPriceIO.getNseSymbol().trim().toUpperCase());
 		if ( stock != null ){
@@ -82,7 +86,7 @@ public class UpdatePriceConsumer {
 			this.addStockToMaster(stockPriceIO);
 		}
 
-		log.info("{} Completed price update.", stockPriceIO.getNseSymbol());
+		log.info("{} completed price update.", stockPriceIO.getNseSymbol());
 	}
 
 /*
@@ -128,19 +132,23 @@ public class UpdatePriceConsumer {
 */
 
 	private void processPriceUpdate(StockPriceIO stockPriceIO){
-
+	try {
 		this.updatePriceHistory(stockPriceIO);
+		miscUtil.delay(50);
+	}catch (Exception e){
+		log.error("An error occurred while updating price {}", stockPriceIO.getNseSymbol());
+		}
 	}
 
 	private void updatePriceHistory(StockPriceIO stockPriceIO){
 
-		log.info("{} Updating historical price", stockPriceIO.getNseSymbol());
+		log.info("{} updating historical price", stockPriceIO.getNseSymbol());
 
 		StockPrice stockPrice = new StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
 				stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getTottrdqty());
 
 		priceTemplate.upsert(stockPrice);
-		log.info("{} Updated historical price for date {}", stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate());
+		log.info("{} updated historical price for date {}", stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate());
 
 		this.setYearHighLow(stockPriceIO);
 
@@ -152,7 +160,7 @@ public class UpdatePriceConsumer {
 
 	private void updatePriceTxn(StockPriceIO stockPriceIO) {
 
-		log.info("{} Updating transactional price.", stockPriceIO.getNseSymbol());
+		log.info("{} updating transactional price.", stockPriceIO.getNseSymbol());
 
 		Stock stock = stockService.getStockByNseSymbol(stockPriceIO.getNseSymbol());
 
@@ -160,13 +168,11 @@ public class UpdatePriceConsumer {
 
 		if (stockPrice != null && ( stockPrice.getBhavDate().isEqual(stockPriceIO.getTimestamp())
 				|| stockPrice.getBhavDate().isAfter(stockPriceIO.getTimestamp()))) {
-			log.info("{} Transactional price is already up to date", stockPriceIO.getNseSymbol());
+			log.info("{} transactional price is already up to date", stockPriceIO.getNseSymbol());
 		}else {
 
 			if (stockPrice == null) {
 				stockPrice = new com.example.model.stocks.StockPrice();
-			}else{
-				stockPriceIO.setTrend(trendService.analyze(stock));
 			}
 
 			stockPrice.setStock(stock);
@@ -192,18 +198,27 @@ public class UpdatePriceConsumer {
 
 			stockPrice.setCurrentPrice(stockPriceIO.getClose());
 
-			stockPrice.setYearHigh(stockPriceIO.getYearHigh());
-			stockPrice.setYearHighDate(stockPriceIO.getYearHighDate());
-			stockPrice.setYearLow(stockPriceIO.getYearLow());
-			stockPriceIO.setYearLowDate(stockPriceIO.getYearLowDate());
+			if(stockPriceIO.getHigh() == stockPriceIO.getYearHigh()) {
+				stockPrice.setYearHigh(stockPriceIO.getYearHigh());
+			}
+			if(stockPriceIO.getYearHighDate()!=null) {
+				stockPrice.setYearHighDate(stockPriceIO.getYearHighDate());
+			}
+
+			if(stockPriceIO.getLow() == stockPriceIO.getYearLow()) {
+				stockPrice.setYearLow(stockPriceIO.getYearLow());
+			}
+
+			if(stockPriceIO.getYearLowDate()!=null) {
+				stockPriceIO.setYearLowDate(stockPriceIO.getYearLowDate());
+			}
 
 			stockPrice.setLastModified(LocalDate.now());
 
 			stockPriceRepository.save(stockPrice);
 
-			log.info("{} Updated transactional price", stockPriceIO.getNseSymbol());
+			log.info("{} updated transactional price", stockPriceIO.getNseSymbol());
 		}
-
 
 		queueService.send(stockPriceIO, QueueConstants.MTQueue.UPDATE_TECHNICALS_TXN_QUEUE);
 
@@ -232,18 +247,20 @@ public class UpdatePriceConsumer {
 		double low = ohlcv.getLow();
 
 		if (high <= stockPriceIO.getHigh()) {
-
+			log.info("{} year high {}", stockPriceIO.getNseSymbol(), high);
 			high = stockPriceIO.getHigh();
-			stockPriceIO.setYearHigh(high);
 			stockPriceIO.setYearHighDate(LocalDate.ofInstant(stockPriceIO.getBhavDate(), ZoneOffset.UTC));
 		}
 
-		if (low >= stockPriceIO.getLow()) {
+		stockPriceIO.setYearHigh(high);
 
+		if (low >= stockPriceIO.getLow()) {
+			log.info("{} year low {}", stockPriceIO.getNseSymbol(), low);
 			low = stockPriceIO.getLow();
-			stockPriceIO.setYearLow(low);
 			stockPriceIO.setYearLowDate(LocalDate.ofInstant(stockPriceIO.getBhavDate(), ZoneOffset.UTC));
 		}
+
+		stockPriceIO.setYearLow(low);
 
 	}
 	private void set14DaysHighLow(StockPriceIO stockPriceIO, StockPrice stockPriceHistory ){

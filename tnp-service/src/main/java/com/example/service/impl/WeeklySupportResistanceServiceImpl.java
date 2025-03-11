@@ -187,19 +187,20 @@ public class WeeklySupportResistanceServiceImpl implements WeeklySupportResistan
             support = resistance;
         }
 
-        //Check for previous Session Breakout
-        if(candleStickService.rangePrev(stock) > CandleStickService.MIN_RANGE){
-            //Breakdown Previous Session EMA50
-            if (breakoutConfirmationService.isBearishFollowup(stock, support) && breakoutService.isBreakDown(prevPrevClose, support, prevClose, support)) {
-                return Boolean.TRUE;
-            }
 
-        }
-        /*
+
         //Check for Current Day Breakout
-        else if(breakoutConfirmationService.isBearishConfirmation(stock, support) && candleStickService.range(stock) > CandleStickService.MIN_RANGE){
+         if(breakoutConfirmationService.isBearishConfirmation(stock, support) && candleStickService.range(stock) > CandleStickService.MIN_RANGE){
             //Breakdown
             if(breakoutService.isBreakDown(prevClose, support, close, support)){
+                return Boolean.TRUE;
+            }
+        }
+        //Check for previous Session Breakout
+         /*
+        else if(candleStickService.rangePrev(stock) > CandleStickService.MIN_RANGE){
+            //Breakdown Previous Session EMA50
+            if (breakoutConfirmationService.isBearishFollowup(stock, support) && breakoutService.isBreakDown(prevPrevClose, support, prevClose, support)) {
                 return Boolean.TRUE;
             }
         }*/

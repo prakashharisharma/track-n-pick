@@ -14,6 +14,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class RsiIndicatorServiceImpl implements RsiIndicatorService {
 
+    private static double RSI_OVERSOLD = 40.0;
+
+    private static double RSI_OVERBOUGHT = 65.0;
+
     @Autowired
     private BreakoutLedgerService breakoutLedgerService;
 
@@ -23,14 +27,40 @@ public class RsiIndicatorServiceImpl implements RsiIndicatorService {
         StockTechnicals stockTechnicals  = stock.getTechnicals();
 
         if(stockTechnicals.getRsi() > stockTechnicals.getPrevRsi()){
-                boolean isRsiEnteredBullishZone = CrossOverUtil.isFastCrossesAboveSlow(stockTechnicals.getPrevRsi(), 50.0, Math.ceil(stockTechnicals.getRsi()), 49.0);
+                boolean isRsiEnteredBullishZone = CrossOverUtil.isFastCrossesAboveSlow(stockTechnicals.getPrevRsi(), RSI_OVERSOLD, stockTechnicals.getRsi(), RSI_OVERSOLD);
                 if (isRsiEnteredBullishZone) {
                     breakoutLedgerService.addPositive(stock, BreakoutLedger.BreakoutCategory.RSI_ENTERED_BULLISH);
                     return Boolean.TRUE;
-                } else if (Math.ceil(stockTechnicals.getPrevRsi()) >= 55.0) {
+                } else if (Math.ceil(stockTechnicals.getPrevRsi()) > RSI_OVERSOLD) {
                     breakoutLedgerService.addPositive(stock, BreakoutLedger.BreakoutCategory.RSI_CONTINUED_BULLISH);
                     return Boolean.TRUE;
                 }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isOverSold(Stock stock) {
+
+        StockTechnicals stockTechnicals  = stock.getTechnicals();
+
+        return stockTechnicals.getPrevRsi() <= RSI_OVERSOLD || stockTechnicals.getRsi() <=  RSI_OVERSOLD;
+    }
+
+    @Override
+    public boolean isBearish(Stock stock) {
+        StockTechnicals stockTechnicals  = stock.getTechnicals();
+
+        if(stockTechnicals.getRsi() < stockTechnicals.getPrevRsi()){
+            boolean isRsiEnteredBearishZone = CrossOverUtil.isSlowCrossesBelowFast(stockTechnicals.getPrevRsi(), RSI_OVERBOUGHT, stockTechnicals.getRsi(), RSI_OVERBOUGHT);
+            if (isRsiEnteredBearishZone) {
+                breakoutLedgerService.addNegative(stock, BreakoutLedger.BreakoutCategory.RSI_ENTERED_BEARISH);
+                return Boolean.TRUE;
+            } else if (Math.ceil(stockTechnicals.getPrevRsi()) < RSI_OVERBOUGHT) {
+                breakoutLedgerService.addNegative(stock, BreakoutLedger.BreakoutCategory.RSI_CONTINUED_BEARISH);
+                return Boolean.TRUE;
+            }
         }
 
         return Boolean.FALSE;
@@ -41,16 +71,10 @@ public class RsiIndicatorServiceImpl implements RsiIndicatorService {
 
         StockTechnicals stockTechnicals  = stock.getTechnicals();
 
-        return stockTechnicals.getPrevRsi() >= 70.0 || stockTechnicals.getRsi() >=  70.0;
+        return stockTechnicals.getPrevRsi() >= RSI_OVERBOUGHT || stockTechnicals.getRsi() >=  RSI_OVERBOUGHT;
     }
 
-    @Override
-    public boolean isOverSold(Stock stock) {
 
-        StockTechnicals stockTechnicals  = stock.getTechnicals();
-
-        return stockTechnicals.getPrevRsi() <= 40.0 || stockTechnicals.getRsi() <=  40.0;
-    }
 
     @Override
     public double rsi(Stock stock) {
@@ -60,5 +84,25 @@ public class RsiIndicatorServiceImpl implements RsiIndicatorService {
     @Override
     public double rsiPreviousSession(Stock stock) {
         return stock.getTechnicals().getPrevRsi();
+    }
+
+    @Override
+    public boolean isIncreasing(Stock stock) {
+        StockTechnicals stockTechnicals = stock.getTechnicals();
+
+        if(stockTechnicals.getRsi() > stockTechnicals.getPrevRsi()){
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isDecreasing(Stock stock) {
+        StockTechnicals stockTechnicals = stock.getTechnicals();
+
+        if(stockTechnicals.getRsi() < stockTechnicals.getPrevRsi()){
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
     }
 }

@@ -17,22 +17,18 @@ public class ObvIndicatorServiceImpl implements ObvIndicatorService {
     }
 
     private boolean isBullishCurrentSession(StockTechnicals stockTechnicals){
-
+        Stock stock = stockTechnicals.getStock();
         if(stockTechnicals.getObv() < stockTechnicals.getObvAvg()){
-            if(stockTechnicals.getObv() > stockTechnicals.getPrevObv()){
-                if(stockTechnicals.getObvAvg() < stockTechnicals.getPrevObvAvg()){
-                    return Boolean.FALSE;
-                }
-            }
-        }
-        else{
 
-            if(stockTechnicals.getObv() > stockTechnicals.getPrevObv()) {
-                if (stockTechnicals.getObvAvg() > stockTechnicals.getPrevObvAvg()) {
+            if(this.isObvIncreasing(stock) && this.isObvAvgDecreasing(stock)){
                     return Boolean.TRUE;
-                }
+            }else if(this.isObvIncreasing(stock) && this.isObvAvgIncreasing(stock)){
+                return Boolean.TRUE;
             }
-
+        }else{
+            if(this.isObvIncreasing(stock) && this.isObvAvgIncreasing(stock)) {
+                    return Boolean.TRUE;
+            }
             return CrossOverUtil.isFastCrossesAboveSlow(stockTechnicals.getPrevObv(), stockTechnicals.getPrevObvAvg(), stockTechnicals.getObv(),stockTechnicals.getObvAvg());
         }
 
@@ -59,20 +55,19 @@ public class ObvIndicatorServiceImpl implements ObvIndicatorService {
         return this.isBearishPreviousSession(stock.getTechnicals()) || this.isBearishCurrentSession(stock.getTechnicals());
     }
 
-    private boolean isBearishCurrentSession(StockTechnicals stockTechnicals){
 
+
+    private boolean isBearishCurrentSession(StockTechnicals stockTechnicals){
+        Stock stock = stockTechnicals.getStock();
         if(stockTechnicals.getObv() > stockTechnicals.getObvAvg()){
-            if(stockTechnicals.getObv() < stockTechnicals.getPrevObv()){
-                if(stockTechnicals.getObvAvg() > stockTechnicals.getPrevObvAvg()){
-                    return Boolean.FALSE;
-                }
+            if(this.isObvDecreasing(stock) && this.isObvAvgIncreasing(stock)){
+                    return Boolean.TRUE;
+            }else if(this.isObvDecreasing(stock) && this.isObvAvgDecreasing(stock)) {
+                return Boolean.TRUE;
             }
         }else{
-
-            if(stockTechnicals.getObv() < stockTechnicals.getPrevObv()) {
-                if (stockTechnicals.getObvAvg() < stockTechnicals.getPrevObvAvg()) {
+            if(this.isObvDecreasing(stock) && this.isObvAvgDecreasing(stock)) {
                     return Boolean.TRUE;
-                }
             }
 
             return CrossOverUtil.isSlowCrossesBelowFast(stockTechnicals.getPrevObv(), stockTechnicals.getPrevObvAvg(), stockTechnicals.getObv(),stockTechnicals.getObvAvg());
@@ -90,6 +85,51 @@ public class ObvIndicatorServiceImpl implements ObvIndicatorService {
             stockTechnicals.setObvAvg(stockTechnicals.getObvAvg());
             stockTechnicals.setPrevObvAvg(stockTechnicals.getPrevPrevObvAvg());
             return this.isBearishCurrentSession(stockTechnicals);
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isObvIncreasing(Stock stock) {
+
+        StockTechnicals stockTechnicals = stock.getTechnicals();
+
+        if(stockTechnicals.getObv() > stockTechnicals.getPrevObv()){
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isObvDecreasing(Stock stock) {
+        StockTechnicals stockTechnicals = stock.getTechnicals();
+
+        if(stockTechnicals.getObv() < stockTechnicals.getPrevObv()){
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isObvAvgIncreasing(Stock stock) {
+        StockTechnicals stockTechnicals = stock.getTechnicals();
+
+        if(stockTechnicals.getObvAvg() > stockTechnicals.getPrevObvAvg()){
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isObvAvgDecreasing(Stock stock) {
+        StockTechnicals stockTechnicals = stock.getTechnicals();
+
+        if(stockTechnicals.getObvAvg() < stockTechnicals.getPrevObvAvg()){
+            return Boolean.TRUE;
         }
 
         return Boolean.FALSE;

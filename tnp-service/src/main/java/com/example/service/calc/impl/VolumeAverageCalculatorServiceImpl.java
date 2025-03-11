@@ -23,6 +23,7 @@ public class VolumeAverageCalculatorServiceImpl implements VolumeAverageCalculat
 
     @Override
     public List<Long> calculate(List<OHLCV> ohlcvList, int days) {
+
         List<Long> smaList = new ArrayList<>(ohlcvList.size());
 
         for(int i=0; i < ohlcvList.size(); i++){
@@ -30,15 +31,17 @@ public class VolumeAverageCalculatorServiceImpl implements VolumeAverageCalculat
             if(i < days-1){
                 smaList.add(i, 0l);
             }else if(i == days-1){
-                long sma = this.calculateSimpleAverage(ohlcvList, days);
+                long sma = this.calculateSimpleAverage(ohlcvList, i, days);
                 smaList.add(i, sma);
             }else{
-                long sma=  formulaService.calculateSmoothedMovingAverage(smaList.get(i-1),ohlcvList.get(i).getVolume(),  days);
+
+                long sma = this.calculateSimpleAverage(ohlcvList, i, days);
                 smaList.add(i, sma);
             }
 
         }
         return smaList;
+
     }
 
     @Override
@@ -46,11 +49,11 @@ public class VolumeAverageCalculatorServiceImpl implements VolumeAverageCalculat
         return formulaService.calculateSmoothedMovingAverage( prevSmoothedAverageVolume,ohlcv.getVolume(), days);
     }
 
-    private long calculateSimpleAverage(List<OHLCV> ohlcvList, int days){
+    private long calculateSimpleAverage(List<OHLCV> ohlcvList, int index, int days){
 
         long sum = 0l;
 
-        for(int i =0; i < days; i++){
+        for(int i =index; i >= index-days+1; i--){
             sum = sum + ohlcvList.get(i).getVolume();
         }
 

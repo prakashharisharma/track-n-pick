@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +18,7 @@ import java.util.List;
 @Service
 public class OnBalanceVolumeCalculatorServiceImpl implements OnBalanceVolumeCalculatorService {
 
-    private static int SMMA_DAYS = 9;
+    private static int SMA_DAYS = 9;
 
     @Autowired
     private FormulaService formulaService;
@@ -30,27 +32,26 @@ public class OnBalanceVolumeCalculatorServiceImpl implements OnBalanceVolumeCalc
         long obv = 0; // Initial OBV
         long obvAverage = 0;
         OnBalanceVolume onBalanceVolume = new OnBalanceVolume(0l, 0l);
-        System.out.println( 0+ " " + onBalanceVolume);
         onBalanceVolumeList.add(onBalanceVolume);
+        System.out.println(LocalDate.ofInstant(ohlcvList.get(0).getBhavDate(), ZoneOffset.UTC) +" : "+onBalanceVolume);
         for (int i = 1; i < ohlcvList.size(); i++) {
             obv = this.calculateObv(ohlcvList.get(i), ohlcvList.get(i-1), obv);
-
-            if(i < SMMA_DAYS -1){
+            onBalanceVolumeList.add(i, new OnBalanceVolume(obv, 0l));
+            //onBalanceVolumeList.add(i,onBalanceVolume);
+            if(i < SMA_DAYS -1){
                 obvAverage = 0;
-            }else if( i == SMMA_DAYS -1){
-                obvAverage = this.calculateSimpleAverage(onBalanceVolumeList, obv,i- SMMA_DAYS +1, SMMA_DAYS);
+            }else if( i == SMA_DAYS -1){
+                obvAverage = this.calculateSimpleAverage(onBalanceVolumeList, i, SMA_DAYS);
             }else{
-                obvAverage = formulaService.calculateSmoothedMovingAverage(onBalanceVolumeList.get(i-1).getAverage(),obv, SMMA_DAYS);
+                obvAverage = this.calculateSimpleAverage(onBalanceVolumeList, i, SMA_DAYS);
+                //obvAverage = formulaService.calculateSmoothedMovingAverage(onBalanceVolumeList.get(i-1).getAverage(),obv, SMMA_DAYS);
                 //obvAverage = this.calculateSimpleAverage(onBalanceVolumeList,obv, i-SMA_DAYS+1, SMA_DAYS);
-
             }
 
             onBalanceVolume = new OnBalanceVolume(obv, obvAverage);
-
-            //System.out.println(i +" "+onBalanceVolume);
-            onBalanceVolumeList.add(onBalanceVolume);
+            //System.out.println(LocalDate.ofInstant(ohlcvList.get(i).getBhavDate(), ZoneOffset.UTC) +" : "+onBalanceVolume);
+            onBalanceVolumeList.add(i,onBalanceVolume);
         }
-
 
         return onBalanceVolumeList;
     }
@@ -67,7 +68,7 @@ public class OnBalanceVolumeCalculatorServiceImpl implements OnBalanceVolumeCalc
 
         long obv = this.calculateObv(currentSession, previousSession, prevOnBalanceVolume.getObv());
 
-        long average = formulaService.calculateSmoothedMovingAverage(obv, prevOnBalanceVolume.getAverage(), SMMA_DAYS);
+        long average = formulaService.calculateSmoothedMovingAverage(obv, prevOnBalanceVolume.getAverage(), SMA_DAYS);
 
         return new OnBalanceVolume(obv, average);
     }
@@ -86,12 +87,12 @@ public class OnBalanceVolumeCalculatorServiceImpl implements OnBalanceVolumeCalc
     }
 
 
-    private long calculateSimpleAverage(List<OnBalanceVolume> onBalanceVolumeList, long obv, int index, int days){
+    private long calculateSimpleAverage(List<OnBalanceVolume> ohlcvList, int index, int days){
 
-        long sum = obv;
+        long sum = 0l;
 
-        for(int i =index; i < index+days-1; i++){
-            sum = sum + onBalanceVolumeList.get(i).getObv();
+        for(int i =index; i >= index-days+1; i--){
+            sum = sum + ohlcvList.get(i).getObv();
         }
 
         return sum / days;

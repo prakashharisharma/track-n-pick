@@ -668,4 +668,46 @@ public class PriceTemplate {
 		return mongoTemplate.find(query, StockPrice.class);
 	}
 
+	public StockPrice getByHigh(String nseSymbol, double high){
+
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+					Criteria.where("nseSymbol").is(nseSymbol),
+					Criteria.where("high").is(high)
+				)
+		);
+
+		List<StockPrice> stockPriceList = mongoTemplate.find(query, StockPrice.class);
+
+		StockPrice stockPrice = null;
+
+		if(!stockPriceList.isEmpty() && !stockPriceList.isEmpty()) {
+			stockPrice = stockPriceList.get(stockPriceList.size() - 1);
+		}
+
+		return stockPrice;
+	}
+
+	public StockPrice getByLow(String nseSymbol, double high){
+
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("nseSymbol").is(nseSymbol),
+						Criteria.where("low").is(high)
+				)
+		);
+
+		List<StockPrice> stockPriceList = mongoTemplate.find(query, StockPrice.class);
+
+		StockPrice stockPrice = null;
+
+		if(!stockPriceList.isEmpty() && !stockPriceList.isEmpty()) {
+			stockPrice = stockPriceList.get(stockPriceList.size() - 1);
+		}
+
+		return stockPrice;
+	}
+
 }

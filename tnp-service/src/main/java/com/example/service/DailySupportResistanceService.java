@@ -3,9 +3,7 @@ package com.example.service;
 import com.example.dto.OHLCV;
 import com.example.model.master.Stock;
 
-import java.time.LocalDate;
-
-public interface YearlySupportResistanceService {
+public interface DailySupportResistanceService {
 
     /**
      *
@@ -20,15 +18,6 @@ public interface YearlySupportResistanceService {
     public boolean isBreakout(Stock stock);
 
     public boolean isNearSupport(Stock stock);
-    /**
-     *
-     * Recent Low is corrected 35% from yearHIgh
-     * @param stock
-     * @return
-     */
-    public boolean isYearHighYearLowCorrection(Stock stock);
-
-    public boolean isYearHighRecentLowCorrection(Stock stock);
 
     /**
      * 1. Breakdown monthly support
@@ -43,7 +32,6 @@ public interface YearlySupportResistanceService {
 
     public boolean isNearResistance(Stock stock);
 
-    public OHLCV supportAndResistance(Stock stock);
 
-    public OHLCV supportAndResistance(String nseSymbol, LocalDate onDate);
+    public OHLCV supportAndResistance(Stock stock);
 }

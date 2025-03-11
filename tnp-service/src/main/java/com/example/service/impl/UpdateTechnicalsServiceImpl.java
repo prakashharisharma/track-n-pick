@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -112,7 +111,6 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
     public void updateTechnicals() {
         List<Stock> stockList = stockService.getForActivity();
         AtomicInteger remaing = new AtomicInteger(stockList.size());
-        //symbolList.add("HAVELLS");
         stockList.forEach(stock -> {
 
             long startTime = System.currentTimeMillis();
@@ -121,17 +119,11 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
                 log.info("Starting activity for {}",stock.getNseSymbol());
 
-                //List<OHLCV> ohlcvList = mcService.getMCOHLP(stock.getNseSymbol(), 5, 700);
-                //List<OHLCV> ohlcvList = this.fetch(stock.getNseSymbol(), 700);
-
-                //
+                //List<OHLCV> ohlcvList = mcService.getMCOHLP(stock.getNseSymbol(), 3, 700);
                 LocalDate to  = calendarService.previousTradingSession(LocalDate.now());
-                LocalDate from = to.minusYears(3);
-                log.info(" {} from {} to {}", stock.getNseSymbol(), from, to);
-                List<OHLCV> ohlcvList =   ohlcvService.fetch(stock.getNseSymbol(), from, to);
-                //
+                List<OHLCV> ohlcvList =   this.fetch(stock.getNseSymbol(), to);
 
-                LocalDate bhavDate = calendarService.previousTradingSession(LocalDate.now());
+                LocalDate bhavDate = to;
 
                 StockTechnicals stockTechnicals = this.calculate(stock.getNseSymbol(),bhavDate.atStartOfDay(ZoneOffset.UTC).toInstant(),ohlcvList);
 
@@ -157,14 +149,6 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
             log.info("Remaing {}", remaing.decrementAndGet());
 
-            /*
-            try {
-                Thread.sleep(miscUtil.getInterval());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            */
-
         });
     }
 
@@ -176,7 +160,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
              StockTechnicals stockTechnicals = this.updateTechnicalsHistory(stockPriceIO);
 
              this.updateTechnicalsTxn(stockTechnicals, stockPriceIO);
-
+             miscUtil.delay(50);
         } catch (Exception e) {
 
         log.error(" {} Error while updating technicals ", stockPriceIO.getNseSymbol(), e);
@@ -195,6 +179,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
             technicalsTemplate.upsert(stockTechnicals);
         log.info("{} Updated technicals history.", stockPriceIO.getNseSymbol());
+
             return stockTechnicals;
 
     }
@@ -252,20 +237,29 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
         String nseSymbol = stockPriceIO.getNseSymbol();
 
-        long tradingDays = priceTemplate.count(nseSymbol);
+        //long tradingDays = priceTemplate.count(nseSymbol);
+        LocalDate to =  LocalDate.ofInstant(stockPriceIO.getBhavDate(), ZoneOffset.UTC);
+        calendarService.previousTradingSession(LocalDate.now());
+        List<OHLCV> ohlcvList = this.fetch(nseSymbol, to);
 
-        StockTechnicals prevStockTechnicals=this.init(stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate());
-
-        if(tradingDays <= 1){
-            return prevStockTechnicals;
+        if(ohlcvList.size() <= 1 ){
+            return this.init(stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate());
         }
 
-        if(tradingDays > MIN_TRADING_DAYS){
+        /*
+        StockTechnicals prevStockTechnicals=this.init(stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate());
+        if(tradingDays <= 1){
+            return prevStockTechnicals;
+        }*/
+
+
+
+        //if(tradingDays > MIN_TRADING_DAYS){
             //prevStockTechnicals = technicalsTemplate.getPrevTechnicals(nseSymbol,  1);
-            LocalDate to  = calendarService.previousTradingSession(stockPriceIO.getBhavDate().atZone(ZoneOffset.UTC).toLocalDate());
-            LocalDate from = to.minusYears(3);
-            log.info(" {} from {} to {}", stockPriceIO.getNseSymbol(), from, to);
-            prevStockTechnicals = technicalsTemplate.getPreviousSessionTechnicals(nseSymbol,  from, to);
+            //LocalDate to  = calendarService.previousTradingSession(stockPriceIO.getBhavDate().atZone(ZoneOffset.UTC).toLocalDate());
+           // LocalDate from = to.minusYears(3);
+            //log.info(" {} from {} to {}", stockPriceIO.getNseSymbol(), from, to);
+            //prevStockTechnicals = technicalsTemplate.getPreviousSessionTechnicals(nseSymbol,  from, to);
             /*
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
@@ -276,13 +270,13 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
                 log.error("An error occured while prinitin prevStockTechnicals", e);
             }
             */
-        }
+       // }
 
-        int limit = this.limit(tradingDays);
+        //int limit = this.limit(tradingDays);
 
-        List<OHLCV> ohlcvList = this.fetch(nseSymbol, limit);
 
-        return this.calculate(nseSymbol, stockPriceIO.getBhavDate(), ohlcvList, prevStockTechnicals, tradingDays);
+
+        return this.calculate(nseSymbol, stockPriceIO.getBhavDate(), ohlcvList);
     }
 
     private StockTechnicals init(String nseSymbol, Instant bhavDate){
@@ -320,13 +314,21 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
     private int limit(long tradingDays){
         return tradingDays > MIN_TRADING_DAYS ? 2 : 700;
     }
-    private List<OHLCV> fetch(String nseSymbol, int limit){
+    private List<OHLCV> fetch(String nseSymbol, LocalDate to){
 
+        /*
         List<StockPrice> stockPriceList =  priceTemplate.get(nseSymbol, limit);
 
         Collections.reverse(stockPriceList);
 
         return stockPriceOHLCVAssembler.toModel(stockPriceList);
+         */
+
+        LocalDate from = to.minusYears(3);
+        log.info("Fetching OHLCV for {} from {} to {}", nseSymbol, from, to);
+        List<OHLCV> ohlcvList =   ohlcvService.fetch(nseSymbol, from, to);
+
+        return ohlcvList;
     }
 
     private Volume build(String nseSymbol, List<OHLCV> ohlcvList, Volume prevVolume, long tradingDays){
@@ -341,13 +343,14 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
         Long avgVolume50 = technicalsTemplate.getAverageVolume(nseSymbol, 50);
         */
 
+        /*
         if(tradingDays > MIN_TRADING_DAYS) {
 
             long avgVolume5 = volumeAverageCalculatorService.calculate(ohlcv, prevVolume.getAvg5(), 5);
             long avgVolume20 = volumeAverageCalculatorService.calculate(ohlcv,prevVolume.getAvg20(), 20);
             long avgVolume50 = volumeAverageCalculatorService.calculate(ohlcv,prevVolume.getAvg50(), 50);
             return new Volume(ohlcv.getVolume(), avgVolume5, avgVolume20, avgVolume50);
-        }
+        }*/
 
         int resultIndex = ohlcvList.size()-1;
 
@@ -360,9 +363,10 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
     private OnBalanceVolume build(String nseSymbol, List<OHLCV> ohlcvList, OnBalanceVolume prevOnBalanceVolume, long tradingDays){
 
+        /*
         if(tradingDays > MIN_TRADING_DAYS) {
             return onBalanceVolumeCalculatorService.calculate(ohlcvList, prevOnBalanceVolume);
-        }
+        }*/
 
         return onBalanceVolumeCalculatorService.calculate(ohlcvList).get(ohlcvList.size()-1);
     }
@@ -386,6 +390,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
     private SimpleMovingAverage build(String nseSymbol, List<OHLCV> ohlcvList, SimpleMovingAverage prevSimpleMovingAverage, long tradingDays){
 
+        /*
         if(tradingDays > MIN_TRADING_DAYS) {
             OHLCV ohlcv = ohlcvList.get(1);
             double sma5 = simpleMovingAverageCalculatorService.calculate(ohlcv, prevSimpleMovingAverage.getAvg5(), 5);
@@ -396,7 +401,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
             double sma200 = simpleMovingAverageCalculatorService.calculate(ohlcv, prevSimpleMovingAverage.getAvg200(), 200);
 
             return new SimpleMovingAverage(sma5, sma10, sma20, sma50, sma100, sma200);
-        }
+        }*/
 
         int resultIndex = ohlcvList.size()-1;
         double sma5 = simpleMovingAverageCalculatorService.calculate(ohlcvList, 5).get(resultIndex);;
@@ -416,6 +421,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
     private ExponentialMovingAverage build(String nseSymbol,List<OHLCV> ohlcvList, ExponentialMovingAverage prevExponentialMovingAverage, long tradingDays){
 
+        /*
         if(tradingDays > MIN_TRADING_DAYS) {
             OHLCV ohlcv = ohlcvList.get(1);
             double ema5 = exponentialMovingAverageService.calculate(ohlcv, prevExponentialMovingAverage.getAvg5(), 5);
@@ -426,7 +432,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
             double ema200 = exponentialMovingAverageService.calculate(ohlcv, prevExponentialMovingAverage.getAvg200(), 200);
 
             return new ExponentialMovingAverage(ema5, ema10, ema20, ema50, ema100, ema200);
-        }
+        }*/
 
         int resultIndex = ohlcvList.size()-1;
         double ema5 = exponentialMovingAverageService.calculate(ohlcvList, 5).get(resultIndex);;
@@ -441,26 +447,28 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
     private AverageDirectionalIndex build(String nseSymbol,List<OHLCV> ohlcvList, AverageDirectionalIndex prevAverageDirectionalIndex, long tradingDays){
 
+        /*
         if(tradingDays > MIN_TRADING_DAYS) {
             return averageDirectionalIndexService.calculate(ohlcvList, prevAverageDirectionalIndex);
-        }
+        }*/
 
         return averageDirectionalIndexService.calculate(ohlcvList).get(ohlcvList.size() -1);
     }
 
     private RelativeStrengthIndex build(String nseSymbol,List<OHLCV> ohlcvList, RelativeStrengthIndex prevRelativeStrengthIndex, long tradingDays){
+        /*
         if(tradingDays > MIN_TRADING_DAYS) {
             return relativeStrengthIndexService.calculate(ohlcvList, prevRelativeStrengthIndex);
-        }
+        }*/
 
         return relativeStrengthIndexService.calculate(ohlcvList).get(ohlcvList.size() -1);
     }
 
     private MovingAverageConvergenceDivergence build(String nseSymbol,List<OHLCV> ohlcvList, MovingAverageConvergenceDivergence prevMovingAverageConvergenceDivergence, long tradingDays){
-
+        /*
         if(tradingDays > MIN_TRADING_DAYS) {
             return movingAverageConvergenceDivergenceService.calculate(ohlcvList.get(ohlcvList.size()-1), prevMovingAverageConvergenceDivergence);
-        }
+        }*/
 
         return movingAverageConvergenceDivergenceService.calculate(ohlcvList).get(ohlcvList.size() -1);
     }
@@ -492,7 +500,6 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
             stockTechnicalsTxn.setStock(stock);
             stockTechnicalsTxn.setBhavDate(stockPriceIO.getTimestamp());
-            stockTechnicalsTxn.setTrend(stockPriceIO.getTrend());
 
             stockTechnicalsTxn.setPrevSma5(stockTechnicalsTxn.getSma5());
             stockTechnicalsTxn.setPrevSma10(stockTechnicalsTxn.getSma10());
@@ -563,10 +570,16 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
             stockTechnicalsTxn.setObv(stockTechnicalsIO.getObv());
             stockTechnicalsTxn.setObvAvg(stockTechnicalsIO.getObvAvg());
 
-            stockTechnicalsTxn.setVolumePrev(stockTechnicalsTxn.getVolume());
-            stockTechnicalsTxn.setVolumeAvg5Prev(stockTechnicalsTxn.getVolumeAvg5());
-            stockTechnicalsTxn.setVolumeAvg20Prev(stockTechnicalsTxn.getVolumeAvg20());
-            stockTechnicalsTxn.setVolumeAvg50Prev(stockTechnicalsTxn.getVolumeAvg50());
+
+            stockTechnicalsTxn.setPrevPrevVolume(stockTechnicalsTxn.getPrevVolume());
+            stockTechnicalsTxn.setPrevPrevVolumeAvg5(stockTechnicalsTxn.getPrevVolumeAvg5());
+            stockTechnicalsTxn.setPrevPrevVolumeAvg20(stockTechnicalsTxn.getPrevVolumeAvg20());
+            stockTechnicalsTxn.setPrevPrevVolumeAvg50(stockTechnicalsTxn.getPrevVolumeAvg50());
+
+            stockTechnicalsTxn.setPrevVolume(stockTechnicalsTxn.getVolume());
+            stockTechnicalsTxn.setPrevVolumeAvg5(stockTechnicalsTxn.getVolumeAvg5());
+            stockTechnicalsTxn.setPrevVolumeAvg20(stockTechnicalsTxn.getVolumeAvg20());
+            stockTechnicalsTxn.setPrevVolumeAvg50(stockTechnicalsTxn.getVolumeAvg50());
 
             stockTechnicalsTxn.setVolume(stockTechnicalsIO.getVolume());
             stockTechnicalsTxn.setVolumeAvg5(stockTechnicalsIO.getVolumeAvg5());
@@ -666,6 +679,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
             stockTechnicalsTxn.setPrevQuarterHigh(ohlcv.getHigh());
             stockTechnicalsTxn.setPrevQuarterLow(ohlcv.getLow());
             stockTechnicalsTxn.setPrevQuarterClose(ohlcv.getClose());
+            miscUtil.delay(25);
         }
         }catch(Exception e){
             log.error("An error occurred while updating quartely SR", e);
@@ -680,6 +694,11 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
             log.info("Updating monthly SR");
             OHLCV ohlcv = monthlySupportResistanceService.supportAndResistance(stockTechnicalsTxn.getStock());
 
+            stockTechnicalsTxn.setPrevPrevPrevMonthOpen(stockTechnicalsTxn.getPrevPrevMonthOpen());
+            stockTechnicalsTxn.setPrevPrevPrevMonthHigh(stockTechnicalsTxn.getPrevPrevMonthHigh());
+            stockTechnicalsTxn.setPrevPrevPrevMonthLow(stockTechnicalsTxn.getPrevPrevMonthLow());
+            stockTechnicalsTxn.setPrevPrevPrevMonthClose(stockTechnicalsTxn.getPrevPrevMonthClose());
+
             stockTechnicalsTxn.setPrevPrevMonthOpen(stockTechnicalsTxn.getPrevMonthOpen());
             stockTechnicalsTxn.setPrevPrevMonthHigh(stockTechnicalsTxn.getPrevMonthHigh());
             stockTechnicalsTxn.setPrevPrevMonthLow(stockTechnicalsTxn.getPrevMonthLow());
@@ -689,6 +708,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
             stockTechnicalsTxn.setPrevMonthHigh(ohlcv.getHigh());
             stockTechnicalsTxn.setPrevMonthLow(ohlcv.getLow());
             stockTechnicalsTxn.setPrevMonthClose(ohlcv.getClose());
+            miscUtil.delay(25);
         }
         }catch(Exception e){
             log.error("An error occurred while updating monthly SR", e);
@@ -703,6 +723,12 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
             log.info("Updating weekly SR");
             OHLCV ohlcv = weeklySupportResistanceService.supportAndResistance(stockTechnicalsTxn.getStock());
 
+
+            stockTechnicalsTxn.setPrevPrevPrevWeekOpen(stockTechnicalsTxn.getPrevPrevWeekOpen());
+            stockTechnicalsTxn.setPrevPrevPrevWeekHigh(stockTechnicalsTxn.getPrevPrevWeekHigh());
+            stockTechnicalsTxn.setPrevPrevPrevWeekLow(stockTechnicalsTxn.getPrevPrevWeekLow());
+            stockTechnicalsTxn.setPrevPrevPrevWeekClose(stockTechnicalsTxn.getPrevPrevWeekClose());
+
             stockTechnicalsTxn.setPrevPrevWeekOpen(stockTechnicalsTxn.getPrevWeekOpen());
             stockTechnicalsTxn.setPrevPrevWeekHigh(stockTechnicalsTxn.getPrevWeekHigh());
             stockTechnicalsTxn.setPrevPrevWeekLow(stockTechnicalsTxn.getPrevWeekLow());
@@ -712,6 +738,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
             stockTechnicalsTxn.setPrevWeekHigh(ohlcv.getHigh());
             stockTechnicalsTxn.setPrevWeekLow(ohlcv.getLow());
             stockTechnicalsTxn.setPrevWeekClose(ohlcv.getClose());
+            miscUtil.delay(25);
         }
         }catch(Exception e){
             log.error("An error occurred while updating weekly SR", e);
@@ -725,10 +752,18 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
             if (firstTradingSession.isEqual(stockTechnicalsTxn.getBhavDate())) {
                 log.info("Updating weekly SR");
                 OHLCV ohlcv = yearlySupportResistanceService.supportAndResistance(stockTechnicalsTxn.getStock());
+
+                stockTechnicalsTxn.setPrevPrevYearOpen(stockTechnicalsTxn.getPrevYearOpen());
+                stockTechnicalsTxn.setPrevPrevYearHigh(stockTechnicalsTxn.getPrevYearHigh());
+                stockTechnicalsTxn.setPrevPrevYearLow(stockTechnicalsTxn.getPrevYearLow());
+                stockTechnicalsTxn.setPrevPrevYearClose(stockTechnicalsTxn.getPrevYearClose());
+
                 stockTechnicalsTxn.setPrevYearOpen(ohlcv.getOpen());
                 stockTechnicalsTxn.setPrevYearHigh(ohlcv.getHigh());
                 stockTechnicalsTxn.setPrevYearLow(ohlcv.getLow());
                 stockTechnicalsTxn.setPrevYearClose(ohlcv.getClose());
+
+                miscUtil.delay(25);
             }
         }catch(Exception e){
             log.error("An error occurred while updating yearly SR", e);

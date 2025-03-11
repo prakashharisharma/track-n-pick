@@ -50,5 +50,17 @@ public class TradeProfitLedgerService {
 		
 		return totalProfit;
 	}
+
+	public double allTimeProfit(UserProfile user) {
+
+		Double totalProfit = tradeProfitLedgerRepository.getTotalProfit(user);
+
+		if(totalProfit == null){
+			totalProfit = 0.00;
+		}
+
+
+		return totalProfit;
+	}
 	
 }

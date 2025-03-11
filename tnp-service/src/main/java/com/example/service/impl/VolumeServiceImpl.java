@@ -4,6 +4,7 @@ import com.example.model.ledger.BreakoutLedger;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockTechnicals;
 import com.example.service.BreakoutLedgerService;
+import com.example.service.CrossOverUtil;
 import com.example.service.VolumeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,16 +73,16 @@ public class VolumeServiceImpl implements VolumeService {
     public boolean isPreviousSessionVolumeAboveWeeklyAndMonthlyAverage(Stock stock, double weeklyBenchMark, double monthlyBenchMark) {
         StockTechnicals stockTechnicals = stock.getTechnicals();;
         boolean isAboveAverage = Boolean.FALSE;
-        if(stockTechnicals.getVolumePrev() > stockTechnicals.getVolumeAvg20Prev() * this.validate(monthlyBenchMark)){
+        if(stockTechnicals.getPrevVolume() > stockTechnicals.getVolumeAvg20Prev() * this.validate(monthlyBenchMark)){
             if(stockTechnicals.getVolumeAvg5Prev() > stockTechnicals.getVolumeAvg20Prev()){
                 isAboveAverage = Boolean.TRUE;
-            }else if(stockTechnicals.getVolumePrev() > stockTechnicals.getVolumeAvg5Prev() * this.validate(weeklyBenchMark)){
+            }else if(stockTechnicals.getPrevVolume() > stockTechnicals.getVolumeAvg5Prev() * this.validate(weeklyBenchMark)){
                 isAboveAverage = Boolean.TRUE;
             }
-        }else if(stockTechnicals.getVolumePrev() > stockTechnicals.getVolumeAvg20Prev()){
+        }else if(stockTechnicals.getPrevVolume() > stockTechnicals.getVolumeAvg20Prev()){
             if(stockTechnicals.getVolumeAvg5Prev() > stockTechnicals.getVolumeAvg20Prev() * this.validate(monthlyBenchMark)){
                 isAboveAverage = Boolean.TRUE;
-            }else if(stockTechnicals.getVolumePrev() > stockTechnicals.getVolumeAvg5Prev() * this.validate(weeklyBenchMark) * this.validate(monthlyBenchMark)){
+            }else if(stockTechnicals.getPrevVolume() > stockTechnicals.getVolumeAvg5Prev() * this.validate(weeklyBenchMark) * this.validate(monthlyBenchMark)){
                 isAboveAverage = Boolean.TRUE;
             }
         }
@@ -102,16 +103,16 @@ public class VolumeServiceImpl implements VolumeService {
     public boolean isVolumeAboveDailyAndWeeklyAverage(Stock stock, double dailyBenchmark, double weeklyBenchmark) {
         StockTechnicals stockTechnicals = stock.getTechnicals();;
         boolean isAboveAverage = Boolean.FALSE;
-        if(stockTechnicals.getVolumePrev() > stockTechnicals.getVolumeAvg5() * this.validate(weeklyBenchmark)){
+        if(stockTechnicals.getPrevVolume() > stockTechnicals.getVolumeAvg5() * this.validate(weeklyBenchmark)){
             if(stockTechnicals.getVolume() > stockTechnicals.getVolumeAvg5()){
                 isAboveAverage = Boolean.TRUE;
-            }else if(stockTechnicals.getVolumePrev() > stockTechnicals.getVolume() * this.validate(dailyBenchmark)){
+            }else if(stockTechnicals.getPrevVolume() > stockTechnicals.getVolume() * this.validate(dailyBenchmark)){
                 isAboveAverage = Boolean.TRUE;
             }
-        }else if(stockTechnicals.getVolumePrev() > stockTechnicals.getVolumeAvg5()){
+        }else if(stockTechnicals.getPrevVolume() > stockTechnicals.getVolumeAvg5()){
             if(stockTechnicals.getVolume() > stockTechnicals.getVolumeAvg5() * this.validate(weeklyBenchmark)){
                 isAboveAverage = Boolean.TRUE;
-            }else if(stockTechnicals.getVolumePrev() > stockTechnicals.getVolume() * this.validate(dailyBenchmark) * this.validate(weeklyBenchmark)){
+            }else if(stockTechnicals.getPrevVolume() > stockTechnicals.getVolume() * this.validate(dailyBenchmark) * this.validate(weeklyBenchmark)){
                 isAboveAverage = Boolean.TRUE;
             }
         }
@@ -125,26 +126,68 @@ public class VolumeServiceImpl implements VolumeService {
 
     @Override
     public boolean isVolumeWeeklyAboveMonthlyAverage(Stock stock) {
-        return this.isVolumeHigherThanMonthlyAverage(stock, MONTHLY_BENCHMARK);
+        return this.isVolumeAboveMonthlyAverage(stock, MONTHLY_BENCHMARK);
     }
 
     @Override
     public boolean isVolumeWeeklyAboveMonthlyAverage(Stock stock, double benchmark) {
         StockTechnicals stockTechnicals  = stock.getTechnicals();
-
+        /*
         if(stockTechnicals.getVolumeAvg5() > stockTechnicals.getVolumeAvg20() * this.validate(benchmark)){
+            return Boolean.TRUE;
+        }*/
+
+        if(stockTechnicals.getVolumeAvg5() < stockTechnicals.getVolumeAvg20()){
+
+            if(this.isVolumeAvg5Increasing(stockTechnicals) && this.isVolumeAvg20Decreasing(stockTechnicals)){
+                return Boolean.TRUE;
+            }else if(this.isVolumeAvg5Increasing(stockTechnicals) && this.isVolumeAvg20Increasing(stockTechnicals)){
+                return Boolean.TRUE;
+            }
+        }else{
+            if(this.isVolumeAvg5Increasing(stockTechnicals) && this.isVolumeAvg20Increasing(stockTechnicals)) {
+                return Boolean.TRUE;
+            }
+            return CrossOverUtil.isFastCrossesAboveSlow(stockTechnicals.getVolumeAvg5Prev(), stockTechnicals.getVolumeAvg20Prev(), stockTechnicals.getVolumeAvg5(),stockTechnicals.getVolumeAvg20());
+        }
+
+        return Boolean.FALSE;
+    }
+
+    private boolean isVolumeAvg5Decreasing(StockTechnicals stockTechnicals){
+        return Boolean.FALSE;
+    }
+
+    private boolean isVolumeAvg5Increasing(StockTechnicals stockTechnicals){
+        return Boolean.FALSE;
+    }
+
+    private boolean isVolumeAvg20Decreasing(StockTechnicals stockTechnicals){
+        return Boolean.FALSE;
+    }
+
+    private boolean isVolumeAvg20Increasing(StockTechnicals stockTechnicals){
+        return Boolean.FALSE;
+    }
+
+
+    @Override
+    public boolean isPreviousSessionVolumeWeeklyAboveMonthlyAverage(Stock stock, double benchmark) {
+        StockTechnicals stockTechnicals  = stock.getTechnicals();
+
+        if(stockTechnicals.getVolumeAvg5Prev() > stockTechnicals.getVolumeAvg20Prev() * this.validate(benchmark)){
             return Boolean.TRUE;
         }
         return Boolean.FALSE;
     }
 
     @Override
-    public boolean isVolumeHigherThanMonthlyAverage(Stock stock) {
-        return this.isVolumeHigherThanMonthlyAverage(stock, MONTHLY_BENCHMARK);
+    public boolean isVolumeAboveMonthlyAverage(Stock stock) {
+        return this.isVolumeAboveMonthlyAverage(stock, MONTHLY_BENCHMARK);
     }
 
     @Override
-    public boolean isVolumeHigherThanMonthlyAverage(Stock stock, double benchmark) {
+    public boolean isVolumeAboveMonthlyAverage(Stock stock, double benchmark) {
         StockTechnicals stockTechnicals  = stock.getTechnicals();
 
         if(stockTechnicals.getVolume() > stockTechnicals.getVolumeAvg20() * this.validate(benchmark)){
@@ -162,7 +205,7 @@ public class VolumeServiceImpl implements VolumeService {
     public boolean isPreviousSessionVolumeAboveMonthlyAverage(Stock stock, double benchmark) {
         StockTechnicals stockTechnicals  = stock.getTechnicals();
 
-        if(stockTechnicals.getVolumePrev() < stockTechnicals.getVolumeAvg20Prev() * this.validate(benchmark)){
+        if(stockTechnicals.getPrevVolume() < stockTechnicals.getVolumeAvg20Prev() * this.validate(benchmark)){
             return Boolean.TRUE;
         }
         return Boolean.FALSE;
@@ -186,6 +229,21 @@ public class VolumeServiceImpl implements VolumeService {
     }
 
     @Override
+    public boolean isPreviousSessionVolumeAboveWeeklyAverage(Stock stock) {
+        return this.isPreviousSessionVolumeAboveWeeklyAverage(stock, WEEKLY_BENCHMARK);
+    }
+
+    @Override
+    public boolean isPreviousSessionVolumeAboveWeeklyAverage(Stock stock, double benchmark) {
+        StockTechnicals stockTechnicals  = stock.getTechnicals();
+
+        if(stockTechnicals.getPrevVolume() > stockTechnicals.getVolumeAvg5Prev() * this.validate(benchmark)){
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
+    }
+
+    @Override
     public boolean isVolumeHigherThanPreviousSession(Stock stock) {
 
         return this.isVolumeHigherThanPreviousSession(stock, DAILY_BENCHMARK);
@@ -195,7 +253,7 @@ public class VolumeServiceImpl implements VolumeService {
     public boolean isVolumeHigherThanPreviousSession(Stock stock, double benchmark) {
         StockTechnicals stockTechnicals  = stock.getTechnicals();
 
-        if(stockTechnicals.getVolume() > stockTechnicals.getVolumePrev() * this.validate(benchmark)){
+        if(stockTechnicals.getVolume() > stockTechnicals.getPrevVolume() * this.validate(benchmark)){
             return Boolean.TRUE;
         }
         return Boolean.FALSE;
@@ -210,7 +268,7 @@ public class VolumeServiceImpl implements VolumeService {
     public boolean isVolumeLowerThanPreviousSession(Stock stock, double benchmark) {
         StockTechnicals stockTechnicals  = stock.getTechnicals();
 
-        if(stockTechnicals.getVolume() < stockTechnicals.getVolumePrev() * this.validate(benchmark)){
+        if(stockTechnicals.getVolume() < stockTechnicals.getPrevVolume() * this.validate(benchmark)){
             return Boolean.TRUE;
         }
         return Boolean.FALSE;
@@ -225,11 +283,29 @@ public class VolumeServiceImpl implements VolumeService {
     public boolean isVolumeIncreasedDailyMonthly(Stock stock, double benchMark, double benchMarkPreviousSession) {
 
 
-        if(this.isVolumeHigherThanMonthlyAverage(stock, this.validate(benchMark)) && this.isVolumeHigherThanPreviousSession(stock, 1.0) ){
+        if(this.isVolumeAboveMonthlyAverage(stock, this.validate(benchMark)) && this.isVolumeHigherThanPreviousSession(stock, 1.0) ){
             return Boolean.TRUE;
         }else if (this.isPreviousSessionVolumeAboveMonthlyAverage(stock, this.validate(benchMarkPreviousSession)) && this.isVolumeLowerThanPreviousSession(stock, 1.0)){
             return Boolean.TRUE;
-        }else if(this.isVolumeHigherThanMonthlyAverage(stock, (benchMark > 2.0 ? benchMark /2 : benchMark)) && this.isPreviousSessionVolumeAboveMonthlyAverage(stock, (benchMarkPreviousSession > 2.0 ? benchMarkPreviousSession /2 : benchMarkPreviousSession)) ){
+        }else if(this.isVolumeAboveMonthlyAverage(stock, (benchMark > 2.0 ? benchMark /2 : benchMark)) && this.isPreviousSessionVolumeAboveMonthlyAverage(stock, (benchMarkPreviousSession > 2.0 ? benchMarkPreviousSession /2 : benchMarkPreviousSession)) ){
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isVolumeIncreasedDailyWeekly(Stock stock) {
+        return this.isVolumeIncreasedDailyWeekly(stock, 2.0, 2.0);
+    }
+
+    @Override
+    public boolean isVolumeIncreasedDailyWeekly(Stock stock, double benchMark, double benchMarkPreviousSession) {
+        if(this.isVolumeAboveWeeklyAverage(stock, this.validate(benchMark)) && this.isVolumeHigherThanPreviousSession(stock, 1.0) ){
+            return Boolean.TRUE;
+        }else if (this.isPreviousSessionVolumeAboveWeeklyAverage(stock, this.validate(benchMarkPreviousSession)) && this.isVolumeLowerThanPreviousSession(stock, 1.0)){
+            return Boolean.TRUE;
+        }else if(this.isVolumeAboveWeeklyAverage(stock, (benchMark > 2.0 ? benchMark /2 : benchMark)) && this.isPreviousSessionVolumeAboveWeeklyAverage(stock, (benchMarkPreviousSession > 2.0 ? benchMarkPreviousSession /2 : benchMarkPreviousSession)) ){
             return Boolean.TRUE;
         }
 

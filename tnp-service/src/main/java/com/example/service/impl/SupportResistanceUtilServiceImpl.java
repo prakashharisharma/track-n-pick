@@ -25,7 +25,7 @@ public class SupportResistanceUtilServiceImpl implements SupportResistanceUtilSe
     @Override
     public boolean isNearSupport(double open,double high, double low, double close, double average) {
         if (close > average) {
-            if (formulaService.inRange(low, high, average) || formulaService.isEpsilonEqual(low, average, FibonacciRatio.RATIO_161_8)) {
+            if (formulaService.inRange(low, high, average) || formulaService.isEpsilonEqual(low, average, FibonacciRatio.RATIO_161_8 * 10)) {
                 log.info("Support low: {} close {} above avg: {}",low,  close, average);
                 return Boolean.TRUE;
             }
@@ -105,7 +105,7 @@ public class SupportResistanceUtilServiceImpl implements SupportResistanceUtilSe
     @Override
     public boolean isNearResistance(double open, double high, double low, double close, double average) {
         if (close < average) {
-            if (formulaService.inRange(low, high, average) || formulaService.isEpsilonEqual(high, average, FibonacciRatio.RATIO_161_8)) {
+            if (formulaService.inRange(low, high, average) || formulaService.isEpsilonEqual(high, average, FibonacciRatio.RATIO_161_8 * 10)) {
                 log.info("Resistance high: {} close: {} below avg: {}", high, close, average);
                 return Boolean.TRUE;
             }

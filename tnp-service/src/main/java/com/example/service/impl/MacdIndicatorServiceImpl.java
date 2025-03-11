@@ -77,4 +77,23 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
         }
         return Boolean.FALSE;
     }
+
+    @Override
+    public boolean isHistogramDecreased(Stock stock) {
+        StockTechnicals stockTechnicals = stock.getTechnicals();
+
+        if(stockTechnicals ==null){
+            return Boolean.FALSE;
+        }
+
+        double histogram = formulaService.calculateHistogram(stockTechnicals.getMacd(), stockTechnicals.getSignal());
+
+        double prevHistogram = formulaService.calculateHistogram(stockTechnicals.getPrevMacd(), stockTechnicals.getPrevSignal());
+
+        if(histogram < prevHistogram)  {
+            return Boolean.TRUE;
+
+        }
+        return Boolean.FALSE;
+    }
 }

@@ -7,8 +7,8 @@ import com.example.model.master.Stock;
 import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.StockTechnicals;
 import com.example.service.*;
-import com.example.util.FibonacciRatio;
 import com.example.util.FormulaService;
+import com.example.util.io.model.type.Momentum;
 import com.example.util.io.model.type.Trend;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,20 +45,20 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
 
         boolean isBreakDown = Boolean.FALSE;
 
-         if(trend == Trend.LONG){
+         if(trend.getMomentum() == Momentum.TOP){
 
             if(this.isBreakDown(stock, stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100())) {
                 isBreakDown = Boolean.TRUE;
-            }/*
+            }
             else if(this.isBreakDown(stock, stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100())) {
                 isBreakDown = Boolean.TRUE;
             }
-            */
-         }if(trend == Trend.MEDIUM){
+
+         }if(trend.getMomentum() == Momentum.CORRECTION){
             if(this.isBreakDown(stock, stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50())) {
                 isBreakDown = Boolean.TRUE;
             }
-        }if(trend == Trend.SHORT){
+        }if(trend.getMomentum() == Momentum.PULLBACK){
             if(this.isBreakDown(stock, stockTechnicals.getEma10(), stockTechnicals.getEma20(), stockTechnicals.getPrevEma10(), stockTechnicals.getPrevEma20())) {
                 isBreakDown = Boolean.TRUE;
             }
@@ -74,8 +74,8 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
                         breakoutLedgerService.addNegative(stock, BreakoutLedger.BreakoutCategory.BREAKDOWN_EMA20);
                         return TradeSetup.builder()
                                 .active(Boolean.TRUE)
-                                .strategy(ResearchLedgerTechnical.Strategy.PRICE_ACTION)
-                                .subStrategy(ResearchLedgerTechnical.SubStrategy.CANDLESTICK)
+                                .strategy(ResearchLedgerTechnical.Strategy.PRICE)
+                                .subStrategy(ResearchLedgerTechnical.SubStrategy.SRMA)
                                 .entryPrice(entryPrice)
                                 .stopLossPrice(stopLossPrice)
                                 .targetPrice(targetPrice)

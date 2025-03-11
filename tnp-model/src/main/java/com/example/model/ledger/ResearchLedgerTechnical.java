@@ -26,11 +26,11 @@ public class ResearchLedgerTechnical {
 	 * PRICE_ACTION - Candle Stick
 	 */
 	public enum Strategy {
-		  PRICE_ACTION, VOLUME_ACTION, SWING_ACTION,
+		PRICE, VOLUME, SWING,
 	}
 
 	public enum SubStrategy {
-		CANDLESTICK, HIGH_VOLUME, RSI_MACD, ADX_TEMA, RSI_MACD1, RSI_MACD2
+		SRTF,SRMA,  RMAO, HV, RM, TEMA
 	}
 
 	@Id
@@ -101,6 +101,9 @@ public class ResearchLedgerTechnical {
 
 	@Column(name = "VOLUME_AVG20")
 	Long volumeAvg20;
+
+	@Column(name = "SCORE", columnDefinition="Decimal(10,2) default '0.00'")
+	double score;
 
 	public long getSrlId() {
 		return srlId;
@@ -268,6 +271,14 @@ public class ResearchLedgerTechnical {
 
 	public void setSubStrategy(SubStrategy subStrategy) {
 		this.subStrategy = subStrategy;
+	}
+
+	public double getScore() {
+		return score;
+	}
+
+	public void setScore(double score) {
+		this.score = score;
 	}
 
 	@Override

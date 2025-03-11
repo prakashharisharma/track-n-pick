@@ -2,6 +2,8 @@ package com.example.api.controller.rest;
 
 import java.util.List;
 
+import com.example.model.um.UserProfile;
+import com.example.security.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +27,10 @@ public class ResearchController {
 
 	@Autowired
 	private ResearchLedgerTechnicalService researchLedgerTechnicalService;
-	
+
+	@Autowired
+	private LoginService loginService;
+
 	@Autowired
 	private UiRenderUtil uiRenderUtil;
 	
@@ -41,8 +46,10 @@ public class ResearchController {
 	public ResponseEntity<List<UIRenderStock>> getTechnicalResearchStocks() {
 
 		List<ResearchLedgerTechnical> researchList = researchLedgerTechnicalService.researchStocksTechnicals();
-		
-		return ResponseEntity.ok(uiRenderUtil.renderResearchTechnicalList(researchList));
+
+		UserProfile userProfile = loginService.getLoginUserProfile();
+
+		return ResponseEntity.ok(uiRenderUtil.renderResearchTechnicalList(userProfile, researchList));
 	}
 	
 	@GetMapping(value="/fundamental/advance", produces = MediaType.APPLICATION_JSON_VALUE )

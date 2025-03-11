@@ -21,7 +21,10 @@ public interface FundsLedgerRepository extends JpaRepository<FundsLedger, Long>{
 	
 	@Query(value = "SELECT sum(fl.amount) from FundsLedger fl where fl.transactionDate BETWEEN :dateFrom AND :dateTo AND fl.userId = :userId AND fl.transactionType in ('ADD','FYRO','WITHDRAW')")
 	Double getTotalFYFundBetweenTwoDates(@Param("userId") UserProfile userId,@Param("dateFrom") LocalDate dateFrom,@Param("dateTo") LocalDate dateTo);
-	
+
+	@Query(value = "SELECT sum(fl.amount) from FundsLedger fl where fl.userId = :userId AND fl.transactionType in ('ADD','WITHDRAW')")
+	Double getTotalFund(@Param("userId") UserProfile userId);
+
 	@Query(value = "SELECT sum(fl.amount) from FundsLedger fl where fl.transactionDate BETWEEN :dateFrom AND :dateTo AND fl.userId = :userId AND fl.transactionType in ('ADD',  'CYRO')")
 	Double getTotalCYFundBetweenTwoDates(@Param("userId") UserProfile userId,@Param("dateFrom") LocalDate dateFrom,@Param("dateTo") LocalDate dateTo);
 

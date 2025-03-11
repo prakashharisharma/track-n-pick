@@ -21,6 +21,8 @@ public interface TradeProfitLedgerRepository extends JpaRepository<TradeProfitLe
 	
 	@Query(value = "SELECT sum(tfl.netProfit) from TradeProfitLedger tfl where tfl.transactionDate BETWEEN :dateFrom AND :dateTo AND tfl.userId = :userId")
 	Double getTotalProfitBetweenTwoDates(@Param("userId") UserProfile userId,@Param("dateFrom") LocalDate dateFrom,@Param("dateTo") LocalDate dateTo);
-	
+
+	@Query(value = "SELECT sum(tfl.netProfit) from TradeProfitLedger tfl where tfl.userId = :userId")
+	Double getTotalProfit(@Param("userId") UserProfile userId);
 
 }

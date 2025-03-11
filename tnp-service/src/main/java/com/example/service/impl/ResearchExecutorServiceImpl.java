@@ -111,15 +111,16 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
         if (fundamentalResearchService.isMcapInRange(stock)) {
             if (stock.getSeries().equalsIgnoreCase("EQ")) {
 
-                TradeSetup tradeSetup = priceActionService.breakOut(stock);
+                TradeSetup tradeSetup = swingActionService.breakOut(stock);
 
                 if(!tradeSetup.isActive()){
-                    tradeSetup = swingActionService.breakOut(stock);
+                    tradeSetup = priceActionService.breakOut(stock);
                 }
 
                 if(!tradeSetup.isActive()){
                     tradeSetup = volumeActionService.breakOut(stock);
                 }
+
 
                 if (tradeSetup.isActive()) {
                         researchLedgerTechnicalService.addResearch(stock, tradeSetup);

@@ -31,11 +31,14 @@ public class SimpleMovingAverageCalculatorServiceImpl implements SimpleMovingAve
             if(i < days-1){
                 smaList.add(i, 0.00);
             }else if(i == days-1){
-                double sma = this.calculateSimpleAverage(ohlcvList, days);
+                double sma = this.calculateSimpleAverage(ohlcvList, i, days);
                 smaList.add(i, miscUtil.formatDouble(sma,"00"));
             }else{
-                double sma=  formulaService.calculateSmoothedMovingAverage(smaList.get(i-1),ohlcvList.get(i).getClose(),  days);
+
+                double sma = this.calculateSimpleAverage(ohlcvList, i, days);
                 smaList.add(i, miscUtil.formatDouble(sma,"00"));
+                //double sma=  formulaService.calculateSmoothedMovingAverage(smaList.get(i-1),ohlcvList.get(i).getClose(),  days);
+                //smaList.add(i, miscUtil.formatDouble(sma,"00"));
             }
 
         }
@@ -47,11 +50,11 @@ public class SimpleMovingAverageCalculatorServiceImpl implements SimpleMovingAve
         return miscUtil.formatDouble(formulaService.calculateSmoothedMovingAverage(prevSMA, ohlcv.getClose(),  days),"00");
     }
 
-    private double calculateSimpleAverage(List<OHLCV> ohlcvList, int days){
+    private double calculateSimpleAverage(List<OHLCV> ohlcvList, int index, int days){
 
-        double sum = 0.00;
+        double sum = 0l;
 
-        for(int i =0; i < days; i++){
+        for(int i =index; i >= index-days+1; i--){
             sum = sum + ohlcvList.get(i).getClose();
         }
 

@@ -91,6 +91,14 @@ public class UIRenderStock {
 
 	double valuation;
 
+	String strategy;
+
+	String subStrategy;
+
+	double score;
+
+	long positionSize;
+
 	TechnicalsResearchService.RsiTrend rsiTrend;
 
 	public boolean isBullish() {
@@ -514,6 +522,38 @@ public class UIRenderStock {
 
 	public void setValuation(double valuation) {
 		this.valuation = valuation;
+	}
+
+	public String getStrategy() {
+		return strategy;
+	}
+
+	public void setStrategy(String strategy) {
+		this.strategy = strategy;
+	}
+
+	public String getSubStrategy() {
+		return subStrategy;
+	}
+
+	public void setSubStrategy(String subStrategy) {
+		this.subStrategy = subStrategy;
+	}
+
+	public double getScore() {
+		return score;
+	}
+
+	public void setScore(double score) {
+		this.score = score;
+	}
+
+	public long getPositionSize() {
+		return positionSize;
+	}
+
+	public void setPositionSize(long positionSize) {
+		this.positionSize = positionSize;
 	}
 
 	@Override

@@ -6,8 +6,6 @@ import com.example.model.stocks.StockPrice;
 import com.example.model.stocks.StockTechnicals;
 import com.example.service.*;
 import com.example.service.util.StockPriceUtil;
-import com.example.storage.model.result.HighLowResult;
-import com.example.storage.repo.PriceTemplate;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -21,14 +19,12 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class YearlySupportResistanceServiceImpl implements YearlySupportResistanceService {
+public class DailySupportResistanceServiceImpl implements DailySupportResistanceService {
 
     @Autowired
     private SupportResistanceConfirmationService supportResistanceConfirmationService;
-
     @Autowired
     private BreakoutConfirmationService breakoutConfirmationService;
-
     @Autowired
     private SupportResistanceUtilService supportResistanceService;
 
@@ -43,9 +39,6 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
 
     @Autowired
     private FormulaService formulaService;
-
-    @Autowired
-    private PriceTemplate priceTemplate;
 
     @Autowired
     private OhlcvService ohlcvService;
@@ -85,23 +78,23 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
         double close = stockPrice.getClose();
         double prevClose = stockPrice.getPrevClose();
         double prevPrevClose = stockPrice.getPrevPrevClose();
-        double support = stockTechnicals.getPrevYearLow();
-        double resistance = stockTechnicals.getPrevYearHigh();
+        double support = stockPrice.getPrevLow();
+        double resistance = stockPrice.getPrevHigh();
 
         if(open < support){
             resistance = support;
         }
 
-
-
         //Check for Current Day Breakout
-         if(breakoutConfirmationService.isBullishConfirmation(stock, resistance) && candleStickService.range(stock) > CandleStickService.MIN_RANGE) {
+        if(breakoutConfirmationService.isBullishConfirmation(stock, resistance) && candleStickService.range(stock) > CandleStickService.MIN_RANGE) {
             //Breakout resistance
+
             if(breakoutService.isBreakOut(prevClose, resistance, close, resistance)){
+
                 return Boolean.TRUE;
             }
         }
-                 /*
+         /*
         //Check for previous Session Breakout
         else if(candleStickService.rangePrev(stock) > CandleStickService.MIN_RANGE){
             //Breakout Previous Session EMA50
@@ -111,8 +104,10 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
         }*/
 
 
+
         return Boolean.FALSE;
     }
+
 
 
     @Override
@@ -129,8 +124,8 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
         double prevHigh = stockPrice.getPrevHigh();
         double close = stockPrice.getClose();
         double prevClose = stockPrice.getPrevClose();
-        double support = stockTechnicals.getPrevYearLow();
-        double resistance = stockTechnicals.getPrevYearHigh();
+        double support = stockPrice.getPrevLow();
+        double resistance = stockPrice.getPrevHigh();
 
         if(open > resistance){
             support = resistance;
@@ -144,72 +139,10 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
             }
         }
 
-        //Check for Previous Session Near Support
-        else if(candleStickService.isLowerHigh(StockPriceUtil.buildStockPricePreviousSession(stock)) && candleStickService.isLowerLow(StockPriceUtil.buildStockPricePreviousSession(stock))){
-            // Near Support EMA 20
-            if (supportResistanceConfirmationService.isSupportConfirmed(stock, support) && supportResistanceService.isNearSupport(prevOpen, prevHigh, prevLow, prevClose, support)) {
-                return Boolean.TRUE;
-            }
-        }
-
         return Boolean.FALSE;
     }
 
-    @Override
-    public boolean isYearHighYearLowCorrection(Stock stock) {
 
-        StockPrice stockPrice = stock.getStockPrice();
-
-        double yearHigh = stockPrice.getYearHigh();
-
-        double yearLow = stockPrice.getYearLow();
-
-        if(stockPrice.getYearLowDate().isAfter(stockPrice.getYearHighDate())){
-            if(stockPrice.getLow()  > yearLow ){
-                double correction = Math.abs(formulaService.calculateChangePercentage(yearHigh, yearLow));
-                if(correction > 34.5 ){
-                    if(breakoutConfirmationService.isBullishConfirmation(stock, yearLow)) {
-                        log.info("{} near year high year low correction yearHigh: {}, recentLow:{}, correction:{} ", stock.getNseSymbol(), yearHigh, yearLow, correction);
-                        return Boolean.TRUE;
-                    }
-                }
-            }
-        }
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isYearHighRecentLowCorrection(Stock stock) {
-
-        StockPrice stockPrice = stock.getStockPrice();
-
-        double yearHigh = stockPrice.getYearHigh();
-
-        double recentLow = stockPrice.getLow();
-
-        if(recentLow > stockPrice.getPrevLow()){
-            recentLow = stockPrice.getPrevLow();
-        }
-
-        if(recentLow > stockPrice.getPrevPrevLow()){
-            recentLow = stockPrice.getPrevPrevLow();
-        }
-
-        if(stockPrice.getYearLowDate().isBefore(stockPrice.getYearHighDate())){
-            double correction = Math.abs(formulaService.calculateChangePercentage(yearHigh, recentLow));
-
-            if(correction > 34.5 ){
-                if(breakoutConfirmationService.isBullishConfirmation(stock, recentLow)) {
-                    log.info("{} near year high recent low correction yearHigh: {}, recentLow:{}, correction:{} ", stock.getNseSymbol(), yearHigh, recentLow, correction);
-                    return Boolean.TRUE;
-                }
-            }
-        }
-
-
-        return Boolean.FALSE;
-    }
 
     @Override
     public boolean isBearish(Stock stock) {
@@ -240,13 +173,12 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
         double close = stockPrice.getClose();
         double prevClose = stockPrice.getPrevClose();
         double prevPrevClose = stockPrice.getPrevPrevClose();
-        double support = stockTechnicals.getPrevYearLow();
-        double resistance = stockTechnicals.getPrevYearHigh();
+        double support = stockPrice.getPrevLow();
+        double resistance = stockPrice.getPrevHigh();
 
         if(open > resistance){
             support = resistance;
         }
-
 
         //Check for Current Day Breakout
          if(breakoutConfirmationService.isBearishConfirmation(stock, support) && candleStickService.range(stock) > CandleStickService.MIN_RANGE){
@@ -255,8 +187,8 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
                 return Boolean.TRUE;
             }
         }
-                 /*
         //Check for previous Session Breakout
+         /*
         else if(candleStickService.rangePrev(stock) > CandleStickService.MIN_RANGE){
             //Breakdown Previous Session EMA50
             if (breakoutConfirmationService.isBearishFollowup(stock, support) && breakoutService.isBreakDown(prevPrevClose, support, prevClose, support)) {
@@ -268,7 +200,6 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
 
         return Boolean.FALSE;
     }
-
 
 
     @Override
@@ -285,8 +216,8 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
         double prevHigh = stockPrice.getPrevHigh();
         double close = stockPrice.getClose();
         double prevClose = stockPrice.getPrevClose();
-        double support = stockTechnicals.getPrevYearLow();
-        double resistance = stockTechnicals.getPrevYearHigh();
+        double support = stockPrice.getPrevLow();
+        double resistance = stockPrice.getPrevHigh();
 
         if(open < support){
             resistance = support;
@@ -301,13 +232,7 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
             }
 
         }
-        //Check for Previous Session Near Resistance
-        else if(candleStickService.isHigherHigh(StockPriceUtil.buildStockPricePreviousSession(stock)) && candleStickService.isHigherLow(StockPriceUtil.buildStockPricePreviousSession(stock))){
-            // Near Support EMA 20
-            if (supportResistanceConfirmationService.isResistanceConfirmed(stock, resistance) && supportResistanceService.isNearResistance(prevOpen, prevHigh, prevLow, prevClose, resistance)) {
-                return Boolean.TRUE;
-            }
-        }
+
 
         return Boolean.FALSE;
     }
@@ -316,51 +241,12 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
     @Override
     public OHLCV supportAndResistance(Stock stock) {
 
-        LocalDate from = miscUtil.currentYearFirstDay().minusYears(1);
-        LocalDate to  = miscUtil.currentYearFirstDay().minusDays(1);
-
-        log.info(" {} from {} to {}",stock.getNseSymbol(), from, to);
-
+        StockPrice stockPrice = stock.getStockPrice();;
         OHLCV result = new OHLCV();
-        result.setHigh(0.0);
-        result.setLow(0.0);
-
-        List<OHLCV> ohlcvList =   ohlcvService.fetch(stock.getNseSymbol(), from, to);
-
-        if(!ohlcvList.isEmpty()) {
-            OHLCV yearlyOpen = ohlcvList.get(0);
-            OHLCV yearlyHigh = Collections.max(ohlcvList, Comparator.comparingDouble(ohlcv -> ohlcv.getHigh()));
-            OHLCV yearlyLow = Collections.min(ohlcvList, Comparator.comparingDouble(ohlcv -> ohlcv.getLow()));
-            OHLCV yearlyClose = ohlcvList.get(ohlcvList.size()-1);
-            result.setOpen(yearlyOpen.getOpen());
-            result.setHigh(yearlyHigh.getHigh());
-            result.setLow(yearlyLow.getLow());
-            result.setClose(yearlyClose.getClose());
-        }
-
-        return result;
-    }
-
-    @Override
-    public OHLCV supportAndResistance(String nseSymbol, LocalDate onDate) {
-
-        LocalDate to  = onDate;
-
-        LocalDate from = to.minusYears(1);
-
-
-        log.info(" {} from {} to {}",nseSymbol, from, to);
-
-        OHLCV result = new OHLCV();
-        result.setHigh(0.0);
-        result.setLow(0.0);
-
-        HighLowResult highLowResult =   priceTemplate.getHighLowByDate(nseSymbol, from, to);
-
-        if(highLowResult != null && !highLowResult.get_id().equalsIgnoreCase("NO_DATA_FOUND")) {
-            result.setHigh(highLowResult.getHigh());
-            result.setLow(highLowResult.getLow());
-        }
+        result.setOpen(stockPrice.getPrevOpen());
+        result.setHigh(stockPrice.getPrevHigh());
+        result.setLow(stockPrice.getPrevLow());
+        result.setClose(stockPrice.getPrevClose());
 
         return result;
     }

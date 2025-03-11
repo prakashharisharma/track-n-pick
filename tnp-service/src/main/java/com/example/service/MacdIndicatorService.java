@@ -10,4 +10,6 @@ public interface MacdIndicatorService {
     public boolean isHistogramGreen(Stock stock);
 
     public boolean isHistogramIncreased(Stock stock);
+
+    public boolean isHistogramDecreased(Stock stock);
 }

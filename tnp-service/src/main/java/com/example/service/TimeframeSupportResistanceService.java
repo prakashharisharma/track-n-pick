@@ -26,6 +26,12 @@ public interface TimeframeSupportResistanceService {
      */
     public boolean isBullish(Stock stock, Trend trend);
 
+    public boolean isBreakout(Stock stock, Trend trend);
+
+    public boolean isNearSupport(Stock stock, Trend trend);
+
+    public boolean isMultiTimeFrameBreakout(Stock stock, Trend trend);
+    public boolean isMultiTimeFrameSupport(Stock stock, Trend trend);
     /**
      * 1. Breakdown monthly support and weekly
      * 1.1. Breakdown can be confirmed using MinusDi increasing, PlusDi decreasing and ADX increasing
@@ -38,4 +44,12 @@ public interface TimeframeSupportResistanceService {
      * @return
      */
     public boolean isBearish(Stock stock, Trend trend);
+
+    public boolean isBreakdown(Stock stock, Trend trend);
+
+    public boolean isNearResistance(Stock stock, Trend trend);
+
+    public boolean isMultiTimeFrameBreakdown(Stock stock, Trend trend);
+
+    public boolean isMultiTimeFrameResistance(Stock stock, Trend trend);
 }
