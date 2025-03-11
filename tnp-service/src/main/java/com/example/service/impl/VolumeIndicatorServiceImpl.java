@@ -81,9 +81,26 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         return this.isCurrentSessionHigh(stockTechnicals, multiplier) || this.isPreviousSessionHigh(stockTechnicals, multiplier);
     }
 
+    /**
+     * 1. Volume is X of avg 20
+     * 1.1 Volume increasing && avg increasing
+     * 2. Volume is X of prev Session && volume > avg
+     * 1.1 Volume increasing && avg increasing
+     *
+     *
+     * @param stockTechnicals
+     * @param multiplier
+     * @return
+     */
     private boolean isCurrentSessionHigh(StockTechnicals stockTechnicals, double multiplier){
 
         if(this.isHigher(stockTechnicals.getVolume(), stockTechnicals.getVolumeAvg20(), multiplier)){
+            if(this.isIncreasing(stockTechnicals.getVolume(), stockTechnicals.getPrevVolume())){
+                if(this.isIncreasing(stockTechnicals.getVolumeAvg20(), stockTechnicals.getPrevVolumeAvg20())){
+                    return Boolean.TRUE;
+                }
+            }
+        }else if(this.isHigher(stockTechnicals.getVolume(), stockTechnicals.getVolumeAvg20(), 1.0) &&  this.isHigher(stockTechnicals.getVolume(), stockTechnicals.getPrevVolume(), multiplier)){
             if(this.isIncreasing(stockTechnicals.getVolume(), stockTechnicals.getPrevVolume())){
                 if(this.isIncreasing(stockTechnicals.getVolumeAvg20(), stockTechnicals.getPrevVolumeAvg20())){
                     return Boolean.TRUE;
@@ -97,6 +114,12 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     private boolean isPreviousSessionHigh(StockTechnicals stockTechnicals, double multiplier){
 
         if(this.isHigher(stockTechnicals.getPrevVolume(), stockTechnicals.getPrevVolumeAvg20(), multiplier)){
+            if(this.isIncreasing(stockTechnicals.getPrevVolume(), stockTechnicals.getPrevPrevVolume())){
+                if(this.isIncreasing(stockTechnicals.getPrevVolumeAvg20(), stockTechnicals.getPrevPrevVolumeAvg20())){
+                    return Boolean.TRUE;
+                }
+            }
+        }else if(this.isHigher(stockTechnicals.getPrevVolume(), stockTechnicals.getPrevVolumeAvg20(), 1.0) &&  this.isHigher(stockTechnicals.getPrevVolume(), stockTechnicals.getPrevPrevVolume(), multiplier)){
             if(this.isIncreasing(stockTechnicals.getPrevVolume(), stockTechnicals.getPrevPrevVolume())){
                 if(this.isIncreasing(stockTechnicals.getPrevVolumeAvg20(), stockTechnicals.getPrevPrevVolumeAvg20())){
                     return Boolean.TRUE;

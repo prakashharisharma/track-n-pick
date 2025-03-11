@@ -228,6 +228,9 @@ public class AppRunner implements CommandLineRunner {
 
 	@Autowired
 	private PriceActionService priceActionService;
+
+	@Autowired
+	private VolumeActionService volumeActionService;
 	@Autowired
 	private FundamentalResearchService fundamentalResearchService;
 	@Autowired
@@ -237,7 +240,7 @@ public class AppRunner implements CommandLineRunner {
 	private UpdateTechnicalsService updateTechnicalsService;
 
 	@Autowired
-	private VolumeService volumeActionService;
+	private VolumeService volumeService;
 
 	@Autowired
 	private  PositionService positionService;
@@ -270,7 +273,16 @@ public class AppRunner implements CommandLineRunner {
 		//this.testTimeFrameSR();
 		//this.testTrend();
 		this.scanCandleStickPattern();
-		//this.allocatePositions();
+		this.allocatePositions();
+		/*
+		Stock stock = stockService.getStockByNseSymbol("ISEC");
+		Trend tred = trendService.isDownTrend(stock);
+		System.out.println("trend " + tred.getStrength() + " Momentum " + tred.getMomentum());
+		tred = trendService.isUpTrend(stock);
+		System.out.println("trend " + tred.getStrength() + " Momentum " + tred.getMomentum());
+		*/
+
+
 		//this.testScore();
 		//this.processBhavFromApi();
 		//this.updateSupportAndResistance();
@@ -340,7 +352,7 @@ public class AppRunner implements CommandLineRunner {
 
 
 		double capital = 750000.0;
-		double risk = 1.0;
+		double riskFactor = 1.0;
 
 		List<UserPortfolio> portfolioList =  new ArrayList<>();
 
@@ -373,21 +385,21 @@ public class AppRunner implements CommandLineRunner {
 				}
 			}*/
 
-			double allottedAmount = ((capital * risk) / researchLedgerTechnical.getRisk());
+			double allottedAmount = ((capital * riskFactor) / researchLedgerTechnical.getRisk());
 
 			long positionSize = (long) (allottedAmount / researchLedgerTechnical.getResearchPrice());
 
 			double reward = formulaService.calculateChangePercentage(researchLedgerTechnical.getResearchPrice(), researchLedgerTechnical.getTarget());
 
 			//if(researchLedgerTechnical.getResearchDate().isEqual(LocalDate.now()) || researchLedgerTechnical.getResearchDate().isEqual(calendarService.previousTradingSession(LocalDate.now()))) {
-				System.out.println(researchLedgerTechnical.getStock().getNseSymbol() + " date: " + researchLedgerTechnical.getResearchDate() +" strategy: "+ researchLedgerTechnical.getStrategy() +" sub strategy: "+ researchLedgerTechnical.getSubStrategy() +" risk: "+ risk + " reward: "+ miscUtil.formatDouble(reward) + " amount:" + miscUtil.formatDouble(allottedAmount) + " positions : " + positionSize +" entry: " +researchLedgerTechnical.getResearchPrice());
+				//System.out.println(researchLedgerTechnical.getStock().getNseSymbol() + " date: " + researchLedgerTechnical.getResearchDate() +" strategy: "+ researchLedgerTechnical.getStrategy() +" sub strategy: "+ researchLedgerTechnical.getSubStrategy() +" risk: "+ risk + " reward: "+ miscUtil.formatDouble(reward) + " amount:" + miscUtil.formatDouble(allottedAmount) + " positions : " + positionSize +" entry: " +researchLedgerTechnical.getResearchPrice());
 			//}
 
-			double perTradeRisk = formulaService.calculateFraction(capital, risk);
-			double sl = (researchLedgerTechnical.getResearchPrice()  - researchLedgerTechnical.getStopLoss());
-			positionSize = (long) (perTradeRisk / sl);
+			double risk = formulaService.calculateFraction(capital, riskFactor);
+			double stopLoss = (researchLedgerTechnical.getResearchPrice()  - researchLedgerTechnical.getStopLoss());
+			positionSize = (long) (risk / stopLoss);
 			positionService.calculate(user, researchLedgerTechnical);
-			System.out.println(researchLedgerTechnical.getStock().getNseSymbol() + " date: " + researchLedgerTechnical.getResearchDate() +" strategy: "+ researchLedgerTechnical.getStrategy() +" sub strategy: "+ researchLedgerTechnical.getSubStrategy() +" risk: "+ perTradeRisk + " sl: "+ miscUtil.formatDouble(sl) + " amount:" + miscUtil.formatDouble(allottedAmount) + " positions : " + positionSize +" entry: " +researchLedgerTechnical.getResearchPrice());
+			//System.out.println(researchLedgerTechnical.getStock().getNseSymbol() + " date: " + researchLedgerTechnical.getResearchDate() +" strategy: "+ researchLedgerTechnical.getStrategy() +" sub strategy: "+ researchLedgerTechnical.getSubStrategy() +" risk: "+ risk + " sl: "+ miscUtil.formatDouble(stopLoss) + " amount:" + miscUtil.formatDouble(allottedAmount) + " positions : " + positionSize +" entry: " +researchLedgerTechnical.getResearchPrice());
 
 		}
 
@@ -797,19 +809,10 @@ public class AppRunner implements CommandLineRunner {
 					}
 					priceActionService.breakOut(stock);
 					swingActionService.breakOut(stock);
-
+					volumeActionService.breakOut(stock);
 				}
 			}
 		}
-		/*
-		System.out.println("******* Scanning Bullish from fundamental research *******");
-
-		List<ResearchLedgerFundamental> researchLedgerFundamentalList = researchLedgerFundamentalService.allActiveResearch();
-
-		for(ResearchLedgerFundamental researchLedgerFundamental: researchLedgerFundamentalList){
-			priceActionService.breakOut(researchLedgerFundamental.getStock());
-			swingActionService.breakOut(researchLedgerFundamental.getStock());
-		}*/
 
 		System.out.println("******* Scanning Bearish From Master *******");
 
@@ -824,30 +827,10 @@ public class AppRunner implements CommandLineRunner {
 							System.out.println("PORTFOLIO " + stock.getNseSymbol());
 						}
 						priceActionService.breakDown(stock);
+						movingAverageActionService.breakDown(stock);
 					}
 			}
 		}
-
-		/*
-		System.out.println("******* Scanning Bearish From Research *******");
-		List<ResearchLedgerTechnical> researchLedgerTechnicalList = researchLedgerTechnicalService.allActiveResearch();
-
-		for(ResearchLedgerTechnical researchLedgerTechnical: researchLedgerTechnicalList){
-			//candleStickExecutorService.executeBearish(researchLedgerTechnical.getStock());
-			priceActionService.breakDown(researchLedgerTechnical.getStock());
-			movingAverageActionService.breakDown(researchLedgerTechnical.getStock());
-		}*/
-
-		/*
-		System.out.println("******* Scanning Bearish From Portfolio *******");
-		List<UserPortfolio> portfolioList =  portfolioService.get();
-
-		for(UserPortfolio userPortfolio: portfolioList){
-			//candleStickExecutorService.executeBearish(userPortfolio.getStock());
-			priceActionService.breakDown(userPortfolio.getStock());
-			movingAverageActionService.breakDown(userPortfolio.getStock());
-		}*/
-
 	}
 
 

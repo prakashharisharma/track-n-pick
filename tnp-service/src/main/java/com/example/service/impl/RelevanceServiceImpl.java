@@ -1,8 +1,12 @@
 package com.example.service.impl;
 
+import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.master.Stock;
+import com.example.model.stocks.StockPrice;
+import com.example.model.stocks.StockTechnicals;
 import com.example.service.*;
 import com.example.service.util.StockPriceUtil;
+import com.example.util.FormulaService;
 import com.example.util.io.model.type.Momentum;
 import com.example.util.io.model.type.Trend;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +21,9 @@ public class RelevanceServiceImpl implements RelevanceService {
     private TimeframeSupportResistanceService timeframeSupportResistanceService;
     @Autowired
     private MovingAverageSupportResistanceService movingAverageSupportResistanceService;
+
+    @Autowired
+    private FormulaService formulaService;
 
     @Autowired
     private RsiIndicatorService rsiIndicatorService;
@@ -54,7 +61,7 @@ public class RelevanceServiceImpl implements RelevanceService {
                 score = score + 1.5;
             }
 
-            if (timeframeSupportResistanceService.isNearSupport(stock, trend) && rsiIndicatorService.isOverSold(stock)) {
+            else if (timeframeSupportResistanceService.isNearSupport(stock, trend) && rsiIndicatorService.isOverSold(stock)) {
                 log.info("{} timeframe support active {} momentum {}}", stock.getNseSymbol(), trend.getStrength(), trend.getMomentum());
                 score = score + 1.5;
             }
@@ -94,20 +101,26 @@ public class RelevanceServiceImpl implements RelevanceService {
     @Override
     public boolean isBullishIndicator(Stock stock, Trend trend) {
 
-        if(yearlySupportResistanceService.isBullish(stock) || quarterlySupportResistanceService.isBullish(stock) || monthlySupportResistanceService.isBullish(stock)) {
-            if (rsiIndicatorService.isOverSold(stock) && rsiIndicatorService.isIncreasing(stock)) {
-                if (obvIndicatorService.isBullish(stock) || volumeIndicatorService.isBullish(stock)) {
-                    if (multiIndicatorService.isBullish(stock)) {
-                        Stock prevSessionStock = StockPriceUtil.buildStockPricePreviousSession(stock);
-                        if(candleStickService.isLowerLow(prevSessionStock) && candleStickService.isLowerHigh(prevSessionStock)) {
-                            log.info("{} indicator support / breakout active {} momentum {}", stock.getNseSymbol(), trend.getStrength(), trend.getMomentum());
-                            log.info("{} relevance score: {} trend: {} momentum {}", stock.getNseSymbol(), 3.0, trend.getStrength(),trend.getMomentum());
-                            return Boolean.TRUE;
-                        }
+        //if(yearlySupportResistanceService.isBullish(stock) || quarterlySupportResistanceService.isBullish(stock) || monthlySupportResistanceService.isBullish(stock)) {
+
+        if(trend.getMomentum() == Momentum.PULLBACK || trend.getMomentum() == Momentum.CORRECTION) {
+            if (obvIndicatorService.isBullish(stock) || volumeIndicatorService.isBullish(stock)) {
+                if (multiIndicatorService.isBullish(stock)) {
+                    StockPrice stockPrice = stock.getStockPrice();
+                    StockTechnicals stockTechnicals = stock.getTechnicals();
+                    if (Math.abs(formulaService.calculateChangePercentage(stockTechnicals.getEma20(), stockPrice.getClose())) < 10.0) {
+                        //Stock prevSessionStock = StockPriceUtil.buildStockPricePreviousSession(stock);
+                        //if (candleStickService.isLowerLow(prevSessionStock) && candleStickService.isLowerHigh(prevSessionStock)) {
+                        log.info("{} indicator support / breakout active {} momentum {}", stock.getNseSymbol(), trend.getStrength(), trend.getMomentum());
+                        log.info("{} relevance score: {} trend: {} momentum {}", stock.getNseSymbol(), 3.0, trend.getStrength(), trend.getMomentum());
+                        return Boolean.TRUE;
+                        // }
                     }
+                    log.info("{} indicator support / breakout rejected as price is away from ema 20 using {}:{}", stock.getNseSymbol(), ResearchLedgerTechnical.Strategy.PRICE, ResearchLedgerTechnical.SubStrategy.RMAO);
                 }
             }
         }
+       // }
 
         return Boolean.FALSE;
     }
@@ -160,20 +173,25 @@ public class RelevanceServiceImpl implements RelevanceService {
     @Override
     public boolean isBearishIndicator(Stock stock, Trend trend) {
 
-        if(yearlySupportResistanceService.isBearish(stock) || quarterlySupportResistanceService.isBearish(stock) || monthlySupportResistanceService.isBearish(stock)) {
-            if(rsiIndicatorService.isOverBaught(stock) && rsiIndicatorService.isDecreasing(stock)) {
-                if (obvIndicatorService.isBearish(stock) || volumeIndicatorService.isBearish(stock)) {
-                    if (multiIndicatorService.isBearish(stock)) {
-                        Stock prevSessionStock = StockPriceUtil.buildStockPricePreviousSession(stock);
-                        if(candleStickService.isHigherLow(prevSessionStock) && candleStickService.isHigherHigh(prevSessionStock)) {
-                            log.info("{} indicator resistance / breakdown active {} momentum {}", stock.getNseSymbol(), trend.getStrength(), trend.getMomentum());
-                            log.info("{} relevance score: {} trend: {} momentum {}", stock.getNseSymbol(), 3.0, trend.getStrength(),trend.getMomentum());
-                            return Boolean.TRUE;
-                        }
+       // if(yearlySupportResistanceService.isBearish(stock) || quarterlySupportResistanceService.isBearish(stock) || monthlySupportResistanceService.isBearish(stock)) {
+        if(trend.getMomentum() == Momentum.RECOVERY || trend.getMomentum() == Momentum.ADVANCE) {
+            if (obvIndicatorService.isBearish(stock) || volumeIndicatorService.isBearish(stock)) {
+                if (multiIndicatorService.isBearish(stock)) {
+                    StockPrice stockPrice = stock.getStockPrice();
+                    StockTechnicals stockTechnicals = stock.getTechnicals();
+                    if (Math.abs(formulaService.calculateChangePercentage(stockTechnicals.getEma20(), stockPrice.getClose())) > 10.0) {
+                        //Stock prevSessionStock = StockPriceUtil.buildStockPricePreviousSession(stock);
+                        //if (candleStickService.isHigherLow(prevSessionStock) && candleStickService.isHigherHigh(prevSessionStock)) {
+                        log.info("{} indicator resistance / breakdown active {} momentum {}", stock.getNseSymbol(), trend.getStrength(), trend.getMomentum());
+                        log.info("{} relevance score: {} trend: {} momentum {}", stock.getNseSymbol(), 3.0, trend.getStrength(), trend.getMomentum());
+                        return Boolean.TRUE;
+                        //}
                     }
+                    log.info("{} indicator resistance / breakdown rejected as price is away from ema 20 using {}:{}", stock.getNseSymbol(), ResearchLedgerTechnical.Strategy.PRICE, ResearchLedgerTechnical.SubStrategy.RMAO);
                 }
             }
         }
+       // }
 
         return Boolean.FALSE;
     }

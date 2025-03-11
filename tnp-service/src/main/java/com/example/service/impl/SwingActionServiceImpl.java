@@ -4,6 +4,7 @@ import com.example.dto.TradeSetup;
 import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockPrice;
+import com.example.model.stocks.StockTechnicals;
 import com.example.service.*;
 import com.example.util.FormulaService;
 import com.example.util.io.model.type.Momentum;
@@ -32,8 +33,7 @@ public class SwingActionServiceImpl implements SwingActionService {
 
     @Autowired
     private BreakoutService breakoutService;
-    @Autowired
-    private AdxIndicatorService adxService;
+
     @Autowired
     private FormulaService formulaService;
     @Autowired
@@ -66,7 +66,6 @@ public class SwingActionServiceImpl implements SwingActionService {
         if(trend.getMomentum() == Momentum.RECOVERY || trend.getMomentum() == Momentum.ADVANCE) {
             //if (volumeService.isVolumeAboveWeeklyAndMonthlyAverage(stock, 3.0, 1.5) || volumeService.isVolumeAboveDailyAndWeeklyAverage(stock, 3.0, 1.5)) {
                 if (candleStickService.isGreen(stock) && candleStickHelperService.isUpperWickSizeConfirmed(stock)) {
-
                             ResearchLedgerTechnical.SubStrategy subStrategy = ResearchLedgerTechnical.SubStrategy.RM;
                             boolean isTmaConvergenceAndDivergence = this.isTmaConvergenceAndDivergence(stock, trend);
                             boolean isRsiMacdBreakout = this.isRsiMacdBreakout(stock, trend);
@@ -91,21 +90,27 @@ public class SwingActionServiceImpl implements SwingActionService {
                                 isSwingAction = Boolean.TRUE;
                             }
 
-                            if(isSwingAction){
-                                log.info("{} bullish swing action confirmed using {}:{}", stock.getNseSymbol(), ResearchLedgerTechnical.Strategy.PRICE, subStrategy);
-                                log.info("{} bullish swing action active for trend:{}, momentum:{}, entryPrice:{}, targetPrice:{}, stopLossPrice:{}, risk {}, correction {}"
-                                        , stock.getNseSymbol(), trend.getStrength(), trend.getMomentum(), entryPrice, targetPrice, stopLossPrice, risk, correction);
+                            if(isSwingAction) {
+                                StockTechnicals stockTechnicals = stock.getTechnicals();
 
-                                return TradeSetup.builder()
-                                        .strategy(ResearchLedgerTechnical.Strategy.SWING)
-                                        .subStrategy(subStrategy)
-                                        .active(Boolean.TRUE)
-                                        .entryPrice(entryPrice)
-                                        .stopLossPrice(stopLossPrice)
-                                        .targetPrice(targetPrice)
-                                        .risk(risk)
-                                        .correction(correction)
-                                        .build();
+                                if (Math.abs(formulaService.calculateChangePercentage(stockTechnicals.getEma20(),stockPrice.getClose())) < 10.0) {
+
+                                    log.info("{} bullish swing action confirmed using {}:{}", stock.getNseSymbol(), ResearchLedgerTechnical.Strategy.PRICE, subStrategy);
+                                    log.info("{} bullish swing action active for trend:{}, momentum:{}, entryPrice:{}, targetPrice:{}, stopLossPrice:{}, risk {}, correction {}"
+                                            , stock.getNseSymbol(), trend.getStrength(), trend.getMomentum(), entryPrice, targetPrice, stopLossPrice, risk, correction);
+
+                                    return TradeSetup.builder()
+                                            .strategy(ResearchLedgerTechnical.Strategy.SWING)
+                                            .subStrategy(subStrategy)
+                                            .active(Boolean.TRUE)
+                                            .entryPrice(entryPrice)
+                                            .stopLossPrice(stopLossPrice)
+                                            .targetPrice(targetPrice)
+                                            .risk(risk)
+                                            .correction(correction)
+                                            .build();
+                                }
+                                log.info("{} bullish swing action rejected as price is away from ema 20 using {}:{}", stock.getNseSymbol(), ResearchLedgerTechnical.Strategy.PRICE, subStrategy);
                             }
                         }
                 //}
@@ -151,12 +156,10 @@ public class SwingActionServiceImpl implements SwingActionService {
     private boolean isTmaConvergenceAndDivergence(Stock stock, Trend trend){
 
         if(obvIndicatorService.isBullish(stock) || volumeIndicatorService.isBullish(stock)) {
-            if (adxService.isBullish(stock)) {
-                //if (adxService.isPlusDiIncreasing(stock) && adxService.isMinusDiDecreasing(stock)) {
+            if (adxIndicatorService.isBullish(stock)) {
                     if (stockPriceService.isTmaConvergenceAndDivergence(stock, trend)) {
                         return Boolean.TRUE;
                     }
-                //}
             }
         }
 

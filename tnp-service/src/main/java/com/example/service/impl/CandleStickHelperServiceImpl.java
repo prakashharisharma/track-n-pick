@@ -1,6 +1,7 @@
 package com.example.service.impl;
 
 import com.example.model.master.Stock;
+import com.example.model.stocks.StockPrice;
 import com.example.service.CandleStickHelperService;
 import com.example.service.CandleStickService;
 import com.example.util.FibonacciRatio;
@@ -24,7 +25,18 @@ public class CandleStickHelperServiceImpl implements CandleStickHelperService {
 
     @Override
     public boolean isUpperWickSizeConfirmed(Stock stock) {
-        return candleStickService.upperWickSize(stock) <= formulaService.applyPercentChange(MAX_WICK_SIZE, FibonacciRatio.RATIO_161_8*100);
+
+        StockPrice stockPrice = stock.getStockPrice();
+
+        double risk = Math.abs(formulaService.calculateChangePercentage(stockPrice.getHigh(), stockPrice.getLow()));
+
+        if((candleStickService.upperWickSize(stock) <= FibonacciRatio.RATIO_161_8 * 10 ) && risk <= 5.0){
+            return Boolean.TRUE;
+        }else if((candleStickService.upperWickSize(stock) <= MAX_WICK_SIZE) && risk <= 10.0){
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
     }
 
     @Override
@@ -52,7 +64,7 @@ public class CandleStickHelperServiceImpl implements CandleStickHelperService {
                         candleStickService.isBullishOutsideBar(stock) ||
                         candleStickService.isBullishEngulfing(stock) ||
                         candleStickService.isHammer(stock) ||
-                        candleStickService.isOpenAndLowEqual(stock) ||
+                        (!isWickCheck && candleStickService.isOpenLow(stock)) ||
                         candleStickService.isBullishPinBar(stock) ||
                         candleStickService.isDoubleLow(stock) ||
                         candleStickService.isTweezerBottom(stock) ||
@@ -69,14 +81,15 @@ public class CandleStickHelperServiceImpl implements CandleStickHelperService {
                     return Boolean.TRUE;
                 }
             }
-            else if(!isWickCheck && (candleStickService.isHigherHigh(stock) && candleStickService.isLowerHigh(stock))){
+            else if(!isWickCheck && (candleStickService.isHigherHigh(stock) && candleStickService.isHigherLow(stock))){
 
-                if(candleStickService.isHammer(stock) || (candleStickService.isGreen(stock) && candleStickService.isCloseAbovePrevOpen(stock))
-                    || (candleStickService.isOpenBelowPrevClose(stock) && candleStickService.isCloseAbovePrevClose(stock))) {
+                if(candleStickService.isHammer(stock)
+                        || (candleStickService.isPreviousDayGreen(stock) && candleStickService.isCloseAbovePrevClose(stock))
+                        || (candleStickService.isPreviousDayRed(stock) && candleStickService.isCloseAbovePrevOpen(stock))
+                        ) {
                 log.info("{} bullish candlestick higher high and higher low on {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate());
                 return Boolean.TRUE;
             }
-
         }
         return Boolean.FALSE;
     }
@@ -94,7 +107,7 @@ public class CandleStickHelperServiceImpl implements CandleStickHelperService {
                         candleStickService.isBearishOutsideBar(stock) ||
                         candleStickService.isBearishEngulfing(stock) ||
                         candleStickService.isShootingStar(stock) ||
-                        candleStickService.isOpenHigh(stock) ||
+                        (!isWickCheck && candleStickService.isOpenHigh(stock)) ||
                         candleStickService.isBearishPinBar(stock) ||
                         candleStickService.isDoubleHigh(stock) ||
                         candleStickService.isTweezerTop(stock) ||
@@ -112,8 +125,9 @@ public class CandleStickHelperServiceImpl implements CandleStickHelperService {
             }
         } else if (!isWickCheck && (candleStickService.isLowerHigh(stock) && candleStickService.isLowerLow(stock))) {
             if (candleStickService.isShootingStar(stock)
-                    || (candleStickService.isRed(stock) && candleStickService.isCloseBelowPrevOpen(stock))
-                    || (candleStickService.isOpenAbovePrevClose(stock) && candleStickService.isCloseBelowPrevClose(stock))) {
+                    || (candleStickService.isPreviousDayGreen(stock) && candleStickService.isCloseBelowPrevOpen(stock))
+                    || (candleStickService.isPreviousDayRed(stock) && candleStickService.isCloseBelowPrevClose(stock))
+            ) {
                 log.info("{} bearish candlestick lower high & lower low on {}", stock.getNseSymbol(), stock.getStockPrice().getBhavDate());
                 return Boolean.TRUE;
             }

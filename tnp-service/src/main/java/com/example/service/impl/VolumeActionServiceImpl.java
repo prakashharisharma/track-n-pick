@@ -4,6 +4,7 @@ import com.example.dto.TradeSetup;
 import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockPrice;
+import com.example.model.stocks.StockTechnicals;
 import com.example.service.*;
 import com.example.util.FormulaService;
 import com.example.util.io.model.type.Momentum;
@@ -78,7 +79,11 @@ public class VolumeActionServiceImpl implements VolumeActionService {
                                     double targetPrice = formulaService.calculateTarget(entryPrice, stopLossPrice, VOLUME_ACTION_RISK_REWARD);
                                     double risk = formulaService.calculateChangePercentage(stopLossPrice, entryPrice);
                                     double correction = stockPriceService.correction(stock);
-                                    log.info("{} bullish volume action confirmed using {}:{}", stock.getNseSymbol(), ResearchLedgerTechnical.Strategy.PRICE, ResearchLedgerTechnical.SubStrategy.HV);
+                                    StockTechnicals stockTechnicals = stock.getTechnicals();
+
+                                    if (Math.abs(formulaService.calculateChangePercentage(stockTechnicals.getEma20(),stockPrice.getClose())) < 10.0) {
+
+                                        log.info("{} bullish volume action confirmed using {}:{}", stock.getNseSymbol(), ResearchLedgerTechnical.Strategy.PRICE, ResearchLedgerTechnical.SubStrategy.HV);
                                     log.info("{} bullish volume action active for trend:{}, momentum:{}, entryPrice:{}, targetPrice:{}, stopLossPrice:{}, risk {}, correction {}"
                                             , stock.getNseSymbol(), trend.getStrength(), trend.getMomentum(), entryPrice, targetPrice, stopLossPrice, risk, correction);
 
@@ -92,6 +97,8 @@ public class VolumeActionServiceImpl implements VolumeActionService {
                                             .risk(risk)
                                             .correction(correction)
                                             .build();
+                                }
+                                    log.info("{} bullish volume action rejected as price is away from ema 20 using {}:{}", stock.getNseSymbol(), ResearchLedgerTechnical.Strategy.VOLUME, ResearchLedgerTechnical.SubStrategy.HV);
                                 }
                             }
                         }

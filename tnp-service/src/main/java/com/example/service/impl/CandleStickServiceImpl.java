@@ -624,6 +624,7 @@ public class CandleStickServiceImpl implements CandleStickService {
 
         if (bodySize > FibonacciRatio.RATIO_261_8) {
             if(this.isOpenAndHighEqual(stock) && !this.isHammer(stock)){
+                log.info("{} open high candle active", stock.getNseSymbol());
                 return Boolean.TRUE;
             }
         }
@@ -636,6 +637,7 @@ public class CandleStickServiceImpl implements CandleStickService {
 
         if (bodySize > FibonacciRatio.RATIO_261_8) {
             if(this.isOpenAndLowEqual(stock) && !this.isShootingStar(stock)){
+                log.info("{} open low candle active", stock.getNseSymbol());
                 return Boolean.TRUE;
             }
         }
@@ -680,10 +682,12 @@ public class CandleStickServiceImpl implements CandleStickService {
         if(this.isGreen(stock) && (this.isPreviousDayRed(stock))){
             if( this.range(stock) > this.rangePrev(stock)  && this.range(stock) >= MIN_RANGE) {
                 if(this.body(stock) >= this.bodyPrev(stock) ){
-                    if (this.isLowerLow(stock)) {
-                        if (this.isHigherHigh(stock)) {
-                            log.info("Bullish Outside bar candle active {}", stock.getNseSymbol());
-                            return Boolean.TRUE;
+                    if(this.lowerWickSize(stock) > this.upperWickSize(stock)) {
+                        if (this.isLowerLow(stock)) {
+                            if (this.isHigherHigh(stock)) {
+                                log.info("Bullish Outside bar candle active {}", stock.getNseSymbol());
+                                return Boolean.TRUE;
+                            }
                         }
                     }
                 }
@@ -699,10 +703,12 @@ public class CandleStickServiceImpl implements CandleStickService {
         if(this.isRed(stock) && (this.isPreviousDayGreen(stock))){
             if(this.range(stock) > this.rangePrev(stock)  && this.range(stock) >= MIN_RANGE) {
                 if(this.body(stock) >= this.bodyPrev(stock) ) {
-                    if (this.isHigherHigh(stock)) {
-                        if (this.isLowerLow(stock)) {
-                            log.info("Bearish Outside bar candle active {}", stock.getNseSymbol());
-                            return Boolean.TRUE;
+                    if(this.lowerWickSize(stock) < this.upperWickSize(stock)) {
+                        if (this.isHigherHigh(stock)) {
+                            if (this.isLowerLow(stock)) {
+                                log.info("Bearish Outside bar candle active {}", stock.getNseSymbol());
+                                return Boolean.TRUE;
+                            }
                         }
                     }
                 }
@@ -743,7 +749,7 @@ public class CandleStickServiceImpl implements CandleStickService {
                 this.isCloseAndHighEqual(stock)
             ){
                 if(this.body(stock) >= MIN_BODY_SIZE) {
-                    log.info("Bullish Marubozu candle active {}", stock.getNseSymbol());
+                    log.info("{} Bullish Marubozu candle active", stock.getNseSymbol());
                     return Boolean.TRUE;
                 }
             }
@@ -757,7 +763,7 @@ public class CandleStickServiceImpl implements CandleStickService {
         if(this.isRed(stock)){
             if((this.isPreviousDayRed(stock) && this.isOpenAtPrevOpen(stock)) || ( this.isPreviousDayGreen(stock) && this.isOpenAtPrevClose(stock))){
                 if(this.body(stock) >= MIN_BODY_SIZE) {
-                    log.info("Tweezer Top candle active {}", stock.getNseSymbol());
+                    log.info("{} Tweezer Top candle active", stock.getNseSymbol());
                     return Boolean.TRUE;
                 }
             }
@@ -771,7 +777,7 @@ public class CandleStickServiceImpl implements CandleStickService {
         if(this.isRed(stock)){
             if(formulaService.isEpsilonEqual(stockPrice.getHigh(), stockPrice.getPrevHigh(), FibonacciRatio.RATIO_161_8)){
                 if(this.range(stock) >= MIN_RANGE) {
-                    log.info("Double Top candle active {}", stock.getNseSymbol());
+                    log.info("{} double high candle active", stock.getNseSymbol());
                     return Boolean.TRUE;
                 }
             }
@@ -791,7 +797,7 @@ public class CandleStickServiceImpl implements CandleStickService {
         if(this.isGreen(stock)){
             if((this.isPreviousDayRed(stock) && this.isOpenAtPrevClose(stock)) || ( this.isPreviousDayGreen(stock) && this.isOpenAtPrevOpen(stock))){
                 if(this.body(stock) >= MIN_BODY_SIZE) {
-                    log.info("Tweezer Bottom candle active {}", stock.getNseSymbol());
+                    log.info("{} Tweezer Bottom candle active", stock.getNseSymbol());
                     return Boolean.TRUE;
                 }
             }
@@ -805,7 +811,7 @@ public class CandleStickServiceImpl implements CandleStickService {
         if(this.isGreen(stock)){
             if(formulaService.isEpsilonEqual(stockPrice.getLow(), stockPrice.getPrevLow(), FibonacciRatio.RATIO_161_8)){
                 if(this.range(stock) >= MIN_RANGE) {
-                    log.info("Double Bottom candle active {}", stock.getNseSymbol());
+                    log.info("{} Double low candle active", stock.getNseSymbol());
                     return Boolean.TRUE;
                 }
             }
