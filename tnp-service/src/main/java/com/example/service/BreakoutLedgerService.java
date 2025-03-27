@@ -5,6 +5,9 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.service.StockPriceService;
+import com.example.util.io.model.type.Timeframe;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +22,13 @@ import com.example.repo.ledger.BreakoutLedgerRepository;
 public class BreakoutLedgerService {
 	@Autowired
 	private BreakoutLedgerRepository breakoutLedgerRepository;
-	
-	public void addPositive(Stock stock,BreakoutCategory breakoutCategory) {
 
-		LocalDate bhavDate = stock.getStockPrice().getBhavDate();
+	@Autowired
+	private StockPriceService<StockPrice> stockPriceService;
+	
+	public void addPositive(Stock stock, Timeframe timeframe, BreakoutCategory breakoutCategory) {
+
+		LocalDate bhavDate =  stockPriceService.get(stock, timeframe).getSessionDate();
 
 		BreakoutLedger breakoutLedger =  breakoutLedgerRepository.findByStockIdAndBreakoutTypeAndBreakoutCategoryAndBreakoutDate(stock, BreakoutLedger.BreakoutType.POSITIVE, breakoutCategory, bhavDate);
 		
@@ -34,9 +40,9 @@ public class BreakoutLedgerService {
 		}
 		
 	}
-	public void addNegative(Stock stock,BreakoutCategory breakoutCategory) {
+	public void addNegative(Stock stock, Timeframe timeframe, BreakoutCategory breakoutCategory) {
 
-		LocalDate bhavDate = stock.getStockPrice().getBhavDate();
+		LocalDate bhavDate = stockPriceService.get(stock, timeframe).getSessionDate();
 
 		BreakoutLedger breakoutLedger =  breakoutLedgerRepository.findByStockIdAndBreakoutTypeAndBreakoutCategoryAndBreakoutDate(stock, BreakoutLedger.BreakoutType.NEGATIVE, breakoutCategory, bhavDate);
 

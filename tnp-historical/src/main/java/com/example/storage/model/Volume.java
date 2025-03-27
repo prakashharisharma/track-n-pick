@@ -4,6 +4,7 @@ public class Volume {
 
 	private Long volume;
 	private Long avg5;
+	private Long avg10;
 	private Long avg20;
 	private Long avg50;
 
@@ -11,9 +12,10 @@ public class Volume {
 	public Volume() {
 	}
 
-	public Volume(Long volume, Long avg5,Long avg20, Long avg50) {
+	public Volume(Long volume, Long avg5, Long avg10,Long avg20, Long avg50) {
 		this.volume = volume;
 		this.avg5 = avg5;
+		this.avg10 = avg10;
 		this.avg20 = avg20;
 		this.avg50 = avg50;
 	}
@@ -34,6 +36,14 @@ public class Volume {
 		this.avg5 = avg5;
 	}
 
+	public Long getAvg10() {
+		return avg10;
+	}
+
+	public void setAvg10(Long avg10) {
+		this.avg10 = avg10;
+	}
+
 	public Long getAvg20() {
 		return avg20;
 	}
@@ -46,8 +56,8 @@ public class Volume {
 		return avg50;
 	}
 
-	public void setAvg30(Long avg30) {
-		this.avg50 = avg30;
+	public void setAvg50(Long avg50) {
+		this.avg50 = avg50;
 	}
 
 	@Override

@@ -1,30 +1,80 @@
 package com.example.service.impl;
 
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.enhanced.service.StockPriceService;
 import com.example.model.master.Stock;
+import com.example.service.AdxIndicatorService;
 import com.example.service.SupportResistanceConfirmationService;
+import com.example.util.io.model.type.Timeframe;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class SupportResistanceConfirmationServiceImpl implements SupportResistanceConfirmationService {
 
+    private final AdxIndicatorService adxIndicatorService;
     @Override
-    public boolean isSupportConfirmed(Stock stock, double average) {
+    public boolean isSupportConfirmed(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals, double supportLevel) {
+        boolean priceRejection = stockPrice.getLow() <= supportLevel && stockPrice.getClose() > supportLevel;
 
-        if(stock.getStockPrice().getClose() >= average){
-            return Boolean.TRUE;
+        boolean adxStrong = stockTechnicals.getAdx() > 20;
+        boolean dmiPositive = stockTechnicals.getPlusDi() > stockTechnicals.getMinusDi();
+
+        double atr = stockTechnicals.getAtr();
+        boolean atrSupportConfirmed = (stockPrice.getLow() - supportLevel) > (-1.5 * atr);
+
+        if (priceRejection) {
+            log.info("[{}] Support confirmed: Price rejection at support {} with bullish pattern", stockPrice.getStock().getNseSymbol(), supportLevel);
+            return true;
         }
-        return Boolean.FALSE;
+
+
+        if (adxStrong && dmiPositive) {
+            log.info("[{}] Support confirmed: ADX strong ({}) & DMI+ leading", stockPrice.getStock().getNseSymbol(), stockTechnicals.getAdx());
+            return true;
+        }
+
+        if (atrSupportConfirmed) {
+            log.info("[{}] Support confirmed: Price held within 1.5x ATR of support ({})", stockPrice.getStock().getNseSymbol(), atr);
+            return true;
+        }
+
+        log.info("[{}] No support confirmation at {}", stockPrice.getStock().getNseSymbol(), supportLevel);
+        return false;
     }
 
     @Override
-    public boolean isResistanceConfirmed(Stock stock, double average) {
 
-        if(stock.getStockPrice().getClose() <= average){
-            log.info("close {} is less than average {}", stock.getStockPrice().getClose(), average);
-            return Boolean.TRUE;
+    public boolean isResistanceConfirmed(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals, double resistanceLevel) {
+        boolean priceRejection = stockPrice.getHigh() >= resistanceLevel && stockPrice.getClose() < resistanceLevel;
+
+        boolean adxStrong = stockTechnicals.getAdx() > 20;
+        boolean dmiNegative = stockTechnicals.getMinusDi() > stockTechnicals.getPlusDi();
+
+        double atr = stockTechnicals.getAtr();
+        boolean atrResistanceConfirmed = (stockPrice.getHigh() - resistanceLevel) < (1.5 * atr);
+
+        if (priceRejection) {
+            log.info("[{}] Resistance confirmed: Price rejection at resistance {} with bearish pattern", stockPrice.getStock().getNseSymbol(), resistanceLevel);
+            return true;
         }
-        return Boolean.FALSE;
+
+        if (adxStrong && dmiNegative) {
+            log.info("[{}] Resistance confirmed: ADX strong ({}) & DMI- leading", stockPrice.getStock().getNseSymbol(), stockTechnicals.getAdx());
+            return true;
+        }
+
+        if (atrResistanceConfirmed) {
+            log.info("[{}] Resistance confirmed: Price held within 1.5x ATR of resistance ({})", stockPrice.getStock().getNseSymbol(), atr);
+            return true;
+        }
+
+        log.info("[{}] No resistance confirmation at {}", stockPrice.getStock().getNseSymbol(), resistanceLevel);
+        return false;
     }
 }

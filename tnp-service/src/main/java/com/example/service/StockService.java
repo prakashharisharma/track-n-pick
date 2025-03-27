@@ -8,21 +8,23 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.service.StockPriceService;
 import com.example.util.DownloadCounterUtil;
+import com.example.util.io.model.type.Timeframe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.external.chyl.service.CylhService;
 import com.example.external.factor.FactorRediff;
 import com.example.model.master.Sector;
 import com.example.model.master.Stock;
 import com.example.model.stocks.StockFactor;
-import com.example.model.stocks.StockPrice;
+import com.example.model.stocks.StockPriceOld;
 import com.example.repo.master.StockRepository;
 import com.example.repo.stocks.StockFactorRepository;
-import com.example.repo.stocks.StockPriceRepository;
+import com.example.repo.stocks.StockPriceRepositoryOld;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.util.io.model.StockIO;
@@ -39,18 +41,18 @@ public class StockService {
 	private StockRepository stockRepository;
 
 	@Autowired
-	private StockPriceRepository stockPriceRepository;
+	private StockPriceRepositoryOld stockPriceRepository;
 
 	@Autowired
 	private StockFactorRepository stockFactorRepository;
 
 	@Autowired
+	private StockPriceService<StockPrice> stockPriceService;
+
+	@Autowired
 	private FactorRediff factorRediff;
 	@Autowired
 	private FormulaService formulaService;
-	@Autowired
-	private CylhService cylhService;
-
 	@Autowired
 	private RulesNotification notificationRules;
 
@@ -80,31 +82,6 @@ public class StockService {
 		return stockRepository.save(stock);
 	}
 
-	public void updateCurrentPrice(Stock stock, double currentPrice) {
-
-		StockPrice stockPrice = stock.getStockPrice();
-
-		if (stockPrice != null) {
-			stockPrice.setCurrentPrice(currentPrice);
-		} else {
-			stockPrice = new StockPrice();
-			stockPrice.setCurrentPrice(currentPrice);
-			stockPrice.setStock(stock);
-		}
-
-		stock.setStockPrice(stockPrice);
-
-		stockRepository.save(stock);
-
-		LOGGER.info("CURRENT PRICE UPDATED :" + stock.getNseSymbol() + " : " + currentPrice);
-	}
-
-	public void updateCylhPrice(Stock stock) {
-
-		StockPrice stockPrice = cylhService.getChylPrice(stock);
-
-		stockPriceRepository.save(stockPrice);
-	}
 
 	public List<Stock> nifty500(){
 		
@@ -230,22 +207,6 @@ public class StockService {
 		return isActive;
 	}
 
-
-	
-	public StockPrice updatePrice(Stock stock) {
-		StockPrice stockPrice = stock.getStockPrice();
-		
-		if(stockPrice == null) {
-			stockPrice = new StockPrice();
-			
-			stockPrice.setStock(stock);
-			
-			stockPriceRepository.save(stockPrice);
-		}
-		
-		
-		return stockPrice;
-	}
 	
 	public StockFactor updateFactor(Stock stock) {
 
@@ -257,13 +218,7 @@ public class StockService {
 
 			if (DAYS.between(stock.getFactor().getLastModified(), LocalDate.now()) > notificationRules.getFactorIntervalDays()) {
 
-				//try {
-
 					if(DownloadCounterUtil.get() < notificationRules.getApiCallCounter()) {
-
-						//long interval = miscUtil.getInterval();
-
-						//Thread.sleep(interval);
 
 						stockFactor = factorRediff.getFactor(stock);
 
@@ -273,10 +228,6 @@ public class StockService {
 					}else{
 						LOGGER.warn("Counter exceeds {} for {} ", DownloadCounterUtil.get(), stock.getNseSymbol());
 					}
-					
-				//} catch (InterruptedException e) {
-				//	LOGGER.error("An error occured while updating factor {}", stock.getNseSymbol(), e);
-				//}
 
 			}else{
 				LOGGER.info("Factors recently updated.. {}", stock.getNseSymbol());
@@ -294,9 +245,9 @@ public class StockService {
 
 	public double getPe(Stock stock) {
 
-		StockPrice stockPrice = stock.getStockPrice();
+		StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
 
-		double currentPrice = stockPrice.getCurrentPrice();
+		double currentPrice = stockPrice.getClose();
 
 		double eps = stock.getFactor().getEps();
 
@@ -308,9 +259,9 @@ public class StockService {
 
 	public double getPb(Stock stock) {
 
-		StockPrice stockPrice = stock.getStockPrice();
+		StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
 
-		double currentPrice = stockPrice.getCurrentPrice();
+		double currentPrice = stockPrice.getClose();
 
 		double bookValue = stock.getFactor().getBookValue();
 
@@ -319,6 +270,4 @@ public class StockService {
 		return pb;
 	}
 
-	
-	
 }

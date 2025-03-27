@@ -2,8 +2,11 @@ package com.example.service.impl;
 
 import javax.transaction.Transactional;
 
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.service.StockPriceService;
 import com.example.model.stocks.StockFactor;
 import com.example.service.StockService;
+import com.example.util.io.model.type.Timeframe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,11 +30,16 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 	@Autowired
 	private StockService stockService;
 
+	@Autowired
+	private StockPriceService<StockPrice> stockPriceService;
+
 	@Override
 	public boolean isPriceInRange(Stock stock) {
 
-			if (stock.getStockPrice().getCurrentPrice() > rules.getPricegt()
-					&& stock.getStockPrice().getCurrentPrice() < rules.getPricelt()) {
+
+		StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+			if (stockPrice.getClose() > rules.getPricegt()
+					&& stockPrice.getClose() < rules.getPricelt()) {
 
 				return Boolean.TRUE;
 			}
@@ -41,6 +49,10 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 
 	@Override
 	public boolean isMcapInRange(Stock stock){
+
+		if(stock.getCompanyName().contains("AMC") || stock.getCompanyName().contains("ETF")){
+			return true;
+		}
 
 		StockFactor stockFactor = stock.getFactor();
 
@@ -125,21 +137,22 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 				String sectorName = stock.getSector().getSectorName();
 
 				if (sectorName != null && !sectorName.isEmpty()) {
-
+					StockFactor stockFactor = stock.getFactor();
+if(stockFactor!=null){
 
 					if (sectorName.equalsIgnoreCase("Financial Institution")
-					|| sectorName.equalsIgnoreCase("Non Banking Financial Company NBFC")
+							|| sectorName.equalsIgnoreCase("Non Banking Financial Company NBFC")
 							|| sectorName.equalsIgnoreCase("Other Bank")
 							|| sectorName.equalsIgnoreCase("Private Sector Bank")
 							|| sectorName.equalsIgnoreCase("Public Sector Bank")) {
 
 						if (
 								this.isMcapInRange(stock)
-								&& stock.getFactor().getDividend() >= rules.getDividend()
-								&& stock.getFactor().getReturnOnEquity() >= rules.getRoe()
-								&& stock.getFactor().getReturnOnCapital() >= rules.getRoce()
-								&& stock.getFactor().getCurrentRatio() >= rules.getCurrentRatio()
-								&& stock.getFactor().getQuickRatio() >= rules.getQuickRatioBanks()) {
+										&& stock.getFactor().getDividend() >= rules.getDividend()
+										&& stock.getFactor().getReturnOnEquity() >= rules.getRoe()
+										&& stock.getFactor().getReturnOnCapital() >= rules.getRoce()
+										&& stock.getFactor().getCurrentRatio() >= rules.getCurrentRatio()
+										&& stock.getFactor().getQuickRatio() >= rules.getQuickRatioBanks()) {
 							isUndervalued = true;
 						}
 
@@ -147,11 +160,11 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 
 						if (
 								this.isMcapInRange(stock)
-								&& stock.getFactor().getDebtEquity() < rules.getDebtEquity()
-								&& stock.getFactor().getDividend() >= rules.getDividend()
-								&& stock.getFactor().getReturnOnEquity() >= rules.getRoe()
-								&& stock.getFactor().getReturnOnCapital() >= rules.getRoce()
-								&& stock.getFactor().getCurrentRatio() >= rules.getCurrentRatio()
+										&& stock.getFactor().getDebtEquity() < rules.getDebtEquity()
+										&& stock.getFactor().getDividend() >= rules.getDividend()
+										&& stock.getFactor().getReturnOnEquity() >= rules.getRoe()
+										&& stock.getFactor().getReturnOnCapital() >= rules.getRoce()
+										&& stock.getFactor().getCurrentRatio() >= rules.getCurrentRatio()
 
 						) {
 
@@ -159,6 +172,7 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 						}
 					}
 				}
+			}
 			}
 		}
 		return isUndervalued;

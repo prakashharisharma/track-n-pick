@@ -6,7 +6,10 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.service.StockPriceService;
 import com.example.service.impl.FundamentalResearchService;
+import com.example.util.io.model.type.Timeframe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,6 +39,9 @@ public class SectorService {
 	
 	@Autowired
 	private StockService stockService;
+
+	@Autowired
+	private StockPriceService<StockPrice> stockPriceService;
 	
 	public Sector getSectorByName(String sectorName) {
 
@@ -133,7 +139,7 @@ public Sector add(String sectorName) {
 
 				List<Stock> activeStockList = stocks.stream().filter(stock -> (stock.isActive() && stock.getFactor()!=null)).collect(Collectors.toList());
 
-				avgCmp = activeStockList.stream().map(stock -> stock.getStockPrice()).mapToDouble(sp -> sp.getCurrentPrice()).average().orElse(0.00);
+				avgCmp = activeStockList.stream().map(stock -> stockPriceService.get(stock, Timeframe.DAILY)).mapToDouble(sp -> sp.getClose()).average().orElse(0.00);
 
 				//activeStockList.forEach(System.out::println);
 

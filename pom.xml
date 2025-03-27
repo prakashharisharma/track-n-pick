@@ -29,11 +29,11 @@
 		<module>tnp-historical</module>
 		<module>tnp-integrations</module>
 		<module>tnp-model</module>
-		<module>tnp-mq</module>
 		<module>tnp-service</module>
 		<module>tnp-service-external</module>
 		<module>tnp-util</module>
-		<module>tnp-web-ui</module>
+		<module>tnp-web</module>
+		<module>tnp-worker</module>
 	</modules>
 
 <dependencies>

@@ -3,9 +3,13 @@ package com.example.storage.repo;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 
+import com.example.storage.model.MonthlyStockTechnicals;
 import com.example.storage.model.StockPrice;
+import com.example.storage.model.WeeklyStockTechnicals;
 import com.example.storage.model.result.*;
+import com.example.util.io.model.type.Timeframe;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +38,13 @@ public class TechnicalsTemplate {
 	final String COLLECTION_PH = "price_history";
 
 	final String COLLECTION_TH = "technicals_history";
+
+	// Mapping Timeframe to the correct collection class
+	private static final Map<Timeframe, Class<? extends StockTechnicals>> TECHNICALS_COLLECTIONS = Map.of(
+			Timeframe.MONTHLY, MonthlyStockTechnicals.class,
+			Timeframe.WEEKLY, WeeklyStockTechnicals.class,
+			Timeframe.DAILY, StockTechnicals.class // Default
+	);
 
 	public void create(StockTechnicals stockTechnicals) {
 		mongoTemplate.insert(stockTechnicals);
@@ -652,6 +663,12 @@ public class TechnicalsTemplate {
 
 	public void upsert(StockTechnicals stockTechnicals){
 
+		this.upsert(stockTechnicals, PriceTemplate.COLLECTION_TH);
+
+	}
+
+	public void upsert(StockTechnicals stockTechnicals, final String collection){
+
 		Query query = new Query();
 		query.addCriteria(
 				new Criteria().andOperator(
@@ -664,7 +681,30 @@ public class TechnicalsTemplate {
 		mongoTemplate.getConverter().write(stockTechnicals, doc);
 		Update update = Update.fromDocument(doc);
 
-		UpdateResult updateResult = mongoTemplate.upsert(query, update, COLLECTION_TH);
+		UpdateResult updateResult = mongoTemplate.upsert(query, update, collection);
+	}
+
+	public void upsert(Timeframe timeframe, StockTechnicals stockTechnicals) {
+
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("bhavDate").is(stockTechnicals.getBhavDate()),
+						Criteria.where("nseSymbol").is(stockTechnicals.getNseSymbol())
+				)
+		);
+
+		// Convert StockTechnicals object to BSON document
+		Document doc = new Document();
+		mongoTemplate.getConverter().write(stockTechnicals, doc);
+		Update update = Update.fromDocument(doc);
+
+		// Fetch the correct collection class based on Timeframe
+		Class<? extends StockTechnicals> collectionClass = TECHNICALS_COLLECTIONS.getOrDefault(timeframe, StockTechnicals.class);
+
+		// Perform the upsert
+		UpdateResult updateResult = mongoTemplate.upsert(query, update, collectionClass);
+
 	}
 
 }

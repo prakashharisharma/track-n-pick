@@ -6,6 +6,9 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.service.StockPriceService;
+import com.example.util.io.model.type.Timeframe;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +32,9 @@ public class ValuationLedgerService {
 	@Autowired
 	private MiscUtil miscUtil;
 
+	@Autowired
+	private StockPriceService<StockPrice> stockPriceService;
+
 	public List<Stock> getCurrentUndervalueStocks() {
 
 		List<ValuationLedger> underValueLedgerList = valuationLedgerRepository
@@ -38,6 +44,8 @@ public class ValuationLedgerService {
 	}
 
 	public ValuationLedger addUndervalued(Stock stock) {
+
+		StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
 
 		ValuationLedger valuationLedger = valuationLedgerRepository.findByStockIdAndTypeAndStatus(stock,Type.UNDERVALUE, Status.OPEN);
 
@@ -51,13 +59,13 @@ public class ValuationLedgerService {
 			valuationLedger.setStockId(stock);
 			valuationLedger.setPb(pb);
 			valuationLedger.setPe(pe);
-			valuationLedger.setResearchDate(stock.getStockPrice().getBhavDate());
+			valuationLedger.setResearchDate(stockPrice.getSessionDate());
 
 			valuationLedger.setType(Type.UNDERVALUE);
 
 			valuationLedger.setStatus(Status.OPEN);
 			
-			valuationLedger.setPrice(stock.getStockPrice().getHigh());
+			valuationLedger.setPrice(stockPrice.getHigh());
 
 			valuationLedger.setCurrentRatio(stock.getFactor().getCurrentRatio());
 			
@@ -85,6 +93,8 @@ public class ValuationLedgerService {
 	}
 
 	public ValuationLedger addOvervalued(Stock stock) {
+		StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+
 		ValuationLedger valuationLedger = valuationLedgerRepository.findByStockIdAndTypeAndStatus(stock,Type.OVERVALUE, Status.OPEN);
 
 		if (valuationLedger == null) {
@@ -97,7 +107,7 @@ public class ValuationLedgerService {
 			valuationLedger.setStockId(stock);
 			valuationLedger.setPb(pb);
 			valuationLedger.setPe(pe);
-			valuationLedger.setResearchDate(stock.getStockPrice().getBhavDate());
+			valuationLedger.setResearchDate(stockPrice.getSessionDate());
 
 			//undervalueLedger.setCategory(category);
 
@@ -106,7 +116,7 @@ public class ValuationLedgerService {
 			valuationLedger.setStatus(Status.OPEN);
 			
 			
-			valuationLedger.setPrice(stock.getStockPrice().getCurrentPrice());
+			valuationLedger.setPrice(stockPrice.getClose());
 
 			valuationLedger.setCurrentRatio(stock.getFactor().getCurrentRatio());
 			

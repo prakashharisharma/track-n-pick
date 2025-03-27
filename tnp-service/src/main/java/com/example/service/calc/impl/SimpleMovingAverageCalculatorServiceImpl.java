@@ -15,49 +15,29 @@ import java.util.List;
 @Service
 public class SimpleMovingAverageCalculatorServiceImpl implements SimpleMovingAverageCalculatorService {
 
-    @Autowired
-    private FormulaService formulaService;
-
-    @Autowired
-    private MiscUtil miscUtil;
-
     @Override
-    public List<Double> calculate(List<OHLCV> ohlcvList, int days) {
+    public List<Double> calculate(List<OHLCV> ohlcvList, int period) {
+        if (ohlcvList == null || ohlcvList.isEmpty() || period <= 0) {
+            throw new IllegalArgumentException("Invalid input data or period.");
+        }
 
-        List<Double> smaList = new ArrayList<>(ohlcvList.size());
+        List<Double> smaList = new ArrayList<>();
 
-        for(int i=0; i < ohlcvList.size(); i++){
+        // Initialize first (period - 1) elements as 0.0
+        for (int i = 0; i < period - 1; i++) {
+            smaList.add(0.0);
+        }
 
-            if(i < days-1){
-                smaList.add(i, 0.00);
-            }else if(i == days-1){
-                double sma = this.calculateSimpleAverage(ohlcvList, i, days);
-                smaList.add(i, miscUtil.formatDouble(sma,"00"));
-            }else{
-
-                double sma = this.calculateSimpleAverage(ohlcvList, i, days);
-                smaList.add(i, miscUtil.formatDouble(sma,"00"));
-                //double sma=  formulaService.calculateSmoothedMovingAverage(smaList.get(i-1),ohlcvList.get(i).getClose(),  days);
-                //smaList.add(i, miscUtil.formatDouble(sma,"00"));
+        // Compute SMA values
+        for (int i = period - 1; i < ohlcvList.size(); i++) {
+            double sum = 0.0;
+            for (int j = i - period + 1; j <= i; j++) {
+                sum += ohlcvList.get(j).getClose();
             }
-
+            double sma = sum / period;
+            smaList.add(sma);
         }
+
         return smaList;
-    }
-
-    @Override
-    public Double calculate(OHLCV ohlcv, double prevSMA, int days) {
-        return miscUtil.formatDouble(formulaService.calculateSmoothedMovingAverage(prevSMA, ohlcv.getClose(),  days),"00");
-    }
-
-    private double calculateSimpleAverage(List<OHLCV> ohlcvList, int index, int days){
-
-        double sum = 0l;
-
-        for(int i =index; i >= index-days+1; i--){
-            sum = sum + ohlcvList.get(i).getClose();
-        }
-
-        return sum / days;
     }
 }

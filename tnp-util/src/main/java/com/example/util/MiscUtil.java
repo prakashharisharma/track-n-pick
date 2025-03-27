@@ -4,6 +4,7 @@ import java.text.DecimalFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
@@ -19,8 +20,8 @@ import static java.time.temporal.TemporalAdjusters.previousOrSame;
 @Service
 public class MiscUtil {
 
-	private static int min = 500;
-	private static int max = 3800;
+	private static int min = 750;
+	private static int max = 8763;
 
 	public String formatDouble(double value) {
 
@@ -42,7 +43,9 @@ public class MiscUtil {
 	}
 	
 	public void delay() throws InterruptedException {
-		Thread.sleep(50000);
+		long interval = this.getInterval();
+		System.out.println("sleeping "+ interval);
+		Thread.sleep(interval);
 	}
 	public void delay(long ms) throws InterruptedException {
 		Thread.sleep(ms);
@@ -87,6 +90,7 @@ public class MiscUtil {
 	}
 
 	public LocalDate currentDate() {
+		//return LocalDate.of(2025,03,21);
 		return LocalDate.now();
 	}
 
@@ -121,6 +125,48 @@ public class MiscUtil {
 		return currentQuarterStart;
 	}
 
+	public LocalDate quarterFirstDay(LocalDate date) {
+		int month = date.getMonthValue();
+		Month firstMonthOfQuarter;
+
+		if (month <= 3) {
+			firstMonthOfQuarter = Month.JANUARY;
+		} else if (month <= 6) {
+			firstMonthOfQuarter = Month.APRIL;
+		} else if (month <= 9) {
+			firstMonthOfQuarter = Month.JULY;
+		} else {
+			firstMonthOfQuarter = Month.OCTOBER;
+		}
+
+		return LocalDate.of(date.getYear(), firstMonthOfQuarter, 1);
+	}
+
+	public LocalDate quarterLastDay(LocalDate date) {
+		int month = date.getMonthValue();
+		Month lastMonthOfQuarter;
+
+		if (month <= 3) {
+			lastMonthOfQuarter = Month.MARCH;
+		} else if (month <= 6) {
+			lastMonthOfQuarter = Month.JUNE;
+		} else if (month <= 9) {
+			lastMonthOfQuarter = Month.SEPTEMBER;
+		} else {
+			lastMonthOfQuarter = Month.DECEMBER;
+		}
+
+		// Get the last day of the determined month
+		return YearMonth.of(date.getYear(), lastMonthOfQuarter).atEndOfMonth();
+	}
+
+	public static LocalDate yearLastDay(LocalDate date) {
+		return LocalDate.of(date.getYear(), Month.DECEMBER, 31);
+	}
+	public static LocalDate yearFirstDay(LocalDate date) {
+		return LocalDate.of(date.getYear(), Month.JANUARY, 01);
+	}
+
 	public LocalDate previousQuarterLastDay() {
 
 		LocalDate previousQuarterLastDay = this.currentQuarterFirstDay().minusDays(1);
@@ -153,6 +199,10 @@ public class MiscUtil {
 		LocalDate previousWeekFirstDay = LocalDate.now().with(previousOrSame(DayOfWeek.MONDAY)).minusWeeks(1);
 
 		return previousWeekFirstDay;
+	}
+
+	public LocalDate currentWeekFirstDay(){
+		 return LocalDate.now().with(DayOfWeek.MONDAY);
 	}
 
 

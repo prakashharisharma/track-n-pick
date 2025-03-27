@@ -1,12 +1,14 @@
 package com.example.service.impl;
 
+import com.example.model.um.User;
 import com.example.model.um.UserBrokerage;
-import com.example.model.um.UserProfile;
 import com.example.repo.um.UserBrokerageRepository;
 import com.example.service.UserBrokerageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 
 @Service
 @Slf4j
@@ -16,7 +18,7 @@ public class UserBrokerageServiceImpl implements UserBrokerageService {
     private UserBrokerageRepository userBrokerageRepository;
 
     @Override
-    public double calculate(UserProfile user, double price, long quantity) {
+    public double calculate(User user, double price, long quantity) {
 
        UserBrokerage userBrokerage =  userBrokerageRepository.findByBrokerageIdUserAndActive(user, Boolean.TRUE);
 
@@ -28,11 +30,21 @@ public class UserBrokerageServiceImpl implements UserBrokerageService {
     }
 
     @Override
-    public double getDpCharge(UserProfile user) {
+    public BigDecimal calculate(Long userId, double price, long quantity) {
+        return BigDecimal.ZERO;
+    }
+
+    @Override
+    public double getDpCharge(User user) {
 
         UserBrokerage userBrokerage =  userBrokerageRepository.findByBrokerageIdUserAndActive(user, Boolean.TRUE);
 
         return userBrokerage.getDpCharge();
+    }
+
+    @Override
+    public BigDecimal getDpCharge(Long userId) {
+        return BigDecimal.ZERO;
     }
 
     private double calculateFixedCharges(UserBrokerage userBrokerage, double price, long quantity){

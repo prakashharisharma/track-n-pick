@@ -1,5 +1,6 @@
 package com.example.util.io.model;
 
+import com.example.util.io.model.type.Timeframe;
 import com.example.util.io.model.type.Trend;
 
 import java.io.Serializable;
@@ -18,6 +19,7 @@ public class StockPriceIO implements Serializable {
 	 */
 	private static final long serialVersionUID = 7704441081622739216L;
 
+	private Timeframe timeFrame = Timeframe.DAILY;
 	private String exchange;
 
 	private String nseSymbol;
@@ -140,6 +142,14 @@ public class StockPriceIO implements Serializable {
 		this.change = prevClose - close;
 		this.yearLow = yearLow;
 		this.yearHigh = yearHigh;
+	}
+
+	public Timeframe getTimeFrame() {
+		return timeFrame;
+	}
+
+	public void setTimeFrame(Timeframe timeFrame) {
+		this.timeFrame = timeFrame;
 	}
 
 	public String getExchange() {

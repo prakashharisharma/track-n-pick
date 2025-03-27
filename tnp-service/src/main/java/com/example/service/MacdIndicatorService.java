@@ -1,15 +1,17 @@
 package com.example.service;
 
+import com.example.enhanced.model.stocks.StockTechnicals;
 import com.example.model.master.Stock;
+import com.example.util.io.model.type.Timeframe;
 
 public interface MacdIndicatorService {
-    public boolean isMacdCrossedSignal(Stock stock);
+    public boolean isMacdCrossedSignal(StockTechnicals stockTechnicals);
 
-    public boolean isSignalNearHistogram(Stock stock);
+    public boolean isSignalNearHistogram(StockTechnicals stockTechnicals);
 
-    public boolean isHistogramGreen(Stock stock);
+    public boolean isHistogramGreen(StockTechnicals stockTechnicals);
 
-    public boolean isHistogramIncreased(Stock stock);
+    public boolean isHistogramIncreased(StockTechnicals stockTechnicals);
 
-    public boolean isHistogramDecreased(Stock stock);
+    public boolean isHistogramDecreased(StockTechnicals stockTechnicals);
 }

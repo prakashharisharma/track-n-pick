@@ -2,15 +2,32 @@ package com.example.util.io.model.type;
 
 import java.io.Serializable;
 
-
 public class Trend implements Serializable{
-	public enum Strength {SHORT, MEDIUM, LONG, INVALID}
-	private  Strength strength;
+	public enum Direction {UP, DOWN, INVALID}
+	public enum Strength {SHORT, MEDIUM, LONG, INVALID, STRONG, WEAK}
+
+	public enum Momentum  {
+		SIDEWAYS,
+		PULLBACK, CORRECTION, BOTTOM,
+		RECOVERY, ADVANCE, TOP
+	}
+
+	private Direction direction;
+	private Strength strength;
 	private Momentum momentum;
 
-	public Trend(Strength strength, Momentum momentum) {
+	public Trend(Direction direction, Strength strength, Momentum momentum) {
+		this.direction = direction;
 		this.strength = strength;
 		this.momentum = momentum;
+	}
+
+	public Direction getDirection() {
+		return direction;
+	}
+
+	public void setDirection(Direction direction) {
+		this.direction = direction;
 	}
 
 	public Strength getStrength() {

@@ -1,12 +1,15 @@
 package com.example.service.impl;
 
+import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.enhanced.service.StockTechnicalsService;
 import com.example.model.ledger.BreakoutLedger;
 import com.example.model.master.Stock;
-import com.example.model.stocks.StockTechnicals;
+import com.example.model.stocks.StockTechnicalsOld;
 import com.example.service.BreakoutLedgerService;
 import com.example.service.CrossOverUtil;
 import com.example.service.MacdIndicatorService;
 import com.example.util.FormulaService;
+import com.example.util.io.model.type.Timeframe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,23 +23,20 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
 
     @Autowired
     private FormulaService formulaService;
-    @Override
-    public boolean isMacdCrossedSignal(Stock stock) {
-        boolean isMAcdCrossedSignal = CrossOverUtil.isFastCrossesAboveSlow(stock.getTechnicals().getPrevMacd(),
-                stock.getTechnicals().getPrevSignal(), stock.getTechnicals().getMacd(),
-                stock.getTechnicals().getSignal());
 
-        if(isMAcdCrossedSignal){
-            breakoutLedgerService.addPositive(stock, BreakoutLedger.BreakoutCategory.MACD_CROSSED_SIGNAL);
-        }
+    @Override
+    public boolean isMacdCrossedSignal(StockTechnicals stockTechnicals) {
+
+        boolean isMAcdCrossedSignal = CrossOverUtil.isFastCrossesAboveSlow(stockTechnicals.getPrevMacd(),
+                stockTechnicals.getPrevSignal(), stockTechnicals.getMacd(),
+                stockTechnicals.getSignal());
+
 
         return isMAcdCrossedSignal;
     }
 
     @Override
-    public boolean isSignalNearHistogram(Stock stock) {
-
-        StockTechnicals stockTechnicals  = stock.getTechnicals();
+    public boolean isSignalNearHistogram(StockTechnicals stockTechnicals) {
 
         if(stockTechnicals!=null){
 
@@ -45,7 +45,7 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
             if(stockTechnicals.getSignal() < 0.0 || histogram < 0.0){
                 return Boolean.TRUE;
             }else if(stockTechnicals.getSignal() <= histogram){
-                breakoutLedgerService.addPositive(stock, BreakoutLedger.BreakoutCategory.SIGNAL_NEAR_HISTOGRAM);
+               // breakoutLedgerService.addPositive(stock, timeframe, BreakoutLedger.BreakoutCategory.SIGNAL_NEAR_HISTOGRAM);
                 return Boolean.TRUE;
             }
         }
@@ -54,14 +54,13 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
     }
 
     @Override
-    public boolean isHistogramGreen(Stock stock) {
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+    public boolean isHistogramGreen(StockTechnicals stockTechnicals) {
+        //StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
         return formulaService.calculateHistogram(stockTechnicals.getMacd(), stockTechnicals.getSignal()) > 0;
     }
 
     @Override
-    public boolean isHistogramIncreased(Stock stock) {
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+    public boolean isHistogramIncreased(StockTechnicals stockTechnicals) {
 
         if(stockTechnicals ==null){
             return Boolean.FALSE;
@@ -79,8 +78,7 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
     }
 
     @Override
-    public boolean isHistogramDecreased(Stock stock) {
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+    public boolean isHistogramDecreased(StockTechnicals stockTechnicals) {
 
         if(stockTechnicals ==null){
             return Boolean.FALSE;

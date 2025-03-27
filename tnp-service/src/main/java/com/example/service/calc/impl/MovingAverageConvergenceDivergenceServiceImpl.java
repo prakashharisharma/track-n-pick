@@ -69,16 +69,6 @@ public class MovingAverageConvergenceDivergenceServiceImpl implements MovingAver
         return this.mapResult(ema12List, ema26List,macdList, signalList);
     }
 
-    @Override
-    public MovingAverageConvergenceDivergence calculate(OHLCV ohlcv, MovingAverageConvergenceDivergence prevMovingAverageConvergenceDivergence) {
-
-        double ema12 = exponentialMovingAverageService.calculate(ohlcv, prevMovingAverageConvergenceDivergence.getEma12(), shortPeriod);
-        double ema26 = exponentialMovingAverageService.calculate(ohlcv, prevMovingAverageConvergenceDivergence.getEma26(), longPeriod);
-        double macd = ema12 - ema26;
-        double signal = formulaService.calculateEMA(macd, prevMovingAverageConvergenceDivergence.getSignal(), signalPeriod);
-
-        return new MovingAverageConvergenceDivergence(ema12, ema26, miscUtil.formatDouble(macd,"00"), miscUtil.formatDouble(signal,"00"));
-    }
 
     private List<MovingAverageConvergenceDivergence> mapResult(List<Double> ema12List, List<Double> ema26List, List<Double> macdList, List<Double> signalList){
         List<MovingAverageConvergenceDivergence> movingAverageConvergenceDivergenceList = new ArrayList<>();

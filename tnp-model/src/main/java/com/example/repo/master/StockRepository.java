@@ -5,6 +5,8 @@ import java.util.List;
 import javax.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.model.master.Sector;
@@ -20,6 +22,9 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 	Stock findByStockId(long stockId);
 	
 	Stock findFirstByNseSymbol(String nseSymbol);
+
+	@Query("SELECT s FROM Stock s WHERE LOWER(s.companyName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR LOWER(s.nseSymbol) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
+	List<Stock> searchStock(@Param("searchTerm") String searchTerm);
 	
 	List<Stock> findByCompanyNameContainingIgnoreCase(String companyName);
 	

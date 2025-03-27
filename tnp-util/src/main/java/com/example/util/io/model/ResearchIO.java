@@ -1,5 +1,7 @@
 package com.example.util.io.model;
 
+import com.example.util.io.model.type.Timeframe;
+
 import java.io.Serializable;
 import java.time.Instant;
 

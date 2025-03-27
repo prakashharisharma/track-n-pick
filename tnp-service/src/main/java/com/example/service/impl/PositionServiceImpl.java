@@ -1,11 +1,10 @@
 package com.example.service.impl;
 
-import com.example.model.ledger.ResearchLedgerTechnical;
-import com.example.model.um.UserProfile;
+import com.example.enhanced.model.research.ResearchTechnical;
+import com.example.model.um.User;
 import com.example.service.FundsLedgerService;
 import com.example.service.PositionService;
 import com.example.service.RiskFactor;
-import com.example.service.TradeProfitLedgerService;
 import com.example.util.FormulaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,52 +18,46 @@ public class PositionServiceImpl implements PositionService {
     private FormulaService formulaService;
     @Autowired
     private FundsLedgerService fundsLedgerService;
-    @Autowired
-    private TradeProfitLedgerService tradeProfitLedgerService;
 
     @Override
-    public long calculate(UserProfile userProfile, ResearchLedgerTechnical researchLedgerTechnical) {
+    public long calculate(User user, ResearchTechnical researchTechnical) {
 
-        double investmentValue = fundsLedgerService.allTimeInvestment(userProfile);
+        double investmentValue = fundsLedgerService.allTimeInvestment(user);
 
-        double netProfit = tradeProfitLedgerService.allTimeProfit(userProfile);
+        double netProfit = 0.0;
 
         double capital = investmentValue + netProfit;
 
-        double riskFactor = this.getRiskFactor(researchLedgerTechnical);
+        double riskFactor = this.getRiskFactor(researchTechnical);
 
         double risk = formulaService.calculateFraction(capital, riskFactor);
 
-        double stopLoss = (researchLedgerTechnical.getResearchPrice()  - researchLedgerTechnical.getStopLoss());
+        double stopLoss = (researchTechnical.getResearchPrice()  - researchTechnical.getStopLoss());
 
         long positionSize = (long) (risk / stopLoss);
-
-        log.info("user:{}, scrip:{}, research date:{}, strategy:{}, sub strategy:{}, risk:{}, positions:{}",
-                userProfile.getUserId(), researchLedgerTechnical.getStock().getNseSymbol(), researchLedgerTechnical.getResearchDate(),
-                researchLedgerTechnical.getStrategy(), researchLedgerTechnical.getSubStrategy(), risk, positionSize);
 
         return positionSize;
     }
 
-    private double getRiskFactor(ResearchLedgerTechnical researchLedgerTechnical){
-        if(researchLedgerTechnical.getStrategy() == ResearchLedgerTechnical.Strategy.VOLUME){
+    private double getRiskFactor(ResearchTechnical researchTechnical){
+        if(researchTechnical.getStrategy() == ResearchTechnical.Strategy.VOLUME){
             return RiskFactor.VOLUME_HV;
         }
-        else if(researchLedgerTechnical.getStrategy() == ResearchLedgerTechnical.Strategy.PRICE){
-            if(researchLedgerTechnical.getSubStrategy() == ResearchLedgerTechnical.SubStrategy.SRMA) {
+        else if(researchTechnical.getStrategy() == ResearchTechnical.Strategy.PRICE){
+            if(researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.SRMA) {
                 return RiskFactor.PRICE_SRMA;
             }
-            else if(researchLedgerTechnical.getSubStrategy() == ResearchLedgerTechnical.SubStrategy.SRTF) {
+            else if(researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.SRTF) {
                 return RiskFactor.PRICE_SRTF;
-            }else if(researchLedgerTechnical.getSubStrategy() == ResearchLedgerTechnical.SubStrategy.RMAO) {
+            }else if(researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.RMAO) {
                 return RiskFactor.PRICE_RMAO;
             }
         }
-        else if(researchLedgerTechnical.getStrategy() == ResearchLedgerTechnical.Strategy.SWING){
-            if(researchLedgerTechnical.getSubStrategy() == ResearchLedgerTechnical.SubStrategy.RM) {
+        else if(researchTechnical.getStrategy() == ResearchTechnical.Strategy.SWING){
+            if(researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.RM) {
                 return RiskFactor.SWING_RM;
             }
-            else if(researchLedgerTechnical.getSubStrategy() == ResearchLedgerTechnical.SubStrategy.TEMA) {
+            else if(researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.TEMA) {
                 return RiskFactor.SWING_TEMA;
             }
         }

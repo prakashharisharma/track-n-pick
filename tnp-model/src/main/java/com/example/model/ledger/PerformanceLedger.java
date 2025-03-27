@@ -1,5 +1,7 @@
 package com.example.model.ledger;
 
+import com.example.model.um.User;
+
 import java.time.LocalDate;
 
 import javax.persistence.Column;
@@ -10,8 +12,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
-import com.example.model.um.UserProfile;
 
 @Entity
 @Table(name = "PERFORMANCE_LEDGER")
@@ -24,7 +24,7 @@ public class PerformanceLedger {
 	
 	@ManyToOne
 	@JoinColumn(name = "userId")
-	UserProfile userId;
+	User userId;
 	
 	@Column(name = "INVESTMENT_VALUE", columnDefinition="Decimal(10,2) default '0.00'")
 	double investmentValue;
@@ -40,8 +40,8 @@ public class PerformanceLedger {
 		
 	}
 
-	public PerformanceLedger(UserProfile userId, double investmentValue, double portfolioValue,
-			LocalDate performanceDate) {
+	public PerformanceLedger(User userId, double investmentValue, double portfolioValue,
+                             LocalDate performanceDate) {
 		super();
 		this.userId = userId;
 		this.investmentValue = investmentValue;
@@ -57,11 +57,11 @@ public class PerformanceLedger {
 		this.performanceLedgerId = performanceLedgerId;
 	}
 
-	public UserProfile getUserId() {
+	public User getUserId() {
 		return userId;
 	}
 
-	public void setUserId(UserProfile userId) {
+	public void setUserId(User userId) {
 		this.userId = userId;
 	}
 

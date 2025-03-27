@@ -1,77 +1,83 @@
 package com.example.service.impl;
 
+import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.enhanced.service.StockTechnicalsService;
 import com.example.model.master.Stock;
-import com.example.model.stocks.StockTechnicals;
 import com.example.service.CrossOverUtil;
 import com.example.service.MovingAverageCrossOverService;
+import com.example.util.io.model.type.Timeframe;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 public class MovingAverageCrossOverServiceImpl implements MovingAverageCrossOverService {
 
+    @Autowired
+    private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
+
     @Override
-    public boolean isGoldenCross(Stock stock) {
+    public boolean isGoldenCross(Stock stock, Timeframe timeframe) {
 
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
 
-        return CrossOverUtil.isFastCrossesAboveSlow(stockTechnicals.getPrevSma50(), stockTechnicals.getPrevSma200(), stockTechnicals.getSma50(), stockTechnicals.getSma200());
+        return CrossOverUtil.isFastCrossesAboveSlow(stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma200(), stockTechnicals.getEma50(), stockTechnicals.getEma200());
 
     }
 
     @Override
-    public boolean isBullishCrossOver50(Stock stock) {
+    public boolean isBullishCrossOver50(Stock stock, Timeframe timeframe) {
 
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
 
         return CrossOverUtil.isFastCrossesAboveSlow(stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50(), stockTechnicals.getEma20(), stockTechnicals.getEma50());
     }
 
     @Override
-    public boolean isBullishCrossOver20(Stock stock) {
+    public boolean isBullishCrossOver20(Stock stock, Timeframe timeframe) {
 
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
 
         return CrossOverUtil.isFastCrossesAboveSlow(stockTechnicals.getPrevEma5(), stockTechnicals.getPrevEma20(), stockTechnicals.getEma5(), stockTechnicals.getEma20());
     }
 
     @Override
-    public boolean isBullishCrossOver10(Stock stock) {
+    public boolean isBullishCrossOver10(Stock stock, Timeframe timeframe) {
 
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
 
         return CrossOverUtil.isFastCrossesAboveSlow(stockTechnicals.getPrevEma5(), stockTechnicals.getPrevEma10(), stockTechnicals.getEma5(), stockTechnicals.getEma10());
     }
 
     @Override
-    public boolean isDeathCrossOver(Stock stock) {
+    public boolean isDeathCrossOver(Stock stock, Timeframe timeframe) {
 
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
 
-        return CrossOverUtil.isSlowCrossesBelowFast(stockTechnicals.getPrevSma50(), stockTechnicals.getPrevSma200(), stockTechnicals.getSma50(), stockTechnicals.getSma200());
+        return CrossOverUtil.isSlowCrossesBelowFast(stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma200(), stockTechnicals.getEma50(), stockTechnicals.getEma200());
     }
 
     @Override
-    public boolean isBearishCrossOver50(Stock stock) {
+    public boolean isBearishCrossOver50(Stock stock, Timeframe timeframe) {
 
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
 
         return CrossOverUtil.isSlowCrossesBelowFast(stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50(), stockTechnicals.getEma20(), stockTechnicals.getEma50());
     }
 
     @Override
-    public boolean isBearishCrossOver20(Stock stock) {
+    public boolean isBearishCrossOver20(Stock stock, Timeframe timeframe) {
 
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
 
         return CrossOverUtil.isSlowCrossesBelowFast(stockTechnicals.getPrevEma5(), stockTechnicals.getPrevEma20(), stockTechnicals.getEma5(), stockTechnicals.getEma20());
     }
 
     @Override
-    public boolean isBearishCrossOver10(Stock stock) {
+    public boolean isBearishCrossOver10(Stock stock, Timeframe timeframe) {
 
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
 
         return CrossOverUtil.isSlowCrossesBelowFast(stockTechnicals.getPrevEma5(), stockTechnicals.getPrevEma10(), stockTechnicals.getEma5(), stockTechnicals.getEma10());
     }

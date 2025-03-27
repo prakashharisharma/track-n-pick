@@ -22,6 +22,14 @@ public class CrossOverUtil {
         return Boolean.FALSE;
     }
 
+    /**
+     * Bearish
+     * @param prevFastAvg
+     * @param prevSlowAvg
+     * @param fastAvg
+     * @param slowAvg
+     * @return
+     */
     public static boolean isSlowCrossesBelowFast(double prevFastAvg, double prevSlowAvg,
                                                  double fastAvg, double slowAvg){
 

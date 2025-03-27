@@ -7,9 +7,5 @@ import java.util.List;
 
 public interface MovingAverageConvergenceDivergenceService {
 
-
     public List<MovingAverageConvergenceDivergence> calculate(List<OHLCV> ohlcvList);
-
-    public MovingAverageConvergenceDivergence calculate(OHLCV ohlcv, MovingAverageConvergenceDivergence prevMovingAverageConvergenceDivergence);
-
 }

@@ -1,6 +1,8 @@
 package com.example.service;
 
+import com.example.enhanced.model.stocks.StockTechnicals;
 import com.example.model.master.Stock;
+import com.example.util.io.model.type.Timeframe;
 
 public interface AdxIndicatorService {
 
@@ -10,20 +12,20 @@ public interface AdxIndicatorService {
     public static final double ADX_BEARISH_MIN = 20.0;
     public static final double ADX_BEARISH_MAX = 40.0;
 
-    public double adx(Stock stock);
-    public boolean isAdxIncreasing(Stock stock);
-    public boolean isAdxDecreasing(Stock stock);
-    public boolean isPlusDiIncreasing(Stock stock);
+    public double adx(StockTechnicals stockTechnicals);
+    public boolean isAdxIncreasing(StockTechnicals stockTechnicals);
+    public boolean isAdxDecreasing(StockTechnicals stockTechnicals);
+    public boolean isPlusDiIncreasing(StockTechnicals stockTechnicals);
 
-    public boolean isMinusDiIncreasing(Stock stock);
+    public boolean isMinusDiIncreasing(StockTechnicals stockTechnicals);
 
-    public boolean isPlusDiDecreasing(Stock stock);
+    public boolean isPlusDiDecreasing(StockTechnicals stockTechnicals);
 
-    public boolean isMinusDiDecreasing(Stock stock);
+    public boolean isMinusDiDecreasing(StockTechnicals stockTechnicals);
 
-    public boolean isDmiConvergence(Stock stock);
+    public boolean isDmiConvergence(StockTechnicals stockTechnicals);
 
-    public boolean isDmiDivergence(Stock stock);
-    public boolean isBullish(Stock stock);
-    public boolean isBearish(Stock stock);
+    public boolean isDmiDivergence(StockTechnicals stockTechnicals);
+    public boolean isBullish(StockTechnicals stockTechnicals);
+    public boolean isBearish(StockTechnicals stockTechnicals);
 }

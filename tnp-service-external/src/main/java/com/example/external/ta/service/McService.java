@@ -2,9 +2,15 @@ package com.example.external.ta.service;
 
 import com.example.dto.OHLCV;
 import com.example.util.io.model.MCResult;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -16,27 +22,45 @@ import java.util.List;
 @Service
 public class McService {
 
-    public List<OHLCV> getMCOHLP(String nseSymbol, int years, int count)
+    public List<OHLCV> getMCOHLP(String nseSymbol, int years, int countback)
     {
-        long startTime = System.currentTimeMillis();
-
-        LocalDateTime to = LocalDateTime.of(2025, 2, 25, 00, 00, 00, 000);
+        LocalDateTime to = LocalDateTime.of(2025, 3, 20, 00, 00, 00, 000);
         //LocalDateTime to = LocalDateTime.now();
 
         LocalDateTime from = to.minusYears(years);
 
-
-        final String uri = "https://priceapi.moneycontrol.com/techCharts/indianMarket/stock/history?symbol="+ URLEncoder.encode(nseSymbol, StandardCharsets.UTF_8)+"&resolution=1D&from="+from.toEpochSecond(ZoneOffset.UTC)+"&to="+ to.toEpochSecond(ZoneOffset.UTC) +"&countback="+count+"&currencyCode=INR";
-
-        System.out.println("mc url: " + uri);
-
         RestTemplate restTemplate = new RestTemplate();
 
-        MCResult ohlc = restTemplate.getForObject(uri, MCResult.class);
+        String baseUrl = "https://priceapi.moneycontrol.com/techCharts/indianMarket/stock/history";
 
-        long endTime = System.currentTimeMillis();
+        String resolution = "1D";
+        String currencyCode = "INR";
 
-        System.out.println("Time took to get MC data for " + nseSymbol +" is "+ (endTime - startTime) +"ms");
+        URI uri = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .queryParam("symbol", nseSymbol)  // Automatically encodes special characters
+                .queryParam("resolution", resolution)
+                .queryParam("from", from.toEpochSecond(ZoneOffset.UTC))
+                .queryParam("to", to.toEpochSecond(ZoneOffset.UTC))
+                .queryParam("countback", countback)
+                .queryParam("currencyCode", currencyCode)
+                .build()
+                .encode()  // Ensure encoding is applied
+                .toUri();
+
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+        headers.set("Accept", "*/*");
+        headers.set("Referer", "https://www.moneycontrol.com/");
+        headers.set("Origin", "https://www.moneycontrol.com");
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        System.out.println("URI: " + uri);
+        // Make GET Request with Headers
+        ResponseEntity<MCResult> response = restTemplate.exchange(uri, HttpMethod.GET, entity, MCResult.class);
+        System.out.println("responseCode: " + response.getStatusCode());
+        // Get the Response Body
+        MCResult ohlc = response.getBody();
 
         List<OHLCV> ohlcvList = this.map(ohlc);
 
@@ -45,8 +69,6 @@ public class McService {
     }
 
     private List<OHLCV> map(MCResult ohlc){
-
-        long startTime = System.currentTimeMillis();
 
         List<OHLCV> ohlcvList = new ArrayList<>();
 
@@ -65,14 +87,10 @@ public class McService {
         for(int i=0; i < dates.size(); i++){
 
             OHLCV ohlcv = new OHLCV(Instant.ofEpochSecond(dates.get(i)), opens.get(i), highs.get(i), lows.get(i), closes.get(i), volumes.get(i));
-
+            System.out.println(ohlcv);
             ohlcvList.add(ohlcv);
 
-            System.out.println(ohlcv);
         }
-        long endTime = System.currentTimeMillis();
-
-        System.out.println("Time took to map OHLCV " + (endTime - startTime) + "ms");
 
         return ohlcvList;
     }

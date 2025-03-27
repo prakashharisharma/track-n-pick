@@ -15,16 +15,16 @@ public class UserBrokerageKey implements Serializable{
 	private static final long serialVersionUID = -2018505779781526348L;
 
 	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	UserProfile user;
+	User user;
 
 	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	Broker broker;
 
-	public UserProfile getUser() {
+	public User getUser() {
 		return user;
 	}
 
-	public void setUser(UserProfile user) {
+	public void setUser(User user) {
 		this.user = user;
 	}
 

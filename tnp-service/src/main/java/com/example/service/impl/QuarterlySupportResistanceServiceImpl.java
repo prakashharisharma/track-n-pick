@@ -1,18 +1,23 @@
 package com.example.service.impl;
 
 import com.example.dto.OHLCV;
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.enhanced.service.StockPriceService;
+import com.example.enhanced.service.StockTechnicalsService;
 import com.example.model.master.Stock;
-import com.example.model.stocks.StockPrice;
-import com.example.model.stocks.StockTechnicals;
 import com.example.service.*;
-import com.example.service.util.StockPriceUtil;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
+import com.example.util.io.model.type.Timeframe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -48,40 +53,22 @@ public class QuarterlySupportResistanceServiceImpl implements QuarterlySupportRe
     @Autowired
     private MiscUtil miscUtil;
 
-    @Override
-    public boolean isBullish(Stock stock) {
+    @Autowired
+    private StockPriceService<StockPrice> stockPriceService;
 
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+    @Autowired
+    private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
-        /*
-         * 1. Breakout
-         */
-        if(this.isBreakout(stock)){
-            return Boolean.TRUE;
-        }
-        /*
-         * 2. Near Support
-         */
-        if(this.isNearSupport(stock)){
-            return Boolean.TRUE;
-        }
-
-        return Boolean.FALSE;
-    }
 
     @Override
-    public boolean isBreakout(Stock stock) {
-        StockPrice stockPrice = stock.getStockPrice();
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+    public boolean isBreakout(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
         double open = stockPrice.getOpen();
-        double low = stockPrice.getLow();
-        double high = stockPrice.getHigh();
+
         double close = stockPrice.getClose();
         double prevClose = stockPrice.getPrevClose();
-        double prevPrevClose = stockPrice.getPrevPrevClose();
-        double support = stockTechnicals.getPrevQuarterLow();
-        double resistance = stockTechnicals.getPrevQuarterHigh();
+        double support = stockPrice.getLow();
+        double resistance = stockPrice.getHigh();
 
         if(open < support){
             resistance = support;
@@ -89,29 +76,19 @@ public class QuarterlySupportResistanceServiceImpl implements QuarterlySupportRe
 
 
         //Check for Current Day Breakout
-         if(breakoutConfirmationService.isBullishConfirmation(stock, resistance) && candleStickService.range(stock) > CandleStickService.MIN_RANGE) {
+         if(breakoutConfirmationService.isBullishConfirmation(timeframe, stockPrice, stockTechnicals, resistance) && candleStickService.range(stockPrice) > CandleStickService.MIN_RANGE) {
             //Breakout resistance
             if(breakoutService.isBreakOut(prevClose, resistance, close, resistance)){
                 return Boolean.TRUE;
             }
         }
-        /*
-        //Check for previous Session Breakout
-        else if(candleStickService.rangePrev(stock) > CandleStickService.MIN_RANGE){
-            //Breakout Previous Session EMA50
-            if (breakoutConfirmationService.isBullishFollowup(stock, resistance) && breakoutService.isBreakOut(prevPrevClose, resistance, prevClose, resistance)) {
-                return Boolean.TRUE;
-            }
-        }*/
+
 
         return Boolean.FALSE;
     }
 
     @Override
-    public boolean isNearSupport(Stock stock) {
-
-        StockPrice stockPrice = stock.getStockPrice();
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+    public boolean isNearSupport(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
         double open = stockPrice.getOpen();
         double prevOpen = stockPrice.getPrevOpen();
@@ -121,63 +98,41 @@ public class QuarterlySupportResistanceServiceImpl implements QuarterlySupportRe
         double prevHigh = stockPrice.getPrevHigh();
         double close = stockPrice.getClose();
         double prevClose = stockPrice.getPrevClose();
-        double support = stockTechnicals.getPrevQuarterLow();
-        double resistance = stockTechnicals.getPrevQuarterHigh();
+        double support = stockPrice.getLow();
+        double resistance = stockPrice.getHigh();
 
         if(open > resistance){
             support = resistance;
         }
 
         //Check for Current Day
-        if(candleStickService.isLowerHigh(stock) && candleStickService.isLowerLow(stock)) {
+        //if(candleStickService.isLowerHigh(stockPrice) && candleStickService.isLowerLow(stockPrice)) {
             // Near Support
             if (supportResistanceService.isNearSupport(open, high, low, close, support)) {
                 return Boolean.TRUE;
             }
-        }
+        //}
 
         //Check for Previous Session Near Support
-        else if(candleStickService.isLowerHigh(StockPriceUtil.buildStockPricePreviousSession(stock)) && candleStickService.isLowerLow(StockPriceUtil.buildStockPricePreviousSession(stock))){
+        //else if(candleStickService.isPrevLowerHigh(stockPrice) && candleStickService.isPrevLowerLow(stockPrice)){
             // Near Support EMA 20
-            if (supportResistanceConfirmationService.isSupportConfirmed(stock, support) && supportResistanceService.isNearSupport(prevOpen, prevHigh, prevLow, prevClose, support)) {
+            if (supportResistanceConfirmationService.isSupportConfirmed(timeframe, stockPrice, stockTechnicals, support) && supportResistanceService.isNearSupport(prevOpen, prevHigh, prevLow, prevClose, support)) {
                 return Boolean.TRUE;
             }
-        }
+       // }
 
         return Boolean.FALSE;
     }
 
-    @Override
-    public boolean isBearish(Stock stock) {
-        /*
-         * 1. Breakdown support
-         */
-        if(this.isBreakdown(stock)){
-            return Boolean.TRUE;
-        }
-        /*
-         * 2. Near Resistance
-         */
-        if(this.isNearResistance(stock)){
-            return Boolean.TRUE;
-        }
-
-        return false;
-    }
 
     @Override
-    public boolean isBreakdown(Stock stock) {
-        StockPrice stockPrice = stock.getStockPrice();
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+    public boolean isBreakdown(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
         double open = stockPrice.getOpen();
-        double low = stockPrice.getLow();
-        double high = stockPrice.getHigh();
         double close = stockPrice.getClose();
         double prevClose = stockPrice.getPrevClose();
-        double prevPrevClose = stockPrice.getPrevPrevClose();
-        double support = stockTechnicals.getPrevQuarterLow();
-        double resistance = stockTechnicals.getPrevQuarterHigh();
+        double support = stockPrice.getLow();
+        double resistance = stockPrice.getHigh();
 
         if(open > resistance){
             support = resistance;
@@ -185,31 +140,20 @@ public class QuarterlySupportResistanceServiceImpl implements QuarterlySupportRe
 
 
         //Check for Current Day Breakout
-         if(breakoutConfirmationService.isBearishConfirmation(stock, support) && candleStickService.range(stock) > CandleStickService.MIN_RANGE){
+         if(breakoutConfirmationService.isBearishConfirmation(timeframe, stockPrice, stockTechnicals, support) && candleStickService.range(stockPrice) > CandleStickService.MIN_RANGE){
             //Breakdown
             if(breakoutService.isBreakDown(prevClose, support, close, support)){
                 return Boolean.TRUE;
             }
         }
-         /*
-        //Check for previous Session Breakout
-        else if(candleStickService.rangePrev(stock) > CandleStickService.MIN_RANGE){
-            //Breakdown Previous Session EMA50
-            if (breakoutConfirmationService.isBearishFollowup(stock, support) && breakoutService.isBreakDown(prevPrevClose, support, prevClose, support)) {
-                return Boolean.TRUE;
-            }
 
-        }*/
 
 
         return Boolean.FALSE;
     }
 
     @Override
-    public boolean isNearResistance(Stock stock) {
-
-        StockPrice stockPrice = stock.getStockPrice();
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+    public boolean isNearResistance(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
         double open = stockPrice.getOpen();
         double prevOpen = stockPrice.getPrevOpen();
@@ -219,28 +163,28 @@ public class QuarterlySupportResistanceServiceImpl implements QuarterlySupportRe
         double prevHigh = stockPrice.getPrevHigh();
         double close = stockPrice.getClose();
         double prevClose = stockPrice.getPrevClose();
-        double support = stockTechnicals.getPrevQuarterLow();
-        double resistance = stockTechnicals.getPrevQuarterHigh();
+        double support = stockPrice.getLow();
+        double resistance = stockPrice.getHigh();
 
         if(open < support){
             resistance = support;
         }
 
         //Check for Current Day
-        if(candleStickService.isHigherHigh(stock) && candleStickService.isHigherLow(stock)) {
+        //if(candleStickService.isHigherHigh(stockPrice) && candleStickService.isHigherLow(stockPrice)) {
             // Near Resistance EMA 20
             if (supportResistanceService.isNearResistance(open, high, low, close, resistance)) {
                 return Boolean.TRUE;
             }
 
-        }
+       // }
         //Check for Previous Session Near Resistance
-        else if(candleStickService.isHigherHigh(StockPriceUtil.buildStockPricePreviousSession(stock)) && candleStickService.isHigherLow(StockPriceUtil.buildStockPricePreviousSession(stock))){
+        //else if(candleStickService.isPrevHigherHigh(stockPrice) && candleStickService.isPrevHigherLow(stockPrice)){
             // Near Support EMA 20
-            if (supportResistanceConfirmationService.isResistanceConfirmed(stock, resistance) && supportResistanceService.isNearResistance(prevOpen, prevHigh, prevLow, prevClose, resistance)) {
+            if (supportResistanceConfirmationService.isResistanceConfirmed(timeframe, stockPrice, stockTechnicals, resistance) && supportResistanceService.isNearResistance(prevOpen, prevHigh, prevLow, prevClose, resistance)) {
                 return Boolean.TRUE;
             }
-        }
+        //}
 
         return Boolean.FALSE;
     }
@@ -263,10 +207,64 @@ public class QuarterlySupportResistanceServiceImpl implements QuarterlySupportRe
             OHLCV quarterlyHigh = Collections.max(ohlcvList, Comparator.comparingDouble(ohlcv -> ohlcv.getHigh()));
             OHLCV quarterlyLow = Collections.min(ohlcvList, Comparator.comparingDouble(ohlcv -> ohlcv.getLow()));
             OHLCV quarterlyClose = ohlcvList.get(ohlcvList.size()-1);
+            long quarterlyVolume = ohlcvList.stream().mapToLong(OHLCV::getVolume).sum();
+            Instant bhavDate = ohlcvList.get(ohlcvList.size()-1).getBhavDate();
+
             result.setOpen(quarterlyOpen.getOpen());
             result.setHigh(quarterlyHigh.getHigh());
             result.setLow(quarterlyLow.getLow());
             result.setClose(quarterlyClose.getClose());
+            result.setVolume(quarterlyVolume);
+            result.setBhavDate(bhavDate);
+        }
+
+        return result;
+    }
+
+    @Override
+    public OHLCV supportAndResistance(String nseSymbol, LocalDate from, LocalDate to) {
+
+        log.info(" {} from {} to {}",nseSymbol, from, to);
+
+        OHLCV result = new OHLCV();
+        result.setOpen(0.0);
+        result.setHigh(0.0);
+        result.setLow(0.0);
+        result.setClose(0.0);
+        result.setVolume(0l);
+        result.setBhavDate(to.atStartOfDay().atOffset(ZoneOffset.UTC).toInstant());
+        List<OHLCV> ohlcvList = new ArrayList<>();
+        try {
+            ohlcvList = ohlcvService.fetch(nseSymbol, from, to);
+        }catch(Exception e){
+            log.error("{} An error occurred while fetching bhav", nseSymbol, e);
+        }
+        if(!ohlcvList.isEmpty()) {
+            OHLCV quarterlyOpen = ohlcvList.get(0);
+            OHLCV quarterlyHigh = Collections.max(ohlcvList, Comparator.comparingDouble(ohlcv -> ohlcv.getHigh()));
+            OHLCV quarterlyLow = Collections.min(ohlcvList, Comparator.comparingDouble(ohlcv -> ohlcv.getLow()));
+            OHLCV quarterlyClose = ohlcvList.get(ohlcvList.size()-1);
+            long quarterlyVolume = ohlcvList.stream().mapToLong(OHLCV::getVolume).sum();
+            Instant bhavDate = ohlcvList.get(ohlcvList.size()-1).getBhavDate();
+
+            if(bhavDate!=null) {
+                result.setBhavDate(bhavDate);
+            }
+            if(quarterlyOpen.getOpen()!=null) {
+                result.setOpen(quarterlyOpen.getOpen());
+            }
+            if(quarterlyHigh.getHigh()!=null) {
+                result.setHigh(quarterlyHigh.getHigh());
+            }
+            if(quarterlyLow.getLow()!=null) {
+                result.setLow(quarterlyLow.getLow());
+            }
+            if(quarterlyClose.getClose()!=null) {
+                result.setClose(quarterlyClose.getClose());
+            }
+
+            result.setVolume(quarterlyVolume);
+
         }
 
         return result;

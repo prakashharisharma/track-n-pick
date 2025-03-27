@@ -1,63 +1,44 @@
 package com.example.service.impl;
 
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.enhanced.service.StockPriceService;
+import com.example.enhanced.service.StockTechnicalsService;
+import com.example.enhanced.utils.MovingAverageUtil;
 import com.example.model.master.Stock;
-import com.example.model.stocks.StockPrice;
-import com.example.model.stocks.StockTechnicals;
-import com.example.service.CandleStickService;
 import com.example.service.TrendService;
-import com.example.util.io.model.type.Momentum;
+import com.example.util.io.model.type.Timeframe;
 import com.example.util.io.model.type.Trend;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class TrendServiceImpl implements TrendService {
 
-    @Autowired
-    private CandleStickService candleStickService;
+    private final StockPriceService<StockPrice> stockPriceService;
 
-
-    @Override
-    public Trend isUpTrend(Stock stock) {
-
-        StockTechnicals stockTechnicals = stock.getTechnicals();
-
-        StockPrice stockPrice = stock.getStockPrice();
-
-        if (stockTechnicals == null || stockPrice == null) {
-            return new Trend(Trend.Strength.INVALID, Momentum.SIDEWAYS);
-        }
-        Momentum momentum = this.detect(stock);
-
-        if(momentum == Momentum.TOP || momentum == Momentum.ADVANCE || momentum == Momentum.RECOVERY){
-            if (this.isLongTermUpTrend(stockTechnicals, stockPrice)) {
-                return new Trend(Trend.Strength.LONG, momentum);
-            } else if (this.isMediumTermUpTrend(stockTechnicals, stockPrice)) {
-                return new Trend(Trend.Strength.MEDIUM, momentum);
-            } else if (this.isShortTermUpTrend(stockTechnicals, stockPrice)) {
-                return new Trend(Trend.Strength.SHORT, momentum);
-            }
-        }
-
-        return  new Trend(Trend.Strength.INVALID,momentum);
-    }
-
+    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
     /**
      * EMA5, EMA10, EMA20
      * @param stockTechnicals
      * @return
      */
-    private boolean isShortTermUpTrend(StockTechnicals stockTechnicals, StockPrice stockPrice){
+    private boolean isShortTermUpTrend(Timeframe timeframe,StockTechnicals stockTechnicals, StockPrice stockPrice){
 
-        /*
-        return this.isUpTrend(stockTechnicals.getEma5(), stockTechnicals.getEma10(), stockTechnicals.getEma20(), stockTechnicals.getPrevEma5(), stockTechnicals.getPrevEma10(), stockTechnicals.getPrevEma20())
-                ||
-                this.isUpTrend(stockTechnicals.getPrevEma5(), stockTechnicals.getPrevEma10(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevPrevEma5(), stockTechnicals.getPrevPrevEma10(), stockTechnicals.getPrevPrevEma20());
-        */
-        //return this.isUpTrend(stockTechnicals.getEma5(), stockTechnicals.getEma10(), stockTechnicals.getEma20(), stockTechnicals.getPrevEma20(), stockPrice.getClose());
-        return stockPrice.getClose() > stockTechnicals.getEma20() && stockTechnicals.getEma20() != 0.0;
+        if(timeframe == Timeframe.DAILY) {
+            return this.isUpTrend(MovingAverageUtil.getMovingAverage20(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage20(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }else if(timeframe == Timeframe.WEEKLY) {
+            return this.isUpTrend(MovingAverageUtil.getMovingAverage10(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage10(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }
+        else if(timeframe == Timeframe.MONTHLY) {
+            return this.isUpTrend(MovingAverageUtil.getMovingAverage5(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage5(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }
+        return Boolean.FALSE;
     }
 
     /**
@@ -65,15 +46,16 @@ public class TrendServiceImpl implements TrendService {
      * @param stockTechnicals
      * @return
      */
-    private boolean isMediumTermUpTrend(StockTechnicals stockTechnicals, StockPrice stockPrice){
+    private boolean isMediumTermUpTrend(Timeframe timeframe,StockTechnicals stockTechnicals, StockPrice stockPrice){
+        if(timeframe == Timeframe.DAILY) {
+            return this.isUpTrend(MovingAverageUtil.getMovingAverage50(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage50(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }else if(timeframe == Timeframe.WEEKLY) {
+            return this.isUpTrend(MovingAverageUtil.getMovingAverage20(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage20(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }else if(timeframe == Timeframe.MONTHLY) {
+            return this.isUpTrend(MovingAverageUtil.getMovingAverage10(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage10(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }
 
-        /*
-        return this.isUpTrend(stockTechnicals.getEma10(), stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getPrevEma10(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50())
-                ||
-                this.isUpTrend(stockTechnicals.getPrevEma10(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevPrevEma10(), stockTechnicals.getPrevPrevEma20(), stockTechnicals.getPrevPrevEma50());
-                */
-       // return this.isUpTrend(stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getPrevEma100(), stockPrice.getClose());
-        return stockTechnicals.getEma20() > stockTechnicals.getEma50() && stockTechnicals.getEma50() != 0.0;
+        return Boolean.FALSE;
     }
 
     /**
@@ -81,88 +63,58 @@ public class TrendServiceImpl implements TrendService {
      * @param stockTechnicals
      * @return
      */
-    private boolean isLongTermUpTrend(StockTechnicals stockTechnicals, StockPrice stockPrice){
+    private boolean isLongTermUpTrend(Timeframe timeframe,StockTechnicals stockTechnicals, StockPrice stockPrice){
 
-        /*
-        return this.isUpTrend(stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getEma200(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100(), stockTechnicals.getPrevEma200())
-                ||
-                this.isUpTrend(stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100(), stockTechnicals.getPrevEma200(), stockTechnicals.getPrevPrevEma50(), stockTechnicals.getPrevPrevEma100(), stockTechnicals.getPrevPrevEma200())
-                ||
-                this.isUpTrend(stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100())
-                ||
-                this.isUpTrend(stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100(), stockTechnicals.getPrevPrevEma20(), stockTechnicals.getPrevPrevEma50(), stockTechnicals.getPrevPrevEma100());
-                */
-        //return this.isUpTrend(stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getEma200(), stockTechnicals.getPrevEma200(), stockPrice.getClose());
-        return stockTechnicals.getEma50() > stockTechnicals.getEma200() && stockTechnicals.getEma200() != 0.0;
+        if(timeframe == Timeframe.DAILY) {
+            return this.isUpTrend(MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage200(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }else if(timeframe == Timeframe.WEEKLY) {
+            return this.isUpTrend(MovingAverageUtil.getMovingAverage50(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage50(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }else if(timeframe == Timeframe.MONTHLY) {
+            return this.isUpTrend(MovingAverageUtil.getMovingAverage20(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage20(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }
+
+        return Boolean.FALSE;
     }
 
-    private boolean isUpTrend(double immediateLow, double average, double immediateHigh, double prevImmediateLow, double prevAverage, double prevImmediateHigh){
 
-        int score = 0;
+    private boolean isUpTrend(double average, double prevAverage, double close, double prevClose) {
 
-        if (immediateHigh > prevImmediateHigh) {
-            score = score + 1;
-        }
-        if (average > prevAverage) {
-            score = score + 1;
-        }
-        if (immediateLow > prevImmediateLow) {
-            score = score + 1;
+        // Ensure previous EMA is valid
+        if (prevAverage == 0.0) {
+            return false; // Not enough data to determine trend
         }
 
-        return  score >= 2 ? Boolean.TRUE : Boolean.FALSE;
+        // Condition 1: Price Above EMA (Price trading above moving average)
+        boolean priceAboveEMA = close > average;
+
+        // Condition 2: Slope of EMA (EMA is trending upward)
+        boolean emaSlopeUp = average > prevAverage;
+
+        // Condition 3: EMA Support Bounce (Price was below EMA before, now above)
+        boolean emaSupportBounce = (prevClose < prevAverage) && (close > prevAverage);
+
+        // Confirm Uptrend: Either price is above rising EMA or EMA bounce is confirmed
+        return (priceAboveEMA && emaSlopeUp) || (emaSlopeUp && emaSupportBounce);
     }
 
-    private boolean isUpTrend(double shortShorterAverage, double shorterAverage, double average, double prevAverage, double close){
-        if(shortShorterAverage > shorterAverage && shorterAverage > average){
-            if(average > prevAverage && close > average){
-                return   Boolean.TRUE;
-            }
-        }
-
-        return   Boolean.FALSE;
-    }
-
-    @Override
-    public Trend isDownTrend(Stock stock) {
-
-        StockTechnicals stockTechnicals= stock.getTechnicals();
-        StockPrice stockPrice= stock.getStockPrice();
-
-        if(stockTechnicals==null || stockPrice==null){
-            return new Trend(Trend.Strength.INVALID, Momentum.SIDEWAYS);
-        }
-        Momentum momentum = this.detect(stock);
-        if(momentum == Momentum.BOTTOM || momentum == Momentum.CORRECTION || momentum == Momentum.PULLBACK) {
-            if (this.isLongTermDownTrend(stockTechnicals, stockPrice)) {
-                return new Trend(Trend.Strength.LONG, momentum);
-            } else if (this.isMediumTermDownTrend(stockTechnicals, stockPrice)) {
-                return new Trend(Trend.Strength.MEDIUM, momentum);
-            }
-            if (this.isShortTermDownTrend(stockTechnicals, stockPrice)) {
-                return new Trend(Trend.Strength.SHORT, momentum);
-            }
-        }
-
-        return  new Trend(Trend.Strength.INVALID, momentum);
-    }
 
     /**
      * EMA5, EMA10, EMA20
      * @param stockTechnicals
      * @return
      */
-    private boolean isShortTermDownTrend(StockTechnicals stockTechnicals, StockPrice stockPrice){
+    private boolean isShortTermDownTrend(Timeframe timeframe,StockTechnicals stockTechnicals, StockPrice stockPrice){
 
-        /*
-        return this.isDownTrend(stockTechnicals.getEma5(), stockTechnicals.getEma10(), stockTechnicals.getEma20(), stockTechnicals.getPrevEma5(), stockTechnicals.getPrevEma10(), stockTechnicals.getPrevEma20())
-                ||
-                this.isDownTrend(stockTechnicals.getPrevEma5(), stockTechnicals.getPrevEma10(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevPrevEma5(), stockTechnicals.getPrevPrevEma10(), stockTechnicals.getPrevPrevEma20());
+        if(timeframe == Timeframe.DAILY) {
+            return this.isDownTrend(MovingAverageUtil.getMovingAverage20(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage20(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }else if(timeframe == Timeframe.WEEKLY) {
+            return this.isDownTrend(MovingAverageUtil.getMovingAverage10(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage10(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }
+        else if(timeframe == Timeframe.MONTHLY) {
+            return this.isDownTrend(MovingAverageUtil.getMovingAverage5(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage5(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }
 
-         */
-        //return this.isDownTrend(stockTechnicals.getEma5(), stockTechnicals.getEma10(), stockTechnicals.getEma20(), stockTechnicals.getPrevEma20(), stockPrice.getClose());
-
-        return stockPrice.getClose() < stockTechnicals.getEma20();
+        return Boolean.FALSE;
     }
 
     /**
@@ -170,15 +122,17 @@ public class TrendServiceImpl implements TrendService {
      * @param stockTechnicals
      * @return
      */
-    private boolean isMediumTermDownTrend(StockTechnicals stockTechnicals,StockPrice stockPrice){
+    private boolean isMediumTermDownTrend(Timeframe timeframe,StockTechnicals stockTechnicals, StockPrice stockPrice){
 
-        /*
-        return this.isDownTrend(stockTechnicals.getEma10(), stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getPrevEma10(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50())
-                ||
-                this.isDownTrend(stockTechnicals.getPrevEma10(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevPrevEma10(), stockTechnicals.getPrevPrevEma20(), stockTechnicals.getPrevPrevEma50());
-        */
-        //return this.isDownTrend(stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getPrevEma100(), stockPrice.getClose());
-        return stockTechnicals.getEma20() < stockTechnicals.getEma50();
+        if(timeframe == Timeframe.DAILY) {
+            return this.isDownTrend(MovingAverageUtil.getMovingAverage50(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage50(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }else if(timeframe == Timeframe.WEEKLY) {
+            return this.isDownTrend(MovingAverageUtil.getMovingAverage20(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage20(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }else if(timeframe == Timeframe.MONTHLY) {
+            return this.isDownTrend(MovingAverageUtil.getMovingAverage10(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage10(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }
+
+        return Boolean.FALSE;
     }
 
     /**
@@ -187,157 +141,116 @@ public class TrendServiceImpl implements TrendService {
      * @param stockTechnicals
      * @return
      */
-    private boolean isLongTermDownTrend(StockTechnicals stockTechnicals, StockPrice stockPrice){
+    private boolean isLongTermDownTrend(Timeframe timeframe,StockTechnicals stockTechnicals, StockPrice stockPrice){
 
-        /*
-        return this.isDownTrend(stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getEma200(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100(), stockTechnicals.getPrevEma200())
-                ||
-                this.isDownTrend(stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100(), stockTechnicals.getPrevEma200(), stockTechnicals.getPrevPrevEma50(), stockTechnicals.getPrevPrevEma100(), stockTechnicals.getPrevPrevEma200())
-                ||
-                this.isDownTrend(stockTechnicals.getEma20(), stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100())
-                ||
-                this.isDownTrend(stockTechnicals.getPrevEma20(), stockTechnicals.getPrevEma50(), stockTechnicals.getPrevEma100(), stockTechnicals.getPrevPrevEma20(), stockTechnicals.getPrevPrevEma50(), stockTechnicals.getPrevPrevEma100());
-                */
-        //return this.isDownTrend(stockTechnicals.getEma50(), stockTechnicals.getEma100(), stockTechnicals.getEma200(), stockTechnicals.getPrevEma200(), stockPrice.getClose());
-        return stockTechnicals.getEma50() < stockTechnicals.getEma200();
+
+        if(timeframe == Timeframe.DAILY) {
+            return this.isDownTrend(MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage200(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }else if(timeframe == Timeframe.WEEKLY) {
+            return this.isDownTrend(MovingAverageUtil.getMovingAverage50(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage50(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }else if(timeframe == Timeframe.MONTHLY) {
+            return this.isDownTrend(MovingAverageUtil.getMovingAverage20(timeframe, stockTechnicals), MovingAverageUtil.getPrevMovingAverage20(timeframe, stockTechnicals), stockPrice.getClose(), stockPrice.getPrevClose());
+        }
+
+        return Boolean.FALSE;
     }
 
-    private boolean isDownTrend(double shortShorterAverage, double shorterAverage, double average, double prevAverage, double close){
-        if(shortShorterAverage < shorterAverage && shorterAverage < average){
-            if(average < prevAverage && close < average){
-                return   Boolean.TRUE;
-            }
+    private boolean isDownTrend(double average, double prevAverage, double close, double prevClose) {
+
+        // Ensure previous EMA is valid
+        if (prevAverage == 0.0) {
+            return false; // Not enough data to determine trend
         }
 
-        return   Boolean.FALSE;
+        // Condition 1: Price Below EMA
+        boolean priceBelowEMA = close < average;
+
+        // Condition 2: Slope of EMA (EMA is falling)
+        boolean emaSlopeDown = average < prevAverage;
+
+        // Condition 3: EMA Resistance Bounce (Price was above EMA before, now below)
+        boolean emaResistanceBounce = (prevClose > prevAverage) && (close < average);
+
+        // Confirm Downtrend: Either price is below a falling EMA or price rejected from EMA.
+        return (priceBelowEMA && emaSlopeDown) || (emaSlopeDown && emaResistanceBounce);
     }
 
-    private boolean isDownTrend(double immediateLow, double average, double immediateHigh, double prevImmediateLow, double prevAverage, double prevImmediateHigh){
-        int score = 0;
-        if (immediateHigh < prevImmediateHigh) {
-            score = score + 1;
-        }
-        if (average < prevAverage) {
-            score = score + 1;
-        }
-        if (immediateLow < prevImmediateLow) {
-            score = score + 1;
-        }
-        return  score >= 2 ? Boolean.TRUE : Boolean.FALSE;
-
-    }
 
     @Override
-    public Momentum detect(Stock stock) {
+    public Trend detect(Stock stock, Timeframe timeframe) {
 
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+        Trend.Momentum momentum = Trend.Momentum.SIDEWAYS;
 
-        StockPrice stockPrice = stock.getStockPrice();
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
 
-        if(stockTechnicals==null || stockPrice==null){
-            return Momentum.SIDEWAYS;
+        StockPrice stockPrice = stockPriceService.get(stock, timeframe);
+
+        if(stockTechnicals == null || stockPrice == null){
+            return  new Trend(Trend.Direction.INVALID,Trend.Strength.INVALID, momentum);
         }
 
-        boolean shortTermDown = this.isShortTermDownTrend(stockTechnicals, stockPrice);
-        boolean shortTermUp = this.isShortTermUpTrend(stockTechnicals, stockPrice);
+        boolean shortTermDown = this.isShortTermDownTrend(timeframe, stockTechnicals, stockPrice);
+        boolean shortTermUp = this.isShortTermUpTrend(timeframe, stockTechnicals, stockPrice);
 
-        boolean mediumTermDown = this.isMediumTermDownTrend(stockTechnicals, stockPrice);
-        boolean mediumTermUp = this.isMediumTermUpTrend(stockTechnicals, stockPrice);
+        boolean mediumTermDown = this.isMediumTermDownTrend(timeframe, stockTechnicals, stockPrice);
+        boolean mediumTermUp = this.isMediumTermUpTrend(timeframe, stockTechnicals, stockPrice);
 
-        boolean longTermDown = this.isLongTermDownTrend(stockTechnicals, stockPrice);
-        boolean longTermUp = this.isLongTermUpTrend(stockTechnicals, stockPrice);
+        boolean longTermDown = this.isLongTermDownTrend(timeframe, stockTechnicals, stockPrice);
+        boolean longTermUp = this.isLongTermUpTrend(timeframe, stockTechnicals, stockPrice);
 
         // 1️⃣ Pullback: Short-term downtrend, but medium & long-term uptrend
         if (shortTermDown && mediumTermUp && longTermUp) {
-            return Momentum.PULLBACK;
+            momentum =  Trend.Momentum.PULLBACK;
         }
 
         // 2️⃣ Correction: Short-term & medium-term downtrend, but long-term uptrend
         if (shortTermDown && mediumTermDown && longTermUp) {
-            return Momentum.CORRECTION;
+            momentum =  Trend.Momentum.CORRECTION;
         }
 
         // 3️⃣ Bottom: Strong downtrend across all timeframes
         if (shortTermDown && mediumTermDown && longTermDown) {
-            return Momentum.BOTTOM;
+            momentum =  Trend.Momentum.BOTTOM;
         }
 
         // 4️⃣ Early Recovery: 20 EMA is rising, but 50 EMA & 200 EMA are still bearish
         if (shortTermUp && mediumTermDown && longTermDown) {
-            return Momentum.RECOVERY;
+            momentum =  Trend.Momentum.RECOVERY;
         }
 
         // 5️⃣ Reversal: Short-term & medium-term uptrend, but long-term still bearish
         if (shortTermUp && mediumTermUp && longTermDown) {
-            return Momentum.ADVANCE;
+            momentum =  Trend.Momentum.ADVANCE;
         }
 
         // 6️⃣ Top: All trends turning bullish, possible peak formation
         if (shortTermUp && mediumTermUp && longTermUp) {
-            return Momentum.TOP;
+            momentum =  Trend.Momentum.TOP;
+        }
+
+        if(momentum == Trend.Momentum.BOTTOM || momentum == Trend.Momentum.CORRECTION || momentum == Trend.Momentum.PULLBACK) {
+            if(longTermDown){
+                return new Trend(Trend.Direction.DOWN,Trend.Strength.LONG, momentum);
+            }else if(mediumTermDown){
+                return new Trend(Trend.Direction.DOWN,Trend.Strength.MEDIUM, momentum);
+            }else if(shortTermDown){
+                return new Trend(Trend.Direction.DOWN,Trend.Strength.SHORT, momentum);
+            }
+            return new Trend(Trend.Direction.DOWN, Trend.Strength.WEAK, momentum  );
+        }else if(momentum == Trend.Momentum.TOP || momentum == Trend.Momentum.ADVANCE || momentum == Trend.Momentum.RECOVERY) {
+            if(longTermUp){
+                return new Trend(Trend.Direction.UP,Trend.Strength.LONG, momentum);
+            }else if(mediumTermUp){
+                return new Trend(Trend.Direction.UP,Trend.Strength.MEDIUM, momentum);
+            }else if(shortTermUp){
+                return new Trend(Trend.Direction.UP,Trend.Strength.SHORT, momentum);
+            }
+            return new Trend(Trend.Direction.UP, Trend.Strength.STRONG, momentum  );
         }
 
         // 7️⃣ Sideways: No clear trend (EMAs are flat or mixed)
-        return Momentum.SIDEWAYS;
-    }
-
-    @Override
-    public Momentum scanBullish(Stock stock) {
-
-        StockTechnicals stockTechnicals = stock.getTechnicals();
-
-        StockPrice stockPrice = stock.getStockPrice();
-
-        if(stockTechnicals==null || stockPrice==null){
-            return Momentum.SIDEWAYS;
-        }
-
-        if(this.isShortTermDownTrend(stockTechnicals, stockPrice) && this.isMediumTermUpTrend(stockTechnicals, stockPrice) && this.isLongTermUpTrend(stockTechnicals, stockPrice)){
-            return Momentum.PULLBACK;
-        }
-
-        if(this.isShortTermDownTrend(stockTechnicals, stockPrice) && this.isMediumTermDownTrend(stockTechnicals, stockPrice) && this.isLongTermUpTrend(stockTechnicals, stockPrice)){
-            return Momentum.CORRECTION;
-        }
-
-        if(this.isShortTermDownTrend(stockTechnicals, stockPrice) && this.isMediumTermDownTrend(stockTechnicals, stockPrice) && this.isLongTermDownTrend(stockTechnicals, stockPrice)){
-            return Momentum.BOTTOM;
-        }
-
-        return Momentum.SIDEWAYS;
-    }
-
-    @Override
-    public Momentum scanBearish(Stock stock) {
-        StockTechnicals stockTechnicals = stock.getTechnicals();
-
-        StockPrice stockPrice = stock.getStockPrice();
-
-        if(stockTechnicals==null || stockPrice==null){
-            return Momentum.SIDEWAYS;
-        }
-
-        if(this.isShortTermUpTrend(stockTechnicals, stockPrice) && this.isMediumTermDownTrend(stockTechnicals, stockPrice) && this.isLongTermDownTrend(stockTechnicals, stockPrice)){
-            return Momentum.RECOVERY;
-        }
-
-        if(this.isShortTermUpTrend(stockTechnicals, stockPrice) && this.isMediumTermUpTrend(stockTechnicals, stockPrice) && this.isLongTermDownTrend(stockTechnicals, stockPrice)){
-            return Momentum.ADVANCE;
-        }
-
-        if(this.isShortTermUpTrend(stockTechnicals, stockPrice) && this.isMediumTermUpTrend(stockTechnicals, stockPrice) && this.isLongTermUpTrend(stockTechnicals, stockPrice)){
-            return Momentum.TOP;
-        }
-
-        return Momentum.SIDEWAYS;
+        return  new Trend(Trend.Direction.INVALID,Trend.Strength.INVALID, momentum);
     }
 
 
-    private boolean isVolumeIncreasing(StockTechnicals stockTechnicals){
-        return stockTechnicals.getVolumeAvg20() > stockTechnicals.getVolumeAvg20Prev();
-    }
-
-    private boolean isVolumeDecreasing(StockTechnicals stockTechnicals){
-        return stockTechnicals.getVolumeAvg20() <= stockTechnicals.getVolumeAvg20Prev();
-    }
 }

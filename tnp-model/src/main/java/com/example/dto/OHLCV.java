@@ -3,15 +3,12 @@ package com.example.dto;
 import java.time.Instant;
 
 public class OHLCV {
-    //@Id
-    //private String id;
-    //private String nseSymbol;
+
     private Instant bhavDate = Instant.now();
     private Double open;
     private Double high;
     private Double low;
     private Double close;
-
     private Long volume;
 
 

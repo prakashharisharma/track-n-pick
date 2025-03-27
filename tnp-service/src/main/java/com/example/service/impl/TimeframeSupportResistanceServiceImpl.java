@@ -1,367 +1,147 @@
 package com.example.service.impl;
 
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.enhanced.service.StockPriceService;
+import com.example.enhanced.service.StockTechnicalsService;
 import com.example.model.master.Stock;
 import com.example.service.*;
-import com.example.service.util.StockPriceUtil;
 import com.example.util.MiscUtil;
-import com.example.util.io.model.type.Momentum;
+import com.example.util.io.model.type.Timeframe;
 import com.example.util.io.model.type.Trend;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+import static com.example.util.io.model.type.Timeframe.*;
+
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportResistanceService {
 
-    @Autowired
-    private YearlySupportResistanceService yearlySupportResistanceService;
+    private final SupportLevelDetector supportLevelDetector;
+    private final ResistanceLevelDetector resistanceLevelDetector;
+    private final StockPriceService<StockPrice> stockPriceService;
+    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
+    private final YearlySupportResistanceService yearlySupportResistanceService;
+    private final QuarterlySupportResistanceService quarterlySupportResistanceService;
+    private final MonthlySupportResistanceService monthlySupportResistanceService;
+    private final WeeklySupportResistanceService weeklySupportResistanceService;
 
-    @Autowired
-    private QuarterlySupportResistanceService quarterlySupportResistanceService;
-    @Autowired
-    private MonthlySupportResistanceService monthlySupportResistanceService;
 
-    @Autowired
-    private WeeklySupportResistanceService weeklySupportResistanceService;
-
-    @Autowired
-    private DailySupportResistanceService dailySupportResistanceService;
-    @Autowired
-    private CandleStickHelperService candleStickHelperService;
-
-    @Autowired
-    private MiscUtil miscUtil;
-    /**
-     *
-     * 1. Breakout monthly and weekly resistance
-     * 1.1. Breakout can be confirmed using PlusDi increasing, MinusDi decreasing and ADX increasing
-     * 2. Near support monthly and weekly
-     * 2.1 Support can be confirmed using RSI
-     * a. Check for prior 2 weeks candle and see if bullish
-     * b. Check for daily candle and see if bullish
-     * Should be executed in a downtrend
-     * @param stock
-     * @return
-     *
-     */
     @Override
-    public boolean isBullish(Stock stock, Trend trend) {
-        /*
-         * 1. Breakout
-         */
-        if(this.isBreakout(stock, trend)){
-            return Boolean.TRUE;
-        }
-        /*
-         * 2. Near Support
-         */
-        if(this.isNearSupport(stock, trend)){
-            return Boolean.TRUE;
+    public boolean isBreakout(Trend trend, Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        if (resistanceLevelDetector.isBreakout(stockPrice.getStock(), timeframe)) {
+            log.info("Resistance breakout for {} at {} timeframe.", stockPrice.getStock().getNseSymbol(), timeframe);
+            return true;
         }
 
-        return Boolean.FALSE;
+        if (isMultiTimeFrameBreakout(trend, timeframe, stockPrice,stockTechnicals)) {
+            log.info("Multi-timeframe breakout confluence found for {} at {}", stockPrice.getStock().getNseSymbol(), timeframe);
+            return true;
+        }
+
+        return false;
+    }
+
+
+    private boolean isMultiTimeFrameBreakout(Trend trend, Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals ) {
+        return switch (timeframe) {
+            case DAILY -> weeklySupportResistanceService.isBreakout(Timeframe.WEEKLY, stockPrice, stockTechnicals) &&
+                    monthlySupportResistanceService.isBreakout(Timeframe.MONTHLY,stockPrice, stockTechnicals);
+            case WEEKLY -> monthlySupportResistanceService.isBreakout(Timeframe.MONTHLY,stockPrice, stockTechnicals) &&
+                    quarterlySupportResistanceService.isBreakout(Timeframe.QUARTERLY,stockPrice, stockTechnicals);
+            case MONTHLY -> quarterlySupportResistanceService.isBreakout(Timeframe.QUARTERLY,stockPrice, stockTechnicals) &&
+                    yearlySupportResistanceService.isBreakout(Timeframe.YEARLY,stockPrice, stockTechnicals);
+            default -> false;
+        };
     }
 
     @Override
-    public boolean isBreakout(Stock stock, Trend trend) {
-        if(trend.getMomentum() == Momentum.PULLBACK) {
-            if (candleStickHelperService.isBullishConfirmed(StockPriceUtil.buildStockPricePreviousWeek(stock, miscUtil.previousWeekFirstDay()), Boolean.FALSE)) {
-                //if(this.isMultiTimeFrameBreakout(stock) || yearlySupportResistanceService.isBreakout(stock) || quarterlySupportResistanceService.isBreakout(stock) || monthlySupportResistanceService.isBreakout(stock) || weeklySupportResistanceService.isBreakout(stock) || dailySupportResistanceService.isBreakout(stock)){
-                    if(this.isMultiTimeFrameBreakout(stock, trend) || weeklySupportResistanceService.isBreakout(stock)){
-                        return Boolean.TRUE;
-                }
-            }
+    public boolean isNearSupport(Trend trend, Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        if (supportLevelDetector.isNearSupport(stockPrice.getStock(), timeframe)) {
+            log.info("Support identified for {} at {} timeframe.", stockPrice.getStock().getNseSymbol(), timeframe);
+            return true;
         }
 
-        else if(trend.getMomentum() == Momentum.CORRECTION) {
-            if (candleStickHelperService.isBullishConfirmed(StockPriceUtil.buildStockPricePreviousMonth(stock, miscUtil.previousMonthFirstDay()), Boolean.FALSE)) {
-                //if(this.isMultiTimeFrameBreakout(stock) || yearlySupportResistanceService.isBreakout(stock) || quarterlySupportResistanceService.isBreakout(stock) || monthlySupportResistanceService.isBreakout(stock) || weeklySupportResistanceService.isBreakout(stock)){
-                if(this.isMultiTimeFrameBreakout(stock, trend) || monthlySupportResistanceService.isBreakout(stock)){
-                    return Boolean.TRUE;
-                }
-            }
+        if (isMultiTimeFrameSupport(trend, timeframe, stockPrice, stockTechnicals)) {
+            log.info("Multi-timeframe support confluence found for {} at {}", stockPrice.getStock().getNseSymbol(), timeframe);
+            return true;
         }
-        else if(trend.getMomentum() == Momentum.BOTTOM) {
-            //if(this.isMultiTimeFrameBreakout(stock) || yearlySupportResistanceService.isBreakout(stock) || quarterlySupportResistanceService.isBreakout(stock) || monthlySupportResistanceService.isBreakout(stock)){
-            if(this.isMultiTimeFrameBreakout(stock, trend) || quarterlySupportResistanceService.isBreakout(stock) || yearlySupportResistanceService.isBreakout(stock)){
-                if (candleStickHelperService.isBullishConfirmed(StockPriceUtil.buildStockPricePreviousQuarter(stock, miscUtil.previousQuarterFirstDay()), Boolean.FALSE)) {
-                      return Boolean.TRUE;
-                    }
-                }
-                else if (yearlySupportResistanceService.isYearHighRecentLowCorrection(stock)) {
-                    return Boolean.TRUE;
-                }
-                else if (yearlySupportResistanceService.isYearHighYearLowCorrection(stock)) {
-                    return Boolean.TRUE;
-                }
+
+        return false;
+    }
+
+
+    private boolean isMultiTimeFrameSupport( Trend trend,Timeframe timeframe,StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        return switch (timeframe) {
+            case DAILY -> weeklySupportResistanceService.isNearSupport(Timeframe.WEEKLY, stockPrice, stockTechnicals) ||
+                    monthlySupportResistanceService.isNearSupport(Timeframe.MONTHLY,stockPrice, stockTechnicals);
+            case WEEKLY -> monthlySupportResistanceService.isNearSupport(Timeframe.MONTHLY,stockPrice, stockTechnicals) ||
+                    quarterlySupportResistanceService.isNearSupport(Timeframe.QUARTERLY,stockPrice, stockTechnicals);
+            case MONTHLY -> quarterlySupportResistanceService.isNearSupport(Timeframe.QUARTERLY,stockPrice, stockTechnicals) ||
+                    yearlySupportResistanceService.isNearSupport(Timeframe.YEARLY,stockPrice, stockTechnicals);
+            default -> false;
+        };
+    }
+
+
+    @Override
+    public boolean isBreakdown(Trend trend, Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        if (supportLevelDetector.isBreakDown(stockPrice.getStock(), timeframe)) {
+            log.info("Breakdown identified for {} at {} timeframe.", stockPrice.getStock().getNseSymbol(), timeframe);
+            return true;
         }
-        return Boolean.FALSE;
+
+        if (isMultiTimeFrameBreakdown(trend, timeframe, stockPrice, stockTechnicals)) {
+            log.info("Multi-timeframe breakdown confluence found for {} at {}", stockPrice.getStock().getNseSymbol(), timeframe);
+            return true;
+        }
+
+        return false;
+    }
+
+
+    private boolean isMultiTimeFrameBreakdown(Trend trend, Timeframe timeframe,StockPrice stockPrice, StockTechnicals stockTechnicals ) {
+        return switch (timeframe) {
+            case DAILY -> weeklySupportResistanceService.isBreakdown(Timeframe.WEEKLY, stockPrice, stockTechnicals) &&
+                    monthlySupportResistanceService.isBreakdown(Timeframe.MONTHLY, stockPrice, stockTechnicals);
+            case WEEKLY -> monthlySupportResistanceService.isBreakdown( Timeframe.MONTHLY, stockPrice, stockTechnicals) &&
+                    quarterlySupportResistanceService.isBreakdown(Timeframe.QUARTERLY, stockPrice, stockTechnicals);
+            case MONTHLY -> quarterlySupportResistanceService.isBreakdown(Timeframe.QUARTERLY, stockPrice, stockTechnicals) &&
+                    yearlySupportResistanceService.isBreakdown(Timeframe.YEARLY, stockPrice, stockTechnicals);
+            default -> false;
+        };
     }
 
     @Override
-    public boolean isNearSupport(Stock stock, Trend trend) {
-        if(trend.getMomentum() ==Momentum.PULLBACK) {
-            if (candleStickHelperService.isBullishConfirmed(StockPriceUtil.buildStockPricePreviousWeek(stock, miscUtil.previousWeekFirstDay()), Boolean.FALSE)) {
-                //if(this.isMultiTimeFrameSupport(stock) || yearlySupportResistanceService.isNearSupport(stock) || quarterlySupportResistanceService.isNearSupport(stock) || monthlySupportResistanceService.isNearSupport(stock) || weeklySupportResistanceService.isNearSupport(stock) || dailySupportResistanceService.isNearSupport(stock)){
-                if(this.isMultiTimeFrameSupport(stock, trend) || weeklySupportResistanceService.isNearSupport(stock)){
-                    return Boolean.TRUE;
-                }
-            }
+    public boolean isNearResistance(Trend trend, Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        if (resistanceLevelDetector.isNearResistance(stockPrice.getStock(), timeframe)) {
+            log.info("Resistance identified for {} at {} timeframe with trend {}", stockPrice.getStock().getNseSymbol(), timeframe, trend);
+            return true;
         }
 
-        else if(trend.getMomentum() == Momentum.CORRECTION) {
-            if (candleStickHelperService.isBullishConfirmed(StockPriceUtil.buildStockPricePreviousMonth(stock, miscUtil.previousMonthFirstDay()), Boolean.FALSE)) {
-                //if(this.isMultiTimeFrameSupport(stock) || yearlySupportResistanceService.isNearSupport(stock) || quarterlySupportResistanceService.isNearSupport(stock) || monthlySupportResistanceService.isNearSupport(stock) || weeklySupportResistanceService.isNearSupport(stock) ){
-                if(this.isMultiTimeFrameSupport(stock, trend) || monthlySupportResistanceService.isNearSupport(stock)){
-                    return Boolean.TRUE;
-                }
-            }
-        }
-        else if(trend.getMomentum() == Momentum.BOTTOM) {
-            //if(this.isMultiTimeFrameSupport(stock) || yearlySupportResistanceService.isNearSupport(stock) || quarterlySupportResistanceService.isNearSupport(stock) || monthlySupportResistanceService.isNearSupport(stock)){
-            if(this.isMultiTimeFrameSupport(stock, trend)  || quarterlySupportResistanceService.isNearSupport(stock) || yearlySupportResistanceService.isNearSupport(stock)){
-                if (candleStickHelperService.isBullishConfirmed(StockPriceUtil.buildStockPricePreviousQuarter(stock, miscUtil.previousQuarterFirstDay()), Boolean.FALSE)) {
-                        return Boolean.TRUE;
-                    }
-                }
-            else if (yearlySupportResistanceService.isYearHighRecentLowCorrection(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (yearlySupportResistanceService.isYearHighYearLowCorrection(stock)) {
-                return Boolean.TRUE;
-            }
+        if (isMultiTimeFrameResistance(trend,timeframe,stockPrice, stockTechnicals)) {
+            log.debug("Multi-timeframe resistance confluence found for {} at {}", stockPrice.getStock().getNseSymbol(), timeframe);
+            return true;
         }
 
-        return Boolean.FALSE;
+        return false;
     }
 
-    @Override
-    public boolean isMultiTimeFrameBreakout(Stock stock, Trend trend) {
-
-
-        if(trend.getMomentum() == Momentum.PULLBACK) {
-            if (monthlySupportResistanceService.isBreakout(stock) && weeklySupportResistanceService.isBreakout(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (monthlySupportResistanceService.isBreakout(stock) && dailySupportResistanceService.isBreakout(stock)) {
-                return Boolean.TRUE;
-            }else if (weeklySupportResistanceService.isBreakout(stock) && dailySupportResistanceService.isBreakout(stock)) {
-                return Boolean.TRUE;
-            }
-        }
-        else if(trend.getMomentum() == Momentum.CORRECTION) {
-            if (quarterlySupportResistanceService.isBreakout(stock) && monthlySupportResistanceService.isBreakout(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (quarterlySupportResistanceService.isBreakout(stock) && weeklySupportResistanceService.isBreakout(stock)) {
-                return Boolean.TRUE;
-            }else if (monthlySupportResistanceService.isBreakout(stock) && weeklySupportResistanceService.isBreakout(stock)) {
-                return Boolean.TRUE;
-            }
-        }
-        else if(trend.getMomentum() == Momentum.BOTTOM){
-            if (yearlySupportResistanceService.isBreakout(stock) && quarterlySupportResistanceService.isBreakout(stock)) {
-                return Boolean.TRUE;
-            } else if (yearlySupportResistanceService.isBreakout(stock) && monthlySupportResistanceService.isBreakout(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (quarterlySupportResistanceService.isBreakout(stock) && monthlySupportResistanceService.isBreakout(stock)) {
-                return Boolean.TRUE;
-            }
-        }
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isMultiTimeFrameSupport(Stock stock, Trend trend) {
-
-        if(trend.getMomentum() == Momentum.PULLBACK) {
-            if (monthlySupportResistanceService.isNearSupport(stock) && weeklySupportResistanceService.isNearSupport(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (monthlySupportResistanceService.isNearSupport(stock) && dailySupportResistanceService.isNearSupport(stock)) {
-                return Boolean.TRUE;
-            }else if (weeklySupportResistanceService.isNearSupport(stock) && dailySupportResistanceService.isNearSupport(stock)) {
-                return Boolean.TRUE;
-            }
-        }
-        else if(trend.getMomentum() == Momentum.CORRECTION) {
-            if (quarterlySupportResistanceService.isNearSupport(stock) && monthlySupportResistanceService.isNearSupport(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (quarterlySupportResistanceService.isNearSupport(stock) && weeklySupportResistanceService.isNearSupport(stock)) {
-                return Boolean.TRUE;
-            }else if (monthlySupportResistanceService.isNearSupport(stock) && weeklySupportResistanceService.isNearSupport(stock)) {
-                return Boolean.TRUE;
-            }
-        }
-        else if(trend.getMomentum() == Momentum.BOTTOM){
-            if (yearlySupportResistanceService.isNearSupport(stock) && quarterlySupportResistanceService.isNearSupport(stock)) {
-                return Boolean.TRUE;
-            } else if (yearlySupportResistanceService.isNearSupport(stock) && monthlySupportResistanceService.isNearSupport(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (quarterlySupportResistanceService.isNearSupport(stock) && monthlySupportResistanceService.isNearSupport(stock)) {
-                return Boolean.TRUE;
-            }
-        }
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isBearish(Stock stock, Trend trend) {
-        /*
-         * 1. Breakdown support
-         */
-        if(this.isBreakdown(stock, trend)){
-            return Boolean.TRUE;
-        }
-        /*
-         * 2. Near Resistance
-         */
-        if(this.isNearResistance(stock, trend)){
-            return Boolean.TRUE;
-        }
-
-        return Boolean.TRUE;
-    }
-
-    @Override
-    public boolean isBreakdown(Stock stock, Trend trend) {
-        if(trend.getMomentum() ==Momentum.RECOVERY) {
-            if (candleStickHelperService.isBearishConfirmed(StockPriceUtil.buildStockPricePreviousQuarter(stock, miscUtil.previousQuarterFirstDay()), Boolean.FALSE)) {
-                //if(this.isMultiTimeFrameBreakdown(stock)|| yearlySupportResistanceService.isBreakdown(stock)|| quarterlySupportResistanceService.isBreakdown(stock) || monthlySupportResistanceService.isBreakdown(stock) || weeklySupportResistanceService.isBreakdown(stock) || dailySupportResistanceService.isBreakdown(stock)){
-                if(this.isMultiTimeFrameBreakdown(stock, trend) || weeklySupportResistanceService.isBreakdown(stock) ){
-                    return Boolean.TRUE;
-                }
-            }
-        }
-        else if(trend.getMomentum() ==Momentum.ADVANCE) {
-            if (candleStickHelperService.isBearishConfirmed(StockPriceUtil.buildStockPricePreviousMonth(stock, miscUtil.previousMonthFirstDay()), Boolean.FALSE)) {
-                //if(this.isMultiTimeFrameBreakdown(stock) || quarterlySupportResistanceService.isBreakdown(stock) || monthlySupportResistanceService.isBreakdown(stock) || weeklySupportResistanceService.isBreakdown(stock) || dailySupportResistanceService.isBreakdown(stock)){
-                if(this.isMultiTimeFrameBreakdown(stock, trend) || monthlySupportResistanceService.isBreakdown(stock)){
-                    return Boolean.TRUE;
-                }
-            }
-        }
-        else if(trend.getMomentum() ==Momentum.TOP) {
-            if (candleStickHelperService.isBearishConfirmed(StockPriceUtil.buildStockPricePreviousWeek(stock, miscUtil.previousWeekFirstDay()), Boolean.FALSE)) {
-                if(this.isMultiTimeFrameBreakdown(stock, trend) || yearlySupportResistanceService.isBreakdown(stock) || quarterlySupportResistanceService.isBreakdown(stock)){
-                    return Boolean.TRUE;
-                }
-            }
-        }
-
-
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isNearResistance(Stock stock, Trend trend) {
-        if(trend.getMomentum() ==Momentum.RECOVERY) {
-            if (candleStickHelperService.isBearishConfirmed(StockPriceUtil.buildStockPricePreviousQuarter(stock, miscUtil.previousQuarterFirstDay()), Boolean.FALSE)) {
-                if(this.isMultiTimeFrameResistance(stock, trend)  || weeklySupportResistanceService.isNearResistance(stock) ){
-                    return Boolean.TRUE;
-                }
-            }
-        }
-        else if(trend.getMomentum() ==Momentum.ADVANCE) {
-            if (candleStickHelperService.isBearishConfirmed(StockPriceUtil.buildStockPricePreviousMonth(stock, miscUtil.previousMonthFirstDay()), Boolean.FALSE)) {
-                if(this.isMultiTimeFrameResistance(stock, trend) || monthlySupportResistanceService.isNearResistance(stock)){
-                    return Boolean.TRUE;
-                }
-            }
-        }
-        else if(trend.getMomentum() ==Momentum.TOP) {
-            if (candleStickHelperService.isBearishConfirmed(StockPriceUtil.buildStockPricePreviousWeek(stock, miscUtil.previousWeekFirstDay()), Boolean.FALSE)) {
-                if(this.isMultiTimeFrameResistance(stock, trend)  || yearlySupportResistanceService.isNearResistance(stock) || quarterlySupportResistanceService.isNearResistance(stock)){
-                    return Boolean.TRUE;
-                }
-            }
-        }
-
-
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isMultiTimeFrameBreakdown(Stock stock, Trend trend) {
-
-        if(trend.getMomentum() == Momentum.RECOVERY) {
-            if (monthlySupportResistanceService.isBreakdown(stock) && weeklySupportResistanceService.isBreakdown(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (monthlySupportResistanceService.isBreakdown(stock) && dailySupportResistanceService.isBreakdown(stock)) {
-                return Boolean.TRUE;
-            }else if (weeklySupportResistanceService.isBreakdown(stock) && dailySupportResistanceService.isBreakdown(stock)) {
-                return Boolean.TRUE;
-            }
-        }
-        else if(trend.getMomentum() == Momentum.ADVANCE) {
-            if (quarterlySupportResistanceService.isBreakdown(stock) && monthlySupportResistanceService.isBreakdown(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (quarterlySupportResistanceService.isBreakdown(stock) && weeklySupportResistanceService.isBreakdown(stock)) {
-                return Boolean.TRUE;
-            }else if (monthlySupportResistanceService.isBreakdown(stock) && weeklySupportResistanceService.isBreakdown(stock)) {
-                return Boolean.TRUE;
-            }
-        }
-        else if(trend.getMomentum() == Momentum.TOP){
-            if (yearlySupportResistanceService.isBreakdown(stock) && quarterlySupportResistanceService.isBreakdown(stock)) {
-                return Boolean.TRUE;
-            } else if (yearlySupportResistanceService.isBreakdown(stock) && monthlySupportResistanceService.isBreakdown(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (quarterlySupportResistanceService.isBreakdown(stock) && monthlySupportResistanceService.isBreakdown(stock)) {
-                return Boolean.TRUE;
-            }
-        }
-
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isMultiTimeFrameResistance(Stock stock, Trend trend) {
-
-
-        if(trend.getMomentum() == Momentum.RECOVERY) {
-            if (monthlySupportResistanceService.isNearResistance(stock) && weeklySupportResistanceService.isNearResistance(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (monthlySupportResistanceService.isNearResistance(stock) && dailySupportResistanceService.isNearResistance(stock)) {
-                return Boolean.TRUE;
-            }else if (weeklySupportResistanceService.isNearResistance(stock) && dailySupportResistanceService.isNearResistance(stock)) {
-                return Boolean.TRUE;
-            }
-        }
-        else if(trend.getMomentum() == Momentum.ADVANCE) {
-            if (quarterlySupportResistanceService.isNearResistance(stock) && monthlySupportResistanceService.isNearResistance(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (quarterlySupportResistanceService.isNearResistance(stock) && weeklySupportResistanceService.isNearResistance(stock)) {
-                return Boolean.TRUE;
-            }else if (monthlySupportResistanceService.isNearResistance(stock) && weeklySupportResistanceService.isNearResistance(stock)) {
-                return Boolean.TRUE;
-            }
-        }
-        else if(trend.getMomentum() == Momentum.TOP){
-            if (yearlySupportResistanceService.isNearResistance(stock) && quarterlySupportResistanceService.isNearResistance(stock)) {
-                return Boolean.TRUE;
-            } else if (yearlySupportResistanceService.isNearResistance(stock) && monthlySupportResistanceService.isNearResistance(stock)) {
-                return Boolean.TRUE;
-            }
-            else if (quarterlySupportResistanceService.isNearResistance(stock) && monthlySupportResistanceService.isNearResistance(stock)) {
-                return Boolean.TRUE;
-            }
-        }
-
-        return Boolean.FALSE;
+    private boolean isMultiTimeFrameResistance(Trend trend, Timeframe timeframe,StockPrice stockPrice, StockTechnicals stockTechnicals ) {
+        return switch (timeframe) {
+            case DAILY -> weeklySupportResistanceService.isNearResistance(Timeframe.WEEKLY, stockPrice, stockTechnicals) &&
+                    monthlySupportResistanceService.isNearResistance(Timeframe.MONTHLY, stockPrice, stockTechnicals);
+            case WEEKLY -> quarterlySupportResistanceService.isNearResistance(Timeframe.QUARTERLY, stockPrice, stockTechnicals) &&
+                    monthlySupportResistanceService.isNearResistance(Timeframe.MONTHLY, stockPrice, stockTechnicals);
+            case MONTHLY -> yearlySupportResistanceService.isNearResistance(Timeframe.YEARLY, stockPrice, stockTechnicals) &&
+                    quarterlySupportResistanceService.isNearResistance(Timeframe.QUARTERLY, stockPrice, stockTechnicals);
+            default -> false;
+        };
     }
 }

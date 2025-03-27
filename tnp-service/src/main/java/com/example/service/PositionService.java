@@ -1,9 +1,9 @@
 package com.example.service;
 
-import com.example.model.ledger.ResearchLedgerTechnical;
-import com.example.model.um.UserProfile;
+import com.example.enhanced.model.research.ResearchTechnical;
+import com.example.model.um.User;
 
 public interface PositionService {
 
-    public long calculate(UserProfile userProfile, ResearchLedgerTechnical researchLedgerTechnical);
+    public long calculate(User user, ResearchTechnical researchTechnical);
 }

@@ -1,55 +1,65 @@
 package com.example.service;
 
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.model.stocks.StockTechnicals;
 import com.example.model.master.Stock;
+import com.example.util.io.model.type.Timeframe;
 import com.example.util.io.model.type.Trend;
 
+import java.sql.Time;
+
+
 /**
- * Works in respect of Monthly, Weekly and Daily
- *
- * Primary Trend - Monthly
- * Secondary Trend - Weekly
- * Minor Trend - Daily
- *
+ * Service interface for determining support and resistance levels
+ * across multiple timeframes and assessing bullish or bearish conditions.
+ * @author phs
  */
 public interface TimeframeSupportResistanceService {
+
+
+
     /**
+     * Checks if a breakout has occurred at the given timeframe.
+     * A breakout occurs when the stock price moves above a resistance level.
      *
-     * 1. Breakout monthly and weekly resistance
-     * 1.1. Breakout can be confirmed using PlusDi increasing, MinusDi decreasing and ADX increasing
-     * 2. Near support monthly and weekly
-     * 2.1 Support can be confirmed using RSI
-     * a. Check for prior 2 weeks candle and see if bullish
-     * b. Check for daily candle and see if bullish
-     * Should be executed in a downtrend
-     * @param stock
-     * @return
+     * @param stock     The stock being analyzed.
+     * @param timeframe The timeframe for analysis.
+     * @param trend     The overall trend of the stock.
+     * @return true if a breakout is detected, false otherwise.
      */
-    public boolean isBullish(Stock stock, Trend trend);
+    public boolean isBreakout(Trend trend, Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
-    public boolean isBreakout(Stock stock, Trend trend);
-
-    public boolean isNearSupport(Stock stock, Trend trend);
-
-    public boolean isMultiTimeFrameBreakout(Stock stock, Trend trend);
-    public boolean isMultiTimeFrameSupport(Stock stock, Trend trend);
     /**
-     * 1. Breakdown monthly support and weekly
-     * 1.1. Breakdown can be confirmed using MinusDi increasing, PlusDi decreasing and ADX increasing
-     * 2. Near resistance monthly and weekly
-     * 2.1 Resistance can be confirmed using RSI
-     * a. Check for prior 2 Weeks candle and see if bearish
-     * b. Check for daily candle and see if bearish
-     * Should be executed in a uptrend
-     * @param stock
-     * @return
+     * Determines if the stock is near a key support level.
+     * A stock is considered near support if it is close to a historically significant price level.
+     *
+     * @param stock     The stock being analyzed.
+     * @param timeframe The timeframe for analysis.
+     * @param trend     The overall trend of the stock.
+     * @return true if the stock is near a support level, false otherwise.
      */
-    public boolean isBearish(Stock stock, Trend trend);
+    public boolean isNearSupport(Trend trend, Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
-    public boolean isBreakdown(Stock stock, Trend trend);
 
-    public boolean isNearResistance(Stock stock, Trend trend);
+    /**
+     * Checks if a breakdown has occurred at the given timeframe.
+     * A breakdown occurs when the stock price falls below a support level.
+     *
+     * @param stock     The stock being analyzed.
+     * @param timeframe The timeframe for analysis.
+     * @param trend     The overall trend of the stock.
+     * @return true if a breakdown is detected, false otherwise.
+     */
+    public boolean isBreakdown(Trend trend, Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
-    public boolean isMultiTimeFrameBreakdown(Stock stock, Trend trend);
-
-    public boolean isMultiTimeFrameResistance(Stock stock, Trend trend);
+    /**
+     * Determines if the stock is near a key resistance level.
+     * A stock is considered near resistance if it is close to a historically significant price level.
+     *
+     * @param stock     The stock being analyzed.
+     * @param timeframe The timeframe for analysis.
+     * @param trend     The overall trend of the stock.
+     * @return true if the stock is near a resistance level, false otherwise.
+     */
+    public boolean isNearResistance(Trend trend, Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 }

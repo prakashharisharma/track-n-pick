@@ -4,11 +4,11 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import com.example.model.um.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.model.ledger.PerformanceLedger;
-import com.example.model.um.UserProfile;
 import com.example.repo.ledger.PerformanceLedgerRepository;
 import com.example.util.MiscUtil;
 
@@ -20,34 +20,28 @@ public class PerformanceLedgerService {
 	private PerformanceLedgerRepository performanceLedgerRepository;
 
 	@Autowired
-	private PortfolioService portfolioService;
-
-	@Autowired
 	private FundsLedgerService fundsLedgerService;
 
 	@Autowired
 	private MiscUtil miscUtil;
 
-	public void updateMonthlyPerformance(UserProfile user, double investmentValue, double portfolioValue) {
+	public void updateMonthlyPerformance(User user, double investmentValue, double portfolioValue) {
 
 		PerformanceLedger pl = new PerformanceLedger(user, investmentValue, portfolioValue,
 				miscUtil.currentMonthFirstDay());
 		performanceLedgerRepository.save(pl);
 	}
 
-	public void updateMonthlyPerformance(UserProfile user) {
+	public void updateMonthlyPerformance(User user) {
 
-		double investmentValue = fundsLedgerService.currentFinYearInvestment(user);
+		double investmentValue = fundsLedgerService.allTimeInvestment(user);
 		
-		double portfolioValue = portfolioService.currentValue(user);
+		//double portfolioValue = portfolioServiceOld.currentValue(user);
+		double portfolioValue = 0.0;
 
 		PerformanceLedger pl = new PerformanceLedger(user, investmentValue, portfolioValue,miscUtil.currentMonthFirstDay());
 		performanceLedgerRepository.save(pl);
 	}
-	
-	public List<PerformanceLedger> yearlyPerformance(UserProfile user){
-		
-		return performanceLedgerRepository.findByUserIdAndPerformanceDateGreaterThanEqual(user, miscUtil.currentDatePrevYear());
-	}
+
 
 }

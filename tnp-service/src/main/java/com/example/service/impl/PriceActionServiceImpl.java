@@ -1,19 +1,20 @@
 package com.example.service.impl;
 
 import com.example.dto.TradeSetup;
+import com.example.enhanced.model.research.ResearchTechnical;
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.enhanced.service.StockPriceService;
+import com.example.enhanced.service.StockTechnicalsService;
 import com.example.model.ledger.BreakoutLedger;
-import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.master.Stock;
-import com.example.model.stocks.StockPrice;
 import com.example.service.*;
 import com.example.util.FormulaService;
-import com.example.util.io.model.type.Momentum;
+import com.example.util.io.model.type.Timeframe;
 import com.example.util.io.model.type.Trend;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import static com.example.util.io.model.type.Trend.Strength.INVALID;
 
 @Slf4j
 @Service
@@ -22,9 +23,7 @@ public class PriceActionServiceImpl implements PriceActionService {
     @Autowired
     private SupportResistanceUtilService supportResistanceService;
     @Autowired
-    private CandleStickHelperService candleStickHelperService;
-    @Autowired
-    private VolumeService volumeService;
+    private CandleStickConfirmationService candleStickHelperService;
 
     @Autowired
     private CandleStickService candleStickService;
@@ -33,7 +32,7 @@ public class PriceActionServiceImpl implements PriceActionService {
     private BreakoutLedgerService breakoutLedgerService;
 
     @Autowired
-    private StockPriceService stockPriceService;
+    private StockPriceServiceOld stockPriceServiceOld;
     @Autowired
     private RelevanceService relevanceService;
     @Autowired
@@ -44,31 +43,37 @@ public class PriceActionServiceImpl implements PriceActionService {
     @Autowired
     private RsiIndicatorService rsiIndicatorService;
 
+
+    @Autowired
+    private StockPriceService<StockPrice> stockPriceService;
+
+    @Autowired
+    private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
+
     @Override
-    public TradeSetup breakOut(Stock stock) {
-        if (candleStickService.isDead(stock)) {
+    public TradeSetup breakOut(Stock stock,
+                               Timeframe timeframe) {
+
+
+        StockPrice stockPrice = stockPriceService.get(stock, timeframe);
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
+        if (candleStickService.isDead(stockPrice)) {
             return TradeSetup.builder().active(Boolean.FALSE).build();
         }
 
         boolean isCandleActive = Boolean.FALSE;
-        Trend trend = trendService.isDownTrend(stock);
-        //Momentum momentum = trendService.scanBullish(stock);
-        ResearchLedgerTechnical.SubStrategy subStrategy = ResearchLedgerTechnical.SubStrategy.SRTF;
-        double riskRewardRatio = 0.0;
-        if (trend.getStrength() != INVALID) {
-            if (candleStickHelperService.isBullishConfirmed(stock, Boolean.TRUE)){
-                //log.info("{} bullish candlestick active", stock.getNseSymbol());
-                 if (relevanceService.isBullishIndicator(stock, trend)) {
-                    subStrategy = ResearchLedgerTechnical.SubStrategy.RMAO;
-                    riskRewardRatio = RiskReward.PRICE_RMAO;
+        Trend trend = trendService.detect(stock, timeframe);
+        ResearchTechnical.SubStrategy subStrategy = ResearchTechnical.SubStrategy.SRTF;
+        if (trend.getDirection() == Trend.Direction.DOWN) {
+            if (candleStickHelperService.isBullishConfirmed(timeframe,stockPrice, stockTechnicals)){
+                 if (relevanceService.isBullishIndicator(trend, timeframe, stockPrice, stockTechnicals)) {
+                    subStrategy = ResearchTechnical.SubStrategy.RMAO;
                     isCandleActive = Boolean.TRUE;
-                }else if (relevanceService.isBullishTimeFrame(stock, trend, 1.5)) {
-                     subStrategy = ResearchLedgerTechnical.SubStrategy.SRTF;
-                     riskRewardRatio = RiskReward.PRICE_SRTF;
+                }else if (relevanceService.isBullishTimeFrame(trend, timeframe, stockPrice, stockTechnicals, 1.5)) {
+                     subStrategy = ResearchTechnical.SubStrategy.SRTF;
                      isCandleActive = Boolean.TRUE;
-                }else if (relevanceService.isBullishMovingAverage(stock, trend, 1.5)) {
-                     subStrategy = ResearchLedgerTechnical.SubStrategy.SRMA;
-                     riskRewardRatio = RiskReward.PRICE_SRMA;
+                }else if (relevanceService.isBullishMovingAverage(trend, timeframe, stockPrice, stockTechnicals, 1.5)) {
+                     subStrategy = ResearchTechnical.SubStrategy.SRMA;
                      isCandleActive = Boolean.TRUE;
                  }
             }
@@ -76,27 +81,12 @@ public class PriceActionServiceImpl implements PriceActionService {
 
 
         if (isCandleActive) {
-            log.info("{} bullish candlestick confirmed using {}:{}", stock.getNseSymbol(), ResearchLedgerTechnical.Strategy.PRICE, subStrategy);
-            StockPrice stockPrice = stock.getStockPrice();
-
-            double entryPrice = stockPrice.getHigh();
-            double stopLossPrice = stockPrice.getLow();
-            double targetPrice = formulaService.calculateTarget(entryPrice, stopLossPrice, riskRewardRatio);
-
-            double risk = Math.abs(formulaService.calculateChangePercentage(entryPrice, stopLossPrice));
-            double correction = stockPriceService.correction(stock);
-            log.info("{} bullish price action active for trend:{}, momentum:{}, entryPrice:{}, targetPrice:{}, stopLossPrice:{}, risk {}, correction {}"
-                    , stock.getNseSymbol(), trend.getStrength(), trend.getMomentum(), entryPrice, targetPrice, stopLossPrice, risk, correction);
+            log.info("{} bullish candlestick confirmed using {}:{}", stock.getNseSymbol(), ResearchTechnical.Strategy.PRICE, subStrategy);
 
             return TradeSetup.builder()
                     .active(Boolean.TRUE)
-                    .strategy(ResearchLedgerTechnical.Strategy.PRICE)
+                    .strategy(ResearchTechnical.Strategy.PRICE)
                     .subStrategy(subStrategy)
-                    .entryPrice(entryPrice)
-                    .stopLossPrice(stopLossPrice)
-                    .targetPrice(targetPrice)
-                    .risk(risk)
-                    .correction(correction)
                     .build();
         }
 
@@ -105,53 +95,41 @@ public class PriceActionServiceImpl implements PriceActionService {
 
 
     @Override
-    public TradeSetup breakDown(Stock stock) {
-        if (candleStickService.isDead(stock)) {
+    public TradeSetup breakDown(Stock stock, Timeframe timeframe) {
+
+        StockPrice stockPrice = stockPriceService.get(stock, timeframe);
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
+        if (candleStickService.isDead(stockPrice)) {
             return TradeSetup.builder().active(Boolean.FALSE).build();
         }
 
         boolean isCandleActive = Boolean.FALSE;
 
-        Trend trend = trendService.isUpTrend(stock);
-        //Momentum momentum = trendService.scanBearish(stock);
-        ResearchLedgerTechnical.SubStrategy subStrategy = ResearchLedgerTechnical.SubStrategy.SRTF;
-        if (trend.getStrength() != INVALID) {
-            if (candleStickHelperService.isBearishConfirmed(stock, Boolean.TRUE)){
-                //log.info("{} bearish candlestick active {}", stock.getNseSymbol());
-                if (relevanceService.isBearishIndicator(stock, trend)) {
-                    subStrategy = ResearchLedgerTechnical.SubStrategy.RMAO;
+        Trend trend = trendService.detect(stock, timeframe);
+        ResearchTechnical.SubStrategy subStrategy = ResearchTechnical.SubStrategy.SRTF;
+        if (trend.getDirection() == Trend.Direction.UP) {
+            if (candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals)){
+                if (relevanceService.isBearishIndicator(trend, timeframe, stockPrice, stockTechnicals)) {
+                    subStrategy = ResearchTechnical.SubStrategy.RMAO;
                     isCandleActive = Boolean.TRUE;
-                }else if (relevanceService.isBearishTimeFrame(stock, trend, 1.5)) {
-                    subStrategy = ResearchLedgerTechnical.SubStrategy.SRTF;
+                }else if (relevanceService.isBearishTimeFrame(trend, timeframe, stockPrice, stockTechnicals, 1.5)) {
+                    subStrategy = ResearchTechnical.SubStrategy.SRTF;
                     isCandleActive = Boolean.TRUE;
-                }else if (relevanceService.isBearishMovingAverage(stock, trend, 1.5)) {
-                    subStrategy = ResearchLedgerTechnical.SubStrategy.SRMA;
+                }else if (relevanceService.isBearishMovingAverage(trend, timeframe, stockPrice, stockTechnicals, 1.5)) {
+                    subStrategy = ResearchTechnical.SubStrategy.SRMA;
                     isCandleActive = Boolean.TRUE;
                 }
             }
         }
 
         if (isCandleActive) {
-            log.info("{} bearish candlestick confirmed using {}:{}", stock.getNseSymbol(), ResearchLedgerTechnical.Strategy.PRICE, subStrategy);
-            StockPrice stockPrice = stock.getStockPrice();
+            log.info("{} bearish candlestick confirmed using {}:{}", stock.getNseSymbol(), ResearchTechnical.Strategy.PRICE, subStrategy);
 
-            double entryPrice = stockPrice.getLow();
-            double stopLossPrice = stockPrice.getHigh();
-            double targetPrice = formulaService.calculateTarget(entryPrice, stopLossPrice, RiskReward.PRICE_SRTF);
-            double risk = 0.0;
-            double correction = 0.0;
-            log.info("{} bearish price action active for trend:{}, momentum:{}, entryPrice:{}, targetPrice:{}, stopLossPrice:{}, risk {}, correction {}"
-                    , stock.getNseSymbol(), trend.getStrength(), trend.getMomentum(), entryPrice, targetPrice, stopLossPrice, risk, correction);
-            breakoutLedgerService.addNegative(stock, BreakoutLedger.BreakoutCategory.BREAKDOWN_CANDLESTICK);
+            breakoutLedgerService.addNegative(stock, timeframe, BreakoutLedger.BreakoutCategory.BREAKDOWN_CANDLESTICK);
             return TradeSetup.builder()
                     .active(Boolean.TRUE)
-                    .strategy(ResearchLedgerTechnical.Strategy.PRICE)
+                    .strategy(ResearchTechnical.Strategy.PRICE)
                     .subStrategy(subStrategy)
-                    .entryPrice(entryPrice)
-                    .stopLossPrice(stopLossPrice)
-                    .targetPrice(targetPrice)
-                    .risk(risk)
-                    .correction(correction)
                     .build();
         }
 

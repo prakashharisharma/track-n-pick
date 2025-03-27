@@ -6,8 +6,6 @@ import java.util.List;
 
 public interface SimpleMovingAverageCalculatorService {
 
-    public List<Double> calculate(List<OHLCV> ohlcvList, int days);
-
-    public Double calculate(OHLCV ohlcv, double prevSMA, int days);
+    public List<Double> calculate(List<OHLCV> ohlcvList, int period);
 
 }

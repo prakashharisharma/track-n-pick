@@ -33,7 +33,6 @@ public class OnBalanceVolumeCalculatorServiceImpl implements OnBalanceVolumeCalc
         long obvAverage = 0;
         OnBalanceVolume onBalanceVolume = new OnBalanceVolume(0l, 0l);
         onBalanceVolumeList.add(onBalanceVolume);
-        System.out.println(LocalDate.ofInstant(ohlcvList.get(0).getBhavDate(), ZoneOffset.UTC) +" : "+onBalanceVolume);
         for (int i = 1; i < ohlcvList.size(); i++) {
             obv = this.calculateObv(ohlcvList.get(i), ohlcvList.get(i-1), obv);
             onBalanceVolumeList.add(i, new OnBalanceVolume(obv, 0l));

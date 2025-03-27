@@ -1,6 +1,7 @@
 package com.example.service;
 
-import com.example.model.master.Stock;
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.storage.model.StockTechnicals;
 import com.example.util.FibonacciRatio;
 
 public interface CandleStickService {
@@ -25,210 +26,238 @@ public interface CandleStickService {
 
     public static final double EPSILON_PER = 0.1618;
 
-    public boolean isDead(Stock stock);
 
-    public double upperWickSize(Stock stock);
 
-    public double lowerWickSize(Stock stock);
 
-    public double body(Stock stock);
+    public boolean isDead(StockPrice stockPrice);
 
-    public double bodyPrev(Stock stock);
+    public double upperWickSize(StockPrice stockPrice);
 
-    public double range(Stock stock);
+    public double lowerWickSize(StockPrice stockPrice);
 
-    public double rangePrev(Stock stock);
+    public double currentBodySize(StockPrice stockPrice);
 
-    public boolean isCloseAbovePrevClose(Stock stock);
+    public double prevBodySize(StockPrice stockPrice);
 
-    public boolean isCloseBelowPrevClose(Stock stock);
+    public double range(StockPrice stockPrice);
 
-    public boolean isOpenAbovePrevClose(Stock stock);
+    public double prevRange(StockPrice stockPrice);
+    public boolean hasLongLowerWick(StockPrice stockPrice);
 
-    public boolean isOpenBelowPrevClose(Stock stock);
+    public boolean isOpenInsidePrevBody(StockPrice stockPrice);
 
-    public boolean isOpenAtPrevOpen(Stock stock);
+    public boolean isCloseInsidePrevBody(StockPrice stockPrice);
 
-    public boolean isOpenAtPrevClose(Stock stock);
+    public boolean isCloseAbovePrevClose(StockPrice stockPrice);
 
-    public boolean isOpenAbovePrevOpen(Stock stock);
+    public boolean isCloseBelowPrevClose(StockPrice stockPrice);
 
-    public boolean isOpenBelowPrevOpen(Stock stock);
+    public boolean isOpenAbovePrevClose(StockPrice stockPrice);
 
-    public boolean isCloseAbovePrevOpen(Stock stock);
-    public boolean isCloseBelowPrevOpen(Stock stock);
+    public boolean isOpenBelowPrevClose(StockPrice stockPrice);
 
-    public boolean isOpenAndLowEqual(Stock stock);
+    public boolean isOpenAtPrevOpen(StockPrice stockPrice);
 
-    public boolean isOpenAndHighEqual(Stock stock);
+    public boolean isOpenAtPrevClose(StockPrice stockPrice);
 
-    public boolean isCloseAndLowEqual(Stock stock);
+    public boolean isOpenAbovePrevOpen(StockPrice stockPrice);
 
-    public boolean isCloseAndHighEqual(Stock stock);
+    public boolean isOpenBelowPrevOpen(StockPrice stockPrice);
 
-    public boolean isCloseBelowPrevLow(Stock stock);
+    public boolean isCloseAbovePrevOpen(StockPrice stockPrice);
+    public boolean isCloseBelowPrevOpen(StockPrice stockPrice);
 
-    public boolean isHigherHigh(Stock stock);
+    public boolean isOpenAndLowEqual(StockPrice stockPrice);
 
-    public boolean isHigherLow(Stock stock);
+    public boolean isOpenAndHighEqual(StockPrice stockPrice);
 
-    public boolean isLowerHigh(Stock stock);
+    public boolean isCloseAndLowEqual(StockPrice stockPrice);
 
-    public boolean isLowerLow(Stock stock);
+    public boolean isCloseAndHighEqual(StockPrice stockPrice);
 
-    public boolean isSellingWickPresent(Stock stock);
+    public boolean isCloseBelowPrevLow(StockPrice stockPrice);
 
-    public boolean isSellingWickPresent(Stock stock, double benchmark);
+    public boolean isHigherHigh(StockPrice stockPrice);
 
-    public boolean isSellingWickPresent(double open, double high, double low, double close, double benchmark);
+    public boolean isHigherLow(StockPrice stockPrice);
 
-    public boolean isBuyingWickPresent(Stock stock);
+    public boolean isPrevHigherHigh(StockPrice stockPrice);
 
-    public boolean isBuyingWickPresent(Stock stock, double benchmark);
+    public boolean isPrevHigherLow(StockPrice stockPrice);
 
-    public boolean isBuyingWickPresent(double open, double high, double low, double close, double benchmark);
+    public boolean isLowerHigh(StockPrice stockPrice);
 
-    public boolean isGreen(Stock stock);
 
-    public boolean isGapUp(Stock stock);
+    public boolean isLowerLow(StockPrice stockPrice);
 
-    public boolean isGapDown(Stock stock);
+    public boolean isPrevLowerHigh(StockPrice stockPrice);
+    public boolean isPrevLowerLow(StockPrice stockPrice);
 
-    public boolean isRisingWindow(Stock stock);
-    public boolean isFallingWindow(Stock stock);
+    public boolean isSellingWickPresent(StockPrice stockPrice);
 
-    public boolean isPreviousDayGreen(Stock stock);
-    public boolean isRed(Stock stock);
-    public boolean isPreviousDayRed(Stock stock);
+    public boolean isSellingWickPresent(StockPrice stockPrice, double benchmark);
+
+    public boolean isBuyingWickPresent(StockPrice stockPrice);
+
+    public boolean isBuyingWickPresent(StockPrice stockPrice, double benchmark);
+
+
+    public boolean isGapUp(StockPrice stockPrice);
+
+    public boolean isGapDown(StockPrice stockPrice);
+
+    public boolean isRisingWindow(StockPrice stockPrice);
+    public boolean isFallingWindow(StockPrice stockPrice);
+
+    public boolean isGreen(StockPrice stockPrice);
+
+    public boolean isPreviousSessionGreen(StockPrice stockPrice);
+    public boolean isRed(StockPrice stockPrice);
+    public boolean isPreviousSessionRed(StockPrice stockPrice);
 
     /**
      * The following conditions enhance the probability
      * Stock must be in overbaught / oversold condition
      * Volume above avg
      * Gap up or gap down next day
-     * @param stock
+     * @param stockPrice
      * @return
      */
-    public boolean isDoji(Stock stock);
-    public boolean isDojiPrev(Stock stock);
+    public boolean isDoji(StockPrice stockPrice);
+    public boolean isPrevDoji(StockPrice stockPrice);
     /**
      * The following conditions enhance the probability
      * Stock must be in overbaught / oversold condition
      * Volume above avg
      * Gap up or gap down next day
-     * @param stock
+     * @param stockPrice
      * @return
      */
-    public boolean isGravestoneDoji(Stock stock);
+    public boolean isGravestoneDoji(StockPrice stockPrice);
 
-    public boolean isDragonflyDoji(Stock stock);
+    public boolean isDragonflyDoji(StockPrice stockPrice);
 
 
-    public boolean isBullishPinBar(Stock stock);
+    public boolean isBullishPinBar(StockPrice stockPrice);
 
-    public boolean isBearishPinBar(Stock stock);
+    public boolean isBearishPinBar(StockPrice stockPrice);
 
-    public boolean isSpinningTop(Stock stock);
+    public boolean isSpinningTop(StockPrice stockPrice);
 
-    public boolean isSpinningTopPrev(Stock stock);
+    public boolean isPrevSpinningTop(StockPrice stockPrice);
 
-    public boolean isInDecision(Stock stock);
+    public boolean isInDecision(StockPrice stockPrice);
 
-    public boolean isInDecisionPrev(Stock stock);
+    public boolean isPrevInDecision(StockPrice stockPrice);
 
-    public boolean isInDecisionPrevConfirmationBullish(Stock stock);
+    public boolean isPrevInDecisionConfirmationBullish(StockPrice stockPrice);
 
-    public boolean isInDecisionPrevConfirmationBearish(Stock stock);
+    public boolean isPrevInDecisionConfirmationBearish(StockPrice stockPrice);
 
     /**
      * Need confirmation
-     * @param stock
+     * @param stockPrice
      * @return
      */
-    public boolean isHangingMan(Stock stock);
+    public boolean isHangingMan(StockPrice stockPrice);
 
-    public boolean isHammer(Stock stock);
+    public boolean isHammer(StockPrice stockPrice);
 
-    public boolean isShootingStar(Stock stock);
+    public boolean isShootingStar(StockPrice stockPrice);
 
     /**
      * Need confirmation
-     * @param stock
+     * @param stockPrice
      * @return
      */
-    public boolean isInvertedHammer(Stock stock);
+    public boolean isInvertedHammer(StockPrice stockPrice);
 
-    public boolean isOpenHigh(Stock stock);
+    public boolean isOpenHigh(StockPrice stockPrice);
 
-    public boolean isOpenLow(Stock stock);
+    public boolean isOpenLow(StockPrice stockPrice);
+    public boolean isBearishMarubozu(StockPrice stockPrice);
 
-    public boolean isBearishEngulfing(Stock stock);
+    public boolean isBullishMarubozu(StockPrice stockPrice);
 
-    public boolean isBullishEngulfing(Stock stock);
 
-    public boolean isBullishOutsideBar(Stock stock);
+    public boolean isBearishEngulfing(StockPrice stockPrice);
 
-    public boolean isBearishOutsideBar(Stock stock);
+    public boolean isBullishEngulfing(StockPrice stockPrice);
 
-    public boolean isBearishMarubozu(Stock stock);
+    public boolean isBullishOutsideBar(StockPrice stockPrice);
 
-    public boolean isBullishhMarubozu(Stock stock);
+    public boolean isBearishOutsideBar(StockPrice stockPrice);
 
-    public boolean isTweezerTop(Stock stock);
+    public boolean isTweezerTop(StockPrice stockPrice);
 
-    public boolean isDoubleHigh(Stock stock);
+    public boolean isDoubleTop(StockPrice stockPrice);
 
-    public boolean isDoubleTop(Stock stock);
 
-    public boolean isTweezerBottom(Stock stock);
-    public boolean isDoubleLow(Stock stock);
+    public boolean isTweezerBottom(StockPrice stockPrice);
+    public boolean isDoubleBottom(StockPrice stockPrice);
 
-    public boolean isDoubleBottom(Stock stock);
-    public boolean isDarkCloudCover(Stock stock);
+    public boolean isDarkCloudCover(StockPrice stockPrice);
 
-    public boolean isPiercingPattern(Stock stock);
+    public boolean isPiercingPattern(StockPrice stockPrice);
 
-    public boolean isBullishKicker(Stock stock);
+    public boolean isBullishKicker(StockPrice stockPrice);
 
-    public boolean isBearishKicker(Stock stock);
+    public boolean isBearishKicker(StockPrice stockPrice);
 
-    public boolean isBullishSash(Stock stock);
+    public boolean isBullishSash(StockPrice stockPrice);
 
-    public boolean isBearishSash(Stock stock);
+    public boolean isBearishSash(StockPrice stockPrice);
 
-    public boolean isBullishSeparatingLine(Stock stock);
+    public boolean isBullishSeparatingLine(StockPrice stockPrice);
 
-    public boolean isBearishSeparatingLine(Stock stock);
+    public boolean isBearishSeparatingLine(StockPrice stockPrice);
 
     /**
      * Need confirmation
-     * @param stock
+     * @param stockPrice
      * @return
      */
-    public boolean isBearishHarami(Stock stock);
+    public boolean isBearishHarami(StockPrice stockPrice);
 
     /**
      * Need confirmation
-     * @param stock
+     * @param stockPrice
      * @return
      */
-    public boolean isBullishHarami(Stock stock);
+    public boolean isBullishHarami(StockPrice stockPrice);
 
     /**
      * Need confirmation
-     * @param stock
+     * @param stockPrice
      * @return
      */
-    public boolean isBullishInsideBar(Stock stock);
+    public boolean isBullishInsideBar(StockPrice stockPrice);
 
     /**
      * Need confirmation
-     * @param stock
+     * @param stockPrice
      * @return
      */
-    public boolean isBearishInsideBar(Stock stock);
+    public boolean isBearishInsideBar(StockPrice stockPrice);
 
-    public boolean isBullishSoldiers(Stock stock);
 
-    public boolean isBearishSoldiers(Stock stock);
+    public boolean isThreeWhiteSoldiers(StockPrice stockPrice);
+
+    public boolean isThreeBlackCrows(StockPrice stockPrice);
+
+    public boolean isThreeInsideUp(StockPrice stockPrice);
+
+    public boolean isThreeInsideDown(StockPrice stockPrice);
+
+    public boolean isThreeOutsideUp(StockPrice stockPrice);
+
+    public boolean isThreeOutsideDown(StockPrice stockPrice);
+
+    public boolean isMorningStar(StockPrice stockPrice);
+
+    public boolean isEveningStar(StockPrice stockPrice);
+
+    public boolean isRisingThreeMethods(StockPrice stockPrice);
+
+    public boolean isFallingThreeMethods(StockPrice stockPrice);
 }

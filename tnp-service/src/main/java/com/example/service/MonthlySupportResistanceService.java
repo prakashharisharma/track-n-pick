@@ -1,36 +1,24 @@
 package com.example.service;
 
 import com.example.dto.OHLCV;
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.model.stocks.StockTechnicals;
 import com.example.model.master.Stock;
+import com.example.util.io.model.type.Timeframe;
+
+import java.time.LocalDate;
 
 public interface MonthlySupportResistanceService {
 
-    /**
-     *
-     * 1. Breakout monthly resistance
-     * 2. Near support
-     * Should be executed in a downtrend
-     * @param stock
-     * @return
-     */
-    public boolean isBullish(Stock stock);
+    public boolean isBreakout(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
-    public boolean isBreakout(Stock stock);
+    public boolean isNearSupport(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
-    public boolean isNearSupport(Stock stock);
 
-    /**
-     * 1. Breakdown monthly support
-     * 2. Near resistance
-     * Should be executed in a uptrend
-     * @param stock
-     * @return
-     */
-    public boolean isBearish(Stock stock);
+    public boolean isBreakdown(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
-    public boolean isBreakdown(Stock stock);
-
-    public boolean isNearResistance(Stock stock);
+    public boolean isNearResistance(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
     public OHLCV supportAndResistance(Stock stock);
+    public OHLCV supportAndResistance(String nseSymbol, LocalDate from, LocalDate to);
 }

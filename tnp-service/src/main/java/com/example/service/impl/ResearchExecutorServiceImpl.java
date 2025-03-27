@@ -1,18 +1,25 @@
 package com.example.service.impl;
 
 import com.example.dto.TradeSetup;
+import com.example.enhanced.model.research.ResearchTechnical;
+import com.example.enhanced.model.stocks.StockPrice;
+import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.enhanced.model.um.Trade;
+import com.example.enhanced.service.ResearchTechnicalService;
+import com.example.enhanced.service.StockPriceService;
+import com.example.enhanced.service.StockTechnicalsService;
 import com.example.model.ledger.BreakoutLedger;
-import com.example.model.ledger.ResearchLedgerTechnical;
 import com.example.model.ledger.ValuationLedger;
 import com.example.model.master.Stock;
-import com.example.model.stocks.StockPrice;
 import com.example.service.*;
 import com.example.util.FormulaService;
-import com.example.util.io.model.ResearchIO;
+import com.example.util.MiscUtil;
+import com.example.util.io.model.type.Timeframe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
+import java.time.LocalDate;
 
 @Slf4j
 @Service
@@ -20,26 +27,25 @@ import javax.transaction.Transactional;
 public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
     private static final double MAX_RISK = 10.0;
-    @Autowired
-    private ResearchLedgerFundamentalService researchLedgerFundamentalService;
 
     @Autowired
-    private ResearchLedgerTechnicalService researchLedgerTechnicalService;
+    private MiscUtil miscUtil;
+
+    @Autowired
+    private ResearchLedgerFundamentalService researchLedgerFundamentalService;
+    @Autowired
+    private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
     @Autowired
     private FundamentalResearchService fundamentalResearchService;
-    @Autowired
-    private CandleStickExecutorService candleStickExecutorService;
-    @Autowired
-    private TechnicalsResearchService technicalsResearchService;
 
     @Autowired
     private MovingAverageActionService movingAverageActionService;
     @Autowired
+    private StockPriceService<StockPrice> stockPriceService;
+    @Autowired
     private ValuationLedgerService valuationLedgerService;
     @Autowired
     private BreakoutLedgerService breakoutLedgerService;
-    @Autowired
-    private VolumeActionService volumeActionService;
     @Autowired
     private SwingActionService swingActionService;
     @Autowired
@@ -48,178 +54,147 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     private CandleStickService candleStickService;
 
     @Autowired
+    private ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
+
+    @Autowired
     private CalendarService calendarService;
 
     @Autowired
     private FormulaService formulaService;
 
-    @Autowired
-    private VolumeService volumeService;
     @Override
     public void executeFundamental(Stock stock) {
 
-        log.info("Executing fundamental research {}", stock.getNseSymbol());
+        log.info("{} Executing fundamental research", stock.getNseSymbol());
 
         if(researchLedgerFundamentalService.isResearchActive(stock)){
             this.fundamentalSell(stock);
         }else {
             this.fundamentalBuy(stock);
         }
-        log.info("Executed fundamental research {}", stock.getNseSymbol());
+        log.info("{} Executed fundamental research", stock.getNseSymbol());
     }
 
     @Override
-    public void executeTechnical(Stock stock) {
+    public void executeTechnical(Timeframe timeframe, Stock stock, LocalDate sessionDate) {
+        log.info("{} Executing technical research", stock.getNseSymbol());
 
-        log.info("Executing technical research {}", stock.getNseSymbol());
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
 
-       ResearchLedgerTechnical researchLedgerTechnical = researchLedgerTechnicalService.getActiveResearch(stock);
+        StockPrice stockPrice = stockPriceService.get(stock, timeframe);
 
-       if( researchLedgerTechnical != null){
-            this.technicalSell(stock, researchLedgerTechnical);
-       }else {
-           this.technicalBuy(stock);
 
-       }
-        log.info("Executed technical research {}", stock.getNseSymbol());
+        ResearchTechnical researchTechnical = researchTechnicalService.get( stock,timeframe, Trade.Type.BUY);
+
+        if (researchTechnical != null) {
+            this.technicalSell(timeframe, stock, stockPrice, stockTechnicals, researchTechnical, sessionDate);
+        } else {
+            log.info("{} No existing research, executing buy", stock.getNseSymbol());
+            this.technicalBuy(timeframe, stock, stockPrice, stockTechnicals, sessionDate);
+            log.info("{} executed buy", stock.getNseSymbol());
+        }
+
+        log.info("{} Executed technical research", stock.getNseSymbol());
     }
 
     private void fundamentalBuy(Stock stock){
-        log.info("Executing fundamental buy {}", stock.getNseSymbol());
+        log.info("{} Executing fundamental buy", stock.getNseSymbol());
         if(fundamentalResearchService.isUndervalued(stock) && stock.getSeries().equalsIgnoreCase("EQ")){
 
             ValuationLedger entryValuation = valuationLedgerService.addUndervalued(stock);
 
             researchLedgerFundamentalService.addResearch(stock, entryValuation);
         }
-        log.info("Executed fundamental buy {}", stock.getNseSymbol());
+        log.info("{} Executed fundamental buy", stock.getNseSymbol());
     }
 
     private void fundamentalSell(Stock stock){
 
-        if(fundamentalResearchService.isOvervalued(stock) || stock.getSeries().equalsIgnoreCase("BE")){
-            log.info("Executing fundamental sell {}", stock.getNseSymbol());
+        if(fundamentalResearchService.isOvervalued(stock) || !stock.getSeries().equalsIgnoreCase("EQ")){
+            log.info("{} Executing fundamental sell", stock.getNseSymbol());
             ValuationLedger exitValuation = valuationLedgerService.addOvervalued(stock);
 
             researchLedgerFundamentalService.updateResearch(stock, exitValuation);
-            log.info("Executed fundamental sell {}", stock.getNseSymbol());
+            log.info("{} Executed fundamental sell", stock.getNseSymbol());
         }
     }
 
-    private void technicalBuy(Stock stock){
-        log.info("Executing technical buy {}", stock.getNseSymbol());
+    private void technicalBuy(Timeframe timeframe, Stock stock, StockPrice stockPrice, StockTechnicals stockTechnicals, LocalDate sessionDate){
+
+        log.info("{} Executing technical buy", stock.getNseSymbol());
+
         if (fundamentalResearchService.isMcapInRange(stock)) {
+            log.info("{} Found  mcap range stock", stock.getNseSymbol());
             if (stock.getSeries().equalsIgnoreCase("EQ")) {
-
-                TradeSetup tradeSetup = swingActionService.breakOut(stock);
-
+                log.info("{} Found EQ stock ", stock.getNseSymbol());
+                TradeSetup tradeSetup = swingActionService.breakOut(stock, timeframe);
+                log.info(" {} swing {} ", stock.getNseSymbol(), tradeSetup.isActive());
                 if(!tradeSetup.isActive()){
-                    tradeSetup = priceActionService.breakOut(stock);
+                    tradeSetup = priceActionService.breakOut(stock, timeframe);
+                    log.info(" {} price {} ", stock.getNseSymbol(), tradeSetup.isActive());
                 }
-
-                if(!tradeSetup.isActive()){
-                    tradeSetup = volumeActionService.breakOut(stock);
-                }
-
 
                 if (tradeSetup.isActive()) {
-                        researchLedgerTechnicalService.addResearch(stock, tradeSetup);
+                    log.info("{} Trade setup active, creating entry {} ", stock.getNseSymbol(), timeframe);
+                    researchTechnicalService.entry(stock, timeframe, tradeSetup, stockPrice, stockTechnicals, sessionDate);
+                    log.info("{} created entry {} ", stock.getNseSymbol(), timeframe);
                 }
             }
         }
-        log.info("Executed technical buy {}", stock.getNseSymbol());
+
+        log.info("{} Executed technical buy", stock.getNseSymbol());
     }
 
-    private void technicalSell(Stock stock, ResearchLedgerTechnical researchLedgerTechnical) {
+    private void technicalSell(Timeframe timeframe,Stock stock, StockPrice stockPrice, StockTechnicals stockTechnicals, ResearchTechnical researchTechnical, LocalDate sessionDate) {
 
-        log.info("Executing technical sell {}", stock.getNseSymbol());
-
-        StockPrice stockPrice = stock.getStockPrice();
+        log.info("{} Executing technical sell", stock.getNseSymbol());
 
         boolean isUpdation = Boolean.FALSE;
+        TradeSetup tradeSetup = TradeSetup.builder().build();
+        if (candleStickService.isRed(stockPrice) && this.isTargetAchieved(researchTechnical, timeframe, stock, stockPrice)) {
 
-
-        /*if(volumeActionService.breakOut(stock).isActive() && candleStickService.isGreen(stock) ){
-                researchLedgerTechnical.setVolume(stock.getTechnicals().getVolume());
-                researchLedgerTechnical.setVolumeAvg5(stock.getTechnicals().getVolumeAvg5());
-                researchLedgerTechnical.setVolumeAvg20(stock.getTechnicals().getVolumeAvg20());
-                researchLedgerTechnical.setStopLoss(stockPrice.getLow());
-                researchLedgerTechnical.setStrategy(ResearchLedgerTechnical.Strategy.VOLUME_ACTION);
-                researchLedgerTechnical.setSubStrategy(ResearchLedgerTechnical.SubStrategy.HIGH_VOLUME);
-                researchLedgerTechnical.setTarget(formulaService.calculateTarget(stockPrice.getHigh(), stockPrice.getLow(),VolumeActionService.VOLUME_ACTION_RISK_REWARD ));
-                researchLedgerTechnical.setNextTradingDate(calendarService.nextTradingDate(stockPrice.getBhavDate()));
-                isUpdation = Boolean.TRUE;
-
-        }else */
-         if (candleStickService.isRed(stock) && this.isTargetAchieved(researchLedgerTechnical, stockPrice)) {
-            log.info("Verifying target {}", stock.getNseSymbol());
-            this.buildSell(researchLedgerTechnical, stockPrice);
             isUpdation = Boolean.TRUE;
-            log.info("Verified target {}", stock.getNseSymbol());
-        }
-        else if (candleStickService.isRed(stock) && this.isStopLossTriggered(researchLedgerTechnical, stockPrice)) {
-            log.info("Verifying stop loss {}", stock.getNseSymbol());
-            this.buildSell(researchLedgerTechnical, stockPrice);
+
+        }else if (candleStickService.isRed(stockPrice) && this.isStopLossTriggered(researchTechnical, timeframe,stock, stockPrice)) {
+
             isUpdation = Boolean.TRUE;
-            log.info("Verified stop loss {}", stock.getNseSymbol());
-        }/*
-        else if(stockPrice.getBhavDate().isEqual(researchLedgerTechnical.getNextTradingDate()) && researchLedgerTechnical.getStrategy() == ResearchLedgerTechnical.Strategy.VOLUME_ACTION){
-            log.info("Updating stop loss {}", stock.getNseSymbol());
-            if(candleStickService.isRed(stock) && candleStickService.isCloseBelowPrevClose(stock)) {
-                    if(candleStickService.isLowerHigh(stock)) {
-                        researchLedgerTechnical.setStopLoss(stockPrice.getLow());
-                        isUpdation = Boolean.TRUE;
-                    }
+
+        }else {
+            tradeSetup = priceActionService.breakDown(stock, timeframe);
+
+            if(!tradeSetup.isActive()){
+                tradeSetup = swingActionService.breakDown(stock, timeframe);
             }
-            log.info("Updated stop loss {}", stock.getNseSymbol());
-        }*/ else if (priceActionService.breakDown(stock).isActive() || movingAverageActionService.breakDown(stock).isActive()) {
-            this.buildSell(researchLedgerTechnical, stockPrice);
-            isUpdation = Boolean.TRUE;
-        }/*
-        else if(candleStickService.isRed(stock) && technicalsResearchService.isBreakDownOnTop(stock)){
-            this.buildSell(researchLedgerTechnical, stockPrice);
-            isUpdation = Boolean.TRUE;
+            
+            if (tradeSetup.isActive()) {
+                isUpdation = Boolean.TRUE;
+            }
         }
-        */
-        /*
-        else if(researchLedgerTechnical.getStrategy() == ResearchLedgerTechnical.Strategy.MA_WITH_MACD && candleStickService.isRed(stock) && technicalsResearchService.isHistogramBreakDown(stock)){
-            this.buildSell(researchLedgerTechnical, stockPrice);
-            isUpdation = Boolean.TRUE;
-        }*/
 
         if (isUpdation) {
-            researchLedgerTechnicalService.update(researchLedgerTechnical);
+            researchTechnicalService.exit(stock,timeframe,  tradeSetup, stockPrice, stockTechnicals, sessionDate);
         }
 
-        log.info("Executed technical sell {}", stock.getNseSymbol());
-    }
-
-    private void buildSell(ResearchLedgerTechnical researchLedgerTechnical, StockPrice stockPrice){
-        researchLedgerTechnical.setResearchStatus(ResearchIO.ResearchTrigger.SELL);
-        researchLedgerTechnical.setExitDate(stockPrice.getBhavDate());
-        researchLedgerTechnical.setExitPrice(stockPrice.getClose());
+        log.info("{} Executed technical sell", stock.getNseSymbol());
     }
 
 
-    private boolean isStopLossTriggered(ResearchLedgerTechnical researchLedgerTechnical, StockPrice stockPrice){
+    private boolean isStopLossTriggered(ResearchTechnical researchTechnical, Timeframe timeframe, Stock stock, StockPrice stockPrice){
 
-        Stock stock= researchLedgerTechnical.getStock();
-
-            if (researchLedgerTechnical.getStopLoss() > stockPrice.getClose()) {
-                breakoutLedgerService.addNegative(stock, BreakoutLedger.BreakoutCategory.STOPLOSS_TRIGGERED);
-                log.info("Stop loss triggered {} stoploss {}", stock.getNseSymbol(), researchLedgerTechnical.getStopLoss());
+            if (researchTechnical.getStopLoss() > stockPrice.getClose()) {
+                breakoutLedgerService.addNegative(stock, timeframe, BreakoutLedger.BreakoutCategory.STOPLOSS_TRIGGERED);
+                log.info("{} Stop loss triggered, stopLoss {}", stock.getNseSymbol(), researchTechnical.getStopLoss());
                 return Boolean.TRUE;
             }
 
         return Boolean.FALSE;
     }
 
-    private boolean isTargetAchieved(ResearchLedgerTechnical researchLedgerTechnical, StockPrice stockPrice){
+    private boolean isTargetAchieved(ResearchTechnical researchTechnical, Timeframe timeframe, Stock stock, StockPrice stockPrice){
 
-             if (researchLedgerTechnical.getTarget() <= stockPrice.getClose()) {
-                 Stock stock= researchLedgerTechnical.getStock();
-                 breakoutLedgerService.addNegative(stock, BreakoutLedger.BreakoutCategory.TARGET_ACHIEVED);
-                 log.info("Target achieved {} target {}", stock.getNseSymbol(), researchLedgerTechnical.getTarget());
+             if (researchTechnical.getTarget() <= stockPrice.getClose()) {
+                 breakoutLedgerService.addNegative(stock, timeframe, BreakoutLedger.BreakoutCategory.TARGET_ACHIEVED);
+                 log.info("{} Target achieved, target {}", stock.getNseSymbol(), researchTechnical.getTarget());
                  return Boolean.TRUE;
             }
 

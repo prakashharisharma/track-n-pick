@@ -1,7 +1,6 @@
 package com.example.service.impl;
 
-import com.example.model.master.Stock;
-import com.example.model.stocks.StockTechnicals;
+import com.example.enhanced.model.stocks.StockTechnicals;
 import com.example.service.CrossOverUtil;
 import com.example.service.ObvIndicatorService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,89 +10,59 @@ import org.springframework.stereotype.Service;
 @Service
 public class ObvIndicatorServiceImpl implements ObvIndicatorService {
 
+
     @Override
-    public boolean isBullish(Stock stock) {
-        return this.isBullishCurrentSession(stock.getTechnicals()) || this.isBullishPreviousSession(stock.getTechnicals());
+    public boolean isBullish(StockTechnicals stockTechnicals) {
+
+        return this.isBullishCurrentSession(stockTechnicals);
     }
 
     private boolean isBullishCurrentSession(StockTechnicals stockTechnicals){
-        Stock stock = stockTechnicals.getStock();
-        if(stockTechnicals.getObv() < stockTechnicals.getObvAvg()){
-
-            if(this.isObvIncreasing(stock) && this.isObvAvgDecreasing(stock)){
+            if (stockTechnicals.getObv() < stockTechnicals.getObvAvg()) {
+                if (this.isObvIncreasing(stockTechnicals) && this.isObvAvgDecreasing(stockTechnicals)) {
                     return Boolean.TRUE;
-            }else if(this.isObvIncreasing(stock) && this.isObvAvgIncreasing(stock)){
-                return Boolean.TRUE;
-            }
-        }else{
-            if(this.isObvIncreasing(stock) && this.isObvAvgIncreasing(stock)) {
+                } else if (this.isObvIncreasing(stockTechnicals) && this.isObvAvgIncreasing(stockTechnicals)) {
                     return Boolean.TRUE;
+                }
+            } else {
+                if (this.isObvIncreasing(stockTechnicals) && this.isObvAvgIncreasing(stockTechnicals)) {
+                    return Boolean.TRUE;
+                }
+                return CrossOverUtil.isFastCrossesAboveSlow(stockTechnicals.getPrevObv(), stockTechnicals.getPrevObvAvg(), stockTechnicals.getObv(), stockTechnicals.getObvAvg());
             }
-            return CrossOverUtil.isFastCrossesAboveSlow(stockTechnicals.getPrevObv(), stockTechnicals.getPrevObvAvg(), stockTechnicals.getObv(),stockTechnicals.getObvAvg());
-        }
 
         return Boolean.FALSE;
     }
 
-    private boolean isBullishPreviousSession(StockTechnicals stockTechnicals){
-
-        if(stockTechnicals.getObv() > stockTechnicals.getPrevObv()){
-
-            stockTechnicals.setObv(stockTechnicals.getPrevObv());
-            stockTechnicals.setPrevObv(stockTechnicals.getPrevPrevObv());
-            stockTechnicals.setObvAvg(stockTechnicals.getObvAvg());
-            stockTechnicals.setPrevObvAvg(stockTechnicals.getPrevPrevObvAvg());
-
-            return this.isBullishCurrentSession(stockTechnicals);
-        }
-
-        return Boolean.FALSE;
-    }
 
     @Override
-    public boolean isBearish(Stock stock) {
-        return this.isBearishPreviousSession(stock.getTechnicals()) || this.isBearishCurrentSession(stock.getTechnicals());
+    public boolean isBearish(StockTechnicals stockTechnicals) {
+        return this.isBearishCurrentSession(stockTechnicals);
     }
-
 
 
     private boolean isBearishCurrentSession(StockTechnicals stockTechnicals){
-        Stock stock = stockTechnicals.getStock();
-        if(stockTechnicals.getObv() > stockTechnicals.getObvAvg()){
-            if(this.isObvDecreasing(stock) && this.isObvAvgIncreasing(stock)){
-                    return Boolean.TRUE;
-            }else if(this.isObvDecreasing(stock) && this.isObvAvgDecreasing(stock)) {
-                return Boolean.TRUE;
-            }
-        }else{
-            if(this.isObvDecreasing(stock) && this.isObvAvgDecreasing(stock)) {
-                    return Boolean.TRUE;
-            }
 
-            return CrossOverUtil.isSlowCrossesBelowFast(stockTechnicals.getPrevObv(), stockTechnicals.getPrevObvAvg(), stockTechnicals.getObv(),stockTechnicals.getObvAvg());
-        }
+            if (stockTechnicals.getObv() > stockTechnicals.getObvAvg()) {
+                if (this.isObvDecreasing(stockTechnicals) && this.isObvAvgIncreasing(stockTechnicals)) {
+                    return Boolean.TRUE;
+                } else if (this.isObvDecreasing(stockTechnicals) && this.isObvAvgDecreasing(stockTechnicals)) {
+                    return Boolean.TRUE;
+                }
+            } else {
+                if (this.isObvDecreasing(stockTechnicals) && this.isObvAvgDecreasing(stockTechnicals)) {
+                    return Boolean.TRUE;
+                }
+
+                return CrossOverUtil.isSlowCrossesBelowFast(stockTechnicals.getPrevObv(), stockTechnicals.getPrevObvAvg(), stockTechnicals.getObv(), stockTechnicals.getObvAvg());
+            }
 
         return Boolean.FALSE;
     }
 
-    private boolean isBearishPreviousSession(StockTechnicals stockTechnicals){
-
-        if(stockTechnicals.getObv() < stockTechnicals.getPrevObv()){
-
-            stockTechnicals.setObv(stockTechnicals.getPrevObv());
-            stockTechnicals.setPrevObv(stockTechnicals.getPrevPrevObv());
-            stockTechnicals.setObvAvg(stockTechnicals.getObvAvg());
-            stockTechnicals.setPrevObvAvg(stockTechnicals.getPrevPrevObvAvg());
-            return this.isBearishCurrentSession(stockTechnicals);
-        }
-
-        return Boolean.FALSE;
-    }
 
     @Override
-    public boolean isObvIncreasing(Stock stock) {
-
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+    public boolean isObvIncreasing(StockTechnicals stockTechnicals) {
 
         if(stockTechnicals.getObv() > stockTechnicals.getPrevObv()){
             return Boolean.TRUE;
@@ -103,8 +72,7 @@ public class ObvIndicatorServiceImpl implements ObvIndicatorService {
     }
 
     @Override
-    public boolean isObvDecreasing(Stock stock) {
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+    public boolean isObvDecreasing(StockTechnicals stockTechnicals) {
 
         if(stockTechnicals.getObv() < stockTechnicals.getPrevObv()){
             return Boolean.TRUE;
@@ -114,8 +82,7 @@ public class ObvIndicatorServiceImpl implements ObvIndicatorService {
     }
 
     @Override
-    public boolean isObvAvgIncreasing(Stock stock) {
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+    public boolean isObvAvgIncreasing(StockTechnicals stockTechnicals) {
 
         if(stockTechnicals.getObvAvg() > stockTechnicals.getPrevObvAvg()){
             return Boolean.TRUE;
@@ -125,8 +92,7 @@ public class ObvIndicatorServiceImpl implements ObvIndicatorService {
     }
 
     @Override
-    public boolean isObvAvgDecreasing(Stock stock) {
-        StockTechnicals stockTechnicals = stock.getTechnicals();
+    public boolean isObvAvgDecreasing(StockTechnicals stockTechnicals) {
 
         if(stockTechnicals.getObvAvg() < stockTechnicals.getPrevObvAvg()){
             return Boolean.TRUE;

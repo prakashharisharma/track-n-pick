@@ -2,9 +2,10 @@ package com.example.service;
 
 import com.example.dto.TradeSetup;
 import com.example.model.master.Stock;
+import com.example.util.io.model.type.Timeframe;
 
 public interface PriceActionService {
 
-    public TradeSetup breakOut(Stock stock);
-    public TradeSetup breakDown(Stock stock);
+    public TradeSetup breakOut(Stock stock, Timeframe timeframe);
+    public TradeSetup breakDown(Stock stock, Timeframe timeframe);
 }

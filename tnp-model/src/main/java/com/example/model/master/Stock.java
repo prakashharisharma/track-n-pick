@@ -4,31 +4,24 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
-import com.example.model.stocks.StockFactor;
-import com.example.model.stocks.StockPrice;
-import com.example.model.stocks.StockTechnicals;
-import com.example.model.stocks.UserPortfolio;
+import com.example.model.stocks.*;
 import com.example.util.io.model.StockIO;
 import com.example.util.io.model.StockIO.IndiceType;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
-@Table(name = "STOCK_MASTER")
+@Table(name = "STOCK_MASTER",
+		indexes = {
+		@Index(name = "idx_company_name", columnList = "COMPANY_NAME"),
+		@Index(name = "idx_nse_symbol", columnList = "NSE_SYMBOL")
+}
+)
 public class Stock implements Serializable{
 
 	/**
@@ -36,8 +29,6 @@ public class Stock implements Serializable{
 	 */
 	private static final long serialVersionUID = 291996847590635596L;
 
-	//INSERT INTO STOCK_MASTER(ISIN_CODE,COMPANY_NAME,NSE_SYMBOL, BSE_CODE,SECTOR, IS_ACTIVE) VALUES ('INE470A01017','3M India Ltd.','3MINDIA','5022','SECTOR_NAME',1);
-	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "STOCK_ID")
@@ -81,16 +72,7 @@ public class Stock implements Serializable{
 	private StockIO.Exchange exchange;
 
 	@OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
-	private StockPrice stockPrice;
-	
-	@OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
 	private StockFactor factor;
-	
-	@OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
-	private StockTechnicals technicals;
-	
-	@OneToMany(mappedBy = "portfolioId.stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private Set<UserPortfolio> userPortfolio = new HashSet<>();
 
 
 	public Stock() {
@@ -131,124 +113,10 @@ public class Stock implements Serializable{
 		this.activityCompleted = false;
 	}
 
-	public long getStockId() {
-		return stockId;
-	}
-
-	public void setStockId(long stockId) {
-		this.stockId = stockId;
-	}
-
-	public String getSeries() {
-		return series;
-	}
-
-	public void setSeries(String series) {
-		this.series = series;
-	}
-
-	public String getCompanyName() {
-		return companyName;
-	}
-
-	public void setCompanyName(String companyName) {
-		this.companyName = companyName;
-	}
-
-	public String getNseSymbol() {
-		return nseSymbol;
-	}
-
-	public void setNseSymbol(String nseSymbol) {
-		this.nseSymbol = nseSymbol;
-	}
-
-	public String getBseCode() {
-		return bseCode;
-	}
-
-	public void setBseCode(String bseCode) {
-		this.bseCode = bseCode;
-	}
-
-	public String getIsinCode() {
-		return isinCode;
-	}
-
-	public void setIsinCode(String isinCode) {
-		this.isinCode = isinCode;
-	}
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-
-	public String getSectorName() {
-		return sectorName;
-	}
-
-	public void setSectorName(String sector) {
-		this.sectorName = sector;
-	}
-
-	public Sector getSector() {
-		return sector;
-	}
-
-	public void setSector(Sector sectorName) {
-		this.sector = sectorName;
-	}
-	
-	public StockPrice getStockPrice() {
-		return stockPrice;
-	}
-
-	public void setStockPrice(StockPrice stockPrice) {
-		this.stockPrice = stockPrice;
-	}
-
-	public StockFactor getFactor() {
-		
-		return factor;
-	}
-
-	public void setFactor(StockFactor factor) {
-		this.factor = factor;
-	}
-
-	public StockTechnicals getTechnicals() {
-		return technicals;
-	}
-
-	public void setTechnicals(StockTechnicals technicals) {
-		this.technicals = technicals;
-	}
-
-	public IndiceType getPrimaryIndice() {
-		return primaryIndice;
-	}
-
-	public void setPrimaryIndice(IndiceType primaryIndice) {
-		this.primaryIndice = primaryIndice;
-	}
-
-	public boolean isActivityCompleted() {
-		return activityCompleted;
-	}
-
-	public void setActivityCompleted(boolean activityCompleted) {
-		this.activityCompleted = activityCompleted;
-	}
-
 	@Override
 	public String toString() {
 		return "Stock [stockId=" + stockId + ", isinCode=" + isinCode + ", companyName=" + companyName + ", nseSymbol="
-				+ nseSymbol + ", bseCode=" + bseCode + ", sector=" + sectorName + ", active=" + active + ", IndiceType=" + primaryIndice+ ", stockPrice="
-				+ stockPrice + ", stockFactor=" + factor + "]";
+				+ nseSymbol + ", bseCode=" + bseCode + ", sector=" + sectorName + ", active=" + active + ", IndiceType=" + primaryIndice + ", stockFactor=" + factor + "]";
 	}
 
 	@Override
@@ -281,6 +149,4 @@ public class Stock implements Serializable{
 			return false;
 		return true;
 	}
-
-	
 }

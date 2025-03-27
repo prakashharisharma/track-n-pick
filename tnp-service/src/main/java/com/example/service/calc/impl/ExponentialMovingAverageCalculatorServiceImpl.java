@@ -15,47 +15,44 @@ import java.util.List;
 @Slf4j
 public class ExponentialMovingAverageCalculatorServiceImpl implements ExponentialMovingAverageCalculatorService {
 
-    @Autowired
-    private FormulaService formulaService;
-
-    @Autowired
-    private MiscUtil miscUtil;
-
     @Override
-    public List<Double> calculate(List<OHLCV> ohlcvList, int days){
+    public List<Double> calculate(List<OHLCV> ohlcvList, int period) {
+        if (ohlcvList == null || ohlcvList.isEmpty() || period <= 0) {
+            throw new IllegalArgumentException("Invalid input data or period.");
+        }
 
-        List<Double> emaList = new ArrayList<>(ohlcvList.size());
+        List<Double> emaList = new ArrayList<>();
+        double multiplier = 2.0 / (period + 1);
+        double ema = 0.0;
 
-        for(int i=0; i < ohlcvList.size(); i++){
-
-            if(i < days-1){
-                emaList.add(i, 0.00);
-            }else if(i == days-1){
-                double sma = this.calculateSimpleAverage(ohlcvList, days);
-                emaList.add(i, miscUtil.formatDouble(sma,"00"));
-            }else{
-                double ema=  formulaService.calculateEMA(ohlcvList.get(i).getClose(), emaList.get(i-1), days);
-                emaList.add(i, miscUtil.formatDouble(ema,"00"));
+        // If the list size is smaller than the period, return a list of zeros
+        if (ohlcvList.size() < period) {
+            for (int i = 0; i < ohlcvList.size(); i++) {
+                emaList.add(0.0);
             }
+            return emaList;
+        }
 
+        // Initialize first (period - 1) elements as 0.0
+        for (int i = 0; i < period - 1; i++) {
+            emaList.add(0.0);
+        }
+
+        // Compute initial SMA for the first EMA value
+        double sum = 0.0;
+        for (int i = 0; i < period; i++) {
+            sum += ohlcvList.get(i).getClose();
+        }
+        ema = sum / period;
+        emaList.add(ema);
+
+        // Calculate EMA for the remaining data points
+        for (int i = period; i < ohlcvList.size(); i++) {
+            double closePrice = ohlcvList.get(i).getClose();
+            ema = ((closePrice - ema) * multiplier) + ema;
+            emaList.add(ema);
         }
 
         return emaList;
-    }
-
-    @Override
-    public Double calculate(OHLCV ohlcv, double prevEMA, int days) {
-        return miscUtil.formatDouble(formulaService.calculateEMA(ohlcv.getClose(), prevEMA, days),"00");
-    }
-
-    private double calculateSimpleAverage(List<OHLCV> ohlcvList, int days){
-
-        double sum = 0.00;
-
-        for(int i =0; i < days; i++){
-            sum = sum + ohlcvList.get(i).getClose();
-        }
-
-        return sum / days;
     }
 }

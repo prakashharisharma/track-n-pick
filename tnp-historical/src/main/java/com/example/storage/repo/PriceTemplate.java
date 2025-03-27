@@ -5,13 +5,16 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import com.example.storage.model.StockTechnicals;
+import com.example.storage.model.*;
 import com.example.storage.model.result.*;
+import com.example.util.io.model.type.Timeframe;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.internal.bulk.UpdateRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -31,25 +34,102 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
-import com.example.storage.model.StockPrice;
-
+@Slf4j
 @Repository
 public class PriceTemplate {
+	public static final String COLLECTION_PH = "price_history";
+
+	public static final String COLLECTION_WPH = "weekly_price_history";
+
+	public static final String COLLECTION_TH = "technicals_history";
+
+	public static final String COLLECTION_WTH = "weekly_technicals_history";
+
+	// Mapping between Timeframe and corresponding StockPrice class
+	private static final Map<Timeframe, Class<? extends StockPrice>> PRICE_COLLECTIONS = Map.of(
+			Timeframe.YEARLY, YearlyStockPrice.class,
+			Timeframe.QUARTERLY, QuarterlyStockPrice.class,
+			Timeframe.MONTHLY, MonthlyStockPrice.class,
+			Timeframe.WEEKLY, WeeklyStockPrice.class,
+			Timeframe.DAILY, StockPrice.class // Default case
+	);
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
-	
-	final String COLLECTION_PH = "price_history";
-
-	final String COLLECTION_TH = "technicals_history";
 
 	public void create(StockPrice stockPrice) {
 		mongoTemplate.insert(stockPrice);
 	}
 
-	public void create(List<StockPrice>  stockPriceList) {
+	public long create(List<StockPrice>  stockPriceList) {
+
+		long insertCount = 0;
+
+		BulkWriteResult result;
 
 		BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, StockPrice.class);
+
+		bulkOps.insert(stockPriceList);
+
+		try {
+
+			result = bulkOps.execute();
+
+			insertCount = result.getInsertedCount();
+
+			log.info("Successfully inserted {} documents", insertCount);
+
+		} catch(BulkOperationException e) {
+
+			log.error("An error occurred while bulk insert", e);
+
+		}
+
+		return insertCount;
+	}
+
+	public void createWeekly(List<StockPrice>  stockPriceList) {
+
+		BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, WeeklyStockPrice.class);
+		bulkOps.insert(stockPriceList);
+		BulkWriteResult result;
+		try {
+			result = bulkOps.execute();
+			System.out.println("Inserted " + result.getInsertedCount());
+		} catch(BulkOperationException e) {
+			result = e.getResult();
+		}
+	}
+
+	public void createMonthly(List<StockPrice>  stockPriceList) {
+
+		BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, MonthlyStockPrice.class);
+		bulkOps.insert(stockPriceList);
+		BulkWriteResult result;
+		try {
+			result = bulkOps.execute();
+			System.out.println("Inserted " + result.getInsertedCount());
+		} catch(BulkOperationException e) {
+			result = e.getResult();
+		}
+	}
+
+	public void createQuarterly(List<StockPrice>  stockPriceList) {
+
+		BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, QuarterlyStockPrice.class);
+		bulkOps.insert(stockPriceList);
+		BulkWriteResult result;
+		try {
+			result = bulkOps.execute();
+			System.out.println("Inserted " + result.getInsertedCount());
+		} catch(BulkOperationException e) {
+			result = e.getResult();
+		}
+	}
+
+	public void createYearly(List<StockPrice>  stockPriceList) {
+
+		BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, YearlyStockPrice.class);
 		bulkOps.insert(stockPriceList);
 		BulkWriteResult result;
 		try {
@@ -374,23 +454,15 @@ public class PriceTemplate {
 
 	}
 
-	public long delete(String nseSymbol){
+	public long delete(String nseSymbol) {
 		Query query = new Query();
-		query.addCriteria(
-				new Criteria().andOperator(
-						Criteria.where("nseSymbol").is(nseSymbol)
-				)
-		);
+		query.addCriteria(Criteria.where("nseSymbol").is(nseSymbol));
 
-		DeleteResult deleteResult = mongoTemplate.remove(query, COLLECTION_PH);
-
-
-		if(deleteResult!=null && deleteResult.wasAcknowledged()) {
-			return deleteResult.getDeletedCount();
+		if (mongoTemplate.exists(query, COLLECTION_PH)) {
+			DeleteResult deleteResult = mongoTemplate.remove(query, COLLECTION_PH);
+			return deleteResult.wasAcknowledged() ? deleteResult.getDeletedCount() : 0L;
 		}
-
-		return 0l;
-
+		return 0L;
 	}
 
 	public List<StockPrice> get(String nseSymbol, LocalDate from, LocalDate to){
@@ -407,6 +479,163 @@ public class PriceTemplate {
 		return mongoTemplate.find(query, StockPrice.class);
 
 	}
+
+	public StockPrice getOHLC(String nseSymbol, Timeframe timeframe, LocalDate from, LocalDate to) {
+		Aggregation aggregation;
+
+		switch (timeframe) {
+			case WEEKLY:
+				aggregation = Aggregation.newAggregation(
+						Aggregation.match(Criteria.where("nseSymbol").is(nseSymbol)
+								.and("bhavDate").gte(from.atStartOfDay().toInstant(ZoneOffset.UTC))
+								.lte(to.atStartOfDay().toInstant(ZoneOffset.UTC))),
+						Aggregation.project()
+								.and("nseSymbol").as("nseSymbol")
+								.and("bhavDate").as("bhavDate")
+								.and("open").as("open")
+								.and("high").as("high")
+								.and("low").as("low")
+								.and("close").as("close")
+								.and("volume").as("volume")
+								.andExpression("{$isoWeekYear: '$bhavDate'}").as("year")
+								.andExpression("{$week: '$bhavDate'}").as("week"),
+						Aggregation.group("nseSymbol", "year", "week")
+								.last("bhavDate").as("bhavDate")
+								.first("open").as("open")
+								.max("high").as("high")
+								.min("low").as("low")
+								.last("close").as("close")
+								.sum("volume").as("volume"),
+						Aggregation.sort(Sort.Direction.ASC, "bhavDate")
+				);
+				break;
+
+			case MONTHLY:
+				aggregation = Aggregation.newAggregation(
+						Aggregation.match(Criteria.where("nseSymbol").is(nseSymbol)
+								.and("bhavDate").gte(from.atStartOfDay().toInstant(ZoneOffset.UTC))
+								.lte(to.atStartOfDay().toInstant(ZoneOffset.UTC))),
+						Aggregation.project()
+								.and("nseSymbol").as("nseSymbol")
+								.and("bhavDate").as("bhavDate")
+								.and("open").as("open")
+								.and("high").as("high")
+								.and("low").as("low")
+								.and("close").as("close")
+								.and("volume").as("volume")
+								.andExpression("{$year: '$bhavDate'}").as("year")
+								.andExpression("{$month: '$bhavDate'}").as("month"),
+						Aggregation.group("nseSymbol", "year", "month")
+								.last("bhavDate").as("bhavDate")
+								.first("open").as("open")
+								.max("high").as("high")
+								.min("low").as("low")
+								.last("close").as("close")
+								.sum("volume").as("volume"),
+						Aggregation.sort(Sort.Direction.ASC, "bhavDate")
+				);
+				break;
+
+			case QUARTERLY:
+				aggregation = Aggregation.newAggregation(
+						Aggregation.match(Criteria.where("nseSymbol").is(nseSymbol)
+								.and("bhavDate").gte(from.atStartOfDay().toInstant(ZoneOffset.UTC))
+								.lte(to.atStartOfDay().toInstant(ZoneOffset.UTC))),
+						Aggregation.project()
+								.and("nseSymbol").as("nseSymbol")
+								.and("bhavDate").as("bhavDate")
+								.and("open").as("open")
+								.and("high").as("high")
+								.and("low").as("low")
+								.and("close").as("close")
+								.and("volume").as("volume")
+								.andExpression("{$year: '$bhavDate'}").as("year")
+								.andExpression("{$ceil: {$divide: [{$month: '$bhavDate'}, 3]}}").as("quarter"),
+						Aggregation.group("nseSymbol", "year", "quarter")
+								.last("bhavDate").as("bhavDate")
+								.first("open").as("open")
+								.max("high").as("high")
+								.min("low").as("low")
+								.last("close").as("close")
+								.sum("volume").as("volume"),
+						Aggregation.sort(Sort.Direction.ASC, "bhavDate")
+				);
+				break;
+
+			case YEARLY:
+				aggregation = Aggregation.newAggregation(
+						Aggregation.match(Criteria.where("nseSymbol").is(nseSymbol)
+								.and("bhavDate").gte(from.atStartOfDay().toInstant(ZoneOffset.UTC))
+								.lte(to.atStartOfDay().toInstant(ZoneOffset.UTC))),
+						Aggregation.project()
+								.and("nseSymbol").as("nseSymbol")
+								.and("bhavDate").as("bhavDate")
+								.and("open").as("open")
+								.and("high").as("high")
+								.and("low").as("low")
+								.and("close").as("close")
+								.and("volume").as("volume")
+								.andExpression("{$year: '$bhavDate'}").as("year"),
+						Aggregation.group("nseSymbol", "year")
+								.last("bhavDate").as("bhavDate")
+								.first("open").as("open")
+								.max("high").as("high")
+								.min("low").as("low")
+								.last("close").as("close")
+								.sum("volume").as("volume"),
+						Aggregation.sort(Sort.Direction.ASC, "bhavDate")
+				);
+				break;
+
+			default:
+				throw new IllegalArgumentException("Invalid timeframe: " + timeframe);
+		}
+
+		AggregationResults<StockPrice> results = mongoTemplate.aggregate(aggregation, "price_history", StockPrice.class);
+		List<StockPrice> stockPriceList = results.getMappedResults();
+
+		return (stockPriceList != null && !stockPriceList.isEmpty()) ?
+				stockPriceList.get(stockPriceList.size() - 1) :
+				new StockPrice(nseSymbol, from.atStartOfDay().toInstant(ZoneOffset.UTC), 0.00, 0.00, 0.00, 0.00, 0L);
+	}
+
+
+
+
+	public <T extends StockPrice> List<T> get(Timeframe timeframe, String nseSymbol, LocalDate from, LocalDate to){
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("bhavDate").gte(from.atStartOfDay().toInstant(ZoneOffset.UTC)).lte(to.atStartOfDay().toInstant(ZoneOffset.UTC)),
+						Criteria.where("nseSymbol").is(nseSymbol)
+				)
+		);
+
+		query.with(Sort.by(Direction.ASC, "bhavDate"));
+
+		// Fetch the correct class based on Timeframe
+		Class<T> stockPriceClass = (Class<T>) PRICE_COLLECTIONS.getOrDefault(timeframe, StockPrice.class);
+
+		return mongoTemplate.find(query, stockPriceClass);
+	}
+
+
+	public List<WeeklyStockPrice> getWeekly(String nseSymbol, LocalDate from, LocalDate to){
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("bhavDate").gte(from.atStartOfDay().toInstant(ZoneOffset.UTC)).lte(to.atStartOfDay().toInstant(ZoneOffset.UTC)),
+						Criteria.where("nseSymbol").is(nseSymbol)
+				)
+		);
+
+		query.with(Sort.by(Direction.ASC, "bhavDate"));
+
+		return mongoTemplate.find(query, WeeklyStockPrice.class);
+
+	}
+
+
 
 	@Deprecated
 	public double getHighFromDate(String nseSymbol, LocalDate fromDate) {
@@ -632,6 +861,12 @@ public class PriceTemplate {
 
 	public void upsert(StockPrice stockPrice){
 
+		this.upsert(stockPrice, COLLECTION_PH);
+
+	}
+
+	public void upsert(StockPrice stockPrice, final String collection){
+
 		Query query = new Query();
 		query.addCriteria(
 				new Criteria().andOperator(
@@ -644,7 +879,60 @@ public class PriceTemplate {
 		mongoTemplate.getConverter().write(stockPrice, doc);
 		Update update = Update.fromDocument(doc);
 
-		UpdateResult updateResult = mongoTemplate.upsert(query, update, COLLECTION_PH);
+		UpdateResult updateResult = mongoTemplate.upsert(query, update, collection);
+	}
+
+	public void upsert(Timeframe timeframe, StockPrice stockPrice) {
+
+		Query query = new Query();
+		query.addCriteria(
+				new Criteria().andOperator(
+						Criteria.where("bhavDate").is(stockPrice.getBhavDate()),
+						Criteria.where("nseSymbol").is(stockPrice.getNseSymbol())
+				)
+		);
+
+		// Convert stockPrice object to BSON document
+		Document doc = new Document();
+		mongoTemplate.getConverter().write(stockPrice, doc);
+		Update update = Update.fromDocument(doc);
+
+		// Fetch the correct collection class based on Timeframe
+		Class<? extends StockPrice> collectionClass = PRICE_COLLECTIONS.getOrDefault(timeframe, StockPrice.class);
+
+		// Perform the upsert
+		UpdateResult updateResult = mongoTemplate.upsert(query, update, collectionClass);
+
+	}
+
+	public long create(Timeframe timeframe, List<StockPrice>  stockPriceList) {
+
+		long insertCount = 0;
+
+		BulkWriteResult result;
+
+		// Fetch the correct collection class based on Timeframe
+		Class<? extends StockPrice> collectionClass = PRICE_COLLECTIONS.getOrDefault(timeframe, StockPrice.class);
+
+		BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, collectionClass);
+
+		bulkOps.insert(stockPriceList);
+
+		try {
+
+			result = bulkOps.execute();
+
+			insertCount = result.getInsertedCount();
+
+			log.info("Successfully inserted {} documents", insertCount);
+
+		} catch(BulkOperationException e) {
+
+			log.error("An error occurred while bulk insert", e);
+
+		}
+
+		return insertCount;
 	}
 
 	public long count(String nseSymbol){

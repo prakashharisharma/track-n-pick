@@ -8,5 +8,4 @@ public interface ExponentialMovingAverageCalculatorService {
 
     public List<Double> calculate(List<OHLCV> ohlcvList, int days);
 
-    public Double calculate(OHLCV ohlcv, double prevEMA, int days);
 }
