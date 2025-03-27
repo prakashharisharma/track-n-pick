@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<head>
+<title>Dashboard - TrackNPick</title>
+
+<div th:replace="fragments/header :: header-css" />
+
+<!-- <script th:src="@{js/index.js}"></script> -->
+<script th:src="@{/js/dashboard.js}"></script>
+<script th:src="@{/js/jquery.canvasjs.min.js}"></script>
+
+</head>
+
+<body>
+
+	<div th:replace="fragments/header :: header" />
+
+
+
+	<div class="container">
+		<div class="panel-group">
+
+			<div class="panel panel-default">
+				<div class="panel-heading">Research Panel</div>
+
+				<div class="panel-body">
+
+					<div class="row">
+						<div class="col-sm-12">
+							<div class="panel panel-success">
+								<div class="panel-heading">FY Summary</div>
+								<div class="panel-body">
+									<fieldset>
+										<div class="row">
+											<div class="form-group">
+												<div class="col-sm-4">
+													<label for="name">Curent Value: <span
+														class="badge" id="currentValue"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">Total Investment : <span
+															class="badge" id="fyInvestmentValue"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">Net Gain : <span class="badge"
+														id="fyNetGain"></span>
+													</label>
+												</div>
+
+											</div>
+										</div>
+										<div class="row">
+											<div class="form-group">
+												<div class="col-sm-4">
+													<label for="name">Tax Paid : <span class="badge"
+														id="fyNetTaxPaid"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name" id="fyNetExpenseTxt">Expenses : <span
+														class="badge" id="fyNetExpense"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">Tax Liability : <span
+														class="badge" id="fyNetTaxLiability"></span>
+													</label>
+												</div>
+											</div>
+										</div>
+										<div class="row">
+											<div class="form-group">
+												<div class="col-sm-4">
+													<label for="name">Dividends : <span class="badge"
+																						id="fyNetDividends"></span>
+													</label>
+												</div>
+
+												<div class="col-sm-4">
+													<label for="name" class="text-success"
+														   id="fyRealizedGainPerTxt">Realized Gain : <span
+															class="badge" id="fyRealizedGainPer"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name" class="text-success"
+														   id="fyUnrealizedGainPerTxt">Unrealized Gain : <span
+															class="badge" id="fyUnrealizedGainPer"></span>
+													</label>
+												</div>
+											</div>
+										</div>
+										<div class="row">
+											<div class="form-group">
+												<div class="col-sm-4">
+													<label for="name" id="fyXirrTxt" class="text-success">XIRR : <span class="badge"
+																					   id="fyXirr"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name" id="fyCagrTxt" class="text-success">CAGR : <span
+															class="badge" id="fyCagr"></span>
+													</label>
+												</div>
+												<!--
+												<div class="col-sm-4">
+													<label for="name">Companies : <span
+															class="badge" id="fyNetTaxLiability"></span>
+													</label>
+												</div>
+												-->
+											</div>
+										</div>
+									</fieldset>
+								</div>
+							</div>
+						</div>
+
+					</div>
+
+					<div class="row">
+						<div>
+							<p>&nbsp;</p>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-sm-12">
+							<div class="panel panel-danger">
+								<div class="panel-heading">Weekly</div>
+								<div class="panel-body">
+									<div id="weeklychartContainer" style="height: 300px; width: 100%;"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div>
+							<p>&nbsp;</p>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-sm-12">
+							<div class="panel panel-danger">
+								<div class="panel-heading">Performace</div>
+								<div class="panel-body">
+									<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div>
+							<p>&nbsp;</p>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-sm-12">
+							<div class="panel panel-success">
+								<div class="panel-heading">Indice Allocation</div>
+								<div class="panel-body">
+
+									<div id="indiceChartContainer"
+										style="height: 500px; width: 100%;"></div>
+
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div>
+							<p>&nbsp;</p>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-sm-12">
+							<div class="panel panel-success">
+								<div class="panel-heading">Sectoral Allocation</div>
+								<div class="panel-body">
+
+									<div id="sectorChartContainer"
+										style="height: 500px; width: 100%;"></div>
+
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<div th:replace="fragments/footer :: footer" />
+</body>
+</html>

@@ -64,7 +64,7 @@ public class PriceActionServiceImpl implements PriceActionService {
         boolean isCandleActive = Boolean.FALSE;
         Trend trend = trendService.detect(stock, timeframe);
         ResearchTechnical.SubStrategy subStrategy = ResearchTechnical.SubStrategy.SRTF;
-        if (trend.getDirection() == Trend.Direction.DOWN) {
+        if (trend.getDirection() != Trend.Direction.INVALID) {
             if (candleStickHelperService.isBullishConfirmed(timeframe,stockPrice, stockTechnicals)){
                  if (relevanceService.isBullishIndicator(trend, timeframe, stockPrice, stockTechnicals)) {
                     subStrategy = ResearchTechnical.SubStrategy.RMAO;
@@ -107,7 +107,7 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         Trend trend = trendService.detect(stock, timeframe);
         ResearchTechnical.SubStrategy subStrategy = ResearchTechnical.SubStrategy.SRTF;
-        if (trend.getDirection() == Trend.Direction.UP) {
+        if (trend.getDirection() != Trend.Direction.INVALID) {
             if (candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals)){
                 if (relevanceService.isBearishIndicator(trend, timeframe, stockPrice, stockTechnicals)) {
                     subStrategy = ResearchTechnical.SubStrategy.RMAO;

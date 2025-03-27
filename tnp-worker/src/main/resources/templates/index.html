@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+<div th:replace="fragments/header :: header-css" />
+<script type="text/javascript" src="/js/index.js"></script>
+
+<script type="text/javascript" src="/js/bootstrap-typeahead.min.js"></script>
+</head>
+<body>
+
+	<div th:fragment="header">
+		<nav class="navbar navbar-inverse">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse"
+						data-target="#myNavbar">
+						<span class="icon-bar"></span> <span class="icon-bar"></span> <span
+							class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="/">trackNpick.com</a>
+				</div>
+				<div class="collapse navbar-collapse" id="myNavbar">
+					<ul class="nav navbar-nav">
+
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="/validate/login.html"><span
+								class="glyphicon glyphicon-log-out"></span> Signin</a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+	</div>
+
+	<div class="container">
+		<div class="panel-group">
+			<div class="panel panel-default">
+				<div class="panel-heading" ><marquee id="recentCrossOver">Panel with panel-default class</marquee></div>
+
+				<div class="panel-body">
+					<div class="row">
+						<form id="addStockForm" name="addstock" role="form">
+							<div class="modal-body">
+								<div class="form-group">
+									<label for="name">Symbol</label> <input id="stock" type="text"
+										name="symbol" class="form-control" autocomplete="off"></input>
+									<input id="stock_id" type="hidden" name="stockid"
+										class="form-control" autocomplete="off"></input>
+								</div>
+							
+							</div>
+							
+						</form>
+					</div>
+					<div class="row" id="resuls">
+
+						<div class="col-sm-12">
+							<div class="panel panel-success">
+								<div class="panel-heading">Fundamentals</div>
+								<div class="panel-body">
+									<fieldset>
+
+										<div class="row">
+											<div class="form-group">
+												<div class="col-sm-4">
+													<label for="name">SYMBOL: <span id="nseSymbol"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">SECTOR: <span id="sector"></span>
+													</label>
+												</div>
+
+
+												<div class="col-sm-4">
+													<label for="name">VALUATION: <span id="valuation"></span>
+													</label>
+												</div>
+
+											</div>
+
+
+
+										</div>
+
+
+										<div class="row">
+											<div class="form-group">
+
+												<div class="col-sm-4">
+													<label for="name">MCAP : <span id="marketCap"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">Dividend : <span id="dividend"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">Indice : <span id="indice"></span>
+													</label>
+												</div>
+											</div>
+										</div>
+
+										<div class="row">
+											<div class="form-group">
+												<div class="col-sm-4">
+													<label for="name">Cuurent Price: <span
+														class="badge" id="currentPrice"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">Year Low : <span class="badge"
+														id="yearLow"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">Year High : <span class="badge"
+														id="yearHigh"></span>
+													</label>
+												</div>
+											</div>
+										</div>
+										<div class="row">
+											<div class="form-group">
+												<div class="col-sm-4">
+													<label for="name">Current Ratio : <span
+														class="badge" id="currentRatio"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name" id="fyNetExpenseTxt">Quick Ratio
+														: <span class="badge" id="quickRatio"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">Debt / Equity : <span
+														class="badge" id="debtEquity"></span>
+													</label>
+												</div>
+											</div>
+										</div>
+
+										<div class="row">
+											<div class="form-group">
+												<div class="col-sm-4">
+													<label for="name">PE : <span class="badge" id="pe"></span>
+													</label>
+												</div>
+
+												<div class="col-sm-4">
+													<label for="name">PB : <span class="badge" id="pb"></span>
+													</label>
+												</div>
+
+												<div class="col-sm-4">
+													<label for="name">ROE : <span class="badge"
+														id="returnOnEquity"></span>
+													</label>
+												</div>
+
+											</div>
+										</div>
+
+										<div class="row">
+											<div class="form-group">
+												<div class="col-sm-4">
+													<label for="name" id="fyNetExpenseTxt">Sector PE :
+														<span class="badge" id="sectorPe"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name" id="fyNetExpenseTxt">Sector PB :
+														<span class="badge" id="sectorPb"></span>
+													</label>
+												</div>
+
+												<div class="col-sm-4">
+													<label for="name" id="fyNetExpenseTxt">ROCE : <span
+														class="badge" id="returnOnCapital"></span>
+													</label>
+												</div>
+												<!-- 	<div class="col-sm-4">
+													<label for="name">RSI : <span class="badge"
+														id="rsi"></span>
+													</label>
+												</div> -->
+											</div>
+										</div>
+
+									</fieldset>
+								</div>
+							</div>
+						</div>
+
+
+					</div>
+
+					<div class="row">
+						<div>
+							<p>&nbsp;</p>
+						</div>
+					</div>
+
+
+					<div class="row" id="resultTechnicals">
+
+						<div class="col-sm-12">
+							<div class="panel panel-info">
+								<div class="panel-heading">Technicals</div>
+								<div class="panel-body">
+									<fieldset>
+
+										<div class="row">
+											<div class="form-group">
+												<div class="col-sm-4">
+													<label for="name">RSI: <span id="rsi"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">SOK: <span id="sok"></span>
+													</label>
+												</div>
+
+
+												<div class="col-sm-4">
+													<label for="name">SOD: <span id="sod"></span>
+													</label>
+												</div>
+
+											</div>
+
+
+
+										</div>
+
+
+										<div class="row">
+											<div class="form-group">
+
+												<div class="col-sm-4">
+													<label for="name">obv : <span id="obv"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">rocv : <span id="rocv"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">ema20 : <span id="ema20"></span>
+													</label>
+												</div>
+											</div>
+										</div>
+
+										<div class="row">
+											<div class="form-group">
+												<div class="col-sm-4">
+													<label for="name">ema50: <span class="badge"
+														id="ema50"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">ema100 : <span class="badge"
+														id="ema100"></span>
+													</label>
+												</div>
+												<div class="col-sm-4">
+													<label for="name">ema200 : <span class="badge"
+														id="ema200"></span>
+													</label>
+												</div>
+											</div>
+										</div>
+
+
+									</fieldset>
+								</div>
+							</div>
+						</div>
+
+
+					</div>
+
+					<div class="row">
+						<div>
+							<p>&nbsp;</p>
+						</div>
+					</div>
+
+
+					<div class="row" id="resultNotifications">
+
+						<div class="col-sm-12">
+							<div class="panel panel-warning">
+								<div class="panel-heading">Notifications</div>
+								<div class="panel-body">
+									<fieldset>
+
+										<div class="row">
+											<div class="form-group">
+												<div class="col-sm-4">
+													<span id="crossOver">
+													
+													
+													</span>
+
+												</div>
+
+											</div>
+
+										</div>
+
+										<div class="row">
+											<div>
+												<p>&nbsp;</p>
+											</div>
+										</div>
+										
+										<div class="row">
+											<div class="form-group">
+
+												<div class="col-sm-4">
+													<span id="breakOut"></span>
+												</div>
+
+											</div>
+
+										</div>
+										
+										
+									</fieldset>
+								</div>
+							</div>
+						</div>
+
+
+					</div>
+
+
+					<!-- <h3>Collapsible Navbar</h3>
+					<button type="button" class="btn btn-primary">Sign in</button>
+					<p>Only when the button is clicked, the navigation bar will be
+						displayed.</p>
+					<p>In this example, the navigation bar is hidden on small
+						screens and replaced by a button in the top right corner (try to
+						re-size this window).</p>
+
+					<h3>Collapsible Navbar</h3>
+					<p>Only when the button is clicked, the navigation bar will be
+						displayed.</p>
+					<button type="button" class="btn btn-success">Sign up</button>
+ -->
+
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<div th:replace="fragments/footer :: footer">&copy; 2016 The
+		Static Templates</div>
+</body>
+</html>

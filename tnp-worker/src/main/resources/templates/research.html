@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Home Example</title>
+
+<div th:replace="fragments/header :: header-css" />
+
+<!-- <script th:src="@{js/index.js}"></script> -->
+<script th:src="@{/js/research.js}"></script>
+</head>
+
+<body>
+
+	<div th:replace="fragments/header :: header" />
+
+	<div class="container">
+		<div class="panel-group">
+
+			<div class="panel panel-default">
+				<div class="panel-heading">Fundamental</div>
+
+				<div class="panel-body">
+					
+					<p>our recommendations</p>
+
+					<table id="fundamental" class="table table-striped table-bordered"
+						style="width: 100%">
+						<thead>
+							<tr>
+								<th>SYMBOL</th>
+								<th>VAL</th>
+								<th>DATE</th>
+								<th>PRICE</th>
+								<th>CURRENT</th>
+								<th>PE</th>
+								<th>SCTR PE</th>
+								<th>PB</th>
+								<th>SCTR PB</th>
+								<th>ROE</th>
+								<th>ROCE</th>
+								<th>%</th>
+								<th>BUY</th>
+							</tr>
+						</thead>
+						<tfoot>
+							<tr>
+								<th>SYMBOL</th>
+								<th>VAL</th>
+								<th>DATE</th>
+								<th>PRICE</th>
+								<th>CURRENT</th>
+								<th>PE</th>
+								<th>SECTOR PE</th>
+								<th>PB</th>
+								<th>SECTOR PB</th>
+								<th>ROE</th>
+								<th>ROC</th>
+								<th>%</th>
+								<th>BUY</th>
+							</tr>
+						</tfoot>
+					</table>
+
+				</div>
+			</div>
+
+
+			<div class="panel panel-default">
+				<div class="panel-heading">Technical</div>
+
+				<div class="panel-body">
+					
+					<p>our recommendations</p>
+
+					<table id="technical" class="table table-striped table-bordered"
+						style="width: 100%">
+						<thead>
+							<tr>
+								<th>SYMBOL</th>
+								<th>PS</th>
+								<th>DATE</th>
+								<th>PRICE</th>
+								<th>CURR</th>
+								<th>EMA5</th>
+								<th>EMA20</th>
+								<th>EMA50</th>
+								<th>EMA200</th>
+								<th>STG</th>
+								<th>SSTG</th>
+								<th>SCR</th>
+								<th>%</th>
+							</tr>
+						</thead>
+						<tfoot>
+							<tr>
+								<th>SYMBOL</th>
+								<th>PS</th>
+								<th>DATE</th>
+								<th>PRICE</th>
+								<th>CURR</th>
+								<th>EMA5</th>
+								<th>EMA20</th>
+								<th>EMA50</th>
+								<th>EMA200</th>
+								<th>STG</th>
+								<th>SSTG</th>
+								<th>SCR</th>
+								<th>%</th>
+							</tr>
+						</tfoot>
+					</table>
+
+				</div>
+			</div>
+
+			
+		</div>
+
+	</div>
+
+	<div th:replace="fragments/footer :: footer" />
+</body>
+</html>

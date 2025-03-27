@@ -63,13 +63,19 @@ public class RelevanceServiceImpl implements RelevanceService {
 
        // if(volumeIndicatorService.isBullish(stockTechnicals, timeframe)) {
 
+        if(trend.getDirection() == Trend.Direction.DOWN) {
             if (timeframeSupportResistanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isOverSold(stockTechnicals)) {
                 log.info("{} timeframe support active {} momentum {}", stockPrice.getStock().getNseSymbol(), trend.getStrength(), trend.getMomentum());
                 score = score + 1.5;
-            }else if (timeframeSupportResistanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isBullish(stockTechnicals)) {
+            }
+        }
+
+        if(trend.getDirection() == Trend.Direction.UP) {
+            if (timeframeSupportResistanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isBullish(stockTechnicals)) {
                 log.info("{} timeframe breakout active {} momentum {}}", stockPrice.getStock().getNseSymbol(), trend.getStrength(), trend.getMomentum());
                 score = score + 1.5;
             }
+        }
 
        // }
 
@@ -83,22 +89,24 @@ public class RelevanceServiceImpl implements RelevanceService {
 
         double score = 0.0;
 
-        if(trend.getMomentum() == Trend.Momentum.PULLBACK || trend.getMomentum() == Trend.Momentum.CORRECTION) {
+        //if(trend.getMomentum() == Trend.Momentum.PULLBACK || trend.getMomentum() == Trend.Momentum.CORRECTION) {
            // if (volumeIndicatorService.isBullish(stockTechnicals, timeframe)) {
-
-                if (multiMovingAverageSupportResistanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isOverSold(stockTechnicals)) {
-                    log.info("{} moving average support active {} momentum {}", stockPrice.getStock().getNseSymbol(), trend.getStrength(), trend.getMomentum());
-                    score = score + 1.5;
-                }
-
-                else if (multiMovingAverageSupportResistanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isBullish(stockTechnicals)) {
-                    log.info("{} moving average breakout active {} momentum {}", stockPrice.getStock().getNseSymbol(), trend.getStrength(), trend.getMomentum());
-                    score = score + 1.5;
-                }
+        if(trend.getDirection() == Trend.Direction.DOWN) {
+            if (multiMovingAverageSupportResistanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isOverSold(stockTechnicals)) {
+                log.info("{} moving average support active {} momentum {}", stockPrice.getStock().getNseSymbol(), trend.getStrength(), trend.getMomentum());
+                score = score + 1.5;
+            }
+        }
+        if(trend.getDirection() == Trend.Direction.UP) {
+            if (multiMovingAverageSupportResistanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isBullish(stockTechnicals)) {
+                log.info("{} moving average breakout active {} momentum {}", stockPrice.getStock().getNseSymbol(), trend.getStrength(), trend.getMomentum());
+                score = score + 1.5;
+            }
+        }
 
 
            // }
-        }
+       // }
 
         log.info("{} relevance score: {} trend: {} momentum {}", stockPrice.getStock().getNseSymbol(), score, trend.getStrength(), trend.getMomentum());
 
@@ -107,7 +115,6 @@ public class RelevanceServiceImpl implements RelevanceService {
 
     @Override
     public boolean isBullishIndicator(Trend trend, Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-
 
         // Check if the trend is in a pullback or correction phase
         if (trend.getMomentum() != Trend.Momentum.PULLBACK && trend.getMomentum() != Trend.Momentum.CORRECTION) {
@@ -139,15 +146,18 @@ public class RelevanceServiceImpl implements RelevanceService {
 
 
         //if(volumeIndicatorService.isBearish(stockTechnicals, timeframe)) {
+        if(trend.getDirection() == Trend.Direction.DOWN) {
             if (timeframeSupportResistanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isBearish(stockTechnicals)) {
                 log.info("{} timeframe breakdown {} momentum {}", stockPrice.getStock().getNseSymbol(), trend.getStrength(), trend.getMomentum());
                 score = score + 1.5;
             }
-
+        }
+        if(trend.getDirection() == Trend.Direction.UP) {
             if (timeframeSupportResistanceService.isNearResistance(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isOverBought(stockTechnicals)) {
                 log.info("{} timeframe resistance {} momentum {}", stockPrice.getStock().getNseSymbol(), trend.getStrength(), trend.getMomentum());
                 score = score + 1.5;
             }
+        }
        // }
 
         log.info("{} relevance score: {} trend: {} momentum {}", stockPrice.getStock().getNseSymbol(), score, trend.getStrength(), trend.getMomentum());
@@ -158,19 +168,22 @@ public class RelevanceServiceImpl implements RelevanceService {
     public boolean isBearishMovingAverage(Trend trend, Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals,  double minimumScore) {
 
         double score = 0.0;
-        if(trend.getMomentum() == Trend.Momentum.RECOVERY || trend.getMomentum() == Trend.Momentum.ADVANCE) {
+        if(trend.getDirection() == Trend.Direction.DOWN) {
+            //if(trend.getMomentum() == Trend.Momentum.RECOVERY || trend.getMomentum() == Trend.Momentum.ADVANCE) {
             //if (volumeIndicatorService.isBearish(stockTechnicals, timeframe)) {
-                if (multiMovingAverageSupportResistanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isBearish(stockTechnicals)) {
-                    log.info("{} moving average breakdown {} momentum {}", stockPrice.getStock().getNseSymbol(), trend.getStrength(), trend.getMomentum());
-                    score = score + 1.5;
-                }
-
-                if (multiMovingAverageSupportResistanceService.isNearResistance(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isOverBought(stockTechnicals)) {
-                    log.info("{} moving average resistance {} momentum {}", stockPrice.getStock().getNseSymbol(), trend.getStrength(), trend.getMomentum());
-                    score = score + 1.5;
-                }
-            //}
+            if (multiMovingAverageSupportResistanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isBearish(stockTechnicals)) {
+                log.info("{} moving average breakdown {} momentum {}", stockPrice.getStock().getNseSymbol(), trend.getStrength(), trend.getMomentum());
+                score = score + 1.5;
+            }
         }
+        if(trend.getDirection() == Trend.Direction.UP) {
+            if (multiMovingAverageSupportResistanceService.isNearResistance(trend, timeframe, stockPrice, stockTechnicals) && rsiIndicatorService.isOverBought(stockTechnicals)) {
+                log.info("{} moving average resistance {} momentum {}", stockPrice.getStock().getNseSymbol(), trend.getStrength(), trend.getMomentum());
+                score = score + 1.5;
+            }
+        }
+            //}
+
 
         log.info("{} relevance score: {} trend: {} momentum {}", stockPrice.getStock().getNseSymbol(), score, trend.getStrength(), trend.getMomentum());
         return score >= minimumScore;
@@ -179,11 +192,10 @@ public class RelevanceServiceImpl implements RelevanceService {
     @Override
     public boolean isBearishIndicator(Trend trend, Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
-        // Check if the trend is in a recovery or advance phase
-        /*
-        if (trend.getMomentum() != Trend.Momentum.RECOVERY && trend.getMomentum() != Trend.Momentum.ADVANCE) {
+        // Check if the trend is in a top or advance phase
+        if (trend.getMomentum() != Trend.Momentum.TOP && trend.getMomentum() != Trend.Momentum.ADVANCE) {
             return false;
-        }*/
+        }
 
         // Check if OBV or Volume indicators are bearish
         boolean isVolumeBearish = obvIndicatorService.isBearish(stockTechnicals);

@@ -1,5 +1,7 @@
 package com.example.util;
 
+import org.springframework.stereotype.Service;
+
 import java.text.DecimalFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -12,7 +14,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
-import org.springframework.stereotype.Service;
 
 import static java.time.temporal.TemporalAdjusters.nextOrSame;
 import static java.time.temporal.TemporalAdjusters.previousOrSame;

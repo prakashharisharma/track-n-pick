@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<div th:replace="fragments/header :: header-css" />
+<link rel="stylesheet" th:href="@{/css/signup.css}"/>
+<script src='https://www.google.com/recaptcha/api.js'></script>
+</head>
+<body>
+
+	<div th:fragment="header">
+		<nav class="navbar navbar-inverse">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse"
+						data-target="#myNavbar">
+						<span class="icon-bar"></span> <span class="icon-bar"></span> <span
+							class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="/">WebSiteName</a>
+				</div>
+				<div class="collapse navbar-collapse" id="myNavbar">
+					<ul class="nav navbar-nav">
+
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="#"><span class="glyphicon glyphicon-log-out"></span>
+								Signin</a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+	</div>
+
+	<div class="container">
+
+		<div class="signup-form">
+			<div class="main-div">
+				
+				<div class="panel">
+					<h2>Signup</h2>
+					<!-- <p>Please enter your email and password</p> -->
+				</div>
+				<form id="signup-form" class="form-horizontal" method="POST" 
+                		th:action="@{/api/signup}" th:object="${user}">
+                		<div class="form-group">
+                		<!-- 	<label class="control-label required">First Name</label> -->
+                			<input type="text" th:field="*{firstName}" 
+                				class="form-control required" placeholder="First Name"/>
+                		</div>
+                		<div class="form-group">
+                			<!-- <label class="control-label required">Last Name</label> -->
+                			<input type="text" th:field="*{lastName}" 
+                				class="form-control required" placeholder="Last Name" />
+                		</div>
+                		<div class="form-group">
+                			<!-- <label class="control-label required">Email</label> -->
+                			<input type="text" th:field="*{email}" 
+                				class="form-control required" placeholder="Email Address"/>
+                		</div>
+                		<div class="form-group">
+                			<!-- <label class="control-label required">Password</label> -->
+                			<input type="password" th:field="*{password}" 
+                				class="form-control required" placeholder="Password"/>
+                		</div>
+                		<div class="form-group">
+                			<!-- <label class="control-label required">Confirm Password</label> -->
+                			<input type="password" th:field="*{confirmPassword}" 
+                				class="form-control required" placeholder="Confirm Password" />
+                		</div>
+                		<div class="form-group">
+                			<div class="g-recaptcha" data-sitekey="6Ldgp2IUAAAAAGZrdcori_LkGlJ1lyS1rTaxO8a2"></div>
+                		</div>
+                		<button type="submit" class="btn btn-primary">Submit</button>
+                		
+                	</form>
+                	<div class="terms">
+					By clicking on Submit button, you accept our <a href="reset.html">Terms &amp; Conditions.</a>
+					</div>
+    		</div>
+    		
+		</div>
+
+	</div>
+
+	<div th:replace="fragments/footer :: footer">&copy; 2016 The
+		Static Templates</div>
+</body>
+</html>
