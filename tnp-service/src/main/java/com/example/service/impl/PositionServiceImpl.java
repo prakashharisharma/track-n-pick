@@ -1,7 +1,7 @@
 package com.example.service.impl;
 
-import com.example.enhanced.model.research.ResearchTechnical;
-import com.example.model.um.User;
+import com.example.transactional.model.research.ResearchTechnical;
+import com.example.transactional.model.um.User;
 import com.example.service.FundsLedgerService;
 import com.example.service.PositionService;
 import com.example.service.RiskFactor;

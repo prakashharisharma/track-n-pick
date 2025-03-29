@@ -62,14 +62,17 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jul-to-slf4j</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>log4j-over-slf4j</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -110,13 +113,13 @@
 
 		<dependency>
 			<groupId>com.example</groupId>
-			<artifactId>tnp-model</artifactId>
+			<artifactId>tnp-data</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.example</groupId>
-			<artifactId>tnp-historical</artifactId>
+			<artifactId>tnp-dto</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 

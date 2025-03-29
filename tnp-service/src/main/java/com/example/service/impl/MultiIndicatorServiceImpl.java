@@ -1,12 +1,10 @@
 package com.example.service.impl;
 
-import com.example.enhanced.model.stocks.StockTechnicals;
-import com.example.model.master.Stock;
+import com.example.transactional.model.stocks.StockTechnicals;
 import com.example.service.AdxIndicatorService;
 import com.example.service.MacdIndicatorService;
 import com.example.service.MultiIndicatorService;
 import com.example.service.RsiIndicatorService;
-import com.example.util.io.model.type.Timeframe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

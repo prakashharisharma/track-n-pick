@@ -1,15 +1,13 @@
 package com.example.service.impl;
 
-import com.example.enhanced.model.stocks.StockPrice;
-import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.transactional.model.stocks.StockPrice;
+import com.example.transactional.model.stocks.StockTechnicals;
 import com.example.service.TwoSessionCandleStickService;
 import com.example.service.utils.CandleStickUtils;
 import com.example.util.io.model.type.Timeframe;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.sql.Time;
 
 @Slf4j
 @RequiredArgsConstructor

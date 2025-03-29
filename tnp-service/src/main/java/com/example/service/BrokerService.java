@@ -5,8 +5,8 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.model.master.Broker;
-import com.example.repo.master.BrokerRepository;
+import com.example.transactional.model.master.Broker;
+import com.example.transactional.repo.master.BrokerRepository;
 
 @Transactional
 @Service

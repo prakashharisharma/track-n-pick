@@ -1,8 +1,8 @@
 package com.example.service.impl;
 
-import com.example.enhanced.model.stocks.StockTechnicals;
-import com.example.enhanced.service.StockTechnicalsService;
-import com.example.model.master.Stock;
+import com.example.transactional.model.stocks.StockTechnicals;
+import com.example.transactional.service.StockTechnicalsService;
+import com.example.transactional.model.master.Stock;
 import com.example.service.CrossOverUtil;
 import com.example.service.MovingAverageCrossOverService;
 import com.example.util.io.model.type.Timeframe;

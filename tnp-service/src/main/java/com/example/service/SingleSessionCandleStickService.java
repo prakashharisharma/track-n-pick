@@ -1,7 +1,7 @@
 package com.example.service;
 
-import com.example.enhanced.model.stocks.StockPrice;
-import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.transactional.model.stocks.StockPrice;
+import com.example.transactional.model.stocks.StockTechnicals;
 import com.example.util.io.model.type.Timeframe;
 
 public interface SingleSessionCandleStickService {

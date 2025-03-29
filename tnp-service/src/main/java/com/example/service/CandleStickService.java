@@ -1,7 +1,6 @@
 package com.example.service;
 
-import com.example.enhanced.model.stocks.StockPrice;
-import com.example.storage.model.StockTechnicals;
+import com.example.transactional.model.stocks.StockPrice;
 import com.example.util.FibonacciRatio;
 
 public interface CandleStickService {

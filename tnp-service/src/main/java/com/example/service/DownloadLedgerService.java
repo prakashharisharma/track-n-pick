@@ -7,8 +7,8 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.model.ledger.DownloadLedger;
-import com.example.repo.ledger.DownloadLedgerRepository;
+import com.example.transactional.model.ledger.DownloadLedger;
+import com.example.transactional.repo.ledger.DownloadLedgerRepository;
 import com.example.util.io.model.DownloadTriggerIO.DownloadType;
 
 

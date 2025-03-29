@@ -1,6 +1,6 @@
 package com.example.exception;
 
-import com.example.enhanced.exception.InvalidTokenException;
+import com.example.transactional.exception.InvalidTokenException;
 import com.example.utils.JsonApiErrorUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
 package com.example.service;
 
-import com.example.model.um.User;
+import com.example.transactional.model.um.User;
 
 import java.math.BigDecimal;
 

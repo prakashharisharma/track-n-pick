@@ -1,15 +1,13 @@
 package com.example.service;
 
-import java.util.List;
-
 import javax.transaction.Transactional;
 
-import com.example.model.um.User;
+import com.example.transactional.model.um.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.model.ledger.PerformanceLedger;
-import com.example.repo.ledger.PerformanceLedgerRepository;
+import com.example.transactional.model.ledger.PerformanceLedger;
+import com.example.transactional.repo.ledger.PerformanceLedgerRepository;
 import com.example.util.MiscUtil;
 
 @Transactional

@@ -1,7 +1,7 @@
 package com.example.service.impl;
 
-import com.example.enhanced.model.stocks.StockPrice;
-import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.transactional.model.stocks.StockPrice;
+import com.example.transactional.model.stocks.StockTechnicals;
 import com.example.service.ThreeSessionCandleStickService;
 import com.example.service.TwoSessionCandleStickService;
 import com.example.service.utils.CandleStickUtils;

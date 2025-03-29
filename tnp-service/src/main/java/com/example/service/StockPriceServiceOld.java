@@ -2,11 +2,11 @@ package com.example.service;
 
 import javax.transaction.Transactional;
 
-import com.example.enhanced.model.stocks.StockPrice;
-import com.example.enhanced.model.stocks.StockTechnicals;
-import com.example.enhanced.service.StockPriceService;
-import com.example.enhanced.service.StockTechnicalsService;
-import com.example.model.master.Stock;
+import com.example.transactional.model.stocks.StockPrice;
+import com.example.transactional.model.stocks.StockTechnicals;
+import com.example.transactional.service.StockPriceService;
+import com.example.transactional.service.StockTechnicalsService;
+import com.example.transactional.model.master.Stock;
 import com.example.util.FibonacciRatio;
 import com.example.util.FormulaService;
 import com.example.util.io.model.type.Timeframe;

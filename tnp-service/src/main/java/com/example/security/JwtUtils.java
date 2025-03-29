@@ -1,6 +1,6 @@
 package com.example.security;
 
-import com.example.model.um.User;
+import com.example.transactional.model.um.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;

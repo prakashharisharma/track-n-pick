@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-	<include resource="org/springframework/boot/logging/logback/defaults.xml" /> 
+	<include resource="org/springframework/boot/logging/logback/defaults.xml" />
 	<!-- <property name="LOG_PATH" source="logging.path" /> -->
 	<property resource="application.properties" />
 
 	<property name="CONSOLE_LOG_PATTERN" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}" />
-	
+
 	<!-- Appender to log to console -->
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
@@ -18,225 +18,31 @@
 		</encoder>
 	</appender>
 
-	<appender name="MT_LOG"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${logging.file.path}/mt_log.log</file>
+	<appender name="WEB_LOG"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${logging.file.path}/web_logs.log</file>
 		<encoder
-			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level
 				%logger{36}.%M - %msg%n</Pattern>
 		</encoder>
 		<rollingPolicy
-			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logging.file.path}/archived/mt_log_%d{dd-MM-yyyy}_%i.log
+				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${logging.file.path}/archived/web_logs_%d{dd-MM-yyyy}_%i.log
 			</fileNamePattern>
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-			<maxFileSize>100MB</maxFileSize>
+				<maxFileSize>100MB</maxFileSize>
 			</timeBasedFileNamingAndTriggeringPolicy>
 			<maxHistory>10</maxHistory>
 			<totalSizeCap>1GB</totalSizeCap>
 		</rollingPolicy>
-		
+
 	</appender>
 
-	<appender name="STORAGE_LOG"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${logging.file.path}/storage_log.log</file>
-		<encoder
-			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level
-				%logger{36}.%M - %msg%n</Pattern>
-		</encoder>
-		<rollingPolicy
-			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logging.file.path}/archived/storage_log_%d{dd-MM-yyyy}_%i.log
-			</fileNamePattern>
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-			<maxFileSize>100MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-			<maxHistory>10</maxHistory>
-			<totalSizeCap>1GB</totalSizeCap>
-		</rollingPolicy>
-	</appender>
-
-	<appender name="INTEGRATION_LOG"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${logging.file.path}/integration_log.log</file>
-		<encoder
-			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level
-				%logger{36}.%M - %msg%n</Pattern>
-		</encoder>
-		<rollingPolicy
-			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logging.file.path}/archived/integration_log_%d{dd-MM-yyyy}_%i.log
-			</fileNamePattern>
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-			<maxFileSize>100MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-			<maxHistory>10</maxHistory>
-			<totalSizeCap>1GB</totalSizeCap>
-		</rollingPolicy>
-	</appender>
-
-	<appender name="UI_LOG"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${logging.file.path}/ui_log.log</file>
-		<encoder
-			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level
-				%logger{36}.%M - %msg%n</Pattern>
-		</encoder>
-		<rollingPolicy
-			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logging.file.path}/archived/ui_log_%d{dd-MM-yyyy}_%i.log
-			</fileNamePattern>
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-			<maxFileSize>100MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-			<maxHistory>10</maxHistory>
-			<totalSizeCap>1GB</totalSizeCap>
-		</rollingPolicy>
-	</appender>
-	<appender name="API_LOG"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${logging.file.path}/api_log.log</file>
-		<encoder
-			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level
-				%logger{36}.%M - %msg%n</Pattern>
-		</encoder>
-		<rollingPolicy
-			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logging.file.path}/archived/api_log_%d{dd-MM-yyyy}_%i.log
-			</fileNamePattern>
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-			<maxFileSize>100MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-			<maxHistory>10</maxHistory>
-			<totalSizeCap>1GB</totalSizeCap>
-		</rollingPolicy>
-	</appender>
-
-	<appender name="TEST_LOG"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${logging.file.path}/test_log.log</file>
-		<encoder
-			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level
-				%logger{36}.%M - %msg%n</Pattern>
-		</encoder>
-		<rollingPolicy
-			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logging.file.path}/archived/test_log_%d{dd-MM-yyyy}_%i.log
-			</fileNamePattern>
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-			<maxFileSize>100MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-			<maxHistory>10</maxHistory>
-			<totalSizeCap>1GB</totalSizeCap>
-		</rollingPolicy>
-	</appender>
-	<appender name="EXTERNAL_LOG"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${logging.file.path}/external_log.log</file>
-		<encoder
-			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level%logger{36}.%M - %msg%n</Pattern>
-		</encoder>
-		<rollingPolicy
-			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logging.file.path}/archived/external_log_%d{dd-MM-yyyy}_%i.log
-			</fileNamePattern>
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-			<maxFileSize>100MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-			<maxHistory>10</maxHistory>
-			<totalSizeCap>1GB</totalSizeCap>
-		</rollingPolicy>
-	</appender>
-	<appender name="SPRING_LOG"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${logging.file.path}/spring_log.log</file>
-		<encoder
-			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level%logger{36}.%M - %msg%n</Pattern>
-		</encoder>
-		<rollingPolicy
-			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logging.file.path}/archived/spring_log_%d{dd-MM-yyyy}_%i.log
-			</fileNamePattern>
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-			<maxFileSize>100MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-			<maxHistory>10</maxHistory>
-			<totalSizeCap>1GB</totalSizeCap>
-		</rollingPolicy>
-	</appender>
-	<appender name="HIBERNATE_LOG"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${logging.file.path}/hibernate_log.log</file>
-		<encoder
-			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level%logger{36}.%M - %msg%n</Pattern>
-		</encoder>
-		<rollingPolicy
-			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logging.file.path}/archived/hibernate_log_%d{dd-MM-yyyy}_%i.log
-			</fileNamePattern>
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-			<maxFileSize>100MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-			<maxHistory>10</maxHistory>
-			<totalSizeCap>1GB</totalSizeCap>
-		</rollingPolicy>
-	</appender>
-	
-	<logger name="com.example.service" level="DEBUG" additivity="true">
-		<appender-ref ref="MT_LOG" />
-		<appender-ref ref="STDOUT" />
-	</logger>
-		<logger name="com.example.external" level="DEBUG" additivity="true">
-		<appender-ref ref="EXTERNAL_LOG" />
-		<appender-ref ref="STDOUT" />
-	</logger>
-	<logger name="com.example.storage" level="DEBUG"
-		additivity="true">
-		<appender-ref ref="STORAGE_LOG" />
-		<appender-ref ref="STDOUT" />
-	</logger>
-	<logger name="com.example.integration" level="DEBUG"
-		additivity="true">
-		<appender-ref ref="INTEGRATION_LOG" />
-		<appender-ref ref="STDOUT" />
-	</logger>
-	<logger name="com.example.ui" level="INFO" additivity="true">
-		<appender-ref ref="UI_LOG" />
+	<logger name="com.example" level="DEBUG" additivity="true">
+		<appender-ref ref="WEB_LOG" />
 		<appender-ref ref="STDOUT" />
 	</logger>
 
-	<logger name="com.example.api" level="DEBUG" additivity="true">
-		<appender-ref ref="API_LOG" />
-		<appender-ref ref="STDOUT" />
-	</logger>
-
-	<logger name="com.example.test" level="DEBUG" additivity="true">
-		<appender-ref ref="TEST_LOG" />
-		<appender-ref ref="STDOUT" />
-	</logger>
-
-	<logger name="org.springframework" level="WARN"
-		additivity="true">
-		<appender-ref ref="SPRING_LOG" />
-		<appender-ref ref="STDOUT" />
-	</logger>
-	<logger name="org.hibernate" level="WARN" additivity="true">
-	<appender-ref ref="HIBERNATE_LOG" />
-		<appender-ref ref="STDOUT" />
-	</logger>
-
-	<!-- <root level="WARN"> <appender-ref ref="STDOUT" /> </root> <root level="ERROR"> 
-		<appender-ref ref="STDOUT" /> </root> <root level="INFO"> <appender-ref ref="SAVE-TO-FILE_INFO" 
-		/> </root> -->
 
 </configuration>

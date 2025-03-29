@@ -8,13 +8,13 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
-import com.example.model.master.SpecialTradingSession;
-import com.example.repo.master.SpecialTradingSessionRepository;
+import com.example.transactional.model.master.SpecialTradingSession;
+import com.example.transactional.repo.master.SpecialTradingSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.model.master.HolidayCalendar;
-import com.example.repo.master.HolidayCalendarRepository;
+import com.example.transactional.model.master.HolidayCalendar;
+import com.example.transactional.repo.master.HolidayCalendarRepository;
 import com.example.util.MiscUtil;
 
 @Transactional

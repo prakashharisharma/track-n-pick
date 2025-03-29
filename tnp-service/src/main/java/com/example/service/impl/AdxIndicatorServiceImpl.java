@@ -1,6 +1,6 @@
 package com.example.service.impl;
 
-import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.transactional.model.stocks.StockTechnicals;
 import com.example.service.AdxIndicatorService;
 import com.example.service.CrossOverUtil;
 import lombok.extern.slf4j.Slf4j;

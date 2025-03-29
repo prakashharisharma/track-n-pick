@@ -1,11 +1,9 @@
 package com.example.service.impl;
 
 import com.example.dto.OHLCV;
-import com.example.enhanced.model.stocks.StockPrice;
-import com.example.enhanced.model.stocks.StockTechnicals;
-import com.example.enhanced.service.StockPriceService;
-import com.example.enhanced.service.StockTechnicalsService;
-import com.example.model.master.Stock;
+import com.example.transactional.model.stocks.StockPrice;
+import com.example.transactional.model.stocks.StockTechnicals;
+import com.example.transactional.model.master.Stock;
 import com.example.service.*;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;

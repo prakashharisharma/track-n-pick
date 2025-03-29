@@ -78,7 +78,7 @@
 
 		<dependency>
 			<groupId>com.example</groupId>
-			<artifactId>tnp-model</artifactId>
+			<artifactId>tnp-data</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
@@ -91,13 +91,7 @@
 
 		<dependency>
 			<groupId>com.example</groupId>
-			<artifactId>tnp-service-external</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.example</groupId>
-			<artifactId>tnp-historical</artifactId>
+			<artifactId>tnp-external</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 

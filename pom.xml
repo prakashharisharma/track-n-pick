@@ -24,10 +24,10 @@
 	</properties>
 
 	<modules>
-		<module>tnp-historical</module>
-		<module>tnp-model</module>
+		<module>tnp-dto</module>
+		<module>tnp-data</module>
 		<module>tnp-service</module>
-		<module>tnp-service-external</module>
+		<module>tnp-external</module>
 		<module>tnp-util</module>
 		<module>tnp-web</module>
 		<module>tnp-worker</module>

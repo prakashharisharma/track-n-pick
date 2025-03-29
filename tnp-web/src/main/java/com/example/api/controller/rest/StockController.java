@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.model.master.Stock;
-import com.example.repo.master.StockRepository;
+import com.example.transactional.model.master.Stock;
+import com.example.transactional.repo.master.StockRepository;
 import com.example.service.StockService;
 import com.example.ui.model.StockSearch;
 import com.example.util.FormulaService;

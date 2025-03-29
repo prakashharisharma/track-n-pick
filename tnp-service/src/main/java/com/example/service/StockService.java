@@ -8,8 +8,8 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
-import com.example.enhanced.model.stocks.StockPrice;
-import com.example.enhanced.service.StockPriceService;
+import com.example.transactional.model.stocks.StockPrice;
+import com.example.transactional.service.StockPriceService;
 import com.example.util.DownloadCounterUtil;
 import com.example.util.io.model.type.Timeframe;
 import org.slf4j.Logger;
@@ -18,13 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.external.factor.FactorRediff;
-import com.example.model.master.Sector;
-import com.example.model.master.Stock;
-import com.example.model.stocks.StockFactor;
-import com.example.model.stocks.StockPriceOld;
-import com.example.repo.master.StockRepository;
-import com.example.repo.stocks.StockFactorRepository;
-import com.example.repo.stocks.StockPriceRepositoryOld;
+import com.example.transactional.model.master.Sector;
+import com.example.transactional.model.master.Stock;
+import com.example.transactional.model.stocks.StockFactor;
+import com.example.transactional.repo.master.StockRepository;
+import com.example.transactional.repo.stocks.StockFactorRepository;
+import com.example.transactional.repo.stocks.StockPriceRepositoryOld;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.util.io.model.StockIO;

@@ -1,7 +1,7 @@
 package com.example;
 
-import com.example.enhanced.model.StockPriceIN;
-import com.example.enhanced.service.BhavcopyService;
+import com.example.transactional.model.StockPriceIN;
+import com.example.transactional.service.BhavcopyService;
 import com.example.service.FileNameService;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;

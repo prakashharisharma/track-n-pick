@@ -1,6 +1,6 @@
 package com.example.service;
 
-import com.example.model.master.Stock;
+import com.example.transactional.model.master.Stock;
 import com.example.util.io.model.type.Timeframe;
 
 public interface MovingAverageCrossOverService {

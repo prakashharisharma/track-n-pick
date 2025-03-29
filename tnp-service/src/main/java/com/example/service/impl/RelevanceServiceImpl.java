@@ -1,11 +1,10 @@
 package com.example.service.impl;
 
-import com.example.enhanced.model.research.ResearchTechnical;
-import com.example.enhanced.model.stocks.StockPrice;
-import com.example.enhanced.model.stocks.StockTechnicals;
-import com.example.enhanced.service.StockPriceService;
-import com.example.enhanced.service.StockTechnicalsService;
-import com.example.model.master.Stock;
+import com.example.transactional.model.research.ResearchTechnical;
+import com.example.transactional.model.stocks.StockPrice;
+import com.example.transactional.model.stocks.StockTechnicals;
+import com.example.transactional.service.StockPriceService;
+import com.example.transactional.service.StockTechnicalsService;
 import com.example.service.*;
 import com.example.util.FormulaService;
 import com.example.util.io.model.type.Timeframe;
@@ -136,7 +135,7 @@ public class RelevanceServiceImpl implements RelevanceService {
         log.info("{} indicator support / breakout rejected as price is away from EMA20. Using Strategy: {}, SubStrategy: {}",
                 stockPrice.getStock().getNseSymbol(), ResearchTechnical.Strategy.PRICE, ResearchTechnical.SubStrategy.RMAO);
 
-        return false;
+        return true;
     }
 
     @Override
@@ -212,7 +211,7 @@ public class RelevanceServiceImpl implements RelevanceService {
         log.info("{} indicator resistance / breakdown rejected as price is away from EMA20. Using Strategy: {}, SubStrategy: {}",
                 stockPrice.getStock().getNseSymbol(), ResearchTechnical.Strategy.PRICE, ResearchTechnical.SubStrategy.RMAO);
 
-        return false;
+        return true;
     }
 
     public  double calculateBullishVolumeFactorUsingRsi(double rsi) {

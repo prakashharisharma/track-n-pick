@@ -110,13 +110,7 @@
 
 		<dependency>
 			<groupId>com.example</groupId>
-			<artifactId>tnp-model</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.example</groupId>
-			<artifactId>tnp-historical</artifactId>
+			<artifactId>tnp-data</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 

@@ -2,19 +2,16 @@ package com.example.security;
 
 import com.example.dto.security.JwtResponse;
 import com.example.dto.security.LoginRequest;
-import com.example.enhanced.exception.InvalidTokenException;
-import com.example.model.um.User;
-import com.example.repo.um.UserRepository;
+import com.example.transactional.exception.InvalidTokenException;
+import com.example.transactional.model.um.User;
+import com.example.transactional.repo.um.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;

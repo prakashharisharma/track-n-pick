@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.model.master.Stock;
-import com.example.model.stocks.StockFactor;
-import com.example.repo.stocks.StockFactorRepository;
+import com.example.transactional.model.master.Stock;
+import com.example.transactional.model.stocks.StockFactor;
+import com.example.transactional.repo.stocks.StockFactorRepository;
 
 @Transactional
 @Service

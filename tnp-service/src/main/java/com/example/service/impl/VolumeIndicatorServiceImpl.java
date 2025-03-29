@@ -1,6 +1,6 @@
 package com.example.service.impl;
 
-import com.example.enhanced.model.stocks.StockTechnicals;
+import com.example.transactional.model.stocks.StockTechnicals;
 import com.example.service.VolumeIndicatorService;
 import com.example.util.io.model.type.Timeframe;
 import lombok.extern.slf4j.Slf4j;
@@ -10,28 +10,34 @@ import org.springframework.stereotype.Service;
 @Service
 public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
 
-    private static double BULLISH_MULTIPLIER = 2.0;
-    private static double BEARISH_MULTIPLIER = 1.5;
+    private static double BULLISH_MULTIPLIER_DAILY = 2.0;
+    private static double BEARISH_MULTIPLIER_DAILY = 1.5;
+    private static double THRESHOLD_DAILY = 0.5;
 
-    private static double THRESHOLD = 0.5;
+    private static double BULLISH_MULTIPLIER_WEEKLY = 1.8;
+    private static double BEARISH_MULTIPLIER_WEEKLY = 1.3;
+    private static double THRESHOLD_WEEKLY = 0.5;
 
+    private static double BULLISH_MULTIPLIER_MONTHLY = 1.5;
+    private static double BEARISH_MULTIPLIER_MONTHLY = 1.0;
+    private static double THRESHOLD_MONTHLY = 0.5;
 
     @Override
     public boolean isBullish(StockTechnicals stockTechnicals, Timeframe timeframe) {
-        return this.isCurrentSessionHigh(stockTechnicals, timeframe, BULLISH_MULTIPLIER) || this.isPreviousSessionHigh(stockTechnicals, timeframe, BULLISH_MULTIPLIER);
+        return this.isCurrentSessionHigh(stockTechnicals, timeframe, this.getBullishMultiplier(timeframe)) || this.isPreviousSessionHigh(stockTechnicals, timeframe, this.getBullishMultiplier(timeframe));
     }
 
-    @Override
+
     public boolean isBullish(StockTechnicals stockTechnicals, Timeframe timeframe, double multiplier) {
         return this.isCurrentSessionHigh(stockTechnicals, timeframe, multiplier) || this.isPreviousSessionHigh(stockTechnicals, timeframe, multiplier);
     }
 
     @Override
     public boolean isBearish(StockTechnicals stockTechnicals, Timeframe timeframe) {
-        return this.isCurrentSessionHigh(stockTechnicals, timeframe, BEARISH_MULTIPLIER) || this.isPreviousSessionHigh(stockTechnicals, timeframe, BEARISH_MULTIPLIER);
+        return this.isCurrentSessionHigh(stockTechnicals, timeframe, this.getBearishMultiplier(timeframe)) || this.isPreviousSessionHigh(stockTechnicals, timeframe, this.getBearishMultiplier(timeframe));
     }
 
-    @Override
+
     public boolean isBearish(StockTechnicals stockTechnicals, Timeframe timeframe, double multiplier) {
         return this.isCurrentSessionHigh(stockTechnicals, timeframe, multiplier) || this.isPreviousSessionHigh(stockTechnicals, timeframe, multiplier);
     }
@@ -64,13 +70,13 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         }
 
         if(days == 3){
-            return this.checkThreeSession(volume, volumeMA, preVolume, prevVolumeMA, prev2Volume, prev2VolumeMA, BULLISH_MULTIPLIER);
+            return this.checkThreeSession(volume, volumeMA, preVolume, prevVolumeMA, prev2Volume, prev2VolumeMA, this.getBullishMultiplier(timeframe));
         }
         if(days == 2){
-            return this.checkTwoSession(volume, volumeMA, preVolume, prevVolumeMA, BULLISH_MULTIPLIER);
+            return this.checkTwoSession(volume, volumeMA, preVolume, prevVolumeMA, this.getBullishMultiplier(timeframe));
         }
 
-        return this.checkSingleSession(volume, volumeMA, preVolume, prevVolumeMA, BULLISH_MULTIPLIER);
+        return this.checkSingleSession(volume, volumeMA, preVolume, prevVolumeMA, this.getBullishMultiplier(timeframe));
     }
 
     @Override
@@ -101,13 +107,13 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         }
 
         if(days == 3){
-            return this.checkThreeSession(volume, volumeMA, preVolume, prevVolumeMA, prev2Volume, prev2VolumeMA, BEARISH_MULTIPLIER);
+            return this.checkThreeSession(volume, volumeMA, preVolume, prevVolumeMA, prev2Volume, prev2VolumeMA, this.getBearishMultiplier(timeframe));
         }
         if(days == 2){
-            return this.checkTwoSession(volume, volumeMA, preVolume, prevVolumeMA, BEARISH_MULTIPLIER);
+            return this.checkTwoSession(volume, volumeMA, preVolume, prevVolumeMA, this.getBearishMultiplier(timeframe));
         }
 
-        return this.checkSingleSession(volume, volumeMA, preVolume, prevVolumeMA, BEARISH_MULTIPLIER);
+        return this.checkSingleSession(volume, volumeMA, preVolume, prevVolumeMA, this.getBearishMultiplier(timeframe));
     }
 
     /**
@@ -143,7 +149,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
             }
         }
         // Alternative condition: Volume is higher than both avg (1.0x) and prev volume (multiplier)
-        else if (this.isHighVolume(stockTechnicals.getVolume(), avg, multiplier - THRESHOLD) &&
+        else if (this.isHighVolume(stockTechnicals.getVolume(), avg, multiplier - this.getThreshold(timeframe)) &&
                 this.isHighVolume(stockTechnicals.getVolume(), stockTechnicals.getPrevVolume(), multiplier)) {
             if (this.isIncreasing(stockTechnicals.getVolume(), stockTechnicals.getPrevVolume())) {
                 if (this.isIncreasing(avg, prevAvg)) {
@@ -188,7 +194,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
             }
         }
         // Alternative condition: Volume is higher than both avg (1.0x) and prev volume (multiplier)
-        else if (this.isHighVolume(stockTechnicals.getPrevVolume(), avg, multiplier - THRESHOLD) &&
+        else if (this.isHighVolume(stockTechnicals.getPrevVolume(), avg, multiplier - this.getThreshold(timeframe)) &&
                 this.isHighVolume(stockTechnicals.getPrevVolume(), stockTechnicals.getPrev2Volume(), multiplier)) {
             if (this.isIncreasing(stockTechnicals.getPrevVolume(), stockTechnicals.getPrev2Volume())) {
                 if (this.isIncreasing(avg, prevAvg)) {
@@ -259,5 +265,36 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
 
     private boolean isIncreasing(long volume, long preVolume){
         return (volume > preVolume) ? Boolean.TRUE : Boolean.FALSE;
+    }
+
+    private double getBullishMultiplier(Timeframe timeframe){
+
+        if(timeframe == Timeframe.MONTHLY){
+            return BULLISH_MULTIPLIER_MONTHLY;
+        } else if (timeframe == Timeframe.WEEKLY) {
+            return BULLISH_MULTIPLIER_WEEKLY;
+        }
+
+        return BULLISH_MULTIPLIER_DAILY;
+    }
+
+    private double getBearishMultiplier(Timeframe timeframe){
+
+        if(timeframe == Timeframe.MONTHLY){
+            return BEARISH_MULTIPLIER_MONTHLY;
+        } else if (timeframe == Timeframe.WEEKLY) {
+            return BEARISH_MULTIPLIER_WEEKLY;
+        }
+        return BEARISH_MULTIPLIER_DAILY;
+    }
+
+    private double getThreshold(Timeframe timeframe){
+
+        if(timeframe == Timeframe.MONTHLY){
+            return THRESHOLD_MONTHLY;
+        } else if (timeframe == Timeframe.WEEKLY) {
+            return THRESHOLD_WEEKLY;
+        }
+        return THRESHOLD_DAILY;
     }
 }

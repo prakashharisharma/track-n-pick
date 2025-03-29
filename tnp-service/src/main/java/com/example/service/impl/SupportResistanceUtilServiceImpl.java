@@ -1,10 +1,6 @@
 package com.example.service.impl;
 
-import com.example.enhanced.model.stocks.StockPrice;
-import com.example.enhanced.service.StockPriceService;
-import com.example.model.master.Stock;
-import com.example.model.stocks.StockPriceOld;
-import com.example.model.stocks.StockTechnicalsOld;
+import com.example.transactional.model.master.Stock;
 import com.example.service.CandleStickService;
 import com.example.service.SupportResistanceUtilService;
 import com.example.util.FibonacciRatio;

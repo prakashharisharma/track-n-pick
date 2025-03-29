@@ -1,8 +1,8 @@
 package com.example.service.impl;
 
-import com.example.enhanced.model.stocks.StockPrice;
-import com.example.enhanced.service.StockPriceService;
-import com.example.model.master.Stock;
+import com.example.transactional.model.stocks.StockPrice;
+import com.example.transactional.service.StockPriceService;
+import com.example.transactional.model.master.Stock;
 import com.example.service.ResistanceLevelDetector;
 import com.example.util.io.model.type.Timeframe;
 import lombok.RequiredArgsConstructor;

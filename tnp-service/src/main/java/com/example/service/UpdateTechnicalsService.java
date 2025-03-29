@@ -1,8 +1,7 @@
 package com.example.service;
 
 import com.example.dto.OHLCV;
-import com.example.model.master.Stock;
-import com.example.storage.model.StockPrice;
+import com.example.transactional.model.master.Stock;
 import com.example.storage.model.StockTechnicals;
 import com.example.util.io.model.StockPriceIO;
 import com.example.util.io.model.type.Timeframe;

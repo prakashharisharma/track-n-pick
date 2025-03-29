@@ -1,7 +1,7 @@
 package com.example.service.impl;
 
-import com.example.model.master.Stock;
-import com.example.model.stocks.StockFactor;
+import com.example.transactional.model.master.Stock;
+import com.example.transactional.model.stocks.StockFactor;
 import com.example.service.StockService;
 import com.example.service.UpdateFactorService;
 import com.example.storage.repo.FactorTemplate;

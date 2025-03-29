@@ -7,8 +7,8 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.model.master.TaxMaster;
-import com.example.repo.master.TaxMasterRepository;
+import com.example.transactional.model.master.TaxMaster;
+import com.example.transactional.repo.master.TaxMasterRepository;
 
 @Transactional
 @Service
