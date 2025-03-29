@@ -1,6 +1,7 @@
-package com.example.exception;
+package com.example.web.exception;
 
-import com.example.utils.JsonApiErrorUtil;
+import com.example.exception.InvalidTokenException;
+import com.example.web.utils.JsonApiErrorUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

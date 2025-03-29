@@ -1,10 +1,11 @@
-package com.example.security;
+package com.example.web.security.controller;
 
 import com.example.dto.security.JwtResponse;
 import com.example.dto.security.LoginRequest;
 import com.example.dto.security.LogoutRequest;
 import com.example.exception.InvalidTokenException;
-import com.example.utils.JsonApiSuccessUtil;
+import com.example.security.AuthService;
+import com.example.web.utils.JsonApiSuccessUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

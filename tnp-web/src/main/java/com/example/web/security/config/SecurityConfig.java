@@ -1,14 +1,12 @@
-package com.example.config;
+package com.example.web.security.config;
 
-import com.example.security.CustomAuthenticationEntryPoint;
-import com.example.security.CustomAuthenticationFailureHandler;
-import com.example.security.CustomUserDetailsService;
-import com.example.security.JwtAuthenticationFilter;
+
+import com.example.web.security.CustomAuthenticationEntryPoint;
+import com.example.web.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
