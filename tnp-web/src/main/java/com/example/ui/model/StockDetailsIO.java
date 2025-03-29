@@ -1,8 +1,9 @@
 package com.example.ui.model;
 
+import com.example.model.type.IndiceType;
+
 import java.io.Serializable;
 
-import com.example.util.io.model.StockIO.IndiceType;
 
 public class StockDetailsIO implements Serializable {
 

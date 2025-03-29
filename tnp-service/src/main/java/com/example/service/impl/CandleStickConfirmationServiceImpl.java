@@ -1,10 +1,10 @@
 package com.example.service.impl;
 
+import com.example.data.common.type.Timeframe;
 import com.example.transactional.model.stocks.StockPrice;
 import com.example.transactional.model.stocks.StockTechnicals;
 import com.example.service.*;
 import com.example.service.utils.CandleStickUtils;
-import com.example.util.io.model.type.Timeframe;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,13 +52,13 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
         // Determine volatility based on ATR percent
         if (atrPercent > 5) {
             // High Volatility
-            isLowerWickSignificant = lowerWick > lowerWickThresholdHigh;
+            isLowerWickSignificant = lowerWick > lowerWickThresholdHigh && lowerWick > upperWick;
         } else if (atrPercent > 1.5 && atrPercent <= 5) {
             // Moderate Volatility
-            isLowerWickSignificant = lowerWick > lowerWickThresholdModerate;
+            isLowerWickSignificant = lowerWick > lowerWickThresholdModerate && lowerWick > upperWick;
         } else {
             // Low Volatility
-            isLowerWickSignificant = lowerWick > lowerWickThresholdLow;
+            isLowerWickSignificant = lowerWick > lowerWickThresholdLow && lowerWick > upperWick;
         }
 
         switch (timeframe) {
@@ -84,7 +84,7 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
 
             case MONTHLY:
                 // Only check upper wick size for monthly
-                return (upperWick <= upperWickThresholdMonthly);
+                return (upperWick <= upperWickThresholdMonthly || isLowerWickSignificant );
 
             default:
                 return false;
@@ -125,13 +125,13 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
         // Determine volatility based on ATR percent
         if (atrPercent > 5) {
             // High Volatility
-            isUpperWickSignificant = upperWick > upperWickThresholdHigh;
+            isUpperWickSignificant = upperWick > upperWickThresholdHigh && upperWick > lowerWick;
         } else if (atrPercent > 1.5 && atrPercent <= 5) {
             // Moderate Volatility
-            isUpperWickSignificant = upperWick > upperWickThresholdModerate;
+            isUpperWickSignificant = upperWick > upperWickThresholdModerate && upperWick > lowerWick;
         } else {
             // Low Volatility
-            isUpperWickSignificant = upperWick > upperWickThresholdLow;
+            isUpperWickSignificant = upperWick > upperWickThresholdLow && upperWick > lowerWick;
         }
 
         // Now applying the rules for each timeframe based on volatility
@@ -158,7 +158,7 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
 
             case MONTHLY:
                 // Only check lower wick size for monthly
-                return (lowerWick <= lowerWickThresholdMonthly);
+                return (lowerWick <= lowerWickThresholdMonthly || isUpperWickSignificant);
 
             default:
                 return false;
@@ -200,7 +200,7 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
                         threeSessionCandleStickService.isThreeOutsideUp(timeframe, stockPrice, stockTechnicals) ||
 
                         // 4️⃣ Weaker Bullish Reversal Pattern
-                        threeSessionCandleStickService.isThreeInsideUp(timeframe, stockPrice, stockTechnicals);
+                        (threeSessionCandleStickService.isThreeInsideUp(timeframe, stockPrice, stockTechnicals) && this.isSingleSessionBullish(timeframe, stockPrice, stockTechnicals));
 
 
         if (!isBullishPattern) {
@@ -233,7 +233,7 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
                         threeSessionCandleStickService.isThreeOutsideDown(timeframe, stockPrice, stockTechnicals) ||
 
                         // 4️⃣ Weaker Bearish Reversal Patterns
-                        threeSessionCandleStickService.isThreeInsideDown(timeframe, stockPrice, stockTechnicals);
+                        (threeSessionCandleStickService.isThreeInsideDown(timeframe, stockPrice, stockTechnicals) && this.isSingleSessionBearish(timeframe, stockPrice, stockTechnicals));
 
 
         if (!isBearishPattern) {
@@ -263,11 +263,13 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
                         twoSessionCandleStickService.isTweezerBottom(timeframe, stockPrice, stockTechnicals) ||
                         twoSessionCandleStickService.isBullishOutsideBar(timeframe, stockPrice, stockTechnicals) ||
 
-                        // 3Medium Strength Reversal/Continuation Patterns
+                        // Medium Strength Reversal/Continuation Patterns
                         twoSessionCandleStickService.isBullishSash(timeframe, stockPrice, stockTechnicals) ||
                         twoSessionCandleStickService.isBullishSeparatingLine(timeframe, stockPrice, stockTechnicals) ||
-                        twoSessionCandleStickService.isBullishHarami(timeframe, stockPrice, stockTechnicals) ||
-                        twoSessionCandleStickService.isBullishInsideBar(timeframe, stockPrice, stockTechnicals);
+
+                                // Weak
+                                (twoSessionCandleStickService.isBullishHarami(timeframe, stockPrice, stockTechnicals) && this.isSingleSessionBullish(timeframe, stockPrice, stockTechnicals))||
+                                (twoSessionCandleStickService.isBullishInsideBar(timeframe, stockPrice, stockTechnicals) && this.isSingleSessionBullish(timeframe, stockPrice, stockTechnicals));
 
         if (!isBullishPattern) {
             return false;
@@ -299,8 +301,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
                         // Medium Strength Reversal/Continuation Patterns
                         twoSessionCandleStickService.isBearishSash(timeframe, stockPrice, stockTechnicals) ||
                         twoSessionCandleStickService.isBearishSeparatingLine(timeframe, stockPrice, stockTechnicals) ||
-                        twoSessionCandleStickService.isBearishHarami(timeframe, stockPrice, stockTechnicals) ||
-                        twoSessionCandleStickService.isBearishInsideBar(timeframe, stockPrice, stockTechnicals);
+                                (twoSessionCandleStickService.isBearishHarami(timeframe, stockPrice, stockTechnicals) && this.isSingleSessionBearish(timeframe, stockPrice, stockTechnicals)) ||
+                                (twoSessionCandleStickService.isBearishInsideBar(timeframe, stockPrice, stockTechnicals) && this.isSingleSessionBearish(timeframe, stockPrice, stockTechnicals));
 
         if (!isBearishPattern) {
             return false;

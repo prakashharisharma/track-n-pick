@@ -2,7 +2,7 @@ package com.example.security;
 
 import com.example.dto.security.JwtResponse;
 import com.example.dto.security.LoginRequest;
-import com.example.transactional.exception.InvalidTokenException;
+import com.example.exception.InvalidTokenException;
 import com.example.transactional.model.um.User;
 import com.example.transactional.repo.um.UserRepository;
 import lombok.extern.slf4j.Slf4j;

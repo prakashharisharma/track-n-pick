@@ -1,11 +1,11 @@
 package com.example.service.impl;
 
+import com.example.data.common.type.Timeframe;
+import com.example.data.common.type.Trend;
 import com.example.transactional.model.stocks.StockPrice;
 import com.example.transactional.model.stocks.StockTechnicals;
 import com.example.service.*;
 import com.example.util.FormulaService;
-import com.example.util.io.model.type.Timeframe;
-import com.example.util.io.model.type.Trend;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

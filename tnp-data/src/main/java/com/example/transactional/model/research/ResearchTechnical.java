@@ -2,9 +2,9 @@ package com.example.transactional.model.research;
 
 import javax.persistence.*;
 
+import com.example.data.common.type.Timeframe;
 import com.example.transactional.model.um.Trade;
 import com.example.transactional.model.master.Stock;
-import com.example.util.io.model.type.Timeframe;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

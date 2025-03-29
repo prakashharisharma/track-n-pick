@@ -3,7 +3,6 @@ package com.example.api.controller.rest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.ui.model.UIDownload;
-import com.example.util.io.model.DownloadTriggerIO;
-import com.example.util.io.model.DownloadTriggerIO.DownloadType;
+import com.example.dto.io.DownloadTriggerIO;
+import com.example.dto.io.DownloadTriggerIO.DownloadType;
 
 @RestController
 @RequestMapping("/api/download")

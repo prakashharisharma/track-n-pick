@@ -6,10 +6,9 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.example.data.common.type.Timeframe;
 import com.example.transactional.model.stocks.StockPrice;
-import com.example.transactional.service.StockPriceService;
 import com.example.service.impl.FundamentalResearchService;
-import com.example.util.io.model.type.Timeframe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

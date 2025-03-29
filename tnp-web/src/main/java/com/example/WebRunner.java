@@ -10,14 +10,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.example.data.common.type.Timeframe;
+import com.example.data.common.type.Trend;
 import com.example.dto.OHLCV;
 import com.example.dto.TradeSetup;
 import com.example.transactional.model.research.ResearchTechnical;
 import com.example.transactional.model.stocks.StockPrice;
 import com.example.transactional.model.stocks.StockTechnicals;
 import com.example.transactional.model.um.Trade;
-import com.example.transactional.processor.BhavProcessor;
-import com.example.transactional.service.*;
+import com.example.processor.BhavProcessor;
 import com.example.external.factor.FactorRediff;
 import com.example.external.ta.service.McService;
 import com.example.transactional.model.um.User;
@@ -29,8 +30,7 @@ import com.example.service.*;
 import com.example.service.calc.*;
 import com.example.service.impl.FundamentalResearchService;
 import com.example.storage.model.assembler.StockPriceOHLCVAssembler;
-import com.example.util.io.model.type.Timeframe;
-import com.example.util.io.model.type.Trend;
+
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ import com.example.storage.repo.PriceTemplate;
 import com.example.storage.repo.TechnicalsTemplate;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
-import com.example.util.io.model.StockPriceIO;
+import com.example.dto.io.StockPriceIO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -71,8 +71,6 @@ public class WebRunner implements CommandLineRunner {
 	@Autowired
 	private ResearchLedgerFundamentalService researchLedgerFundamentalService;
 
-	@Autowired
-	private FileNameService fileNameService;
 
 	@Autowired
 	private StockTechnicalsRepositoryOld stockTechnicalsRepository;

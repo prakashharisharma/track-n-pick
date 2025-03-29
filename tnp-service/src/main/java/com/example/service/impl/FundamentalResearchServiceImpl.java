@@ -2,11 +2,11 @@ package com.example.service.impl;
 
 import javax.transaction.Transactional;
 
+import com.example.data.common.type.Timeframe;
 import com.example.transactional.model.stocks.StockPrice;
-import com.example.transactional.service.StockPriceService;
+import com.example.service.StockPriceService;
 import com.example.transactional.model.stocks.StockFactor;
 import com.example.service.StockService;
-import com.example.util.io.model.type.Timeframe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -5,11 +5,11 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 
+import com.example.data.common.type.Timeframe;
 import com.example.storage.model.MonthlyStockTechnicals;
 import com.example.storage.model.StockPrice;
 import com.example.storage.model.WeeklyStockTechnicals;
 import com.example.storage.model.result.*;
-import com.example.util.io.model.type.Timeframe;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;

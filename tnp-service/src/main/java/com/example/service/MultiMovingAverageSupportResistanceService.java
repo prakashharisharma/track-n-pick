@@ -1,9 +1,10 @@
 package com.example.service;
 
+import com.example.data.common.type.Timeframe;
+import com.example.data.common.type.Trend;
 import com.example.transactional.model.stocks.StockPrice;
 import com.example.transactional.model.stocks.StockTechnicals;
-import com.example.util.io.model.type.Timeframe;
-import com.example.util.io.model.type.Trend;
+
 
 public interface MultiMovingAverageSupportResistanceService {
 

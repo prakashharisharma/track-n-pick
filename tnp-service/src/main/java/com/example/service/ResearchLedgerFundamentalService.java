@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import com.example.transactional.model.um.Trade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ import com.example.transactional.model.ledger.ResearchLedgerFundamental;
 import com.example.transactional.model.ledger.ValuationLedger;
 import com.example.transactional.model.master.Stock;
 import com.example.transactional.repo.ledger.ResearchLedgerFundamentalRepository;
-import com.example.util.io.model.ResearchIO.ResearchTrigger;
+import com.example.dto.io.ResearchIO.ResearchTrigger;
 
 @Transactional
 @Service
@@ -26,13 +27,13 @@ public class ResearchLedgerFundamentalService {
 
 	public void addResearch(Stock stock,ValuationLedger entryValuation) {
 
-		ResearchLedgerFundamental researchLedger = researchLedgerRepository.findByStockAndResearchStatus(stock, ResearchTrigger.BUY);
+		ResearchLedgerFundamental researchLedger = researchLedgerRepository.findByStockAndResearchStatus(stock, Trade.Type.BUY);
 
 		if (researchLedger == null) {
 			researchLedger = new ResearchLedgerFundamental();
 			researchLedger.setStock(stock);
 
-			researchLedger.setResearchStatus(ResearchTrigger.BUY);
+			researchLedger.setResearchStatus(Trade.Type.BUY);
 			
 			researchLedger.setNotified(false);
 			//researchLedger.setNotifiedStorage(false);
@@ -52,11 +53,11 @@ public class ResearchLedgerFundamentalService {
 
 	public boolean updateResearch(Stock stock, ValuationLedger exitValuation) {
 
-		ResearchLedgerFundamental researchLedger = researchLedgerRepository.findByStockAndResearchStatus(stock, ResearchTrigger.BUY);
+		ResearchLedgerFundamental researchLedger = researchLedgerRepository.findByStockAndResearchStatus(stock, Trade.Type.BUY);
 		
 		if (researchLedger != null) {
 
-			researchLedger.setResearchStatus(ResearchTrigger.SELL);
+			researchLedger.setResearchStatus(Trade.Type.SELL);
 			
 			researchLedger.setNotified(false);
 		//	researchLedger.setNotifiedStorage(false);
@@ -111,25 +112,25 @@ public class ResearchLedgerFundamentalService {
 	}
 
 	public List<ResearchLedgerFundamental> allActiveResearch() {
-		return researchLedgerRepository.findByResearchStatus(ResearchTrigger.BUY);
+		return researchLedgerRepository.findByResearchStatus(Trade.Type.BUY);
 	}
 
 	public List<ResearchLedgerFundamental> buyNotificationPending() {
-		return researchLedgerRepository.findByResearchStatusAndNotified(ResearchTrigger.BUY, false);
+		return researchLedgerRepository.findByResearchStatusAndNotified(Trade.Type.BUY, false);
 	}
 
 	public List<ResearchLedgerFundamental> sellNotificationPending() {
-		return researchLedgerRepository.findByResearchStatusAndNotified(ResearchTrigger.SELL, false);
+		return researchLedgerRepository.findByResearchStatusAndNotified(Trade.Type.SELL, false);
 	}
 
 	public List<ResearchLedgerFundamental> researchStocksFundamentals() {
 
-		return researchLedgerRepository.findByResearchStatus(ResearchTrigger.BUY);
+		return researchLedgerRepository.findByResearchStatus(Trade.Type.BUY);
 	}
 	public boolean isResearchActive(Stock stock) {
 		boolean isResearchActive = false;
 		
-		ResearchLedgerFundamental researchLedgerFundamental = researchLedgerRepository.findByStockAndResearchStatus(stock, ResearchTrigger.BUY);
+		ResearchLedgerFundamental researchLedgerFundamental = researchLedgerRepository.findByStockAndResearchStatus(stock, Trade.Type.BUY);
 		
 		if(researchLedgerFundamental != null) {
 			isResearchActive = true;

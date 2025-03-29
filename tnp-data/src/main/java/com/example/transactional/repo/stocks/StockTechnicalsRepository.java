@@ -1,7 +1,7 @@
 package com.example.transactional.repo.stocks;
 
+import com.example.data.common.type.Timeframe;
 import com.example.transactional.model.stocks.StockTechnicals;
-import com.example.util.io.model.type.Timeframe;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

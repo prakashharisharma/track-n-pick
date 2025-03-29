@@ -1,7 +1,7 @@
 package com.example.service;
 
+import com.example.data.common.type.Timeframe;
 import com.example.dto.OHLCV;
-import com.example.util.io.model.type.Timeframe;
 
 import java.time.LocalDate;
 import java.util.List;

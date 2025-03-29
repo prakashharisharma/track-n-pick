@@ -4,7 +4,6 @@ import com.example.transactional.model.master.Stock;
 import com.example.transactional.model.stocks.StockFactor;
 import com.example.service.StockService;
 import com.example.service.UpdateFactorService;
-import com.example.storage.repo.FactorTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,9 +17,6 @@ public class UpdateFactorServiceImpl implements UpdateFactorService {
 
     @Autowired
     private FundamentalResearchService fundamentalResearchService;
-
-    @Autowired
-    private FactorTemplate factorTemplate;
 
     @Override
     public void updateFactors(Stock stock) {

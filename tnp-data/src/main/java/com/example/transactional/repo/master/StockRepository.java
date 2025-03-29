@@ -4,14 +4,14 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import com.example.model.type.IndiceType;
+import com.example.transactional.model.master.Stock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.transactional.model.master.Sector;
-import com.example.transactional.model.master.Stock;
-import com.example.util.io.model.StockIO.IndiceType;
 
 @Transactional
 @Repository

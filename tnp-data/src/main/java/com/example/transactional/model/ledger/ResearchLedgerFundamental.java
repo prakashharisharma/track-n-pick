@@ -12,7 +12,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.example.transactional.model.master.Stock;
-import com.example.util.io.model.ResearchIO.ResearchTrigger;
+import com.example.transactional.model.um.Trade;
 
 
 @Entity
@@ -30,7 +30,7 @@ public class ResearchLedgerFundamental {
 	
 	@Column(name = "RESEARCH_STATUS")
 	@Enumerated(EnumType.STRING)
-	ResearchTrigger researchStatus;
+	Trade.Type researchStatus;
 	
 	@Column(name = "IS_NOTIFIED")
 	boolean notified = false;
@@ -59,11 +59,11 @@ public class ResearchLedgerFundamental {
 		this.stock = stock;
 	}
 
-	public ResearchTrigger getResearchStatus() {
+	public Trade.Type getResearchStatus() {
 		return researchStatus;
 	}
 
-	public void setResearchStatus(ResearchTrigger researchStatus) {
+	public void setResearchStatus(Trade.Type researchStatus) {
 		this.researchStatus = researchStatus;
 	}
 

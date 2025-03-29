@@ -8,10 +8,11 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import com.example.data.common.type.Timeframe;
+import com.example.model.type.Exchange;
+import com.example.model.type.IndiceType;
 import com.example.transactional.model.stocks.StockPrice;
-import com.example.transactional.service.StockPriceService;
 import com.example.util.DownloadCounterUtil;
-import com.example.util.io.model.type.Timeframe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +27,6 @@ import com.example.transactional.repo.stocks.StockFactorRepository;
 import com.example.transactional.repo.stocks.StockPriceRepositoryOld;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
-import com.example.util.io.model.StockIO;
-import com.example.util.io.model.StockIO.IndiceType;
 import com.example.util.rules.RulesNotification;
 
 @Transactional
@@ -84,12 +83,12 @@ public class StockService {
 
 	public List<Stock> nifty500(){
 		
-		List<StockIO.IndiceType> indiceList = new ArrayList<>();
+		List<IndiceType> indiceList = new ArrayList<>();
 		
-		indiceList.add(StockIO.IndiceType.NIFTY50);
-		indiceList.add(StockIO.IndiceType.NIFTY100);
-		indiceList.add(StockIO.IndiceType.NIFTY250);
-		indiceList.add(StockIO.IndiceType.NIFTY500);
+		indiceList.add(IndiceType.NIFTY50);
+		indiceList.add(IndiceType.NIFTY100);
+		indiceList.add(IndiceType.NIFTY250);
+		indiceList.add(IndiceType.NIFTY500);
 		
 		List<Stock> stockList = stockRepository.findByActiveAndPrimaryIndiceIn(true, indiceList);
 		
@@ -98,9 +97,9 @@ public class StockService {
 	
 	public List<Stock> nifty50(){
 		
-		List<StockIO.IndiceType> indiceList = new ArrayList<>();
+		List<IndiceType> indiceList = new ArrayList<>();
 		
-		indiceList.add(StockIO.IndiceType.NIFTY50);
+		indiceList.add(IndiceType.NIFTY50);
 		
 		List<Stock> stockList = stockRepository.findByActiveAndPrimaryIndiceIn(true, indiceList);
 		
@@ -109,10 +108,10 @@ public class StockService {
 	
 	public List<Stock> nifty100(){
 		
-		List<StockIO.IndiceType> indiceList = new ArrayList<>();
+		List<IndiceType> indiceList = new ArrayList<>();
 		
-		indiceList.add(StockIO.IndiceType.NIFTY50);
-		indiceList.add(StockIO.IndiceType.NIFTY100);
+		indiceList.add(IndiceType.NIFTY50);
+		indiceList.add(IndiceType.NIFTY100);
 		
 		List<Stock> stockList = stockRepository.findByActiveAndPrimaryIndiceIn(true, indiceList);
 		
@@ -144,7 +143,7 @@ public class StockService {
 		List<Stock> stocksList = stockRepository.findByActive(true);
 		for (Stock stock : stocksList) {
 			stock.setActive(false);
-			stock.setPrimaryIndice(StockIO.IndiceType.NIFTY1500);
+			stock.setPrimaryIndice(IndiceType.NIFTY1500);
 			stockRepository.save(stock);
 		}
 	}
@@ -172,7 +171,7 @@ public class StockService {
 		
 	}
 	
-	public Stock add(StockIO.Exchange exchange, String series, String isinCode, String companyName, String nseSymbol, String bseCode, IndiceType primaryIndice,
+	public Stock add(Exchange exchange, String series, String isinCode, String companyName, String nseSymbol, String bseCode, IndiceType primaryIndice,
 					 Sector sectorName) {
 
 		Stock stock = new Stock(exchange, isinCode, companyName, nseSymbol,  primaryIndice, sectorName);

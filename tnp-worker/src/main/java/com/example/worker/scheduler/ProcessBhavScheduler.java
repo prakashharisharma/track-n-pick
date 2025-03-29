@@ -1,9 +1,9 @@
 package com.example.worker.scheduler;
 
 
-import com.example.transactional.model.StockPriceIN;
-import com.example.transactional.processor.BhavProcessor;
-import com.example.transactional.service.BhavcopyService;
+import com.example.dto.io.StockPriceIN;
+import com.example.processor.BhavProcessor;
+import com.example.service.BhavcopyService;
 import com.example.service.CalendarService;
 import com.example.util.MiscUtil;
 import lombok.RequiredArgsConstructor;

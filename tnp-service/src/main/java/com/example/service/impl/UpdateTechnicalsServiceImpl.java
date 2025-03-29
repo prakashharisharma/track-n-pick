@@ -1,7 +1,8 @@
 package com.example.service.impl;
 
+import com.example.data.common.type.Timeframe;
 import com.example.dto.OHLCV;
-import com.example.transactional.service.StockTechnicalsService;
+import com.example.service.StockTechnicalsService;
 import com.example.external.ta.service.McService;
 import com.example.transactional.model.master.Stock;
 
@@ -15,8 +16,7 @@ import com.example.storage.repo.PriceTemplate;
 import com.example.storage.repo.TechnicalsTemplate;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
-import com.example.util.io.model.StockPriceIO;
-import com.example.util.io.model.type.Timeframe;
+import com.example.dto.io.StockPriceIO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

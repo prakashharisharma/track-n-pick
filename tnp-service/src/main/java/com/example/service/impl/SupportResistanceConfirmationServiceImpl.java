@@ -1,10 +1,10 @@
 package com.example.service.impl;
 
+import com.example.data.common.type.Timeframe;
 import com.example.transactional.model.stocks.StockPrice;
 import com.example.transactional.model.stocks.StockTechnicals;
 import com.example.service.AdxIndicatorService;
 import com.example.service.SupportResistanceConfirmationService;
-import com.example.util.io.model.type.Timeframe;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

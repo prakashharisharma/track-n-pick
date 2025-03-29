@@ -1,11 +1,11 @@
 package com.example.service.impl;
 
+import com.example.data.common.type.Timeframe;
 import com.example.transactional.model.stocks.StockTechnicals;
-import com.example.transactional.service.StockTechnicalsService;
+import com.example.service.StockTechnicalsService;
 import com.example.transactional.model.master.Stock;
 import com.example.service.CrossOverUtil;
 import com.example.service.MovingAverageCrossOverService;
-import com.example.util.io.model.type.Timeframe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

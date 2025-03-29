@@ -1,10 +1,10 @@
 package com.example.service.impl;
 
+import com.example.data.common.type.Timeframe;
 import com.example.transactional.model.stocks.StockPrice;
-import com.example.transactional.service.StockPriceService;
+import com.example.service.StockPriceService;
 import com.example.transactional.model.master.Stock;
 import com.example.service.ResistanceLevelDetector;
-import com.example.util.io.model.type.Timeframe;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.example.util.io.model.type.Timeframe.*;
+import static com.example.data.common.type.Timeframe.*;
+
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,10 +43,10 @@ public class ResistanceLevelDetectorImpl implements ResistanceLevelDetector {
 
     private boolean isMultiTimeFrameBreakout(Stock stock, Timeframe timeframe) {
         if(timeframe == DAILY) {
-            return this.isNearResistance(stock, Timeframe.WEEKLY) && this.isNearResistance(stock, Timeframe.MONTHLY);
+            return this.isNearResistance(stock, WEEKLY) && this.isNearResistance(stock, MONTHLY);
         }
         else if(timeframe == WEEKLY) {
-            return this.isNearResistance(stock, Timeframe.MONTHLY) && this.isNearResistance(stock, Timeframe.QUARTERLY);
+            return this.isNearResistance(stock, MONTHLY) && this.isNearResistance(stock, Timeframe.QUARTERLY);
         }
         else if(timeframe == MONTHLY) {
             return this.isNearResistance(stock, Timeframe.QUARTERLY) && this.isNearResistance(stock, Timeframe.YEARLY);
@@ -70,9 +71,9 @@ public class ResistanceLevelDetectorImpl implements ResistanceLevelDetector {
             case MONTHLY:
                 return getResistanceLevels(stock, Timeframe.QUARTERLY, Timeframe.YEARLY, 2, 2);
             case WEEKLY:
-                return getResistanceLevels(stock, Timeframe.MONTHLY, Timeframe.QUARTERLY, 3, 2);
+                return getResistanceLevels(stock, MONTHLY, Timeframe.QUARTERLY, 3, 2);
             case DAILY:
-                return getResistanceLevels(stock, Timeframe.WEEKLY, Timeframe.MONTHLY, 5, 3);
+                return getResistanceLevels(stock, WEEKLY, MONTHLY, 5, 3);
             default:
                 return List.of();
         }

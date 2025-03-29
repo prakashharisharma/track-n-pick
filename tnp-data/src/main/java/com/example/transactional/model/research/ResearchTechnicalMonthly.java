@@ -1,6 +1,6 @@
 package com.example.transactional.model.research;
 
-import com.example.util.io.model.type.Timeframe;
+import com.example.data.common.type.Timeframe;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;

@@ -4,9 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.example.model.type.Exchange;
+import com.example.model.type.IndiceType;
 import com.example.transactional.model.stocks.StockFactor;
-import com.example.util.io.model.StockIO;
-import com.example.util.io.model.StockIO.IndiceType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -67,7 +67,7 @@ public class Stock implements Serializable{
 
 	@Column(name = "EXCHANGE")
 	@Enumerated(EnumType.STRING)
-	private StockIO.Exchange exchange;
+	private Exchange exchange;
 
 	@OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
 	private StockFactor factor;
@@ -88,7 +88,7 @@ public class Stock implements Serializable{
 		this.activityCompleted = false;
 	}
 
-	public Stock(StockIO.Exchange exchange, String isinCode, String companyName, String nseSymbol, IndiceType primaryIndice, Sector sectorName) {
+	public Stock(Exchange exchange, String isinCode, String companyName, String nseSymbol, IndiceType primaryIndice, Sector sectorName) {
 		super();
 		this.exchange = exchange;
 		this.isinCode = isinCode;

@@ -3,7 +3,7 @@ package com.example.security;
 import com.example.dto.security.JwtResponse;
 import com.example.dto.security.LoginRequest;
 import com.example.dto.security.LogoutRequest;
-import com.example.transactional.exception.InvalidTokenException;
+import com.example.exception.InvalidTokenException;
 import com.example.utils.JsonApiSuccessUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -1,8 +1,8 @@
 package com.example;
 
-import com.example.transactional.model.StockPriceIN;
-import com.example.transactional.service.BhavcopyService;
-import com.example.service.FileNameService;
+import com.example.dto.io.StockPriceIN;
+import com.example.service.BhavcopyService;
+
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,6 @@ import java.util.zip.ZipInputStream;
 @RequiredArgsConstructor
 @Service
 public class BhavcopyServiceImpl implements BhavcopyService {
-    private final FileNameService fileNameService;
 
     private static final String NSE_URL_TEMPLATE = "https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_%s_F_0000.csv.zip";
 
