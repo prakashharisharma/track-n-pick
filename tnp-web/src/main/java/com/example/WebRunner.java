@@ -231,7 +231,7 @@ public class WebRunner implements CommandLineRunner {
 		//this.testObv();
 		//this.testTimeFrameSR();
 		//this.testTrend();
-		this.scanCandleStickPattern();
+		//this.scanCandleStickPattern();
 		//this.allocatePositions();
 
 		//this.testScore();
