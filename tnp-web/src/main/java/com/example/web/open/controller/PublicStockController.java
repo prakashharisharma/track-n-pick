@@ -5,8 +5,10 @@ import java.util.List;
 
 
 import com.example.data.common.type.Timeframe;
-import com.example.transactional.model.stocks.StockPrice;
-import com.example.transactional.model.stocks.StockTechnicals;
+import com.example.transactional.model.entity.master.Stock;
+import com.example.transactional.model.entity.stock.factor.StockFactor;
+import com.example.transactional.model.entity.stock.price.StockPrice;
+import com.example.transactional.model.entity.stock.technicals.StockTechnicals;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
 import com.example.service.impl.FundamentalResearchService;
@@ -19,8 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.transactional.model.master.Stock;
-import com.example.transactional.model.stocks.StockFactor;
+
 import com.example.service.BreakoutLedgerService;
 import com.example.service.CrossOverLedgerService;
 import com.example.service.StockService;

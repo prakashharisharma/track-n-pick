@@ -14,18 +14,17 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
 import com.example.dto.OHLCV;
 import com.example.dto.TradeSetup;
-import com.example.transactional.model.research.ResearchTechnical;
-import com.example.transactional.model.stocks.StockPrice;
-import com.example.transactional.model.stocks.StockTechnicals;
-import com.example.transactional.model.um.Trade;
+import com.example.transactional.model.entity.master.Stock;
+import com.example.transactional.model.entity.research.ResearchTechnical;
+import com.example.transactional.model.entity.stock.price.StockPrice;
+import com.example.transactional.model.entity.stock.technicals.StockTechnicals;
+import com.example.transactional.model.entity.um.Trade;
 import com.example.processor.BhavProcessor;
 import com.example.external.factor.FactorRediff;
 import com.example.external.ta.service.McService;
-import com.example.transactional.model.um.User;
+import com.example.transactional.model.entity.um.User;
 import com.example.transactional.repo.ledger.FundsLedgerRepository;
 import com.example.transactional.repo.master.StockRepository;
-import com.example.transactional.repo.stocks.StockPriceRepositoryOld;
-import com.example.transactional.repo.stocks.StockTechnicalsRepositoryOld;
 import com.example.service.*;
 import com.example.service.calc.*;
 import com.example.service.impl.FundamentalResearchService;
@@ -38,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import com.example.transactional.model.master.Stock;
+
 import com.example.transactional.repo.master.HolidayCalendarRepository;
 import com.example.storage.repo.PriceTemplate;
 import com.example.storage.repo.TechnicalsTemplate;
@@ -72,11 +71,6 @@ public class WebRunner implements CommandLineRunner {
 	private ResearchLedgerFundamentalService researchLedgerFundamentalService;
 
 
-	@Autowired
-	private StockTechnicalsRepositoryOld stockTechnicalsRepository;
-
-	@Autowired
-	private StockPriceRepositoryOld stockPricesRepository;
 
 	@Autowired
 	private OhlcvService ohlcvService;
