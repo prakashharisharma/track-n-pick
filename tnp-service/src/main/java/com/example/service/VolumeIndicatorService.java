@@ -1,7 +1,8 @@
 package com.example.service;
 
 import com.example.data.common.type.Timeframe;
-import com.example.transactional.model.stocks.StockTechnicals;
+import com.example.data.transactional.entities.StockTechnicals;
+
 
 /**
  * Service interface for analyzing volume-based indicators to determine bullish or bearish trends.

@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 
 import com.example.external.common.FactorProvider;
-import com.example.transactional.model.master.Stock;
-import com.example.transactional.model.stocks.StockFactor;
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockFactor;
+
 
 public interface FactorBaseService {
 

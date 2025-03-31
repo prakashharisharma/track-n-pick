@@ -4,11 +4,12 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import com.example.data.transactional.entities.TaxMaster;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.transactional.model.master.TaxMaster;
-import com.example.transactional.repo.master.TaxMasterRepository;
+
+import com.example.data.transactional.repo.TaxMasterRepository;
 
 @Transactional
 @Service

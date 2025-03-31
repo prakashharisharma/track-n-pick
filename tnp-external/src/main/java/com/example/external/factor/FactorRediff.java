@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import com.example.data.transactional.entities.StockFactor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -18,8 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.external.common.FactorProvider;
-import com.example.transactional.model.master.Stock;
-import com.example.transactional.model.stocks.StockFactor;
+import com.example.data.transactional.entities.Stock;
+
 import com.example.util.MiscUtil;
 
 @Service

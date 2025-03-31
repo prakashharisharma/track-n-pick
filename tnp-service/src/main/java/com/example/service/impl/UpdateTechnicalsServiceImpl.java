@@ -4,10 +4,9 @@ import com.example.data.common.type.Timeframe;
 import com.example.dto.OHLCV;
 import com.example.service.StockTechnicalsService;
 import com.example.external.ta.service.McService;
-import com.example.transactional.model.master.Stock;
+import com.example.data.transactional.entities.Stock;
 
-import com.example.transactional.repo.stocks.StockTechnicalsRepositoryOld;
-import com.example.transactional.repo.stocks.WeeklyStockTechnicalsRepository;
+
 import com.example.service.*;
 import com.example.service.calc.*;
 import com.example.storage.model.*;
@@ -47,11 +46,6 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
     @Autowired
     private StockService stockService;
-    @Autowired
-    private StockTechnicalsRepositoryOld stockTechnicalsRepository;
-
-    @Autowired
-    private WeeklyStockTechnicalsRepository weeklyStockTechnicalsRepository;
 
     @Autowired
     private ResearchLedgerFundamentalService researchLedgerFundamentalService;
@@ -91,7 +85,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
     private StockPriceOHLCVAssembler stockPriceOHLCVAssembler;
 
     @Autowired
-    private StockTechnicalsService<com.example.transactional.model.stocks.StockTechnicals> stockTechnicalsService;
+    private StockTechnicalsService<com.example.data.transactional.entities.StockTechnicals> stockTechnicalsService;
 
     @Autowired
     private OhlcvService ohlcvService;
@@ -129,7 +123,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
                     technicalsTemplate.upsert(timeframe, stockTechnicals);
 
-                    com.example.transactional.model.stocks.StockTechnicals stockTechnicals1 = stockTechnicalsService.createOrUpdate(stock, timeframe,
+                    com.example.data.transactional.entities.StockTechnicals stockTechnicals1 = stockTechnicalsService.createOrUpdate(stock, timeframe,
                             stockTechnicals.getEma().getAvg5(),
                             stockTechnicals.getEma().getAvg10(),
                             stockTechnicals.getEma().getAvg20(),

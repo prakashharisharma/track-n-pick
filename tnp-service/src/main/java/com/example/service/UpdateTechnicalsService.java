@@ -2,9 +2,10 @@ package com.example.service;
 
 import com.example.data.common.type.Timeframe;
 import com.example.dto.OHLCV;
-import com.example.transactional.model.master.Stock;
+
 import com.example.storage.model.StockTechnicals;
 import com.example.dto.io.StockPriceIO;
+import com.example.data.transactional.entities.Stock;
 
 import java.time.Instant;
 import java.time.LocalDate;

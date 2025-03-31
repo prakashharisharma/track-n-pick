@@ -1,11 +1,12 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
-import com.example.transactional.model.stocks.StockPrice;
-import com.example.transactional.model.stocks.StockTechnicals;
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockPrice;
+import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
-import com.example.transactional.model.master.Stock;
+
 import com.example.service.SupportLevelDetector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

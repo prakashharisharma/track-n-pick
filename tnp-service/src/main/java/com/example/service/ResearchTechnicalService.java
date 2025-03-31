@@ -2,11 +2,12 @@ package com.example.service;
 
 import com.example.data.common.type.Timeframe;
 import com.example.dto.TradeSetup;
-import com.example.transactional.model.research.ResearchTechnical;
-import com.example.transactional.model.stocks.StockPrice;
-import com.example.transactional.model.stocks.StockTechnicals;
-import com.example.transactional.model.um.Trade;
-import com.example.transactional.model.master.Stock;
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.ResearchTechnical;
+import com.example.data.transactional.entities.StockPrice;
+import com.example.data.transactional.entities.StockTechnicals;
+import com.example.data.transactional.entities.Trade;
+
 
 import java.time.LocalDate;
 import java.util.List;

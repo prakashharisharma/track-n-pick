@@ -1,11 +1,11 @@
 package com.example.service.impl;
 
-import com.example.transactional.model.um.Portfolio;
-import com.example.transactional.model.um.Trade;
-import com.example.transactional.repo.stocks.PortfolioRepository;
-import com.example.transactional.repo.stocks.TradeRepository;
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.Portfolio;
+import com.example.data.transactional.entities.Trade;
+import com.example.data.transactional.repo.PortfolioRepository;
+import com.example.data.transactional.repo.TradeRepository;
 import com.example.service.PortfolioService;
-import com.example.transactional.model.master.Stock;
 import com.example.service.TaxMasterService;
 import com.example.service.UserBrokerageService;
 import lombok.RequiredArgsConstructor;

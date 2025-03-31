@@ -1,8 +1,9 @@
 package com.example.service;
 
 import com.example.data.common.type.Timeframe;
-import com.example.transactional.model.stocks.StockTechnicals;
-import com.example.transactional.model.master.Stock;
+
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockTechnicals;
 
 import java.time.LocalDate;
 

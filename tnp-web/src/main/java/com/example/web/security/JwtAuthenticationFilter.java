@@ -4,7 +4,10 @@ import com.example.security.JwtUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,11 +22,16 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Key;
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Slf4j
+@RequiredArgsConstructor
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final Key SECRET_KEY = Keys.hmacShaKeyFor(JwtUtils.SECRET.getBytes());
+
+    private final JwtUtils jwtUtils;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -55,15 +63,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private UserDetails getUserDetails(String token) {
+    public UserDetails getUserDetails(String token) {
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(SECRET_KEY)  // ✅ Use Key object
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
 
         String username = claims.getSubject();
-        return new User(username, "", List.of()); // Add roles if needed
+        List<String> roles = claims.get("roles", List.class);  // ✅ Extract roles
+
+        return new User(username, "", roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList())); // ✅ Convert roles to authorities
     }
 }
 

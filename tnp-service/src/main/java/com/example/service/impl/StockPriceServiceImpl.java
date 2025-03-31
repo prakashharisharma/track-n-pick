@@ -1,11 +1,16 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
-import com.example.transactional.model.stocks.*;
-import com.example.transactional.repo.stocks.StockPriceRepository;
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockPrice;
+import com.example.data.transactional.entities.StockPriceDaily;
+import com.example.data.transactional.entities.StockPriceMonthly;
+import com.example.data.transactional.entities.StockPriceQuarterly;
+import com.example.data.transactional.entities.StockPriceWeekly;
+import com.example.data.transactional.entities.StockPriceYearly;
+import com.example.data.transactional.repo.StockPriceRepository;
+import com.example.data.transactional.repo.StockRepository;
 import com.example.service.StockPriceService;
-import com.example.transactional.model.master.Stock;
-import com.example.transactional.repo.master.StockRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

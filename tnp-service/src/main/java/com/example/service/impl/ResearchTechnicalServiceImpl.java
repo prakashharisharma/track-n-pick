@@ -1,16 +1,12 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
+import com.example.data.transactional.entities.*;
+import com.example.data.transactional.repo.ResearchTechnicalRepository;
 import com.example.dto.TradeSetup;
-import com.example.transactional.model.research.*;
-import com.example.transactional.model.stocks.*;
-import com.example.transactional.model.um.Trade;
-import com.example.transactional.repo.stocks.ResearchTechnicalRepository;
 import com.example.service.ResearchTechnicalService;
-import com.example.transactional.model.master.Stock;
 import com.example.service.RiskFactor;
 import com.example.util.FormulaService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -5,12 +5,13 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import com.example.data.transactional.entities.Stock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.transactional.model.ledger.CrossOverLedger;
-import com.example.transactional.model.master.Stock;
-import com.example.transactional.repo.ledger.CrossOverLedgerRepository;
+import com.example.data.transactional.entities.CrossOverLedger;
+
+import com.example.data.transactional.repo.CrossOverLedgerRepository;
 
 @Transactional
 @Service

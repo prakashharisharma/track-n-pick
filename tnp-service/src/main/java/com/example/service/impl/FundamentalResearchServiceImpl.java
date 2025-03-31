@@ -3,16 +3,18 @@ package com.example.service.impl;
 import javax.transaction.Transactional;
 
 import com.example.data.common.type.Timeframe;
-import com.example.transactional.model.stocks.StockPrice;
+
 import com.example.service.StockPriceService;
-import com.example.transactional.model.stocks.StockFactor;
 import com.example.service.StockService;
+import com.example.data.transactional.entities.Sector;
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockFactor;
+import com.example.data.transactional.entities.StockPrice;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.transactional.model.master.Sector;
-import com.example.transactional.model.master.Stock;
+
 import com.example.util.rules.RulesFundamental;
 import com.example.util.rules.RulesResearch;
 

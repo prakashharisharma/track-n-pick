@@ -7,15 +7,17 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 import com.example.data.common.type.Timeframe;
-import com.example.transactional.model.stocks.StockPrice;
+
 import com.example.service.impl.FundamentalResearchService;
+import com.example.data.transactional.entities.Sector;
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockPrice;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.transactional.model.master.Sector;
-import com.example.transactional.model.master.Stock;
-import com.example.transactional.repo.master.SectorRepository;
+
+import com.example.data.transactional.repo.SectorRepository;
 import com.example.util.FormulaService;
 import com.example.util.rules.RulesFundamental;
 

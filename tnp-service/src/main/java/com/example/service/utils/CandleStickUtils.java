@@ -2,8 +2,8 @@ package com.example.service.utils;
 
 
 import com.example.data.common.type.Timeframe;
-import com.example.transactional.model.stocks.StockPrice;
-import com.example.transactional.model.stocks.StockTechnicals;
+import com.example.data.transactional.entities.StockPrice;
+import com.example.data.transactional.entities.StockTechnicals;
 
 public class CandleStickUtils {
 

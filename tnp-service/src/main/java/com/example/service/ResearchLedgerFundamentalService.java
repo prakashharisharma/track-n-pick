@@ -4,17 +4,17 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
-import com.example.transactional.model.um.Trade;
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.Trade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.transactional.model.ledger.ResearchLedgerFundamental;
-import com.example.transactional.model.ledger.ValuationLedger;
-import com.example.transactional.model.master.Stock;
-import com.example.transactional.repo.ledger.ResearchLedgerFundamentalRepository;
-import com.example.dto.io.ResearchIO.ResearchTrigger;
+import com.example.data.transactional.entities.ResearchLedgerFundamental;
+import com.example.data.transactional.entities.ValuationLedger;
+
+import com.example.data.transactional.repo.ResearchLedgerFundamentalRepository;
 
 @Transactional
 @Service
@@ -25,7 +25,7 @@ public class ResearchLedgerFundamentalService {
 	@Autowired
 	private ResearchLedgerFundamentalRepository researchLedgerRepository;
 
-	public void addResearch(Stock stock,ValuationLedger entryValuation) {
+	public void addResearch(Stock stock, ValuationLedger entryValuation) {
 
 		ResearchLedgerFundamental researchLedger = researchLedgerRepository.findByStockAndResearchStatus(stock, Trade.Type.BUY);
 

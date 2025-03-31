@@ -2,12 +2,12 @@ package com.example.service;
 
 import javax.transaction.Transactional;
 
-import com.example.transactional.model.um.User;
+import com.example.data.transactional.entities.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.transactional.model.um.UserBrokerage;
-import com.example.transactional.repo.um.UserBrokerageRepository;
+import com.example.data.transactional.entities.UserBrokerage;
+import com.example.data.transactional.repo.UserBrokerageRepository;
 
 @Transactional
 @Service

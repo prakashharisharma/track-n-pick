@@ -1,6 +1,7 @@
 package com.example.service;
 
-import com.example.transactional.model.stocks.StockTechnicals;
+
+import com.example.data.transactional.entities.StockTechnicals;
 
 public interface AdxIndicatorService {
 

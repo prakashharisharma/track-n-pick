@@ -14,17 +14,12 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
 import com.example.dto.OHLCV;
 import com.example.dto.TradeSetup;
-import com.example.transactional.model.entity.master.Stock;
-import com.example.transactional.model.entity.research.ResearchTechnical;
-import com.example.transactional.model.entity.stock.price.StockPrice;
-import com.example.transactional.model.entity.stock.technicals.StockTechnicals;
-import com.example.transactional.model.entity.um.Trade;
+import com.example.data.transactional.entities.*;
 import com.example.processor.BhavProcessor;
 import com.example.external.factor.FactorRediff;
 import com.example.external.ta.service.McService;
-import com.example.transactional.model.entity.um.User;
-import com.example.transactional.repo.ledger.FundsLedgerRepository;
-import com.example.transactional.repo.master.StockRepository;
+import com.example.data.transactional.entities.User;
+import com.example.data.transactional.repo.*;
 import com.example.service.*;
 import com.example.service.calc.*;
 import com.example.service.impl.FundamentalResearchService;
@@ -38,7 +33,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 
-import com.example.transactional.repo.master.HolidayCalendarRepository;
+import com.example.data.transactional.repo.TradingHolidayRepository;
 import com.example.storage.repo.PriceTemplate;
 import com.example.storage.repo.TechnicalsTemplate;
 import com.example.util.FormulaService;
@@ -87,7 +82,7 @@ public class WebRunner implements CommandLineRunner {
 	@Autowired
 	private FundsLedgerService fundsLedgerService;
 	@Autowired
-	private HolidayCalendarRepository holidayCalendarRepository;
+	private TradingHolidayRepository tradingHolidayRepository;
 	@Autowired
 	private CalendarService calendarService;
 	@Autowired
@@ -718,7 +713,7 @@ public class WebRunner implements CommandLineRunner {
 			System.out.println("Starting yearly price update for " + stock.getNseSymbol());
 
 			try {
-				LocalDate initialDate = LocalDate.of(2000, 07, 14);
+				LocalDate initialDate = LocalDate.of(2019, 01, 01);
 
 				LocalDate from = miscUtil.yearFirstDay(initialDate);
 				LocalDate to = miscUtil.yearLastDay(from);
@@ -765,15 +760,15 @@ public class WebRunner implements CommandLineRunner {
 					from = to.plusDays(1);
 					to = miscUtil.yearLastDay(from);
 
-			}while(to.isBefore(LocalDate.now()));
+			}while(to.isBefore(LocalDate.of(2025,03,29)));
 
-				priceTemplate.create(Timeframe.YEARLY, stockPriceList);
+				//priceTemplate.create(Timeframe.YEARLY, stockPriceList);
 
 				long endTime = System.currentTimeMillis();
 
 				System.out.println("Completed activity for " + stock.getNseSymbol() + " took " + (endTime - startTime) + "ms");
 
-				miscUtil.delay(25);
+				miscUtil.delay(500);
 			}catch(Exception e){
 				System.out.println("An error occured while getting data " + stock.getNseSymbol());
 			}
@@ -786,7 +781,7 @@ public class WebRunner implements CommandLineRunner {
 
 			try {
 
-				LocalDate initialDate = LocalDate.of(2000, 07, 14);
+				LocalDate initialDate = LocalDate.of(2023, 01, 01);
 
 				LocalDate from = miscUtil.quarterFirstDay(initialDate);
 				LocalDate to = miscUtil.quarterLastDay(from);
@@ -832,15 +827,15 @@ public class WebRunner implements CommandLineRunner {
 					from = to.plusDays(1);
 					to = miscUtil.quarterLastDay(from);
 
-				}while(to.isBefore(LocalDate.now()));
+				}while(to.isBefore(LocalDate.of(2025,04,01)));
 
-				priceTemplate.create(Timeframe.QUARTERLY, stockPriceList);
+				//priceTemplate.create(Timeframe.QUARTERLY, stockPriceList);
 
 				long endTime = System.currentTimeMillis();
 
 				System.out.println("Completed activity for " + stock.getNseSymbol() + " took " + (endTime - startTime) + "ms");
 
-				miscUtil.delay(25);
+				miscUtil.delay(500);
 			}catch(Exception e){
 				System.out.println("An error occured while getting data " + stock.getNseSymbol());
 			}
@@ -853,7 +848,7 @@ public class WebRunner implements CommandLineRunner {
 
 			try {
 
-				LocalDate initialDate = LocalDate.of(2000, 07, 14);
+				LocalDate initialDate = LocalDate.of(2024, 10, 01);
 
 				LocalDate from = initialDate.with(TemporalAdjusters.firstDayOfMonth());
 				LocalDate to = from.with(TemporalAdjusters.lastDayOfMonth());
@@ -898,15 +893,15 @@ public class WebRunner implements CommandLineRunner {
 					from = to.plusDays(1);
 					to = from.with(TemporalAdjusters.lastDayOfMonth());
 
-				}while(to.isBefore(LocalDate.now()));
+				}while(to.isBefore(LocalDate.of(2025,04,01)));
 
-				priceTemplate.create(Timeframe.MONTHLY,stockPriceList);
+				//priceTemplate.create(Timeframe.MONTHLY,stockPriceList);
 
 				long endTime = System.currentTimeMillis();
 
 				System.out.println("Completed activity for " + stock.getNseSymbol() + " took " + (endTime - startTime) + "ms");
 				//System.out.println("Remaining " + countTotal);
-				miscUtil.delay(25);
+				miscUtil.delay(500);
 			}catch(Exception e){
 				System.out.println("An error occured while getting data " + stock.getNseSymbol());
 			}
@@ -920,7 +915,7 @@ public class WebRunner implements CommandLineRunner {
 
 			try {
 
-				LocalDate initialDate = LocalDate.of(2000, 07, 14);
+				LocalDate initialDate = LocalDate.of(2025, 01, 01);
 
 
 				LocalDate from = initialDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
@@ -967,15 +962,15 @@ public class WebRunner implements CommandLineRunner {
 					from = to.plusDays(1);
 					to = from.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-				}while(to.isBefore(LocalDate.now()));
+				}while(to.isBefore(LocalDate.of(2025,03,31)));
 
-				priceTemplate.create(Timeframe.WEEKLY, stockPriceList);
+				//priceTemplate.create(Timeframe.WEEKLY, stockPriceList);
 
 				long endTime = System.currentTimeMillis();
 
 				System.out.println("Completed activity for " + stock.getNseSymbol() + " took " + (endTime - startTime) + "ms");
 
-				miscUtil.delay(25);
+				miscUtil.delay(500);
 			}catch(Exception e){
 				System.out.println("An error occured while getting data " + stock.getNseSymbol());
 			}
@@ -1035,13 +1030,13 @@ public class WebRunner implements CommandLineRunner {
 				from = to.plusDays(1);
 				to = from;
 
-			}while(to.isBefore(LocalDate.now()));
+			}while(to.isBefore(LocalDate.of(2025,03,29)));
 
 			long endTime = System.currentTimeMillis();
 
 			System.out.println("Completed activity for " + stock.getNseSymbol() + " took " + (endTime - startTime) + "ms");
 
-			miscUtil.delay(25);
+			miscUtil.delay(500);
 		}catch(Exception e){
 			System.out.println("An error occured while getting data " + stock.getNseSymbol());
 		}
@@ -1107,7 +1102,7 @@ public class WebRunner implements CommandLineRunner {
 
 			System.out.println("Completed activity for " + stock.getNseSymbol() + " took " + (endTime - startTime) + "ms");
 			//System.out.println("Remaining " + countTotal);
-			miscUtil.delay(25);
+			miscUtil.delay(500);
 		}catch(Exception e){
 			System.out.println("An error occured while getting data " + stock.getNseSymbol());
 		}
@@ -1145,7 +1140,7 @@ public class WebRunner implements CommandLineRunner {
 
 			System.out.println("Completed activity for " + stock.getNseSymbol() + " took " + (endTime - startTime) + "ms");
 
-			miscUtil.delay(25);
+			miscUtil.delay(500);
 		}catch(Exception e){
 			System.out.println("An error occured while getting data " + stock.getNseSymbol());
 		}
@@ -1183,7 +1178,7 @@ public class WebRunner implements CommandLineRunner {
 
 			System.out.println("Completed activity for " + stock.getNseSymbol() + " took " + (endTime - startTime) + "ms");
 
-			miscUtil.delay(25);
+			miscUtil.delay(500);
 		}catch(Exception e){
 			System.out.println("An error occured while getting data " + stock.getNseSymbol());
 		}

@@ -1,8 +1,9 @@
 package com.example.service.impl;
 
-import com.example.transactional.model.master.Stock;
+
 import com.example.service.CandleStickService;
 import com.example.service.SupportResistanceUtilService;
+import com.example.data.transactional.entities.Stock;
 import com.example.util.FibonacciRatio;
 import com.example.util.FormulaService;
 import lombok.extern.slf4j.Slf4j;

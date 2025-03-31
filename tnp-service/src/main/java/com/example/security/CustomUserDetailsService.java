@@ -1,8 +1,8 @@
 package com.example.security;
 
 
-import com.example.transactional.model.um.Role;
-import com.example.transactional.repo.um.UserRepository;
+import com.example.data.transactional.entities.Role;
+import com.example.data.transactional.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.User;
@@ -20,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        com.example.transactional.model.um.User user = userRepository.findByUsername(username)
+        com.example.data.transactional.entities.User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         log.error("DEBUG: loadUserByUsername called for: " + username);
         //throw new RuntimeException("DEBUG: Checking if this method is being called!");

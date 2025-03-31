@@ -5,14 +5,15 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockFactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.transactional.model.master.Stock;
-import com.example.transactional.model.stocks.StockFactor;
-import com.example.transactional.repo.stocks.StockFactorRepository;
+
+import com.example.data.transactional.repo.StockFactorRepository;
 
 @Transactional
 @Service

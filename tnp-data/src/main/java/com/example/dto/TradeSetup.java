@@ -1,6 +1,6 @@
 package com.example.dto;
 
-import com.example.transactional.model.research.ResearchTechnical;
+import com.example.data.transactional.entities.ResearchTechnical;
 import lombok.Builder;
 import lombok.Data;
 

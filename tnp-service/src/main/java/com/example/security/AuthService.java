@@ -3,10 +3,12 @@ package com.example.security;
 import com.example.dto.security.JwtResponse;
 import com.example.dto.security.LoginRequest;
 import com.example.exception.InvalidTokenException;
-import com.example.transactional.model.um.User;
-import com.example.transactional.repo.um.UserRepository;
+import com.example.service.subscription.SubscriptionService;
+import com.example.data.transactional.types.SubscriptionType;
+import com.example.data.transactional.entities.User;
+import com.example.data.transactional.repo.UserRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -14,20 +16,21 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class AuthService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final SubscriptionService subscriptionService;
 
-    @Autowired
-    private JwtUtils jwtUtils;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private final JwtUtils jwtUtils;
+
+    private final RedisTemplate<String, String> redisTemplate;
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = new UsernamePasswordAuthenticationToken(
@@ -38,8 +41,10 @@ public class AuthService {
         User user = userRepository.findByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        String accessToken = jwtUtils.generateAccessToken(user);
-        String refreshToken = jwtUtils.generateRefreshToken(user);
+        List<SubscriptionType> subscriptions = subscriptionService.getActiveSubscriptionTypes(user);
+
+        String accessToken = jwtUtils.generateAccessToken(user, subscriptions);
+        String refreshToken = jwtUtils.generateRefreshToken(user, subscriptions);
 
         // 🔹 Store tokens in Redis with expiry
         redisTemplate.opsForValue().set("TOKEN:" + user.getUsername(), accessToken, 30, TimeUnit.MINUTES);
@@ -52,14 +57,14 @@ public class AuthService {
         String username = jwtUtils.extractUsername(refreshToken);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
+        List<SubscriptionType> subscriptions = subscriptionService.getActiveSubscriptionTypes(user);
         // 🔹 Validate token from Redis
         String storedRefreshToken = redisTemplate.opsForValue().get("REFRESH:" + username);
         if (!refreshToken.equals(storedRefreshToken)) {
             throw new InvalidTokenException("Invalid refresh token");
         }
 
-        String newAccessToken = jwtUtils.generateAccessToken(user);
+        String newAccessToken = jwtUtils.generateAccessToken(user,subscriptions);
         redisTemplate.opsForValue().set("TOKEN:" + username, newAccessToken, 30, TimeUnit.MINUTES);
 
         return new JwtResponse(newAccessToken, refreshToken);

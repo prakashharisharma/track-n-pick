@@ -5,16 +5,19 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
-import com.example.transactional.model.master.SpecialTradingSession;
-import com.example.transactional.repo.master.SpecialTradingSessionRepository;
+
+import com.example.data.transactional.entities.TradingHoliday;
+import com.example.data.transactional.entities.SpecialTradingSession;
+import com.example.data.transactional.repo.SpecialTradingSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.transactional.model.master.HolidayCalendar;
-import com.example.transactional.repo.master.HolidayCalendarRepository;
+
+import com.example.data.transactional.repo.TradingHolidayRepository;
 import com.example.util.MiscUtil;
 
 @Transactional
@@ -22,7 +25,7 @@ import com.example.util.MiscUtil;
 public class CalendarService {
 
 	@Autowired
-	private HolidayCalendarRepository holidayCalendarRepository;
+	private TradingHolidayRepository tradingHolidayRepository;
 
 	@Autowired
 	private SpecialTradingSessionRepository specialTradingSessionRepository;
@@ -30,43 +33,43 @@ public class CalendarService {
 	@Autowired
 	private MiscUtil miscUtil;
 
-	public boolean isWorkingDay(LocalDate date) {
+	public boolean isWorkingDay(LocalDate sessionDate) {
 		// If it's a special trading session, it's a working day even if it's a holiday
-		if (isSpecialTradingSession(date)) {
+		if (isSpecialTradingSession(sessionDate)) {
 			return true;
 		}
 
 		// If it's a holiday and NOT a special trading session, it's NOT a working day
-		if (isHoliday(date)) {
+		if (isHoliday(sessionDate)) {
 			return false;
 		}
 
-		DayOfWeek dayOfWeek = date.getDayOfWeek();
+		DayOfWeek dayOfWeek = sessionDate.getDayOfWeek();
 
 		// If it's a regular weekday (Monday to Friday) and not a holiday, it's a working day
 		return dayOfWeek != DayOfWeek.SATURDAY && dayOfWeek != DayOfWeek.SUNDAY;
 	}
 
-	public boolean isHoliday(LocalDate date) {
+	public boolean isHoliday(LocalDate sessionDate) {
 
 		boolean isHoliday = false;
 
-		HolidayCalendar holidaycalendar = holidayCalendarRepository.findByHolidayDate(date);
+		Optional<TradingHoliday> tradingHolidayOptional = tradingHolidayRepository.findBySessionDate(sessionDate);
 
-		if (holidaycalendar != null) {
+		if (tradingHolidayOptional.isPresent()) {
 			isHoliday = true;
 		}
 
 		return isHoliday;
 	}
 
-	public boolean isSpecialTradingSession(LocalDate date) {
+	public boolean isSpecialTradingSession(LocalDate sessionDate) {
 
 		boolean isSpecialTradingSession = false;
 
-		SpecialTradingSession specialTradingSession = specialTradingSessionRepository.findBySessionDate(date);
+		Optional<SpecialTradingSession> specialTradingSessionOptional = specialTradingSessionRepository.findBySessionDate(sessionDate);
 
-		if (specialTradingSession != null) {
+		if (specialTradingSessionOptional.isPresent()) {
 			isSpecialTradingSession = true;
 		}
 
@@ -80,12 +83,12 @@ public class CalendarService {
 		return previousWorkingDay(currentDate);
 	}
 
-	public List<HolidayCalendar> holidays() {
+	public List<TradingHoliday> holidays() {
 
 		LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 01);
 
 		LocalDate yearLastdate = LocalDate.of(2019, Month.DECEMBER, 31);
-		return holidayCalendarRepository.findByHolidayDateBetween(fromDate, yearLastdate);
+		return tradingHolidayRepository.findBySessionDateBetween(fromDate, yearLastdate);
 
 	}
 
@@ -115,23 +118,23 @@ public class CalendarService {
 
 	}
 
-	public boolean isLastTradingSessionOfWeek(LocalDate date) {
+	public boolean isLastTradingSessionOfWeek(LocalDate sessionDate) {
 		// If today is a holiday, it's not a trading session
-		if (isHoliday(date)) {
+		if (isHoliday(sessionDate)) {
 			return false;
 		}
 
 		// If today is Friday, check if Saturday or Sunday has a special trading session
-		if (date.getDayOfWeek() == DayOfWeek.FRIDAY) {
-			LocalDate saturday = date.with(DayOfWeek.SATURDAY);
-			LocalDate sunday = date.with(DayOfWeek.SUNDAY);
+		if (sessionDate.getDayOfWeek() == DayOfWeek.FRIDAY) {
+			LocalDate saturday = sessionDate.with(DayOfWeek.SATURDAY);
+			LocalDate sunday = sessionDate.with(DayOfWeek.SUNDAY);
 			return !(isSpecialTradingSession(saturday) || isSpecialTradingSession(sunday));
 			// If either Sat or Sun has a special session, Friday is NOT last trading session
 		}
 
 		// If today is Thursday, check if Friday is a holiday (Then Thursday is the last session)
-		if (date.getDayOfWeek() == DayOfWeek.THURSDAY) {
-			LocalDate friday = date.plusDays(1);
+		if (sessionDate.getDayOfWeek() == DayOfWeek.THURSDAY) {
+			LocalDate friday = sessionDate.plusDays(1);
 			if (isHoliday(friday)) {
 				return true; // If Friday is a holiday, Thursday is the last session
 			}
@@ -140,19 +143,19 @@ public class CalendarService {
 		return false;
 	}
 
-	public boolean isLastTradingSessionOfMonth(LocalDate date) {
+	public boolean isLastTradingSessionOfMonth(LocalDate sessionDate) {
 		// If today is a holiday, it's not a trading session
-		if (isHoliday(date)) {
+		if (isHoliday(sessionDate)) {
 			return false;
 		}
 
 		// Find the last calendar day of the month
-		LocalDate lastDay = YearMonth.from(date).atEndOfMonth();
+		LocalDate lastDay = YearMonth.from(sessionDate).atEndOfMonth();
 
 		// Check if the last day is Saturday or Sunday and has a special trading session
 		if (lastDay.getDayOfWeek() == DayOfWeek.SATURDAY || lastDay.getDayOfWeek() == DayOfWeek.SUNDAY) {
 			if (isSpecialTradingSession(lastDay)) {
-				return date.equals(lastDay); // If today is the special session day, return true
+				return sessionDate.equals(lastDay); // If today is the special session day, return true
 			}
 			// If no special session, move to the last valid weekday
 			lastDay = lastDay.minusDays(1);
@@ -164,27 +167,27 @@ public class CalendarService {
 		}
 
 		// If today is the last valid trading session of the month, return true
-		return date.equals(lastDay);
+		return sessionDate.equals(lastDay);
 	}
 
 
-	public boolean isLastTradingSessionOfQuarter(LocalDate date) {
+	public boolean isLastTradingSessionOfQuarter(LocalDate sessionDate) {
 		// If today is a holiday, it's not a trading session
-		if (isHoliday(date)) {
+		if (isHoliday(sessionDate)) {
 			return false;
 		}
 
 		// Determine the last month of the quarter
-		int month = date.getMonthValue();
+		int month = sessionDate.getMonthValue();
 		int lastMonthOfQuarter = ((month - 1) / 3 + 1) * 3; // 3, 6, 9, 12
 
 		// Find the last calendar day of the quarter
-		LocalDate lastDay = YearMonth.of(date.getYear(), lastMonthOfQuarter).atEndOfMonth();
+		LocalDate lastDay = YearMonth.of(sessionDate.getYear(), lastMonthOfQuarter).atEndOfMonth();
 
 		// Check if the last day is Saturday or Sunday and has a special trading session
 		if (lastDay.getDayOfWeek() == DayOfWeek.SATURDAY || lastDay.getDayOfWeek() == DayOfWeek.SUNDAY) {
 			if (isSpecialTradingSession(lastDay)) {
-				return date.equals(lastDay); // If today is the special session day, return true
+				return sessionDate.equals(lastDay); // If today is the special session day, return true
 			}
 			// If no special session, move to the last valid weekday
 			lastDay = lastDay.minusDays(1);
@@ -196,22 +199,22 @@ public class CalendarService {
 		}
 
 		// If today is the last valid trading session of the quarter, return true
-		return date.equals(lastDay);
+		return sessionDate.equals(lastDay);
 	}
 
-	public boolean isLastTradingSessionOfYear(LocalDate date) {
+	public boolean isLastTradingSessionOfYear(LocalDate sessionDate) {
 		// If today is a holiday, it's not a trading session
-		if (isHoliday(date)) {
+		if (isHoliday(sessionDate)) {
 			return false;
 		}
 
 		// Find the last calendar day of the year (December 31st)
-		LocalDate lastDay = LocalDate.of(date.getYear(), Month.DECEMBER, 31);
+		LocalDate lastDay = LocalDate.of(sessionDate.getYear(), Month.DECEMBER, 31);
 
 		// Check if the last day is Saturday or Sunday and has a special trading session
 		if (lastDay.getDayOfWeek() == DayOfWeek.SATURDAY || lastDay.getDayOfWeek() == DayOfWeek.SUNDAY) {
 			if (isSpecialTradingSession(lastDay)) {
-				return date.equals(lastDay); // If today is the special session day, return true
+				return sessionDate.equals(lastDay); // If today is the special session day, return true
 			}
 			// If no special session, move to the last valid weekday
 			lastDay = lastDay.minusDays(1);
@@ -223,20 +226,20 @@ public class CalendarService {
 		}
 
 		// If today is the last valid trading session of the year, return true
-		return date.equals(lastDay);
+		return sessionDate.equals(lastDay);
 	}
 
-	public LocalDate nextTradingDate(LocalDate localDate) {
+	public LocalDate nextTradingDate(LocalDate sessionDate) {
 
-		LocalDate nextTradingDate = localDate;
+		LocalDate nextTradingDate = sessionDate;
 
-		if (DayOfWeek.FRIDAY == localDate.getDayOfWeek()) {
-			nextTradingDate = localDate.plusDays(3);
-		}else if (DayOfWeek.SATURDAY == localDate.getDayOfWeek()) {
-			nextTradingDate = localDate.plusDays(2);
+		if (DayOfWeek.FRIDAY == sessionDate.getDayOfWeek()) {
+			nextTradingDate = sessionDate.plusDays(3);
+		}else if (DayOfWeek.SATURDAY == sessionDate.getDayOfWeek()) {
+			nextTradingDate = sessionDate.plusDays(2);
 		}
 		else {
-			nextTradingDate = localDate.plusDays(1);
+			nextTradingDate = sessionDate.plusDays(1);
 		}
 
 		if (this.isHoliday(nextTradingDate)) {
@@ -246,17 +249,17 @@ public class CalendarService {
 		return nextTradingDate;
 	}
 
-	public LocalDate previousTradingSession(LocalDate localDate) {
+	public LocalDate previousTradingSession(LocalDate sessionDate) {
 
-		LocalDate previousSessionDate = localDate;
+		LocalDate previousSessionDate = sessionDate;
 
-		if (DayOfWeek.MONDAY == localDate.getDayOfWeek()) {
-			previousSessionDate = localDate.minusDays(3);
-		}else if (DayOfWeek.SUNDAY == localDate.getDayOfWeek()) {
-			previousSessionDate = localDate.minusDays(2);
+		if (DayOfWeek.MONDAY == sessionDate.getDayOfWeek()) {
+			previousSessionDate = sessionDate.minusDays(3);
+		}else if (DayOfWeek.SUNDAY == sessionDate.getDayOfWeek()) {
+			previousSessionDate = sessionDate.minusDays(2);
 		}
 		else {
-			previousSessionDate = localDate.minusDays(1);
+			previousSessionDate = sessionDate.minusDays(1);
 		}
 
 		if (this.isHoliday(previousSessionDate)) {

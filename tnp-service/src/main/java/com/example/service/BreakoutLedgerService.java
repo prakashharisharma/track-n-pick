@@ -6,15 +6,16 @@ import java.util.List;
 import javax.transaction.Transactional;
 
 import com.example.data.common.type.Timeframe;
-import com.example.transactional.model.stocks.StockPrice;
+
+import com.example.data.transactional.entities.StockPrice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.transactional.model.ledger.BreakoutLedger;
-import com.example.transactional.model.ledger.BreakoutLedger.BreakoutCategory;
-import com.example.transactional.model.ledger.BreakoutLedger.BreakoutType;
-import com.example.transactional.model.master.Stock;
-import com.example.transactional.repo.ledger.BreakoutLedgerRepository;
+import com.example.data.transactional.entities.BreakoutLedger;
+import com.example.data.transactional.entities.BreakoutLedger.BreakoutCategory;
+import com.example.data.transactional.entities.BreakoutLedger.BreakoutType;
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.repo.BreakoutLedgerRepository;
 
 @Transactional
 @Service

@@ -11,7 +11,11 @@ import javax.transaction.Transactional;
 import com.example.data.common.type.Timeframe;
 import com.example.model.type.Exchange;
 import com.example.model.type.IndiceType;
-import com.example.transactional.model.stocks.StockPrice;
+
+import com.example.data.transactional.entities.Sector;
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockFactor;
+import com.example.data.transactional.entities.StockPrice;
 import com.example.util.DownloadCounterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.external.factor.FactorRediff;
-import com.example.transactional.model.master.Sector;
-import com.example.transactional.model.master.Stock;
-import com.example.transactional.model.stocks.StockFactor;
-import com.example.transactional.repo.master.StockRepository;
-import com.example.transactional.repo.stocks.StockFactorRepository;
-import com.example.transactional.repo.stocks.StockPriceRepositoryOld;
+
+import com.example.data.transactional.repo.StockRepository;
+import com.example.data.transactional.repo.StockFactorRepository;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.util.rules.RulesNotification;
@@ -37,9 +38,6 @@ public class StockService {
 
 	@Autowired
 	private StockRepository stockRepository;
-
-	@Autowired
-	private StockPriceRepositoryOld stockPriceRepository;
 
 	@Autowired
 	private StockFactorRepository stockFactorRepository;

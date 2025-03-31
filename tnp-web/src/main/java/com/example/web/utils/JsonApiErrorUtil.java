@@ -15,7 +15,7 @@ public class JsonApiErrorUtil {
                 "errors", List.of(Map.of("detail", detail))
         );
 
-        return ResponseEntity.status(status).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
     }
 
 }

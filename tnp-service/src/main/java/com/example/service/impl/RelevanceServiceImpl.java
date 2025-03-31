@@ -2,9 +2,9 @@ package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
-import com.example.transactional.model.research.ResearchTechnical;
-import com.example.transactional.model.stocks.StockPrice;
-import com.example.transactional.model.stocks.StockTechnicals;
+import com.example.data.transactional.entities.ResearchTechnical;
+import com.example.data.transactional.entities.StockPrice;
+import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
 import com.example.service.*;

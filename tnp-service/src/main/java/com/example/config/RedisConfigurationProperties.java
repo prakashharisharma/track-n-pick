@@ -1,28 +1,28 @@
 package com.example.config;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 @ConfigurationProperties(prefix = "spring.redis.cluster")
 public class RedisConfigurationProperties {
 
-    /*
-     * spring.redis.cluster.nodes[0] = 127.0.0.1:7379 spring.redis.cluster.nodes[1]
-     * = 127.0.0.1:7380 ...
-     */
-    private List<String> nodes;
-
-    /** spring.redis.cluster.max-redirects=3 */
-    private int maxRedirects;
-
     /**
-     * Get initial collection of known cluster nodes in format {@code host:port}.
-     *
-     * @return
+     * Redis cluster nodes in the format {@code host:port}.
+     * Example:
+     * spring.redis.cluster.nodes[0] = 127.0.0.1:7379
+     * spring.redis.cluster.nodes[1] = 127.0.0.1:7380
      */
+    private List<String> nodes = new ArrayList<>();
+
+    /** Maximum redirects for cluster connections */
+    private int maxRedirects = 3;
+
+    public RedisConfigurationProperties() {
+        // Default constructor
+    }
+
     public List<String> getNodes() {
         return nodes;
     }
@@ -39,4 +39,3 @@ public class RedisConfigurationProperties {
         this.maxRedirects = maxRedirects;
     }
 }
-

@@ -7,15 +7,17 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 import com.example.data.common.type.Timeframe;
-import com.example.transactional.model.stocks.StockPrice;
+import com.example.data.transactional.entities.Stock;
+
+import com.example.data.transactional.entities.StockPrice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.transactional.model.ledger.ValuationLedger;
-import com.example.transactional.model.ledger.ValuationLedger.Status;
-import com.example.transactional.model.ledger.ValuationLedger.Type;
-import com.example.transactional.model.master.Stock;
-import com.example.transactional.repo.ledger.ValuationLedgerRepository;
+import com.example.data.transactional.entities.ValuationLedger;
+import com.example.data.transactional.entities.ValuationLedger.Status;
+import com.example.data.transactional.entities.ValuationLedger.Type;
+
+import com.example.data.transactional.repo.ValuationLedgerRepository;
 import com.example.util.MiscUtil;
 
 @Transactional

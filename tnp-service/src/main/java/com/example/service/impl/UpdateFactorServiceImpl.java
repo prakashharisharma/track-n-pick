@@ -1,7 +1,7 @@
 package com.example.service.impl;
 
-import com.example.transactional.model.master.Stock;
-import com.example.transactional.model.stocks.StockFactor;
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockFactor;
 import com.example.service.StockService;
 import com.example.service.UpdateFactorService;
 import lombok.extern.slf4j.Slf4j;

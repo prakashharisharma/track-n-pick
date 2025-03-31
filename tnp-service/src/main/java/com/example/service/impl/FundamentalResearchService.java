@@ -1,6 +1,7 @@
 package com.example.service.impl;
 
-import com.example.transactional.model.master.Stock;
+
+import com.example.data.transactional.entities.Stock;
 
 public interface FundamentalResearchService {
     public boolean isPriceInRange(Stock stock);

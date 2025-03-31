@@ -5,15 +5,16 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
-import com.example.transactional.model.um.User;
+import com.example.data.transactional.entities.Broker;
+import com.example.data.transactional.entities.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.transactional.model.ledger.FundsLedger;
-import com.example.transactional.model.master.Broker;
+import com.example.data.transactional.entities.FundsLedger;
+
 import com.example.model.type.FundTransactionType;
-import com.example.transactional.repo.ledger.FundsLedgerRepository;
-import com.example.transactional.repo.um.UserBrokerageRepository;
+import com.example.data.transactional.repo.FundsLedgerRepository;
+import com.example.data.transactional.repo.UserBrokerageRepository;
 import com.example.util.MiscUtil;
 
 @Transactional

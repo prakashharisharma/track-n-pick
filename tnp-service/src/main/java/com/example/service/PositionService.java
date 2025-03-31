@@ -1,7 +1,7 @@
 package com.example.service;
 
-import com.example.transactional.model.research.ResearchTechnical;
-import com.example.transactional.model.um.User;
+import com.example.data.transactional.entities.ResearchTechnical;
+import com.example.data.transactional.entities.User;
 
 public interface PositionService {
 

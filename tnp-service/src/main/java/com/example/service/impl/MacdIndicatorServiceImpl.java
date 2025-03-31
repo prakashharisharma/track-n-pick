@@ -1,9 +1,10 @@
 package com.example.service.impl;
 
-import com.example.transactional.model.stocks.StockTechnicals;
+
 import com.example.service.BreakoutLedgerService;
 import com.example.service.CrossOverUtil;
 import com.example.service.MacdIndicatorService;
+import com.example.data.transactional.entities.StockTechnicals;
 import com.example.util.FormulaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

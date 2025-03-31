@@ -1,8 +1,8 @@
 package com.example.service.impl;
 
-import com.example.transactional.model.um.User;
-import com.example.transactional.model.um.UserBrokerage;
-import com.example.transactional.repo.um.UserBrokerageRepository;
+import com.example.data.transactional.entities.User;
+import com.example.data.transactional.entities.UserBrokerage;
+import com.example.data.transactional.repo.UserBrokerageRepository;
 import com.example.service.UserBrokerageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
