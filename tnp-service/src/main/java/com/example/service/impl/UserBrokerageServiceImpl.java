@@ -19,7 +19,7 @@ public class UserBrokerageServiceImpl implements UserBrokerageService {
     public double calculate(User user, double price, long quantity) {
 
         UserBrokerage userBrokerage =
-                userBrokerageRepository.findByBrokerageIdUserAndActive(user, Boolean.TRUE);
+                userBrokerageRepository.findByIdUserAndActive(user, Boolean.TRUE);
 
         if (userBrokerage.getType() == UserBrokerage.Type.FIXED) {
             return calculateFixedCharges(userBrokerage, price, quantity);
@@ -37,7 +37,7 @@ public class UserBrokerageServiceImpl implements UserBrokerageService {
     public double getDpCharge(User user) {
 
         UserBrokerage userBrokerage =
-                userBrokerageRepository.findByBrokerageIdUserAndActive(user, Boolean.TRUE);
+                userBrokerageRepository.findByIdUserAndActive(user, Boolean.TRUE);
 
         return userBrokerage.getDpCharge();
     }

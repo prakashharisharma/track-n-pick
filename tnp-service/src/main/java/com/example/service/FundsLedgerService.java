@@ -27,7 +27,7 @@ public class FundsLedgerService {
 
         Broker broker =
                 userBrokerageRepository
-                        .findByBrokerageIdUserAndActive(user, true)
+                        .findByIdUserAndActive(user, true)
                         .getBrokerageId()
                         .getBroker();
 
@@ -39,7 +39,7 @@ public class FundsLedgerService {
     public void withdrawFund(User user, double amount, LocalDate transactionDate) {
         Broker broker =
                 userBrokerageRepository
-                        .findByBrokerageIdUserAndActive(user, true)
+                        .findByIdUserAndActive(user, true)
                         .getBrokerageId()
                         .getBroker();
 

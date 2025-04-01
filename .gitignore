@@ -1,4 +1,9 @@
 # Operating System Files
+.vscode
+
+logs
+
+logging.file.path_IS_UNDEFINED
 
 *.DS_Store
 Thumbs.db

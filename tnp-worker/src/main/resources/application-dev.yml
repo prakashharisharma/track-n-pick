@@ -16,14 +16,14 @@ spring:
       ddl-auto: update
     open-in-view: false
   redis:
-    cluster:
-      enabled: false
-      nodes:
-        - localhost:6379
     key:
-      prefix: dev:tnp
+      prefix: ${SPRING_PROFILES_ACTIVE:default}:tnp
     connect-timeout: 10000
+    cluster:
+      enabled: ${REDIS_CLUSTER_ENABLED:false}
+      nodes: ${REDIS_NODES:localhost:6379}
+      max-redirects: 3
   data:
     mongodb:
       database: tnpDB
-      uri: mongodb://localhost:27017/?connectTimeoutMS=300000&minPoolSize=32&maxPoolSize=512&maxIdleTimeMS=900000 
+      uri: mongodb://localhost:27017/?connectTimeoutMS=300000&minPoolSize=32&maxPoolSize=512&maxIdleTimeMS=900000

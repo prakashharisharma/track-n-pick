@@ -15,6 +15,6 @@ public class BrokerageService {
 
     public UserBrokerage getBrokerage(User user) {
 
-        return userBrokerageRepository.findByBrokerageIdUserAndActive(user, true);
+        return userBrokerageRepository.findByIdUserAndActive(user, true);
     }
 }

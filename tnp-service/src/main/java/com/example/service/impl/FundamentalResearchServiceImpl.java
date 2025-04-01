@@ -121,7 +121,8 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 
         boolean isUndervalued = false;
 
-        Sector sector = stock.getSector();
+        //Sector sector = stock.getSector();
+        Sector sector = null;
 
         if (stock != null) {
 
