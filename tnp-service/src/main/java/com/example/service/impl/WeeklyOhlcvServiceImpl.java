@@ -2,10 +2,9 @@ package com.example.service.impl;
 
 import com.example.dto.OHLCV;
 import com.example.service.WeeklyOhlcvService;
-import com.example.storage.model.StockPrice;
-import com.example.storage.model.WeeklyStockPrice;
-import com.example.storage.model.assembler.StockPriceOHLCVAssembler;
-import com.example.storage.repo.PriceTemplate;
+import com.example.data.storage.documents.WeeklyStockPrice;
+import com.example.data.storage.documents.assembler.StockPriceOHLCVAssembler;
+import com.example.data.storage.repo.PriceTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

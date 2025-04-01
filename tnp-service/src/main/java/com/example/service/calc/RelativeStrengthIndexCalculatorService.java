@@ -1,7 +1,7 @@
 package com.example.service.calc;
 
 import com.example.dto.OHLCV;
-import com.example.storage.model.RelativeStrengthIndex;
+import com.example.data.storage.documents.RelativeStrengthIndex;
 
 import java.util.List;
 

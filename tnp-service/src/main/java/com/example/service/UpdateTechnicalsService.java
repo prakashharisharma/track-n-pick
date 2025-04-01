@@ -3,7 +3,7 @@ package com.example.service;
 import com.example.data.common.type.Timeframe;
 import com.example.dto.OHLCV;
 
-import com.example.storage.model.StockTechnicals;
+import com.example.data.storage.documents.StockTechnicals;
 import com.example.dto.io.StockPriceIO;
 import com.example.data.transactional.entities.Stock;
 

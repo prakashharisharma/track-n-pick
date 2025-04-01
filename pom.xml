@@ -31,7 +31,8 @@
 		<module>tnp-util</module>
 		<module>tnp-web</module>
 		<module>tnp-worker</module>
-	</modules>
+        <module>tnp-config</module>
+    </modules>
 
 <dependencies>
         <dependency>

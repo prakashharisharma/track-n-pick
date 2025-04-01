@@ -7,7 +7,7 @@ import com.example.service.StockPriceService;
 import com.example.service.UpdatePriceService;
 
 import com.example.service.*;
-import com.example.storage.repo.PriceTemplate;
+import com.example.data.storage.repo.PriceTemplate;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.util.MiscUtil;
@@ -43,7 +43,7 @@ public class UpdatePriceServiceImpl implements UpdatePriceService {
     private final WeeklySupportResistanceService weeklySupportResistanceService;
 
     @Override
-    public void updatePrice(Timeframe timeframe, Stock stock, com.example.storage.model.StockPrice stockPrice) {
+    public void updatePrice(Timeframe timeframe, Stock stock, com.example.data.storage.documents.StockPrice stockPrice) {
 
         //com.example.storage.model.StockPrice stockPrice = this.build(stockPriceIO);
 
@@ -114,13 +114,13 @@ public class UpdatePriceServiceImpl implements UpdatePriceService {
     }
 
     @Override
-    public com.example.storage.model.StockPrice build(StockPriceIO stockPriceIO) {
-        return new com.example.storage.model.StockPrice(stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
+    public com.example.data.storage.documents.StockPrice build(StockPriceIO stockPriceIO) {
+        return new com.example.data.storage.documents.StockPrice(stockPriceIO.getNseSymbol(), stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
                 stockPriceIO.getLow(), stockPriceIO.getClose(), stockPriceIO.getTottrdqty());
     }
 
     @Override
-    public com.example.storage.model.StockPrice build(Timeframe timeframe, Stock stock, LocalDate sessionDate){
+    public com.example.data.storage.documents.StockPrice build(Timeframe timeframe, Stock stock, LocalDate sessionDate){
 
         LocalDate from = miscUtil.yearFirstDay(sessionDate);
         LocalDate to = sessionDate;
@@ -141,11 +141,11 @@ public class UpdatePriceServiceImpl implements UpdatePriceService {
         }
 
         if (ohlcv != null && ohlcv.getOpen() != 0.0 && ohlcv.getClose() != 0.0) {
-            return new com.example.storage.model.StockPrice(stock.getNseSymbol(), ohlcv.getBhavDate(), ohlcv.getOpen(), ohlcv.getHigh(),
+            return new com.example.data.storage.documents.StockPrice(stock.getNseSymbol(), ohlcv.getBhavDate(), ohlcv.getOpen(), ohlcv.getHigh(),
                     ohlcv.getLow(), ohlcv.getClose(), ohlcv.getVolume());
         }
 
-        return new com.example.storage.model.StockPrice(stock.getNseSymbol(), from.atStartOfDay().toInstant(ZoneOffset.UTC), 0.0, 0.0,
+        return new com.example.data.storage.documents.StockPrice(stock.getNseSymbol(), from.atStartOfDay().toInstant(ZoneOffset.UTC), 0.0, 0.0,
                 0.0, 0.0, 0L);
 
         //throw new IllegalArgumentException(stock.getNseSymbol() + "OHLCV does not exist for"+ timeframe +" " + to);

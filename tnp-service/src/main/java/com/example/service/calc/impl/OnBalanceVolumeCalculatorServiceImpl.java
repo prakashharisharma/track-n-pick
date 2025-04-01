@@ -2,15 +2,13 @@ package com.example.service.calc.impl;
 
 import com.example.dto.OHLCV;
 import com.example.service.calc.OnBalanceVolumeCalculatorService;
-import com.example.storage.model.OnBalanceVolume;
+import com.example.data.storage.documents.OnBalanceVolume;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 

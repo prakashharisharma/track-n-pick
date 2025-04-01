@@ -1,7 +1,7 @@
 package com.example.service.calc;
 
 import com.example.dto.OHLCV;
-import com.example.storage.model.MovingAverageConvergenceDivergence;
+import com.example.data.storage.documents.MovingAverageConvergenceDivergence;
 
 import java.util.List;
 

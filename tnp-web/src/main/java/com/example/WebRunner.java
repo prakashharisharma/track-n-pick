@@ -23,7 +23,7 @@ import com.example.data.transactional.repo.*;
 import com.example.service.*;
 import com.example.service.calc.*;
 import com.example.service.impl.FundamentalResearchService;
-import com.example.storage.model.assembler.StockPriceOHLCVAssembler;
+import com.example.data.storage.documents.assembler.StockPriceOHLCVAssembler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -34,8 +34,8 @@ import org.springframework.stereotype.Component;
 
 
 import com.example.data.transactional.repo.TradingHolidayRepository;
-import com.example.storage.repo.PriceTemplate;
-import com.example.storage.repo.TechnicalsTemplate;
+import com.example.data.storage.repo.PriceTemplate;
+import com.example.data.storage.repo.TechnicalsTemplate;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.dto.io.StockPriceIO;
@@ -220,7 +220,7 @@ public class WebRunner implements CommandLineRunner {
 		//this.testObv();
 		//this.testTimeFrameSR();
 		//this.testTrend();
-		//this.scanCandleStickPattern();
+		this.scanCandleStickPattern();
 		//this.allocatePositions();
 
 		//this.testScore();
@@ -624,8 +624,8 @@ public class WebRunner implements CommandLineRunner {
 					System.out.println("Deleted existing bhav " + count + " " + stock.getNseSymbol());
 				}
 
-				List<com.example.storage.model.StockPrice> stockPriceList = new ArrayList<>();
-				com.example.storage.model.StockPrice stockPrice = null;
+				List<com.example.data.storage.documents.StockPrice> stockPriceList = new ArrayList<>();
+				com.example.data.storage.documents.StockPrice stockPrice = null;
 
 				for(OHLCV ohlcv : ohlcvList){
 					if (ohlcv != null && ohlcv.getOpen() != 0.0 && ohlcv.getClose() != 0.0) {
@@ -650,7 +650,7 @@ public class WebRunner implements CommandLineRunner {
 						//System.out.println("Debug2 " + stock.getNseSymbol());
 						stockPriceIO.setTimestamp(ohlcv.getBhavDate().atOffset(ZoneOffset.UTC).toLocalDate());
 						//System.out.println("Debug3 " + stock.getNseSymbol());
-						stockPrice = new com.example.storage.model.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
+						stockPrice = new com.example.data.storage.documents.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
 								stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getTottrdqty());
 						//System.out.println("Debug4 " + stock.getNseSymbol());
 						stockPriceList.add(stockPrice);
@@ -719,8 +719,8 @@ public class WebRunner implements CommandLineRunner {
 				LocalDate to = miscUtil.yearLastDay(from);
 
 				System.out.println("yearly from: " + from + " to: "+to);
-				List<com.example.storage.model.StockPrice> stockPriceList = new ArrayList<>();
-				com.example.storage.model.StockPrice stockPrice = null;
+				List<com.example.data.storage.documents.StockPrice> stockPriceList = new ArrayList<>();
+				com.example.data.storage.documents.StockPrice stockPrice = null;
 				do{
 					System.out.println("yearly from: " + from + " to: "+to);
 
@@ -748,7 +748,7 @@ public class WebRunner implements CommandLineRunner {
 					stockPriceIO.setTimestamp(ohlcv.getBhavDate().atOffset(ZoneOffset.UTC).toLocalDate());
 					stockPriceIO.setTimeFrame(Timeframe.YEARLY);
 
-					stockPrice = new com.example.storage.model.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
+					stockPrice = new com.example.data.storage.documents.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
 							stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getTottrdqty());
 
 					updatePriceService.updatePrice(Timeframe.YEARLY, stock, stockPrice);
@@ -786,8 +786,8 @@ public class WebRunner implements CommandLineRunner {
 				LocalDate from = miscUtil.quarterFirstDay(initialDate);
 				LocalDate to = miscUtil.quarterLastDay(from);
 
-				List<com.example.storage.model.StockPrice> stockPriceList = new ArrayList<>();
-				com.example.storage.model.StockPrice stockPrice = null;
+				List<com.example.data.storage.documents.StockPrice> stockPriceList = new ArrayList<>();
+				com.example.data.storage.documents.StockPrice stockPrice = null;
 				do{
 
 					System.out.println("quarterly from: " + from + " to: "+to);
@@ -816,7 +816,7 @@ public class WebRunner implements CommandLineRunner {
 						stockPriceIO.setTimestamp(ohlcv.getBhavDate().atOffset(ZoneOffset.UTC).toLocalDate());
 						stockPriceIO.setTimeFrame(Timeframe.QUARTERLY);
 
-						stockPrice = new com.example.storage.model.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
+						stockPrice = new com.example.data.storage.documents.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
 								stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getTottrdqty());
 
 						updatePriceService.updatePrice(Timeframe.QUARTERLY, stock, stockPrice);
@@ -853,8 +853,8 @@ public class WebRunner implements CommandLineRunner {
 				LocalDate from = initialDate.with(TemporalAdjusters.firstDayOfMonth());
 				LocalDate to = from.with(TemporalAdjusters.lastDayOfMonth());
 
-				List<com.example.storage.model.StockPrice> stockPriceList = new ArrayList<>();
-				com.example.storage.model.StockPrice stockPrice = null;
+				List<com.example.data.storage.documents.StockPrice> stockPriceList = new ArrayList<>();
+				com.example.data.storage.documents.StockPrice stockPrice = null;
 				do{
 					System.out.println("monthly from: " + from + " to: "+to);
 
@@ -882,7 +882,7 @@ public class WebRunner implements CommandLineRunner {
 						stockPriceIO.setTimestamp(ohlcv.getBhavDate().atOffset(ZoneOffset.UTC).toLocalDate());
 						stockPriceIO.setTimeFrame(Timeframe.MONTHLY);
 
-						stockPrice = new com.example.storage.model.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
+						stockPrice = new com.example.data.storage.documents.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
 								stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getTottrdqty());
 
 						updatePriceService.updatePrice(Timeframe.MONTHLY, stock, stockPrice);
@@ -921,8 +921,8 @@ public class WebRunner implements CommandLineRunner {
 				LocalDate from = initialDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
 				LocalDate to = from.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-				List<com.example.storage.model.StockPrice> stockPriceList = new ArrayList<>();
-				com.example.storage.model.StockPrice stockPrice = null;
+				List<com.example.data.storage.documents.StockPrice> stockPriceList = new ArrayList<>();
+				com.example.data.storage.documents.StockPrice stockPrice = null;
 				do{
 
 					System.out.println("weekly from: " + from + " to: "+to);
@@ -951,7 +951,7 @@ public class WebRunner implements CommandLineRunner {
 						stockPriceIO.setTimestamp(ohlcv.getBhavDate().atOffset(ZoneOffset.UTC).toLocalDate());
 						stockPriceIO.setTimeFrame(Timeframe.WEEKLY);
 
-						stockPrice = new com.example.storage.model.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
+						stockPrice = new com.example.data.storage.documents.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
 								stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getTottrdqty());
 
 						updatePriceService.updatePrice(Timeframe.WEEKLY, stock, stockPrice);
@@ -989,8 +989,8 @@ public class WebRunner implements CommandLineRunner {
 			LocalDate from = initialDate;
 			LocalDate to = initialDate;
 
-			List<com.example.storage.model.StockPrice> stockPriceList = new ArrayList<>();
-			com.example.storage.model.StockPrice stockPrice = null;
+			List<com.example.data.storage.documents.StockPrice> stockPriceList = new ArrayList<>();
+			com.example.data.storage.documents.StockPrice stockPrice = null;
 			do{
 
 				System.out.println("daily from: " + from + " to: "+to);
@@ -1019,7 +1019,7 @@ public class WebRunner implements CommandLineRunner {
 					stockPriceIO.setTimestamp(ohlcv.getBhavDate().atOffset(ZoneOffset.UTC).toLocalDate());
 					stockPriceIO.setTimeFrame(Timeframe.DAILY);
 
-					stockPrice = new com.example.storage.model.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
+					stockPrice = new com.example.data.storage.documents.StockPrice(stockPriceIO.getNseSymbol(),stockPriceIO.getBhavDate(), stockPriceIO.getOpen(), stockPriceIO.getHigh(),
 							stockPriceIO.getLow(), stockPriceIO.getClose(),  stockPriceIO.getTottrdqty());
 
 					updatePriceService.updatePrice(Timeframe.DAILY, stock, stockPrice);
@@ -1084,7 +1084,7 @@ public class WebRunner implements CommandLineRunner {
 			LocalDate from = initialDate.with(TemporalAdjusters.firstDayOfMonth());
 			LocalDate to = from.with(TemporalAdjusters.lastDayOfMonth());
 
-			com.example.storage.model.StockTechnicals stockTechnicals = null;
+			com.example.data.storage.documents.StockTechnicals stockTechnicals = null;
 			do{
 				System.out.println("monthly from: " + from + " to: "+to);
 
@@ -1122,7 +1122,7 @@ public class WebRunner implements CommandLineRunner {
 			LocalDate from = initialDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
 			LocalDate to = from.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-			com.example.storage.model.StockTechnicals stockTechnicals = null;
+			com.example.data.storage.documents.StockTechnicals stockTechnicals = null;
 			do{
 
 				System.out.println("weekly from: " + from + " to: "+to);
@@ -1159,8 +1159,8 @@ public class WebRunner implements CommandLineRunner {
 			LocalDate from = initialDate;
 			LocalDate to = initialDate;
 
-			List<com.example.storage.model.StockPrice> stockPriceList = new ArrayList<>();
-			com.example.storage.model.StockTechnicals stockTechnicals = null;
+			List<com.example.data.storage.documents.StockPrice> stockPriceList = new ArrayList<>();
+			com.example.data.storage.documents.StockTechnicals stockTechnicals = null;
 			do{
 
 				System.out.println("daily from: " + from + " to: "+to);

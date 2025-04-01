@@ -1,6 +1,7 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
+import com.example.data.storage.documents.*;
 import com.example.dto.OHLCV;
 import com.example.service.StockTechnicalsService;
 import com.example.external.ta.service.McService;
@@ -9,10 +10,9 @@ import com.example.data.transactional.entities.Stock;
 
 import com.example.service.*;
 import com.example.service.calc.*;
-import com.example.storage.model.*;
-import com.example.storage.model.assembler.StockPriceOHLCVAssembler;
-import com.example.storage.repo.PriceTemplate;
-import com.example.storage.repo.TechnicalsTemplate;
+import com.example.data.storage.documents.assembler.StockPriceOHLCVAssembler;
+import com.example.data.storage.repo.PriceTemplate;
+import com.example.data.storage.repo.TechnicalsTemplate;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.dto.io.StockPriceIO;

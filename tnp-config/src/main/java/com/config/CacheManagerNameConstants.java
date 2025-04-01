@@ -5,9 +5,9 @@ package com.example.config;
  *
  * @author prakash
  */
-public class CacheManagerName {
+public class CacheManagerNameConstants {
 
-    private CacheManagerName() {}
+    private CacheManagerNameConstants() {}
 
     public static final String DEFAULT = "cacheManager";
 

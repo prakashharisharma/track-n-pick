@@ -1,7 +1,7 @@
 package com.example.service.calc;
 
 import com.example.dto.OHLCV;
-import com.example.storage.model.OnBalanceVolume;
+import com.example.data.storage.documents.OnBalanceVolume;
 
 import java.util.List;
 

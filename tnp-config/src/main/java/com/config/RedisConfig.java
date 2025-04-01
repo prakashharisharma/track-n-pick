@@ -142,7 +142,7 @@ public class RedisConfig {
      * Default cache manager with no expiration.
      */
     @Primary
-    @Bean(name = CacheManagerName.DEFAULT)
+    @Bean(name = CacheManagerNameConstants.DEFAULT)
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(RedisCacheConfiguration.defaultCacheConfig()
@@ -153,7 +153,7 @@ public class RedisConfig {
     /**
      * Cache manager with 24-hour expiration.
      */
-    @Bean(name = CacheManagerName.CACHE_24_HOUR)
+    @Bean(name = CacheManagerNameConstants.CACHE_24_HOUR)
     public CacheManager cacheManager24Hour(RedisConnectionFactory redisConnectionFactory) {
         Duration expiration = Duration.ofHours(24);
         return RedisCacheManager.builder(redisConnectionFactory)
@@ -166,7 +166,7 @@ public class RedisConfig {
     /**
      * Cache manager with 48-hour expiration.
      */
-    @Bean(name = CacheManagerName.CACHE_48_HOUR)
+    @Bean(name = CacheManagerNameConstants.CACHE_48_HOUR)
     public CacheManager cacheManager48Hour(RedisConnectionFactory redisConnectionFactory) {
         Duration expiration = Duration.ofHours(48);
         return RedisCacheManager.builder(redisConnectionFactory)
@@ -179,7 +179,7 @@ public class RedisConfig {
     /**
      * Cache manager with 72-hour expiration.
      */
-    @Bean(name = CacheManagerName.CACHE_72_HOUR)
+    @Bean(name = CacheManagerNameConstants.CACHE_72_HOUR)
     public CacheManager cacheManager72Hour(RedisConnectionFactory redisConnectionFactory) {
         Duration expiration = Duration.ofHours(72);
         return RedisCacheManager.builder(redisConnectionFactory)
@@ -192,7 +192,7 @@ public class RedisConfig {
     /**
      * Cache manager with 5-minute expiration.
      */
-    @Bean(name = CacheManagerName.CACHE_5_MINUTE)
+    @Bean(name = CacheManagerNameConstants.CACHE_5_MINUTE)
     public CacheManager cacheManager5Minute(RedisConnectionFactory redisConnectionFactory) {
         Duration expiration = Duration.ofMinutes(5);
         return RedisCacheManager.builder(redisConnectionFactory)

@@ -19,9 +19,6 @@ import java.sql.SQLException;
 @SpringBootApplication
 @EnableWebSecurity
 @ComponentScan(basePackages = {"com.example"})
-@EnableJpaRepositories(basePackages = {"com.example.data.transactional.repo"})
-@EntityScan(basePackages = {"com.example.data.transactional.entities"})
-@EnableMongoRepositories(basePackages = {"com.example.data.storage.repo"})
 public class WebApplication {
 
 	public static void main(String[] args) throws Exception {

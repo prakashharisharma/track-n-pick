@@ -12,11 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 
 @SpringBootApplication
 @EnableScheduling
-@EnableRetry
 @ComponentScan(basePackages = {"com.example"})
-@EnableJpaRepositories(basePackages = {"com.example.data.transactional.repo"})
-@EntityScan(basePackages = {"com.example.data.transactional.entities"})
-@EnableMongoRepositories(basePackages = {"com.example.data.storage.repo"})
 public class WorkerApplication {
     public static void main(String[] args) throws Exception {
 

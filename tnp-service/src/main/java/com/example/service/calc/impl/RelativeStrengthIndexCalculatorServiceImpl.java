@@ -2,7 +2,7 @@ package com.example.service.calc.impl;
 
 import com.example.dto.OHLCV;
 import com.example.service.calc.RelativeStrengthIndexCalculatorService;
-import com.example.storage.model.RelativeStrengthIndex;
+import com.example.data.storage.documents.RelativeStrengthIndex;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import lombok.extern.slf4j.Slf4j;

@@ -3,7 +3,7 @@ package com.example.service.calc.impl;
 import com.example.dto.OHLCV;
 import com.example.service.calc.ExponentialMovingAverageCalculatorService;
 import com.example.service.calc.MovingAverageConvergenceDivergenceService;
-import com.example.storage.model.MovingAverageConvergenceDivergence;
+import com.example.data.storage.documents.MovingAverageConvergenceDivergence;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import lombok.extern.slf4j.Slf4j;

@@ -2,7 +2,7 @@ package com.example.service;
 
 import com.example.data.common.type.Timeframe;
 
-import com.example.storage.model.StockPrice;
+import com.example.data.storage.documents.StockPrice;
 import com.example.dto.io.StockPriceIO;
 import com.example.data.transactional.entities.Stock;
 

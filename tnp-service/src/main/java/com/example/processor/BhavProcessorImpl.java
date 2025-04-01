@@ -7,9 +7,9 @@ import com.example.model.type.IndiceType;
 import com.example.service.UpdatePriceService;
 
 import com.example.service.*;
-import com.example.storage.model.StockPrice;
-import com.example.storage.model.StockTechnicals;
-import com.example.storage.repo.PriceTemplate;
+import com.example.data.storage.documents.StockPrice;
+import com.example.data.storage.documents.StockTechnicals;
+import com.example.data.storage.repo.PriceTemplate;
 import com.example.data.transactional.entities.Stock;
 import com.example.util.MiscUtil;
 import com.example.dto.io.StockIO;
