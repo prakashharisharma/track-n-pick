@@ -1,5 +1,9 @@
 package com.example.external.factor;
 
+import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockFactor;
+import com.example.external.common.FactorProvider;
+import com.example.util.MiscUtil;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -7,8 +11,6 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
-import com.example.data.transactional.entities.StockFactor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -18,467 +20,453 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.external.common.FactorProvider;
-import com.example.data.transactional.entities.Stock;
-
-import com.example.util.MiscUtil;
-
 @Service
 public class FactorRediff implements FactorBaseService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(FactorRediff.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FactorRediff.class);
 
-	private static String BASE_URL_REDIFF = "https://money.rediff.com/companies/";
+    private static String BASE_URL_REDIFF = "https://money.rediff.com/companies/";
 
-	static Map<String, String> dateMap = new HashMap<>();
+    static Map<String, String> dateMap = new HashMap<>();
 
-	static Map<String, String> resultQuarterMap = new HashMap<>();
+    static Map<String, String> resultQuarterMap = new HashMap<>();
 
-	@Autowired
-	private MiscUtil miscUtil;
-	
-	static {
-		dateMap.put("JAN", "31");
-		dateMap.put("FEB", "28");
-		dateMap.put("MAR", "31");
-		dateMap.put("APR", "30");
-		dateMap.put("MAY", "31");
-		dateMap.put("JUN", "30");
-		dateMap.put("JUL", "31");
-		dateMap.put("AUG", "31");
-		dateMap.put("SEP", "30");
-		dateMap.put("OCT", "31");
-		dateMap.put("NOV", "30");
-		dateMap.put("DEC", "31");
-	}
+    @Autowired private MiscUtil miscUtil;
 
-	static {
-		resultQuarterMap.put("JAN", "DEC");
-		resultQuarterMap.put("FEB", "DEC");
-		resultQuarterMap.put("MAR", "MAR");
-		resultQuarterMap.put("APR", "MAR");
-		resultQuarterMap.put("MAY", "MAR");
-		resultQuarterMap.put("JUN", "JUN");
-		resultQuarterMap.put("JUL", "JUN");
-		resultQuarterMap.put("AUG", "JUN");
-		resultQuarterMap.put("SEP", "SEP");
-		resultQuarterMap.put("OCT", "SEP");
-		resultQuarterMap.put("NOV", "SEP");
-		resultQuarterMap.put("DEC", "DEC");
-	}
+    static {
+        dateMap.put("JAN", "31");
+        dateMap.put("FEB", "28");
+        dateMap.put("MAR", "31");
+        dateMap.put("APR", "30");
+        dateMap.put("MAY", "31");
+        dateMap.put("JUN", "30");
+        dateMap.put("JUL", "31");
+        dateMap.put("AUG", "31");
+        dateMap.put("SEP", "30");
+        dateMap.put("OCT", "31");
+        dateMap.put("NOV", "30");
+        dateMap.put("DEC", "31");
+    }
 
-	private String ratioURL;
+    static {
+        resultQuarterMap.put("JAN", "DEC");
+        resultQuarterMap.put("FEB", "DEC");
+        resultQuarterMap.put("MAR", "MAR");
+        resultQuarterMap.put("APR", "MAR");
+        resultQuarterMap.put("MAY", "MAR");
+        resultQuarterMap.put("JUN", "JUN");
+        resultQuarterMap.put("JUL", "JUN");
+        resultQuarterMap.put("AUG", "JUN");
+        resultQuarterMap.put("SEP", "SEP");
+        resultQuarterMap.put("OCT", "SEP");
+        resultQuarterMap.put("NOV", "SEP");
+        resultQuarterMap.put("DEC", "DEC");
+    }
 
-	private StockFactor getMcapFaceValue(Stock stock, StockFactor stockFactor) throws IOException {
+    private String ratioURL;
 
-		String rediffURL = this.buildURL(stock);
+    private StockFactor getMcapFaceValue(Stock stock, StockFactor stockFactor) throws IOException {
 
-		System.out.println("REDIFFURL " + rediffURL);
+        String rediffURL = this.buildURL(stock);
 
-		if(!rediffURL.contains("---")) {
-			Document doc = Jsoup.connect(rediffURL).get();
+        System.out.println("REDIFFURL " + rediffURL);
 
-			Element body = doc.body();
+        if (!rediffURL.contains("---")) {
+            Document doc = Jsoup.connect(rediffURL).get();
 
-			//Element allElement = body.getElementsByClass("zoom-container").first();
+            Element body = doc.body();
 
-			stockFactor.setMarketCap(this.parseMarketCap(body, stock));
-			stockFactor.setFaceValue(this.parseFaceValue(body, stock));
+            // Element allElement = body.getElementsByClass("zoom-container").first();
 
-			Element zoomDiv = body.getElementsByClass("zoom-container").get(0);
+            stockFactor.setMarketCap(this.parseMarketCap(body, stock));
+            stockFactor.setFaceValue(this.parseFaceValue(body, stock));
 
-			String zoomUrl = zoomDiv.select("a").first().absUrl("href");
+            Element zoomDiv = body.getElementsByClass("zoom-container").get(0);
 
-			if (zoomUrl == null || zoomUrl.isEmpty()) {
-				return stockFactor;
-			}
+            String zoomUrl = zoomDiv.select("a").first().absUrl("href");
 
-			String ratioUrlPre = zoomUrl.replace("/bse/day/chart", "");
+            if (zoomUrl == null || zoomUrl.isEmpty()) {
+                return stockFactor;
+            }
 
-			ratioUrlPre = ratioUrlPre.replace("/nse/day/chart", "");
+            String ratioUrlPre = zoomUrl.replace("/bse/day/chart", "");
 
-			LOGGER.info(ratioUrlPre);
+            ratioUrlPre = ratioUrlPre.replace("/nse/day/chart", "");
 
-			this.setRatioURL(ratioUrlPre + "/ratio");
+            LOGGER.info(ratioUrlPre);
 
-			LOGGER.info("Ratio Url {}", ratioURL);
-		}
+            this.setRatioURL(ratioUrlPre + "/ratio");
 
-		return stockFactor;
-	}
+            LOGGER.info("Ratio Url {}", ratioURL);
+        }
 
-	private Double parseMarketCap(Element body, Stock stock){
+        return stockFactor;
+    }
 
-		try {
+    private Double parseMarketCap(Element body, Stock stock) {
 
-			//select div
-			Element forBse = body.getElementById("for_BSE");
+        try {
 
-			LOGGER.info("result 1 {}" , forBse.text());
+            // select div
+            Element forBse = body.getElementById("for_BSE");
 
-			if(forBse.text().contains("not listed")){
-				forBse = body.getElementById("for_NSE");
-			}
+            LOGGER.info("result 1 {}", forBse.text());
 
-			//select first table by class
-			Element table = forBse.getElementsByClass("company-graph-wrap").get(0);
-			//Select second row
-			Element row = table.select("tr").get(1);
+            if (forBse.text().contains("not listed")) {
+                forBse = body.getElementById("for_NSE");
+            }
 
-			//select 5th column
-			Element column = row.select("td").get(4);
+            // select first table by class
+            Element table = forBse.getElementsByClass("company-graph-wrap").get(0);
+            // Select second row
+            Element row = table.select("tr").get(1);
 
-			return this.parseDouble(column.text().trim(),",", "");
+            // select 5th column
+            Element column = row.select("td").get(4);
 
-		}catch(Exception e){
-			LOGGER.error("An Error ocured while parsing MArketCap {} ", stock.getNseSymbol());
-		}
+            return this.parseDouble(column.text().trim(), ",", "");
 
-		return 0.0;
-	}
+        } catch (Exception e) {
+            LOGGER.error("An Error ocured while parsing MArketCap {} ", stock.getNseSymbol());
+        }
 
-	private Double parseFaceValue(Element body, Stock stock){
+        return 0.0;
+    }
 
-		try {
-			//select div
-			Element allElement = body.getElementById("div_rcard_more");
+    private Double parseFaceValue(Element body, Stock stock) {
 
-			int i = 0;
-			for(Element element : allElement.getAllElements()){
+        try {
+            // select div
+            Element allElement = body.getElementById("div_rcard_more");
 
-				if(i==11){
-					return  this.parseDouble(element.text().trim(),",", "");
-				}
-				i++;
-			}
+            int i = 0;
+            for (Element element : allElement.getAllElements()) {
 
-		}catch(Exception e){
-			LOGGER.error("An Error ocured while parsing Face Value {} ", stock.getNseSymbol());
-		}
+                if (i == 11) {
+                    return this.parseDouble(element.text().trim(), ",", "");
+                }
+                i++;
+            }
 
-		return 0.0;
-	}
+        } catch (Exception e) {
+            LOGGER.error("An Error ocured while parsing Face Value {} ", stock.getNseSymbol());
+        }
 
-	private double parseDouble(String text, CharSequence toBeReplaced, CharSequence replaceWith){
-		try {
-			return Double.parseDouble(text.replace(toBeReplaced, replaceWith));
-		}catch(Exception e){
-			LOGGER.error("An error occurred while parsing : "+text + " to double." , e);
-		}
-		return 0.0;
-	}
+        return 0.0;
+    }
 
-	private StockFactor getRatios(Stock stock, StockFactor stockFactor) throws IOException {
+    private double parseDouble(String text, CharSequence toBeReplaced, CharSequence replaceWith) {
+        try {
+            return Double.parseDouble(text.replace(toBeReplaced, replaceWith));
+        } catch (Exception e) {
+            LOGGER.error("An error occurred while parsing : " + text + " to double.", e);
+        }
+        return 0.0;
+    }
 
-		String ratioUrl = this.getRatioURL();
+    private StockFactor getRatios(Stock stock, StockFactor stockFactor) throws IOException {
 
-		if (ratioUrl == null || ratioUrl.isEmpty()) {
-			return stockFactor;
-		}
+        String ratioUrl = this.getRatioURL();
 
-		Document doc = Jsoup.connect(ratioUrl).get();
+        if (ratioUrl == null || ratioUrl.isEmpty()) {
+            return stockFactor;
+        }
 
-		Elements allElement = doc.getElementsByClass("dataTable");
+        Document doc = Jsoup.connect(ratioUrl).get();
 
-		if (allElement == null) {
-			return stockFactor;
-		}
+        Elements allElement = doc.getElementsByClass("dataTable");
 
-		int i = 0;
+        if (allElement == null) {
+            return stockFactor;
+        }
 
-		for (Element element : allElement) {
+        int i = 0;
 
-			i++;
+        for (Element element : allElement) {
 
-			Elements childTr = element.getElementsByTag("tr");
+            i++;
 
-			int trCount = 0;
+            Elements childTr = element.getElementsByTag("tr");
 
-			for (Element childElement : childTr) {
-				trCount++;
+            int trCount = 0;
 
-				if (trCount == 1) { // Period
-					Elements chilTheadTh = element.getElementsByTag("th");
+            for (Element childElement : childTr) {
+                trCount++;
 
-					int j = 0;
+                if (trCount == 1) { // Period
+                    Elements chilTheadTh = element.getElementsByTag("th");
 
-					for (Element th : chilTheadTh) {
+                    int j = 0;
 
-						j++;
-						if (j == 2) {
-							String quarterStr = th.text();
+                    for (Element th : chilTheadTh) {
 
-							String quarterStrArr[] = quarterStr.split("'");
+                        j++;
+                        if (j == 2) {
+                            String quarterStr = th.text();
 
-							String Month = quarterStrArr[0].trim().toUpperCase();
+                            String quarterStrArr[] = quarterStr.split("'");
 
-							String date = dateMap.get(Month);
+                            String Month = quarterStrArr[0].trim().toUpperCase();
 
-							String resultMonth = resultQuarterMap.get(Month);
+                            String date = dateMap.get(Month);
 
-							String dateStr = date + "-" + resultMonth + "-" + "20" + quarterStrArr[1].trim();
+                            String resultMonth = resultQuarterMap.get(Month);
 
-							DateTimeFormatter formatter = new DateTimeFormatterBuilder().parseCaseInsensitive()
-									.appendPattern("dd-MMM-yyyy").toFormatter(Locale.ENGLISH);
+                            String dateStr =
+                                    date + "-" + resultMonth + "-" + "20" + quarterStrArr[1].trim();
 
-							LocalDate quarterEnded = LocalDate.parse(dateStr, formatter);
+                            DateTimeFormatter formatter =
+                                    new DateTimeFormatterBuilder()
+                                            .parseCaseInsensitive()
+                                            .appendPattern("dd-MMM-yyyy")
+                                            .toFormatter(Locale.ENGLISH);
 
-							stockFactor.setQuarterEnded(quarterEnded);
-							// Store Quarter
-						}
-					}
-				}
+                            LocalDate quarterEnded = LocalDate.parse(dateStr, formatter);
 
-				if (childElement.text().startsWith("Adjusted EPS (Rs)")) {
+                            stockFactor.setQuarterEnded(quarterEnded);
+                            // Store Quarter
+                        }
+                    }
+                }
 
-					Elements childTd = childElement.getElementsByTag("td");
+                if (childElement.text().startsWith("Adjusted EPS (Rs)")) {
 
-					int j = 0;
+                    Elements childTd = childElement.getElementsByTag("td");
 
-					for (Element td : childTd) {
+                    int j = 0;
 
-						j++;
-						if (j == 2) {
+                    for (Element td : childTd) {
 
-							double eps = 0.00;
-							if (td.text().trim().equalsIgnoreCase("-")) {
-								eps = 0.00;
-							} else {
+                        j++;
+                        if (j == 2) {
 
-								eps = Double.parseDouble(td.text().replace(",", "").trim());
-							}
-							stockFactor.setEps(eps);
-						}
-					}
+                            double eps = 0.00;
+                            if (td.text().trim().equalsIgnoreCase("-")) {
+                                eps = 0.00;
+                            } else {
 
-				}
+                                eps = Double.parseDouble(td.text().replace(",", "").trim());
+                            }
+                            stockFactor.setEps(eps);
+                        }
+                    }
 
-				else if (childElement.text().startsWith("Dividend per share")) {
+                } else if (childElement.text().startsWith("Dividend per share")) {
 
-					Elements childTd = childElement.getElementsByTag("td");
-					int j = 0;
-					for (Element td : childTd) {
-						j++;
-						if (j == 2) {
+                    Elements childTd = childElement.getElementsByTag("td");
+                    int j = 0;
+                    for (Element td : childTd) {
+                        j++;
+                        if (j == 2) {
 
-							double dividend = 0.00;
+                            double dividend = 0.00;
 
-							if (td.text().trim().equalsIgnoreCase("-")) {
-								dividend = 0.00;
-							} else {
+                            if (td.text().trim().equalsIgnoreCase("-")) {
+                                dividend = 0.00;
+                            } else {
 
-								dividend = Double.parseDouble(td.text().replace(",", "").trim());
+                                dividend = Double.parseDouble(td.text().replace(",", "").trim());
+                            }
+                            stockFactor.setDividend(dividend);
+                        }
+                    }
 
-							}
-							stockFactor.setDividend(dividend);
-						}
-					}
+                } else if (childElement
+                        .text()
+                        .startsWith("Book value (incl rev res) per share EPS (Rs)")) {
 
-				} else if (childElement.text().startsWith("Book value (incl rev res) per share EPS (Rs)")) {
+                    Elements childTd = childElement.getElementsByTag("td");
+                    int j = 0;
+                    for (Element td : childTd) {
+                        j++;
+                        if (j == 2) {
+                            double bookValue = 0.00;
+                            if (td.text().trim().equalsIgnoreCase("-")) {
+                                bookValue = 0.00;
+                            } else {
+                                bookValue = Double.parseDouble(td.text().replace(",", "").trim());
+                            }
+                            stockFactor.setBookValue(bookValue);
+                        }
+                    }
 
-					Elements childTd = childElement.getElementsByTag("td");
-					int j = 0;
-					for (Element td : childTd) {
-						j++;
-						if (j == 2) {
-							double bookValue = 0.00;
-							if (td.text().trim().equalsIgnoreCase("-")) {
-								bookValue = 0.00;
-							} else {
-								bookValue = Double.parseDouble(td.text().replace(",", "").trim());
-							}
-							stockFactor.setBookValue(bookValue);
+                } else if (childElement.text().startsWith("Adjusted return on net worth")) {
 
-						}
-					}
+                    Elements childTd = childElement.getElementsByTag("td");
+                    int j = 0;
+                    for (Element td : childTd) {
+                        j++;
+                        if (j == 2) {
 
-				} else if (childElement.text().startsWith("Adjusted return on net worth")) {
+                            double roe = 0.00;
+                            if (td.text().trim().equalsIgnoreCase("-")) {
+                                roe = 0.00;
+                            } else {
 
-					Elements childTd = childElement.getElementsByTag("td");
-					int j = 0;
-					for (Element td : childTd) {
-						j++;
-						if (j == 2) {
+                                roe = Double.parseDouble(td.text().replace(",", "").trim());
+                            }
+                            stockFactor.setReturnOnEquity(roe);
+                        }
+                    }
 
-							double roe = 0.00;
-							if (td.text().trim().equalsIgnoreCase("-")) {
-								roe = 0.00;
-							} else {
+                } else if (childElement.text().startsWith("Return on long term funds")) {
 
-								roe = Double.parseDouble(td.text().replace(",", "").trim());
-							}
-							stockFactor.setReturnOnEquity(roe);
+                    Elements childTd = childElement.getElementsByTag("td");
+                    int j = 0;
+                    for (Element td : childTd) {
+                        j++;
+                        if (j == 2) {
 
-						}
-					}
+                            double roce = 0.00;
+                            if (td.text().trim().equalsIgnoreCase("-")) {
+                                roce = 0.00;
+                            } else {
+                                roce = Double.parseDouble(td.text().replace(",", "").trim());
+                            }
+                            stockFactor.setReturnOnCapital(roce);
+                        }
+                    }
 
-				} else if (childElement.text().startsWith("Return on long term funds")) {
+                } else if (childElement.text().startsWith("Total debt/equity")) {
 
-					Elements childTd = childElement.getElementsByTag("td");
-					int j = 0;
-					for (Element td : childTd) {
-						j++;
-						if (j == 2) {
+                    Elements childTd = childElement.getElementsByTag("td");
+                    int j = 0;
+                    for (Element td : childTd) {
+                        j++;
+                        if (j == 2) {
+                            double debtEquity = 0.00;
+                            if (td.text().trim().equalsIgnoreCase("-")) {
+                                debtEquity = 0.00;
+                            } else {
 
-							double roce = 0.00;
-							if (td.text().trim().equalsIgnoreCase("-")) {
-								roce = 0.00;
-							} else {
-								roce = Double.parseDouble(td.text().replace(",", "").trim());
-							}
-							stockFactor.setReturnOnCapital(roce);
+                                debtEquity = Double.parseDouble(td.text().replace(",", "").trim());
+                            }
 
-						}
-					}
+                            stockFactor.setDebtEquity(debtEquity);
+                        }
+                    }
 
-				} else if (childElement.text().startsWith("Total debt/equity")) {
+                } else if (childElement.text().startsWith("Current ratio")) {
 
-					Elements childTd = childElement.getElementsByTag("td");
-					int j = 0;
-					for (Element td : childTd) {
-						j++;
-						if (j == 2) {
-							double debtEquity = 0.00;
-							if (td.text().trim().equalsIgnoreCase("-")) {
-								debtEquity = 0.00;
-							} else {
+                    Elements childTd = childElement.getElementsByTag("td");
+                    int j = 0;
+                    for (Element td : childTd) {
+                        j++;
+                        if (j == 2) {
+                            double currentRatio = 0.00;
+                            if (td.text().trim().equalsIgnoreCase("-")) {
+                                currentRatio = 0.00;
+                            } else {
 
-								debtEquity = Double.parseDouble(td.text().replace(",", "").trim());
-							}
+                                currentRatio =
+                                        Double.parseDouble(td.text().replace(",", "").trim());
+                            }
 
-							stockFactor.setDebtEquity(debtEquity);
+                            stockFactor.setCurrentRatio(currentRatio);
+                        }
+                    }
 
-						}
-					}
+                } else if (childElement.text().startsWith("Quick ratio")) {
 
-				} else if (childElement.text().startsWith("Current ratio")) {
+                    Elements childTd = childElement.getElementsByTag("td");
+                    int j = 0;
+                    for (Element td : childTd) {
+                        j++;
+                        if (j == 2) {
+                            double quickRatio = 0.00;
+                            if (td.text().trim().equalsIgnoreCase("-")) {
+                                quickRatio = 0.00;
+                            } else {
 
-					Elements childTd = childElement.getElementsByTag("td");
-					int j = 0;
-					for (Element td : childTd) {
-						j++;
-						if (j == 2) {
-							double currentRatio = 0.00;
-							if (td.text().trim().equalsIgnoreCase("-")) {
-								currentRatio = 0.00;
-							} else {
+                                quickRatio = Double.parseDouble(td.text().replace(",", "").trim());
+                            }
 
-								currentRatio = Double.parseDouble(td.text().replace(",", "").trim());
-							}
+                            stockFactor.setQuickRatio(quickRatio);
+                        }
+                    }
 
-							stockFactor.setCurrentRatio(currentRatio);
+                } else {
+                    continue;
+                }
+            }
+        }
+        return stockFactor;
+    }
 
-						}
-					}
+    private String buildURL(Stock stock) {
 
-				} else if (childElement.text().startsWith("Quick ratio")) {
+        String companyName = stock.getCompanyName().replace(".", "");
 
-					Elements childTd = childElement.getElementsByTag("td");
-					int j = 0;
-					for (Element td : childTd) {
-						j++;
-						if (j == 2) {
-							double quickRatio = 0.00;
-							if (td.text().trim().equalsIgnoreCase("-")) {
-								quickRatio = 0.00;
-							} else {
+        String companyNameurlStr = companyName.replaceAll(" ", "-").toLowerCase();
 
-								quickRatio = Double.parseDouble(td.text().replace(",", "").trim());
-							}
+        companyNameurlStr = companyNameurlStr.replace("&-", "");
 
-							stockFactor.setQuickRatio(quickRatio);
+        companyNameurlStr = companyNameurlStr.replace("'s", "-s");
 
-						}
-					}
+        companyNameurlStr = companyNameurlStr.replace("(", "");
 
-				}
+        companyNameurlStr = companyNameurlStr.replace(")", "");
 
-				else {
-					continue;
-				}
+        return BASE_URL_REDIFF + companyNameurlStr;
+    }
 
-			}
+    public String getRatioURL() {
+        return ratioURL;
+    }
 
-		}
-		return stockFactor;
-	}
+    public void setRatioURL(String ratioURL) {
+        this.ratioURL = ratioURL;
+    }
 
-	private String buildURL(Stock stock) {
+    @Override
+    public FactorProvider getServiceProvider() {
+        return FactorProvider.REDIFF;
+    }
 
-		String companyName = stock.getCompanyName().replace(".", "");
+    @Override
+    public StockFactor getFactor(Stock stock) {
 
-		String companyNameurlStr = companyName.replaceAll(" ", "-").toLowerCase();
+        StockFactor stockFactor = null;
 
-		companyNameurlStr = companyNameurlStr.replace("&-", "");
+        if (stock.getFactor() == null) {
 
-		companyNameurlStr = companyNameurlStr.replace("'s", "-s");
+            stockFactor = new StockFactor();
 
-		companyNameurlStr = companyNameurlStr.replace("(", "");
+        } else {
 
-		companyNameurlStr = companyNameurlStr.replace(")", "");
+            stockFactor = stock.getFactor();
+        }
 
-		return BASE_URL_REDIFF + companyNameurlStr;
-	}
+        // if (stock.getStockFactor() == null || remoteCallCounter <= 20) {
 
-	public String getRatioURL() {
-		return ratioURL;
-	}
+        try {
+            stockFactor.setLastModified(LocalDate.now());
+            stockFactor = this.getMcapFaceValue(stock, stockFactor);
+            stockFactor = this.getRatios(stock, stockFactor);
 
-	public void setRatioURL(String ratioURL) {
-		this.ratioURL = ratioURL;
-	}
+            LOGGER.info("Quarter {}", stockFactor.getQuarterEnded());
+            LOGGER.info("EPS {}", stockFactor.getEps());
+            LOGGER.info("Dividend {}", stockFactor.getDividend());
+            LOGGER.info("BookValue {}", stockFactor.getBookValue());
+            LOGGER.info("ROE {}", stockFactor.getReturnOnEquity());
+            LOGGER.info("ROCE {}", stockFactor.getReturnOnCapital());
+            LOGGER.info("Debt Equity {}", stockFactor.getDebtEquity());
+            LOGGER.info("Current Ratio {}", stockFactor.getCurrentRatio());
+            LOGGER.info("Quick  Ratio {}", stockFactor.getQuickRatio());
 
-	@Override
-	public FactorProvider getServiceProvider() {
-		return FactorProvider.REDIFF;
-	}
+            // increment thye remoteCallCounter
+            // remoteCallCounter++;
 
-	@Override
-	public StockFactor getFactor(Stock stock) {
+            // System.out.println("Remote Call counter : " + remoteCallCounter);
 
-		StockFactor stockFactor = null;
+        } catch (IOException e) {
 
-		if (stock.getFactor() == null) {
+            e.printStackTrace();
+        }
 
-			stockFactor = new StockFactor();
+        stockFactor.setStock(stock);
+        // }
 
-		} else {
-
-			stockFactor = stock.getFactor();
-
-		}
-
-		//if (stock.getStockFactor() == null || remoteCallCounter <= 20) {
-
-			try {
-				stockFactor.setLastModified(LocalDate.now());
-				stockFactor = this.getMcapFaceValue(stock, stockFactor);
-				stockFactor = this.getRatios(stock, stockFactor);
-
-				LOGGER.info("Quarter {}", stockFactor.getQuarterEnded());
-				LOGGER.info("EPS {}", stockFactor.getEps());
-				LOGGER.info("Dividend {}", stockFactor.getDividend());
-				LOGGER.info("BookValue {}", stockFactor.getBookValue());
-				LOGGER.info("ROE {}", stockFactor.getReturnOnEquity());
-				LOGGER.info("ROCE {}", stockFactor.getReturnOnCapital());
-				LOGGER.info("Debt Equity {}", stockFactor.getDebtEquity());
-				LOGGER.info("Current Ratio {}", stockFactor.getCurrentRatio());
-				LOGGER.info("Quick  Ratio {}", stockFactor.getQuickRatio());
-
-				// increment thye remoteCallCounter
-				//remoteCallCounter++;
-
-				//System.out.println("Remote Call counter : " + remoteCallCounter);
-				
-				
-			} catch (IOException e) {
-				
-				e.printStackTrace();
-			} 
-
-			stockFactor.setStock(stock);
-		//}
-
-		return stockFactor;
-	}
+        return stockFactor;
+    }
 }

@@ -1,0 +1,84 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  main:
+    banner-mode: OFF
+  application:
+    name: tnp-web
+  profiles:
+    active: dev
+  cache:
+    type: redis
+  redis:
+    key:
+      prefix: ${SPRING_PROFILES_ACTIVE:default}:tnp
+    connect-timeout: 10000
+    cluster:
+      enabled: ${REDIS_CLUSTER_ENABLED:false}
+      nodes: ${REDIS_NODES:localhost:6379}
+      max-redirects: 3
+  data:
+    mongodb:
+      database: tnpDB
+      uri: mongodb://localhost:27017/?connectTimeoutMS=300000&minPoolSize=32&maxPoolSize=512&maxIdleTimeMS=900000
+  mail:
+    host: smtp.gmail.com
+    username: tracknpick@gmail.com
+    displayname: Track n Pick Research
+    password: Something@123
+    port: 587
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: true
+            required: true
+          auth: true
+  timezone: Asia/Kolkata
+  output:
+    ansi:
+      enabled: always
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope:
+              - user:email
+              - read:user
+
+logging:
+  file:
+    path: /Users/phs/mydrive/repo/tnp/logs
+  level:
+    root: INFO
+    com.example: debug
+    org.springframework: INFO
+    com.mongodb: WARN
+    org.hibernate: WARN
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

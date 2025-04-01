@@ -1,183 +1,172 @@
 package com.example.service.impl;
 
-import javax.transaction.Transactional;
-
 import com.example.data.common.type.Timeframe;
-
-import com.example.service.StockPriceService;
-import com.example.service.StockService;
 import com.example.data.transactional.entities.Sector;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockFactor;
 import com.example.data.transactional.entities.StockPrice;
+import com.example.service.StockPriceService;
+import com.example.service.StockService;
+import com.example.util.rules.RulesFundamental;
+import com.example.util.rules.RulesResearch;
+import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
-import com.example.util.rules.RulesFundamental;
-import com.example.util.rules.RulesResearch;
-
 @Transactional
 @Service
 @Slf4j
-public class FundamentalResearchServiceImpl implements FundamentalResearchService{
+public class FundamentalResearchServiceImpl implements FundamentalResearchService {
 
-	@Autowired
-	private RulesFundamental rules;
+    @Autowired private RulesFundamental rules;
 
-	@Autowired
-	private RulesResearch researchRules;
+    @Autowired private RulesResearch researchRules;
 
-	@Autowired
-	private StockService stockService;
+    @Autowired private StockService stockService;
 
-	@Autowired
-	private StockPriceService<StockPrice> stockPriceService;
+    @Autowired private StockPriceService<StockPrice> stockPriceService;
 
-	@Override
-	public boolean isPriceInRange(Stock stock) {
+    @Override
+    public boolean isPriceInRange(Stock stock) {
 
+        StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+        if (stockPrice.getClose() > rules.getPricegt()
+                && stockPrice.getClose() < rules.getPricelt()) {
 
-		StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
-			if (stockPrice.getClose() > rules.getPricegt()
-					&& stockPrice.getClose() < rules.getPricelt()) {
+            return Boolean.TRUE;
+        }
 
-				return Boolean.TRUE;
-			}
+        return Boolean.FALSE;
+    }
 
-		return Boolean.FALSE;
-	}
+    @Override
+    public boolean isMcapInRange(Stock stock) {
 
-	@Override
-	public boolean isMcapInRange(Stock stock){
+        if (stock.getCompanyName().contains("AMC") || stock.getCompanyName().contains("ETF")) {
+            return true;
+        }
 
-		if(stock.getCompanyName().contains("AMC") || stock.getCompanyName().contains("ETF")){
-			return true;
-		}
+        StockFactor stockFactor = stock.getFactor();
 
-		StockFactor stockFactor = stock.getFactor();
+        if (stockFactor != null && stockFactor.getMarketCap() >= rules.getMcap()) {
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
+    }
 
-		if(stockFactor!=null && stockFactor.getMarketCap() >= rules.getMcap()){
-			return Boolean.TRUE;
-		}
-		return Boolean.FALSE;
-	}
+    @Override
+    public double calculateValuation(Stock stock) {
 
-	@Override
-	public double calculateValuation(Stock stock){
+        double score = 0.0;
 
-			double score = 0.0;
+        double pe = stockService.getPe(stock);
 
-			double pe = stockService.getPe(stock);
+        double pb = stockService.getPb(stock);
 
-			double pb = stockService.getPb(stock);
+        double sectorPb = stock.getSector().getSectorPb();
 
-			double sectorPb = stock.getSector().getSectorPb();
+        double sectorPe = stock.getSector().getSectorPe();
 
-			double sectorPe = stock.getSector().getSectorPe();
+        if (pe < 20 && pb < 3) {
+            return 100.0;
+        }
 
-			if(pe < 20 && pb < 3){
-				return 100.0;
-			}
+        if (pe < 20 && pb < sectorPb) {
+            return 80.0;
+        }
 
-			if(pe < 20 && pb < sectorPb){
-				return  80.0;
-			}
+        if (pe < sectorPe && pb < 3) {
+            return 65.0;
+        }
 
-			if (pe < sectorPe && pb < 3) {
-				return 65.0;
-			}
+        if (pe < sectorPe && pb < sectorPb) {
+            return 55.0;
+        }
 
-			if(pe < sectorPe && pb < sectorPb){
-				return 55.0;
-			}
+        if (pe < sectorPe) {
+            return 50.0;
+        }
 
-			if(pe < sectorPe ){
-				return  50.0;
-			}
+        return score;
+    }
 
-		return score;
-	}
+    @Override
+    public boolean isGoodValuation(Stock stock) {
+        return (this.calculateValuation(stock) >= 50.0) ? Boolean.TRUE : Boolean.FALSE;
+    }
 
-	@Override
-	public boolean isGoodValuation(Stock stock){
-		return (this.calculateValuation(stock) >= 50.0) ? Boolean.TRUE : Boolean.FALSE;
-	}
+    @Override
+    public boolean isUndervalued(Stock stock) {
 
-	@Override
-	public boolean isUndervalued(Stock stock) {
+        if (this.isFinancialsStable(stock) && this.isGoodValuation(stock)) {
+            return Boolean.TRUE;
+        }
 
-		if (this.isFinancialsStable(stock) && this.isGoodValuation(stock)) {
-			return Boolean.TRUE;
-		}
+        return Boolean.FALSE;
+    }
 
-		return Boolean.FALSE;
-	}
+    @Override
+    public boolean isOvervalued(Stock stock) {
 
-	@Override
-	public boolean isOvervalued(Stock stock) {
+        if (!this.isUndervalued(stock)) {
+            // if (!this.isFinancialsStable(stock)) {
+            return Boolean.TRUE;
+        }
 
-		if (!this.isUndervalued(stock)) {
-		//if (!this.isFinancialsStable(stock)) {
-			return Boolean.TRUE;
-		}
+        return Boolean.FALSE;
+    }
 
-		return Boolean.FALSE;
-	}
+    private boolean isFinancialsStable(Stock stock) {
 
-	private boolean isFinancialsStable(Stock stock) {
+        boolean isUndervalued = false;
 
-		boolean isUndervalued = false;
+        Sector sector = stock.getSector();
 
-		Sector sector = stock.getSector();
+        if (stock != null) {
 
-		if (stock != null) {
+            if (sector != null) {
 
-			if (sector != null) {
+                String sectorName = stock.getSector().getSectorName();
 
-				String sectorName = stock.getSector().getSectorName();
+                if (sectorName != null && !sectorName.isEmpty()) {
+                    StockFactor stockFactor = stock.getFactor();
+                    if (stockFactor != null) {
 
-				if (sectorName != null && !sectorName.isEmpty()) {
-					StockFactor stockFactor = stock.getFactor();
-if(stockFactor!=null){
+                        if (sectorName.equalsIgnoreCase("Financial Institution")
+                                || sectorName.equalsIgnoreCase("Non Banking Financial Company NBFC")
+                                || sectorName.equalsIgnoreCase("Other Bank")
+                                || sectorName.equalsIgnoreCase("Private Sector Bank")
+                                || sectorName.equalsIgnoreCase("Public Sector Bank")) {
 
-					if (sectorName.equalsIgnoreCase("Financial Institution")
-							|| sectorName.equalsIgnoreCase("Non Banking Financial Company NBFC")
-							|| sectorName.equalsIgnoreCase("Other Bank")
-							|| sectorName.equalsIgnoreCase("Private Sector Bank")
-							|| sectorName.equalsIgnoreCase("Public Sector Bank")) {
+                            if (this.isMcapInRange(stock)
+                                    && stock.getFactor().getDividend() >= rules.getDividend()
+                                    && stock.getFactor().getReturnOnEquity() >= rules.getRoe()
+                                    && stock.getFactor().getReturnOnCapital() >= rules.getRoce()
+                                    && stock.getFactor().getCurrentRatio()
+                                            >= rules.getCurrentRatio()
+                                    && stock.getFactor().getQuickRatio()
+                                            >= rules.getQuickRatioBanks()) {
+                                isUndervalued = true;
+                            }
 
-						if (
-								this.isMcapInRange(stock)
-										&& stock.getFactor().getDividend() >= rules.getDividend()
-										&& stock.getFactor().getReturnOnEquity() >= rules.getRoe()
-										&& stock.getFactor().getReturnOnCapital() >= rules.getRoce()
-										&& stock.getFactor().getCurrentRatio() >= rules.getCurrentRatio()
-										&& stock.getFactor().getQuickRatio() >= rules.getQuickRatioBanks()) {
-							isUndervalued = true;
-						}
+                        } else {
 
-					} else {
+                            if (this.isMcapInRange(stock)
+                                    && stock.getFactor().getDebtEquity() < rules.getDebtEquity()
+                                    && stock.getFactor().getDividend() >= rules.getDividend()
+                                    && stock.getFactor().getReturnOnEquity() >= rules.getRoe()
+                                    && stock.getFactor().getReturnOnCapital() >= rules.getRoce()
+                                    && stock.getFactor().getCurrentRatio()
+                                            >= rules.getCurrentRatio()) {
 
-						if (
-								this.isMcapInRange(stock)
-										&& stock.getFactor().getDebtEquity() < rules.getDebtEquity()
-										&& stock.getFactor().getDividend() >= rules.getDividend()
-										&& stock.getFactor().getReturnOnEquity() >= rules.getRoe()
-										&& stock.getFactor().getReturnOnCapital() >= rules.getRoce()
-										&& stock.getFactor().getCurrentRatio() >= rules.getCurrentRatio()
-
-						) {
-
-							isUndervalued = true;
-						}
-					}
-				}
-			}
-			}
-		}
-		return isUndervalued;
-	}
-
+                                isUndervalued = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return isUndervalued;
+    }
 }

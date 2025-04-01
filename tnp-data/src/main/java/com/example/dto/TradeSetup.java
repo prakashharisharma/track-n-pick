@@ -1,11 +1,9 @@
 package com.example.dto;
 
 import com.example.data.transactional.entities.ResearchTechnical;
+import java.io.Serializable;
 import lombok.Builder;
 import lombok.Data;
-
-import java.io.Serializable;
-
 
 @Data
 @Builder

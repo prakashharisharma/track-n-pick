@@ -6,8 +6,5 @@ import com.example.data.transactional.entities.Stock;
 
 public interface TrendService {
 
-
     public Trend detect(Stock stock, Timeframe timeframe);
-
-
 }

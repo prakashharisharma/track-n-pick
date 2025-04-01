@@ -10,17 +10,12 @@ import org.springframework.stereotype.Service;
 public class BreakoutServiceImpl implements BreakoutService {
 
     @Override
-    public boolean isBreakOut(double prevClose, double prevAverage, double close, double average){
-        return CrossOverUtil.isFastCrossesAboveSlow(prevClose,
-                prevAverage, close,
-                average);
+    public boolean isBreakOut(double prevClose, double prevAverage, double close, double average) {
+        return CrossOverUtil.isFastCrossesAboveSlow(prevClose, prevAverage, close, average);
     }
 
     @Override
     public boolean isBreakDown(double prevClose, double prevAverage, double close, double average) {
-        return CrossOverUtil.isSlowCrossesBelowFast(prevClose,
-                prevAverage, close,
-                average);
+        return CrossOverUtil.isSlowCrossesBelowFast(prevClose, prevAverage, close, average);
     }
-
 }

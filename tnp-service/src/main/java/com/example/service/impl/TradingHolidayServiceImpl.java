@@ -3,6 +3,8 @@ package com.example.service.impl;
 import com.example.data.transactional.entities.TradingHoliday;
 import com.example.data.transactional.repo.TradingHolidayRepository;
 import com.example.service.TradingHolidayService;
+import java.time.LocalDate;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -10,9 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -37,11 +36,14 @@ public class TradingHolidayServiceImpl implements TradingHolidayService {
 
     @Override
     public Optional<TradingHoliday> updateHoliday(Long id, TradingHoliday holiday) {
-        return tradingHolidayRepository.findById(id).map(existing -> {
-            existing.setSessionDate(holiday.getSessionDate());
-            existing.setDesc(holiday.getDesc());
-            return tradingHolidayRepository.save(existing);
-        });
+        return tradingHolidayRepository
+                .findById(id)
+                .map(
+                        existing -> {
+                            existing.setSessionDate(holiday.getSessionDate());
+                            existing.setDesc(holiday.getDesc());
+                            return tradingHolidayRepository.save(existing);
+                        });
     }
 
     @Override

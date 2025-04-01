@@ -3,6 +3,8 @@ package com.example.service.impl;
 import com.example.data.transactional.entities.SpecialTradingSession;
 import com.example.data.transactional.repo.SpecialTradingSessionRepository;
 import com.example.service.SpecialTradingSessionService;
+import java.time.LocalDate;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -10,9 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,7 +21,8 @@ public class SpecialTradingSessionServiceImpl implements SpecialTradingSessionSe
     private final SpecialTradingSessionRepository specialTradingSessionRepository;
 
     @Override
-    public Page<SpecialTradingSession> getAllSessions(int page, int size, LocalDate from, LocalDate to) {
+    public Page<SpecialTradingSession> getAllSessions(
+            int page, int size, LocalDate from, LocalDate to) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sessionDate").descending());
 
         if (from != null && to != null) {
@@ -47,13 +47,16 @@ public class SpecialTradingSessionServiceImpl implements SpecialTradingSessionSe
 
     @Override
     public Optional<SpecialTradingSession> updateSession(Long id, SpecialTradingSession session) {
-        return specialTradingSessionRepository.findById(id).map(existing -> {
-            existing.setSessionDate(session.getSessionDate());
-            existing.setStartTime(session.getStartTime());
-            existing.setEndTime(session.getEndTime());
-            existing.setDesc(session.getDesc());
-            return specialTradingSessionRepository.save(existing);
-        });
+        return specialTradingSessionRepository
+                .findById(id)
+                .map(
+                        existing -> {
+                            existing.setSessionDate(session.getSessionDate());
+                            existing.setStartTime(session.getStartTime());
+                            existing.setEndTime(session.getEndTime());
+                            existing.setDesc(session.getDesc());
+                            return specialTradingSessionRepository.save(existing);
+                        });
     }
 
     @Override
@@ -65,4 +68,3 @@ public class SpecialTradingSessionServiceImpl implements SpecialTradingSessionSe
         return false;
     }
 }
-

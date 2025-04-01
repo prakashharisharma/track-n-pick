@@ -1,207 +1,240 @@
 package com.example.external.chyl.model;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RediffResult {
 
-@JsonProperty("LastTradedPrice")
-private String lastTradedPrice;
-@JsonProperty("Volume")
-private String volume;
-@JsonProperty("PercentageDiff")
-private String percentageDiff;
-@JsonProperty("FiftyTwoWeekHigh")
-private String fiftyTwoWeekHigh;
-@JsonProperty("FiftyTwoWeekLow")
-private String fiftyTwoWeekLow;
-@JsonProperty("LastTradedTime")
-private String lastTradedTime;
-@JsonProperty("ChangePercent")
-private String changePercent;
-@JsonProperty("Change")
-private String change;
-@JsonProperty("MarketCap")
-private String marketCap;
-@JsonProperty("High")
-private String high;
-@JsonProperty("Low")
-private String low;
-@JsonProperty("PrevClose")
-private String prevClose;
-@JsonProperty("BonusSplitStatus")
-private String bonusSplitStatus;
-@JsonProperty("BonusSplitRatio")
-private String bonusSplitRatio;
-@JsonIgnore
-private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-	
-@JsonProperty("LastTradedPrice")
-public String getLastTradedPrice() {
-return lastTradedPrice;
-}
+    @JsonProperty("LastTradedPrice")
+    private String lastTradedPrice;
 
-@JsonProperty("LastTradedPrice")
-public void setLastTradedPrice(String lastTradedPrice) {
-this.lastTradedPrice = lastTradedPrice;
-}
+    @JsonProperty("Volume")
+    private String volume;
 
-@JsonProperty("Volume")
-public String getVolume() {
-return volume;
-}
+    @JsonProperty("PercentageDiff")
+    private String percentageDiff;
 
-@JsonProperty("Volume")
-public void setVolume(String volume) {
-this.volume = volume;
-}
+    @JsonProperty("FiftyTwoWeekHigh")
+    private String fiftyTwoWeekHigh;
 
-@JsonProperty("PercentageDiff")
-public String getPercentageDiff() {
-return percentageDiff;
-}
+    @JsonProperty("FiftyTwoWeekLow")
+    private String fiftyTwoWeekLow;
 
-@JsonProperty("PercentageDiff")
-public void setPercentageDiff(String percentageDiff) {
-this.percentageDiff = percentageDiff;
-}
+    @JsonProperty("LastTradedTime")
+    private String lastTradedTime;
 
-@JsonProperty("FiftyTwoWeekHigh")
-public String getFiftyTwoWeekHigh() {
-return fiftyTwoWeekHigh;
-}
+    @JsonProperty("ChangePercent")
+    private String changePercent;
 
-@JsonProperty("FiftyTwoWeekHigh")
-public void setFiftyTwoWeekHigh(String fiftyTwoWeekHigh) {
-this.fiftyTwoWeekHigh = fiftyTwoWeekHigh;
-}
+    @JsonProperty("Change")
+    private String change;
 
-@JsonProperty("FiftyTwoWeekLow")
-public String getFiftyTwoWeekLow() {
-return fiftyTwoWeekLow;
-}
+    @JsonProperty("MarketCap")
+    private String marketCap;
 
-@JsonProperty("FiftyTwoWeekLow")
-public void setFiftyTwoWeekLow(String fiftyTwoWeekLow) {
-this.fiftyTwoWeekLow = fiftyTwoWeekLow;
-}
+    @JsonProperty("High")
+    private String high;
 
-@JsonProperty("LastTradedTime")
-public String getLastTradedTime() {
-return lastTradedTime;
-}
+    @JsonProperty("Low")
+    private String low;
 
-@JsonProperty("LastTradedTime")
-public void setLastTradedTime(String lastTradedTime) {
-this.lastTradedTime = lastTradedTime;
-}
+    @JsonProperty("PrevClose")
+    private String prevClose;
 
-@JsonProperty("ChangePercent")
-public String getChangePercent() {
-return changePercent;
-}
+    @JsonProperty("BonusSplitStatus")
+    private String bonusSplitStatus;
 
-@JsonProperty("ChangePercent")
-public void setChangePercent(String changePercent) {
-this.changePercent = changePercent;
-}
+    @JsonProperty("BonusSplitRatio")
+    private String bonusSplitRatio;
 
-@JsonProperty("Change")
-public String getChange() {
-return change;
-}
+    @JsonIgnore private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-@JsonProperty("Change")
-public void setChange(String change) {
-this.change = change;
-}
+    @JsonProperty("LastTradedPrice")
+    public String getLastTradedPrice() {
+        return lastTradedPrice;
+    }
 
-@JsonProperty("MarketCap")
-public String getMarketCap() {
-return marketCap;
-}
+    @JsonProperty("LastTradedPrice")
+    public void setLastTradedPrice(String lastTradedPrice) {
+        this.lastTradedPrice = lastTradedPrice;
+    }
 
-@JsonProperty("MarketCap")
-public void setMarketCap(String marketCap) {
-this.marketCap = marketCap;
-}
+    @JsonProperty("Volume")
+    public String getVolume() {
+        return volume;
+    }
 
-@JsonProperty("High")
-public String getHigh() {
-return high;
-}
+    @JsonProperty("Volume")
+    public void setVolume(String volume) {
+        this.volume = volume;
+    }
 
-@JsonProperty("High")
-public void setHigh(String high) {
-this.high = high;
-}
+    @JsonProperty("PercentageDiff")
+    public String getPercentageDiff() {
+        return percentageDiff;
+    }
 
-@JsonProperty("Low")
-public String getLow() {
-return low;
-}
+    @JsonProperty("PercentageDiff")
+    public void setPercentageDiff(String percentageDiff) {
+        this.percentageDiff = percentageDiff;
+    }
 
-@JsonProperty("Low")
-public void setLow(String low) {
-this.low = low;
-}
+    @JsonProperty("FiftyTwoWeekHigh")
+    public String getFiftyTwoWeekHigh() {
+        return fiftyTwoWeekHigh;
+    }
 
-@JsonProperty("PrevClose")
-public String getPrevClose() {
-return prevClose;
-}
+    @JsonProperty("FiftyTwoWeekHigh")
+    public void setFiftyTwoWeekHigh(String fiftyTwoWeekHigh) {
+        this.fiftyTwoWeekHigh = fiftyTwoWeekHigh;
+    }
 
-@JsonProperty("PrevClose")
-public void setPrevClose(String prevClose) {
-this.prevClose = prevClose;
-}
+    @JsonProperty("FiftyTwoWeekLow")
+    public String getFiftyTwoWeekLow() {
+        return fiftyTwoWeekLow;
+    }
 
-@JsonProperty("BonusSplitStatus")
-public String getBonusSplitStatus() {
-return bonusSplitStatus;
-}
+    @JsonProperty("FiftyTwoWeekLow")
+    public void setFiftyTwoWeekLow(String fiftyTwoWeekLow) {
+        this.fiftyTwoWeekLow = fiftyTwoWeekLow;
+    }
 
-@JsonProperty("BonusSplitStatus")
-public void setBonusSplitStatus(String bonusSplitStatus) {
-this.bonusSplitStatus = bonusSplitStatus;
-}
+    @JsonProperty("LastTradedTime")
+    public String getLastTradedTime() {
+        return lastTradedTime;
+    }
 
-@JsonProperty("BonusSplitRatio")
-public String getBonusSplitRatio() {
-return bonusSplitRatio;
-}
+    @JsonProperty("LastTradedTime")
+    public void setLastTradedTime(String lastTradedTime) {
+        this.lastTradedTime = lastTradedTime;
+    }
 
-@JsonProperty("BonusSplitRatio")
-public void setBonusSplitRatio(String bonusSplitRatio) {
-this.bonusSplitRatio = bonusSplitRatio;
-}
+    @JsonProperty("ChangePercent")
+    public String getChangePercent() {
+        return changePercent;
+    }
 
-@JsonAnyGetter
-public Map<String, Object> getAdditionalProperties() {
-return this.additionalProperties;
-}
+    @JsonProperty("ChangePercent")
+    public void setChangePercent(String changePercent) {
+        this.changePercent = changePercent;
+    }
 
-@JsonAnySetter
-public void setAdditionalProperty(String name, Object value) {
-this.additionalProperties.put(name, value);
-}
+    @JsonProperty("Change")
+    public String getChange() {
+        return change;
+    }
 
-@Override
-public String toString() {
-	return "RediffStock [lastTradedPrice=" + lastTradedPrice + ", volume=" + volume + ", percentageDiff="
-			+ percentageDiff + ", fiftyTwoWeekHigh=" + fiftyTwoWeekHigh + ", fiftyTwoWeekLow=" + fiftyTwoWeekLow
-			+ ", lastTradedTime=" + lastTradedTime + ", changePercent=" + changePercent + ", change=" + change
-			+ ", marketCap=" + marketCap + ", high=" + high + ", low=" + low + ", prevClose=" + prevClose
-			+ ", bonusSplitStatus=" + bonusSplitStatus + ", bonusSplitRatio=" + bonusSplitRatio
-			+ ", additionalProperties=" + additionalProperties + "]";
-}
-	
+    @JsonProperty("Change")
+    public void setChange(String change) {
+        this.change = change;
+    }
 
+    @JsonProperty("MarketCap")
+    public String getMarketCap() {
+        return marketCap;
+    }
 
+    @JsonProperty("MarketCap")
+    public void setMarketCap(String marketCap) {
+        this.marketCap = marketCap;
+    }
 
+    @JsonProperty("High")
+    public String getHigh() {
+        return high;
+    }
+
+    @JsonProperty("High")
+    public void setHigh(String high) {
+        this.high = high;
+    }
+
+    @JsonProperty("Low")
+    public String getLow() {
+        return low;
+    }
+
+    @JsonProperty("Low")
+    public void setLow(String low) {
+        this.low = low;
+    }
+
+    @JsonProperty("PrevClose")
+    public String getPrevClose() {
+        return prevClose;
+    }
+
+    @JsonProperty("PrevClose")
+    public void setPrevClose(String prevClose) {
+        this.prevClose = prevClose;
+    }
+
+    @JsonProperty("BonusSplitStatus")
+    public String getBonusSplitStatus() {
+        return bonusSplitStatus;
+    }
+
+    @JsonProperty("BonusSplitStatus")
+    public void setBonusSplitStatus(String bonusSplitStatus) {
+        this.bonusSplitStatus = bonusSplitStatus;
+    }
+
+    @JsonProperty("BonusSplitRatio")
+    public String getBonusSplitRatio() {
+        return bonusSplitRatio;
+    }
+
+    @JsonProperty("BonusSplitRatio")
+    public void setBonusSplitRatio(String bonusSplitRatio) {
+        this.bonusSplitRatio = bonusSplitRatio;
+    }
+
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
+    }
+
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
+    }
+
+    @Override
+    public String toString() {
+        return "RediffStock [lastTradedPrice="
+                + lastTradedPrice
+                + ", volume="
+                + volume
+                + ", percentageDiff="
+                + percentageDiff
+                + ", fiftyTwoWeekHigh="
+                + fiftyTwoWeekHigh
+                + ", fiftyTwoWeekLow="
+                + fiftyTwoWeekLow
+                + ", lastTradedTime="
+                + lastTradedTime
+                + ", changePercent="
+                + changePercent
+                + ", change="
+                + change
+                + ", marketCap="
+                + marketCap
+                + ", high="
+                + high
+                + ", low="
+                + low
+                + ", prevClose="
+                + prevClose
+                + ", bonusSplitStatus="
+                + bonusSplitStatus
+                + ", bonusSplitRatio="
+                + bonusSplitRatio
+                + ", additionalProperties="
+                + additionalProperties
+                + "]";
+    }
 }

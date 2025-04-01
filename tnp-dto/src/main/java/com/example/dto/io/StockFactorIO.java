@@ -7,169 +7,195 @@ import java.time.ZoneOffset;
 
 public class StockFactorIO implements Serializable {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -7265805744759390934L;
+    /** */
+    private static final long serialVersionUID = -7265805744759390934L;
 
-	String nseSymbol;
+    String nseSymbol;
 
-	double marketCap;
+    double marketCap;
 
-	double debtEquity;
+    double debtEquity;
 
-	double currentRatio;
+    double currentRatio;
 
-	double quickRatio;	
+    double quickRatio;
 
-	double dividend;
+    double dividend;
 
-	double bookValue;
+    double bookValue;
 
-	double eps;
+    double eps;
 
-	double returnOnEquity;
+    double returnOnEquity;
 
-	double returnOnCapital;
+    double returnOnCapital;
 
-	double faceValue;
+    double faceValue;
 
-	LocalDate quarterEnded = LocalDate.now();
-	
-	Instant quarterEndedInstant = Instant.now();
+    LocalDate quarterEnded = LocalDate.now();
 
-	public StockFactorIO(String nseSymbol, double marketCap, double debtEquity, double currentRatio, double quickRatio,
-			double dividend, double bookValue, double eps, double returnOnEquity, double returnOnCapital,
-			double faceValue, LocalDate quarterEnded) {
-		super();
-		this.nseSymbol = nseSymbol;
-		this.marketCap = marketCap;
-		this.debtEquity = debtEquity;
-		this.currentRatio = currentRatio;
-		this.quickRatio = quickRatio;
-		this.dividend = dividend;
-		this.bookValue = bookValue;
-		this.eps = eps;
-		this.returnOnEquity = returnOnEquity;
-		this.returnOnCapital = returnOnCapital;
-		this.faceValue = faceValue;
-		this.quarterEnded = quarterEnded;
-		
-		this.quarterEndedInstant = quarterEnded.atStartOfDay().toInstant(ZoneOffset.UTC);
-		
-	}
+    Instant quarterEndedInstant = Instant.now();
 
-	public String getNseSymbol() {
-		return nseSymbol;
-	}
+    public StockFactorIO(
+            String nseSymbol,
+            double marketCap,
+            double debtEquity,
+            double currentRatio,
+            double quickRatio,
+            double dividend,
+            double bookValue,
+            double eps,
+            double returnOnEquity,
+            double returnOnCapital,
+            double faceValue,
+            LocalDate quarterEnded) {
+        super();
+        this.nseSymbol = nseSymbol;
+        this.marketCap = marketCap;
+        this.debtEquity = debtEquity;
+        this.currentRatio = currentRatio;
+        this.quickRatio = quickRatio;
+        this.dividend = dividend;
+        this.bookValue = bookValue;
+        this.eps = eps;
+        this.returnOnEquity = returnOnEquity;
+        this.returnOnCapital = returnOnCapital;
+        this.faceValue = faceValue;
+        this.quarterEnded = quarterEnded;
 
-	public void setNseSymbol(String nseSymbol) {
-		this.nseSymbol = nseSymbol;
-	}
+        this.quarterEndedInstant = quarterEnded.atStartOfDay().toInstant(ZoneOffset.UTC);
+    }
 
-	public double getMarketCap() {
-		return marketCap;
-	}
+    public String getNseSymbol() {
+        return nseSymbol;
+    }
 
-	public void setMarketCap(double marketCap) {
-		this.marketCap = marketCap;
-	}
+    public void setNseSymbol(String nseSymbol) {
+        this.nseSymbol = nseSymbol;
+    }
 
-	public double getDebtEquity() {
-		return debtEquity;
-	}
+    public double getMarketCap() {
+        return marketCap;
+    }
 
-	public void setDebtEquity(double debtEquity) {
-		this.debtEquity = debtEquity;
-	}
+    public void setMarketCap(double marketCap) {
+        this.marketCap = marketCap;
+    }
 
-	public double getCurrentRatio() {
-		return currentRatio;
-	}
+    public double getDebtEquity() {
+        return debtEquity;
+    }
 
-	public void setCurrentRatio(double currentRatio) {
-		this.currentRatio = currentRatio;
-	}
+    public void setDebtEquity(double debtEquity) {
+        this.debtEquity = debtEquity;
+    }
 
-	public double getQuickRatio() {
-		return quickRatio;
-	}
+    public double getCurrentRatio() {
+        return currentRatio;
+    }
 
-	public void setQuickRatio(double quickRatio) {
-		this.quickRatio = quickRatio;
-	}
+    public void setCurrentRatio(double currentRatio) {
+        this.currentRatio = currentRatio;
+    }
 
-	public double getDividend() {
-		return dividend;
-	}
+    public double getQuickRatio() {
+        return quickRatio;
+    }
 
-	public void setDividend(double dividend) {
-		this.dividend = dividend;
-	}
+    public void setQuickRatio(double quickRatio) {
+        this.quickRatio = quickRatio;
+    }
 
-	public double getBookValue() {
-		return bookValue;
-	}
+    public double getDividend() {
+        return dividend;
+    }
 
-	public void setBookValue(double bookValue) {
-		this.bookValue = bookValue;
-	}
+    public void setDividend(double dividend) {
+        this.dividend = dividend;
+    }
 
-	public double getEps() {
-		return eps;
-	}
+    public double getBookValue() {
+        return bookValue;
+    }
 
-	public void setEps(double eps) {
-		this.eps = eps;
-	}
+    public void setBookValue(double bookValue) {
+        this.bookValue = bookValue;
+    }
 
-	public double getReturnOnEquity() {
-		return returnOnEquity;
-	}
+    public double getEps() {
+        return eps;
+    }
 
-	public void setReturnOnEquity(double returnOnEquity) {
-		this.returnOnEquity = returnOnEquity;
-	}
+    public void setEps(double eps) {
+        this.eps = eps;
+    }
 
-	public double getReturnOnCapital() {
-		return returnOnCapital;
-	}
+    public double getReturnOnEquity() {
+        return returnOnEquity;
+    }
 
-	public void setReturnOnCapital(double returnOnCapital) {
-		this.returnOnCapital = returnOnCapital;
-	}
+    public void setReturnOnEquity(double returnOnEquity) {
+        this.returnOnEquity = returnOnEquity;
+    }
 
-	public double getFaceValue() {
-		return faceValue;
-	}
+    public double getReturnOnCapital() {
+        return returnOnCapital;
+    }
 
-	public void setFaceValue(double faceValue) {
-		this.faceValue = faceValue;
-	}
+    public void setReturnOnCapital(double returnOnCapital) {
+        this.returnOnCapital = returnOnCapital;
+    }
 
-	public LocalDate getQuarterEnded() {
-		return quarterEnded;
-	}
+    public double getFaceValue() {
+        return faceValue;
+    }
 
-	public void setQuarterEnded(LocalDate quarterEnded) {
-		this.quarterEnded = quarterEnded;
-	}
+    public void setFaceValue(double faceValue) {
+        this.faceValue = faceValue;
+    }
 
-	public Instant getQuarterEndedInstant() {
-		return quarterEndedInstant;
-	}
+    public LocalDate getQuarterEnded() {
+        return quarterEnded;
+    }
 
-	public void setQuarterEndedInstant(Instant quarterEndedInstant) {
-		this.quarterEndedInstant = quarterEndedInstant;
-	}
+    public void setQuarterEnded(LocalDate quarterEnded) {
+        this.quarterEnded = quarterEnded;
+    }
 
-	@Override
-	public String toString() {
-		return "StockFactorIO [nseSymbol=" + nseSymbol + ", marketCap=" + marketCap + ", debtEquity=" + debtEquity
-				+ ", currentRatio=" + currentRatio + ", quickRatio=" + quickRatio + ", dividend=" + dividend
-				+ ", bookValue=" + bookValue + ", eps=" + eps + ", returnOnEquity=" + returnOnEquity
-				+ ", returnOnCapital=" + returnOnCapital + ", faceValue=" + faceValue + ", quarterEnded=" + quarterEnded
-				+ "]";
-	}
-	
+    public Instant getQuarterEndedInstant() {
+        return quarterEndedInstant;
+    }
+
+    public void setQuarterEndedInstant(Instant quarterEndedInstant) {
+        this.quarterEndedInstant = quarterEndedInstant;
+    }
+
+    @Override
+    public String toString() {
+        return "StockFactorIO [nseSymbol="
+                + nseSymbol
+                + ", marketCap="
+                + marketCap
+                + ", debtEquity="
+                + debtEquity
+                + ", currentRatio="
+                + currentRatio
+                + ", quickRatio="
+                + quickRatio
+                + ", dividend="
+                + dividend
+                + ", bookValue="
+                + bookValue
+                + ", eps="
+                + eps
+                + ", returnOnEquity="
+                + returnOnEquity
+                + ", returnOnCapital="
+                + returnOnCapital
+                + ", faceValue="
+                + faceValue
+                + ", quarterEnded="
+                + quarterEnded
+                + "]";
+    }
 }

@@ -3,11 +3,11 @@ package com.example.service.impl;
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
-import com.example.service.StockPriceService;
-import com.example.service.StockTechnicalsService;
 import com.example.service.AdxIndicatorService;
 import com.example.service.BreakoutConfirmationService;
 import com.example.service.CandleStickService;
+import com.example.service.StockPriceService;
+import com.example.service.StockTechnicalsService;
 import com.example.service.utils.CandleStickUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,19 +17,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class BreakoutConfirmationServiceImpl implements BreakoutConfirmationService {
 
-    @Autowired
-    private CandleStickService candleStickService;
-    @Autowired
-    private AdxIndicatorService adxIndicatorService;
+    @Autowired private CandleStickService candleStickService;
+    @Autowired private AdxIndicatorService adxIndicatorService;
 
-    @Autowired
-    private StockPriceService<StockPrice> stockPriceService;
+    @Autowired private StockPriceService<StockPrice> stockPriceService;
 
-    @Autowired
-    private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
+    @Autowired private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
     @Override
-    public boolean isBullishConfirmation(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals, double breakoutLevel) {
+    public boolean isBullishConfirmation(
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            double breakoutLevel) {
         boolean gapUp = candleStickService.isGapUp(stockPrice);
         boolean openAbovePrevHigh = stockPrice.getOpen() > stockPrice.getPrevHigh();
         boolean prevHighBelowBreakout = stockPrice.getPrevHigh() < breakoutLevel;
@@ -38,29 +38,42 @@ public class BreakoutConfirmationServiceImpl implements BreakoutConfirmationServ
 
         boolean dmiPositive = stockTechnicals.getPlusDi() > stockTechnicals.getMinusDi();
 
-        boolean bodyMidAboveResistance = isBodyMidHigherThanAverage(stockPrice,  breakoutLevel);
+        boolean bodyMidAboveResistance = isBodyMidHigherThanAverage(stockPrice, breakoutLevel);
 
         double atr = stockTechnicals.getAtr();
-        boolean atrBreakoutConfirmed = (stockPrice.getClose() - stockPrice.getPrevHigh()) > (1.5 * atr);
+        boolean atrBreakoutConfirmed =
+                (stockPrice.getClose() - stockPrice.getPrevHigh()) > (1.5 * atr);
 
         if (gapUp && (openAbovePrevHigh || prevHighBelowBreakout)) {
-            log.info("[{}] Breakout confirmed: Gap Up with Open > Prev High or Prev High < Breakout Level ({})", stockPrice.getStock().getNseSymbol(), breakoutLevel);
+            log.info(
+                    "[{}] Breakout confirmed: Gap Up with Open > Prev High or Prev High < Breakout"
+                            + " Level ({})",
+                    stockPrice.getStock().getNseSymbol(),
+                    breakoutLevel);
             return true;
         }
 
         if (adxStrong && dmiPositive) {
-            log.info("[{}] Breakout confirmed: ADX strong ({}) & DMI+ leading DMI-", stockPrice.getStock().getNseSymbol(), stockTechnicals.getAdx());
+            log.info(
+                    "[{}] Breakout confirmed: ADX strong ({}) & DMI+ leading DMI-",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockTechnicals.getAdx());
             return true;
         }
 
-
         if (bodyMidAboveResistance) {
-            log.info("[{}] Breakout confirmed: Candle body midpoint above resistance ({})", stockPrice.getStock().getNseSymbol(), breakoutLevel);
+            log.info(
+                    "[{}] Breakout confirmed: Candle body midpoint above resistance ({})",
+                    stockPrice.getStock().getNseSymbol(),
+                    breakoutLevel);
             return true;
         }
 
         if (atrBreakoutConfirmed) {
-            log.info("[{}] Breakout confirmed: Close above Prev High by 1.5x ATR ({})", stockPrice.getStock().getNseSymbol(), atr);
+            log.info(
+                    "[{}] Breakout confirmed: Close above Prev High by 1.5x ATR ({})",
+                    stockPrice.getStock().getNseSymbol(),
+                    atr);
             return true;
         }
 
@@ -68,18 +81,21 @@ public class BreakoutConfirmationServiceImpl implements BreakoutConfirmationServ
         return false;
     }
 
-    private boolean isBodyMidHigherThanAverage(StockPrice stockPrice, double average){
+    private boolean isBodyMidHigherThanAverage(StockPrice stockPrice, double average) {
         double mid = this.calculateMid(stockPrice);
-        if(mid > average){
+        if (mid > average) {
             return Boolean.TRUE;
         }
 
         return Boolean.FALSE;
     }
 
-
     @Override
-    public boolean isBearishConfirmation(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals, double breakdownLevel) {
+    public boolean isBearishConfirmation(
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            double breakdownLevel) {
 
         boolean gapDown = candleStickService.isGapDown(stockPrice);
         boolean openBelowPrevLow = stockPrice.getOpen() < stockPrice.getPrevLow();
@@ -91,25 +107,39 @@ public class BreakoutConfirmationServiceImpl implements BreakoutConfirmationServ
         boolean bodyMidBelowSupport = isBodyMidLowerThanAverage(stockPrice, breakdownLevel);
 
         double atr = stockTechnicals.getAtr();
-        boolean atrBreakdownConfirmed = (stockPrice.getPrevLow() - stockPrice.getClose()) > (1.5 * atr);
+        boolean atrBreakdownConfirmed =
+                (stockPrice.getPrevLow() - stockPrice.getClose()) > (1.5 * atr);
 
         if (gapDown && (openBelowPrevLow || prevLowAboveBreakdown)) {
-            log.info("[{}]  Breakdown confirmed: Gap Down with Open < Prev Low or Prev Low > Breakdown Level ({})", stockPrice.getStock().getNseSymbol(), breakdownLevel);
+            log.info(
+                    "[{}]  Breakdown confirmed: Gap Down with Open < Prev Low or Prev Low >"
+                            + " Breakdown Level ({})",
+                    stockPrice.getStock().getNseSymbol(),
+                    breakdownLevel);
             return true;
         }
 
         if (adxStrong && dmiNegative) {
-            log.info("[{}]  Breakdown confirmed: ADX strong ({}) & DMI- leading DMI+", stockPrice.getStock().getNseSymbol(), stockTechnicals.getAdx());
+            log.info(
+                    "[{}]  Breakdown confirmed: ADX strong ({}) & DMI- leading DMI+",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockTechnicals.getAdx());
             return true;
         }
 
         if (bodyMidBelowSupport) {
-            log.info("[{}]  Breakdown confirmed: Candle body midpoint below support ({})", stockPrice.getStock().getNseSymbol(), breakdownLevel);
+            log.info(
+                    "[{}]  Breakdown confirmed: Candle body midpoint below support ({})",
+                    stockPrice.getStock().getNseSymbol(),
+                    breakdownLevel);
             return true;
         }
 
         if (atrBreakdownConfirmed) {
-            log.info("[{}]  Breakdown confirmed: Close below Prev Low by 1.5x ATR ({})", stockPrice.getStock().getNseSymbol(), atr);
+            log.info(
+                    "[{}]  Breakdown confirmed: Close below Prev Low by 1.5x ATR ({})",
+                    stockPrice.getStock().getNseSymbol(),
+                    atr);
             return true;
         }
 
@@ -117,21 +147,22 @@ public class BreakoutConfirmationServiceImpl implements BreakoutConfirmationServ
         return false;
     }
 
-    private boolean isBodyMidLowerThanAverage(StockPrice stockPrice, double average){
+    private boolean isBodyMidLowerThanAverage(StockPrice stockPrice, double average) {
 
         double mid = this.calculateMid(stockPrice);
 
-        if(mid < average){
+        if (mid < average) {
             return Boolean.TRUE;
         }
 
         return Boolean.FALSE;
     }
 
-    private double calculateMid(StockPrice stockPrice){
-        if(CandleStickUtils.upperWickSize(stockPrice) > CandleStickUtils.lowerWickSize(stockPrice)){
-            return (stockPrice.getOpen() + stockPrice.getClose() + stockPrice.getLow())/3;
+    private double calculateMid(StockPrice stockPrice) {
+        if (CandleStickUtils.upperWickSize(stockPrice)
+                > CandleStickUtils.lowerWickSize(stockPrice)) {
+            return (stockPrice.getOpen() + stockPrice.getClose() + stockPrice.getLow()) / 3;
         }
-        return (stockPrice.getOpen() + stockPrice.getClose() + stockPrice.getHigh())/3;
+        return (stockPrice.getOpen() + stockPrice.getClose() + stockPrice.getHigh()) / 3;
     }
 }

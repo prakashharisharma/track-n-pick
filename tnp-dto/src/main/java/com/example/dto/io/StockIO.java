@@ -2,110 +2,123 @@ package com.example.dto.io;
 
 import com.example.model.type.Exchange;
 import com.example.model.type.IndiceType;
-
 import java.io.Serializable;
 
 public class StockIO implements Serializable {
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1344671851364579159L;
 
-	private String companyName;
+    /** */
+    private static final long serialVersionUID = -1344671851364579159L;
 
-	private String sector;
+    private String companyName;
 
-	private String nseSymbol;
+    private String sector;
 
-	private String bseCode;
+    private String nseSymbol;
 
-	private String series;
+    private String bseCode;
 
-	private String isin;
+    private String series;
 
-	private IndiceType indice;
+    private String isin;
 
-	private Exchange exchange;
-	
-	public StockIO(String companyName, String sector, String nseSymbol, String series, String isin, IndiceType indice) {
-		super();
-		this.companyName = companyName;
-		this.sector = sector;
-		this.nseSymbol = nseSymbol;
-		this.series = series;
-		this.isin = isin;
-		this.indice = indice;
-	}
+    private IndiceType indice;
 
-	public String getCompanyName() {
-		return companyName;
-	}
+    private Exchange exchange;
 
-	public void setCompanyName(String companyName) {
-		this.companyName = companyName;
-	}
+    public StockIO(
+            String companyName,
+            String sector,
+            String nseSymbol,
+            String series,
+            String isin,
+            IndiceType indice) {
+        super();
+        this.companyName = companyName;
+        this.sector = sector;
+        this.nseSymbol = nseSymbol;
+        this.series = series;
+        this.isin = isin;
+        this.indice = indice;
+    }
 
-	public String getSector() {
-		return sector;
-	}
+    public String getCompanyName() {
+        return companyName;
+    }
 
-	public void setSector(String sector) {
-		this.sector = sector;
-	}
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
 
-	public String getNseSymbol() {
-		return nseSymbol;
-	}
+    public String getSector() {
+        return sector;
+    }
 
-	public void setNseSymbol(String nseSymbol) {
-		this.nseSymbol = nseSymbol;
-	}
+    public void setSector(String sector) {
+        this.sector = sector;
+    }
 
-	public String getBseCode() {
-		return bseCode;
-	}
+    public String getNseSymbol() {
+        return nseSymbol;
+    }
 
-	public void setBseCode(String bseCode) {
-		this.bseCode = bseCode;
-	}
+    public void setNseSymbol(String nseSymbol) {
+        this.nseSymbol = nseSymbol;
+    }
 
-	public String getSeries() {
-		return series;
-	}
+    public String getBseCode() {
+        return bseCode;
+    }
 
-	public void setSeries(String series) {
-		this.series = series;
-	}
+    public void setBseCode(String bseCode) {
+        this.bseCode = bseCode;
+    }
 
-	public String getIsin() {
-		return isin;
-	}
+    public String getSeries() {
+        return series;
+    }
 
-	public void setIsin(String isin) {
-		this.isin = isin;
-	}
+    public void setSeries(String series) {
+        this.series = series;
+    }
 
-	public IndiceType getIndice() {
-		return indice;
-	}
+    public String getIsin() {
+        return isin;
+    }
 
-	public void setIndice(IndiceType indice) {
-		this.indice = indice;
-	}
+    public void setIsin(String isin) {
+        this.isin = isin;
+    }
 
-	public Exchange getExchange() {
-		return exchange;
-	}
+    public IndiceType getIndice() {
+        return indice;
+    }
 
-	public void setExchange(Exchange exchange) {
-		this.exchange = exchange;
-	}
+    public void setIndice(IndiceType indice) {
+        this.indice = indice;
+    }
 
-	@Override
-	public String toString() {
-		return "StockIO [companyName=" + companyName + ", sector=" + sector + ", nseSymbol=" + nseSymbol + ", series="
-				+ series + ", isin=" + isin + ", indice=" + indice + "]";
-	}
+    public Exchange getExchange() {
+        return exchange;
+    }
 
+    public void setExchange(Exchange exchange) {
+        this.exchange = exchange;
+    }
+
+    @Override
+    public String toString() {
+        return "StockIO [companyName="
+                + companyName
+                + ", sector="
+                + sector
+                + ", nseSymbol="
+                + nseSymbol
+                + ", series="
+                + series
+                + ", isin="
+                + isin
+                + ", indice="
+                + indice
+                + "]";
+    }
 }

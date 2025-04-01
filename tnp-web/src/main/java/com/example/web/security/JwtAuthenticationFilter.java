@@ -4,6 +4,14 @@ import com.example.security.JwtUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import java.io.IOException;
+import java.security.Key;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,15 +23,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.security.Key;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Slf4j
 @RequiredArgsConstructor
 @Component
@@ -34,14 +33,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         String token = extractToken(request);
 
         if (token != null && validateToken(token)) {
             UserDetails userDetails = getUserDetails(token);
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
@@ -55,8 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(SECRET_KEY).build()
-                    .parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token);
             return true;
         } catch (Exception e) {
             return false;
@@ -64,18 +64,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     public UserDetails getUserDetails(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)  // ✅ Use Key object
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        Claims claims =
+                Jwts.parserBuilder()
+                        .setSigningKey(SECRET_KEY) // ✅ Use Key object
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
 
         String username = claims.getSubject();
-        List<String> roles = claims.get("roles", List.class);  // ✅ Extract roles
+        List<String> roles = claims.get("roles", List.class); // ✅ Extract roles
 
-        return new User(username, "", roles.stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList())); // ✅ Convert roles to authorities
+        return new User(
+                username,
+                "",
+                roles.stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList())); // ✅ Convert roles to authorities
     }
 }
-

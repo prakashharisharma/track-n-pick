@@ -1,12 +1,14 @@
 package com.example.security;
 
+import com.example.data.transactional.entities.User;
+import com.example.data.transactional.repo.UserRepository;
+import com.example.data.transactional.types.SubscriptionType;
 import com.example.dto.security.JwtResponse;
 import com.example.dto.security.LoginRequest;
 import com.example.exception.InvalidTokenException;
 import com.example.service.subscription.SubscriptionService;
-import com.example.data.transactional.types.SubscriptionType;
-import com.example.data.transactional.entities.User;
-import com.example.data.transactional.repo.UserRepository;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,9 +17,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,13 +32,16 @@ public class AuthService {
     private final RedisTemplate<String, String> redisTemplate;
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                loginRequest.getUsername(), loginRequest.getPassword());
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(), loginRequest.getPassword());
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        User user = userRepository.findByUsername(loginRequest.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user =
+                userRepository
+                        .findByUsername(loginRequest.getUsername())
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         List<SubscriptionType> subscriptions = subscriptionService.getActiveSubscriptionTypes(user);
 
@@ -47,16 +49,22 @@ public class AuthService {
         String refreshToken = jwtUtils.generateRefreshToken(user, subscriptions);
 
         // 🔹 Store tokens in Redis with expiry
-        redisTemplate.opsForValue().set("TOKEN:" + user.getUsername(), accessToken, 30, TimeUnit.MINUTES);
-        redisTemplate.opsForValue().set("REFRESH:" + user.getUsername(), refreshToken, 7, TimeUnit.DAYS);
+        redisTemplate
+                .opsForValue()
+                .set("TOKEN:" + user.getUsername(), accessToken, 30, TimeUnit.MINUTES);
+        redisTemplate
+                .opsForValue()
+                .set("REFRESH:" + user.getUsername(), refreshToken, 7, TimeUnit.DAYS);
 
         return new JwtResponse(accessToken, refreshToken);
     }
 
     public JwtResponse refreshAccessToken(String refreshToken) {
         String username = jwtUtils.extractUsername(refreshToken);
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user =
+                userRepository
+                        .findByUsername(username)
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         List<SubscriptionType> subscriptions = subscriptionService.getActiveSubscriptionTypes(user);
         // 🔹 Validate token from Redis
         String storedRefreshToken = redisTemplate.opsForValue().get("REFRESH:" + username);
@@ -64,7 +72,7 @@ public class AuthService {
             throw new InvalidTokenException("Invalid refresh token");
         }
 
-        String newAccessToken = jwtUtils.generateAccessToken(user,subscriptions);
+        String newAccessToken = jwtUtils.generateAccessToken(user, subscriptions);
         redisTemplate.opsForValue().set("TOKEN:" + username, newAccessToken, 30, TimeUnit.MINUTES);
 
         return new JwtResponse(newAccessToken, refreshToken);

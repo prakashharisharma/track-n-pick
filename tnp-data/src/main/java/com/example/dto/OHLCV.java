@@ -11,9 +11,7 @@ public class OHLCV {
     private Double close;
     private Long volume;
 
-
-    public OHLCV() {
-    }
+    public OHLCV() {}
 
     public OHLCV(Double open, Double high, Double low, Double close, Long volume) {
         this.open = open;
@@ -23,8 +21,9 @@ public class OHLCV {
         this.volume = volume;
     }
 
-    public OHLCV(Instant bhavDate, Double open, Double high, Double low, Double close, Long volume) {
-        //this.nseSymbol = nseSymbol;
+    public OHLCV(
+            Instant bhavDate, Double open, Double high, Double low, Double close, Long volume) {
+        // this.nseSymbol = nseSymbol;
         this.bhavDate = bhavDate;
         this.open = open;
         this.high = high;
@@ -83,13 +82,19 @@ public class OHLCV {
 
     @Override
     public String toString() {
-        return "OHLCV{" +
-                "bhavDate=" + bhavDate +
-                ", open=" + open +
-                ", high=" + high +
-                ", low=" + low +
-                ", close=" + close +
-                ", volume=" + volume +
-                '}';
+        return "OHLCV{"
+                + "bhavDate="
+                + bhavDate
+                + ", open="
+                + open
+                + ", high="
+                + high
+                + ", low="
+                + low
+                + ", close="
+                + close
+                + ", volume="
+                + volume
+                + '}';
     }
 }

@@ -5,9 +5,7 @@ import java.util.List;
 
 public class MCResult implements Serializable {
 
-    /**
-     *
-     */
+    /** */
     private static final long serialVersionUID = 7704441081622739216L;
 
     String s;

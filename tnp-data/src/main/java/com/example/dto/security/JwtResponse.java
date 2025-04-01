@@ -9,6 +9,11 @@ public class JwtResponse {
         this.refreshToken = refreshToken;
     }
 
-    public String getAccessToken() { return accessToken; }
-    public String getRefreshToken() { return refreshToken; }
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
 }

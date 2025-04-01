@@ -14,9 +14,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleStickService {
 
-
     @Override
-    public boolean isBullishMarubozu(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+    public boolean isBullishMarubozu(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
@@ -33,7 +33,10 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
         boolean smallWicks = upperWick <= 0.05 * totalRange && lowerWick <= 0.05 * totalRange;
 
         if (isGreen && strongBody && smallWicks) {
-            log.info("{}: Bullish Marubozu detected on {}", stockPrice.getStock().getNseSymbol(), stockPrice.getSessionDate());
+            log.info(
+                    "{}: Bullish Marubozu detected on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
             return true;
         }
 
@@ -41,7 +44,8 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
     }
 
     @Override
-    public boolean isOpenLow(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+    public boolean isOpenLow(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
@@ -50,7 +54,10 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
         boolean openEqualsLow = CandleStickUtils.isOpenAndLowEqual(stockPrice);
 
         if (strongBody && openEqualsLow) {
-            log.info("{}: Open Low candle detected on {}", stockPrice.getStock().getNseSymbol(), stockPrice.getSessionDate());
+            log.info(
+                    "{}: Open Low candle detected on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
             return true;
         }
 
@@ -58,16 +65,22 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
     }
 
     @Override
-    public boolean isHammer(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        boolean result = CandleStickUtils.isWickDominantCandle(stockPrice, false); // Checks lower wick
+    public boolean isHammer(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        boolean result =
+                CandleStickUtils.isWickDominantCandle(stockPrice, false); // Checks lower wick
         if (result) {
-            log.info("{}: Hammer detected on {}", stockPrice.getStock().getNseSymbol(), stockPrice.getSessionDate());
+            log.info(
+                    "{}: Hammer detected on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
         }
         return result;
     }
 
     @Override
-    public boolean isBullishPinBar(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+    public boolean isBullishPinBar(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
@@ -78,13 +91,16 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
         double upperWick = CandleStickUtils.upperWickSize(stockPrice);
 
         // Conditions for Bullish Pin Bar
-        boolean smallBody = bodySize <= 0.35 * totalRange;  // Body ≤ 35% of range
-        boolean longLowerWick = lowerWick >= 2 * bodySize;  // Lower wick ≥ 2x body
-        boolean smallUpperWick = upperWick <= 0.1 * totalRange;  // Upper wick ≤ 10% of range
-        boolean isGreen = CandleStickUtils.isGreen(stockPrice);  // Preferably a green candle
+        boolean smallBody = bodySize <= 0.35 * totalRange; // Body ≤ 35% of range
+        boolean longLowerWick = lowerWick >= 2 * bodySize; // Lower wick ≥ 2x body
+        boolean smallUpperWick = upperWick <= 0.1 * totalRange; // Upper wick ≤ 10% of range
+        boolean isGreen = CandleStickUtils.isGreen(stockPrice); // Preferably a green candle
 
         if (smallBody && longLowerWick && smallUpperWick && isGreen) {
-            log.info("{}: Bullish Pin Bar detected on {}", stockPrice.getStock().getNseSymbol(), stockPrice.getSessionDate());
+            log.info(
+                    "{}: Bullish Pin Bar detected on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
             return true;
         }
 
@@ -92,16 +108,22 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
     }
 
     @Override
-    public boolean isInvertedHammer(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        boolean result = CandleStickUtils.isWickDominantCandle(stockPrice, true); // Checks upper wick
+    public boolean isInvertedHammer(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        boolean result =
+                CandleStickUtils.isWickDominantCandle(stockPrice, true); // Checks upper wick
         if (result) {
-            log.info("{}: Inverted Hammer detected on {}", stockPrice.getStock().getNseSymbol(), stockPrice.getSessionDate());
+            log.info(
+                    "{}: Inverted Hammer detected on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
         }
         return result;
     }
 
     @Override
-    public boolean isDoji(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+    public boolean isDoji(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null) {
             return false;
         }
@@ -113,7 +135,8 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
     }
 
     @Override
-    public boolean isGravestoneDoji(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+    public boolean isGravestoneDoji(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
@@ -129,7 +152,10 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
         boolean tinyOrNoLowerWick = lowerWick <= 0.05 * totalRange; // Lower wick is ≤ 5% of range
 
         if (verySmallBody && longUpperWick && tinyOrNoLowerWick) {
-            log.info("{}: Gravestone Doji detected on {}", stockPrice.getStock().getNseSymbol(), stockPrice.getSessionDate());
+            log.info(
+                    "{}: Gravestone Doji detected on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
             return true;
         }
 
@@ -137,7 +163,8 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
     }
 
     @Override
-    public boolean isDragonflyDoji(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+    public boolean isDragonflyDoji(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
@@ -153,7 +180,10 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
         boolean tinyOrNoUpperWick = upperWick <= 0.05 * totalRange; // Upper wick is ≤ 5% of range
 
         if (verySmallBody && longLowerWick && tinyOrNoUpperWick) {
-            log.info("{}: Dragonfly Doji detected on {}", stockPrice.getStock().getNseSymbol(), stockPrice.getSessionDate());
+            log.info(
+                    "{}: Dragonfly Doji detected on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
             return true;
         }
 
@@ -161,7 +191,8 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
     }
 
     @Override
-    public boolean isSpinningTop(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+    public boolean isSpinningTop(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
@@ -177,17 +208,19 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
         boolean longLowerWick = lowerWick >= 0.3 * totalRange; // Lower wick ≥ 30% of range
 
         if (smallBody && longUpperWick && longLowerWick) {
-            log.info("{}: Spinning Top detected on {}", stockPrice.getStock().getNseSymbol(), stockPrice.getSessionDate());
+            log.info(
+                    "{}: Spinning Top detected on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
             return true;
         }
 
         return false;
     }
 
-
-
     @Override
-    public boolean isBearishMarubozu(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+    public boolean isBearishMarubozu(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
@@ -204,7 +237,10 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
         boolean smallWicks = upperWick <= 0.05 * totalRange && lowerWick <= 0.05 * totalRange;
 
         if (isRed && strongBody && smallWicks) {
-            log.info("{}: Bearish Marubozu detected on {}", stockPrice.getStock().getNseSymbol(), stockPrice.getSessionDate());
+            log.info(
+                    "{}: Bearish Marubozu detected on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
             return true;
         }
 
@@ -212,7 +248,8 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
     }
 
     @Override
-    public boolean isOpenHigh(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+    public boolean isOpenHigh(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
@@ -221,7 +258,10 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
         boolean isOpenHigh = stockPrice.getOpen().equals(stockPrice.getHigh());
 
         if (isOpenHigh && strongBody) {
-            log.info("{}: Open High candle detected on {}", stockPrice.getStock().getNseSymbol(), stockPrice.getSessionDate());
+            log.info(
+                    "{}: Open High candle detected on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
             return true;
         }
 
@@ -229,7 +269,8 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
     }
 
     @Override
-    public boolean isBearishPinBar(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+    public boolean isBearishPinBar(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
@@ -246,20 +287,25 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
         }
 
         // Configurable threshold values
-        double bodyThreshold = 0.35;  // Body should be <= 35% of total range
+        double bodyThreshold = 0.35; // Body should be <= 35% of total range
         double lowerWickThreshold = 0.1; // Lower wick should be <= 10% of total range
         double upperWickMultiplier = 2.0; // Upper wick should be >= 2x body
 
         // Conditions for Bearish Pin Bar
         boolean smallBody = bodySize <= bodyThreshold * totalRange;
-        boolean longUpperWick = upperWick >= upperWickMultiplier * bodySize && upperWick >= 0.6 * totalRange;
+        boolean longUpperWick =
+                upperWick >= upperWickMultiplier * bodySize && upperWick >= 0.6 * totalRange;
         boolean smallLowerWick = lowerWick <= lowerWickThreshold * totalRange;
 
         if (smallBody && longUpperWick && smallLowerWick && isRedCandle) {
-            log.info("{}: Bearish Pin Bar detected on {} [Open: {}, High: {}, Low: {}, Close: {}]",
+            log.info(
+                    "{}: Bearish Pin Bar detected on {} [Open: {}, High: {}, Low: {}, Close: {}]",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate(),
-                    stockPrice.getOpen(), stockPrice.getHigh(), stockPrice.getLow(), stockPrice.getClose());
+                    stockPrice.getOpen(),
+                    stockPrice.getHigh(),
+                    stockPrice.getLow(),
+                    stockPrice.getClose());
             return true;
         }
 
@@ -267,19 +313,29 @@ public class SingleSessionCandleStickServiceImpl implements SingleSessionCandleS
     }
 
     @Override
-    public boolean isShootingStar(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        boolean result = CandleStickUtils.isWickDominantCandle(stockPrice, true); // Checks upper wick
+    public boolean isShootingStar(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        boolean result =
+                CandleStickUtils.isWickDominantCandle(stockPrice, true); // Checks upper wick
         if (result) {
-            log.info("{}: Shooting Star detected on {}", stockPrice.getStock().getNseSymbol(), stockPrice.getSessionDate());
+            log.info(
+                    "{}: Shooting Star detected on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
         }
         return result;
     }
 
     @Override
-    public boolean isHangingMan(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        boolean result = CandleStickUtils.isWickDominantCandle(stockPrice, false); // Checks upper wick
+    public boolean isHangingMan(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        boolean result =
+                CandleStickUtils.isWickDominantCandle(stockPrice, false); // Checks upper wick
         if (result) {
-            log.info("{}: Hanging Man detected on {}", stockPrice.getStock().getNseSymbol(), stockPrice.getSessionDate());
+            log.info(
+                    "{}: Hanging Man detected on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
         }
         return result;
     }

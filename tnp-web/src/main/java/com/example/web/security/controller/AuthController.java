@@ -6,20 +6,18 @@ import com.example.dto.security.LogoutRequest;
 import com.example.exception.InvalidTokenException;
 import com.example.security.AuthService;
 import com.example.web.utils.JsonApiSuccessUtil;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
+    @Autowired private AuthService authService;
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest request) {
@@ -28,7 +26,8 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<Map<String, Object>> refreshToken(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> refreshToken(
+            @RequestBody Map<String, String> request) {
         try {
             String refreshToken = request.get("refreshToken");
             JwtResponse response = authService.refreshAccessToken(refreshToken);

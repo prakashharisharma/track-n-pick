@@ -9,43 +9,43 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource("classpath:config/rules/notification_rules.properties")
 public class RulesNotification {
 
-	private int watchlistSize;
-	
-	private int averagingSize;
-	
-	private int factorIntervalDays;
+    private int watchlistSize;
 
-	private int apiCallCounter;
+    private int averagingSize;
 
-	public int getWatchlistSize() {
-		return watchlistSize;
-	}
+    private int factorIntervalDays;
 
-	public void setWatchlistSize(int watchlistSize) {
-		this.watchlistSize = watchlistSize;
-	}
+    private int apiCallCounter;
 
-	public int getAveragingSize() {
-		return averagingSize;
-	}
+    public int getWatchlistSize() {
+        return watchlistSize;
+    }
 
-	public void setAveragingSize(int averagingSize) {
-		this.averagingSize = averagingSize;
-	}
+    public void setWatchlistSize(int watchlistSize) {
+        this.watchlistSize = watchlistSize;
+    }
 
-	public int getFactorIntervalDays() {
-		return factorIntervalDays;
-	}
+    public int getAveragingSize() {
+        return averagingSize;
+    }
 
-	public void setFactorIntervalDays(int factorIntervalDays) {
-		this.factorIntervalDays = factorIntervalDays;
-	}
+    public void setAveragingSize(int averagingSize) {
+        this.averagingSize = averagingSize;
+    }
 
-	public int getApiCallCounter() {
-		return apiCallCounter;
-	}
+    public int getFactorIntervalDays() {
+        return factorIntervalDays;
+    }
 
-	public void setApiCallCounter(int apiCallCounter) {
-		this.apiCallCounter = apiCallCounter;
-	}
+    public void setFactorIntervalDays(int factorIntervalDays) {
+        this.factorIntervalDays = factorIntervalDays;
+    }
+
+    public int getApiCallCounter() {
+        return apiCallCounter;
+    }
+
+    public void setApiCallCounter(int apiCallCounter) {
+        this.apiCallCounter = apiCallCounter;
+    }
 }

@@ -1,11 +1,10 @@
 package com.example.service.impl;
 
-
+import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.AdxIndicatorService;
 import com.example.service.MacdIndicatorService;
 import com.example.service.MultiIndicatorService;
 import com.example.service.RsiIndicatorService;
-import com.example.data.transactional.entities.StockTechnicals;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,14 +13,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class MultiIndicatorServiceImpl implements MultiIndicatorService {
 
-    @Autowired
-    private MacdIndicatorService macdIndicatorService;
+    @Autowired private MacdIndicatorService macdIndicatorService;
 
-    @Autowired
-    private AdxIndicatorService adxIndicatorService;
+    @Autowired private AdxIndicatorService adxIndicatorService;
 
-    @Autowired
-    private RsiIndicatorService rsiIndicatorService;
+    @Autowired private RsiIndicatorService rsiIndicatorService;
 
     @Override
     public boolean isBullish(StockTechnicals stockTechnicals) {

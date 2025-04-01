@@ -2,55 +2,56 @@ package com.example.dto.io;
 
 import java.io.Serializable;
 
-public class EmailIO implements Serializable{
+public class EmailIO implements Serializable {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8845370467660959749L;
+    /** */
+    private static final long serialVersionUID = 8845370467660959749L;
 
-	private String emailTo;
-	
-	private String emailSubject;
-	
-	private String emailBody;
+    private String emailTo;
 
-	public EmailIO(String emailTo, String emailSubject, String emailBody) {
-		super();
-		this.emailTo = emailTo;
-		this.emailSubject = emailSubject;
-		this.emailBody = emailBody;
-	}
+    private String emailSubject;
 
-	public String getEmailTo() {
-		return emailTo;
-	}
+    private String emailBody;
 
-	public void setEmailTo(String emailTo) {
-		this.emailTo = emailTo;
-	}
+    public EmailIO(String emailTo, String emailSubject, String emailBody) {
+        super();
+        this.emailTo = emailTo;
+        this.emailSubject = emailSubject;
+        this.emailBody = emailBody;
+    }
 
-	public String getEmailSubject() {
-		return emailSubject;
-	}
+    public String getEmailTo() {
+        return emailTo;
+    }
 
-	public void setEmailSubject(String emailSubject) {
-		this.emailSubject = emailSubject;
-	}
+    public void setEmailTo(String emailTo) {
+        this.emailTo = emailTo;
+    }
 
-	public String getEmailBody() {
-		return emailBody;
-	}
+    public String getEmailSubject() {
+        return emailSubject;
+    }
 
-	public void setEmailBody(String emailBody) {
-		this.emailBody = emailBody;
-	}
+    public void setEmailSubject(String emailSubject) {
+        this.emailSubject = emailSubject;
+    }
 
-	@Override
-	public String toString() {
-		return "EmailIO [emailTo=" + emailTo + ", emailSubject=" + emailSubject + ", emailBody=" + emailBody + "]";
-	} 
-	
-	
-	
+    public String getEmailBody() {
+        return emailBody;
+    }
+
+    public void setEmailBody(String emailBody) {
+        this.emailBody = emailBody;
+    }
+
+    @Override
+    public String toString() {
+        return "EmailIO [emailTo="
+                + emailTo
+                + ", emailSubject="
+                + emailSubject
+                + ", emailBody="
+                + emailBody
+                + "]";
+    }
 }

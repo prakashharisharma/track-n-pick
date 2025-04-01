@@ -2,18 +2,15 @@ package com.example.service.calc.impl;
 
 import com.example.dto.OHLCV;
 import com.example.service.calc.ExponentialMovingAverageCalculatorService;
-import com.example.util.FormulaService;
-import com.example.util.MiscUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class ExponentialMovingAverageCalculatorServiceImpl implements ExponentialMovingAverageCalculatorService {
+public class ExponentialMovingAverageCalculatorServiceImpl
+        implements ExponentialMovingAverageCalculatorService {
 
     @Override
     public List<Double> calculate(List<OHLCV> ohlcvList, int period) {

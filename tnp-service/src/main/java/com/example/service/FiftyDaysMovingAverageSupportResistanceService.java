@@ -1,6 +1,4 @@
 package com.example.service;
 
-public interface FiftyDaysMovingAverageSupportResistanceService extends MovingAverageSupportResistanceService{
-
-
-}
+public interface FiftyDaysMovingAverageSupportResistanceService
+        extends MovingAverageSupportResistanceService {}

@@ -2,36 +2,34 @@ package com.example.dto.io;
 
 import java.io.Serializable;
 
-public class NotificationTriggerIO implements Serializable{
+public class NotificationTriggerIO implements Serializable {
 
-	public enum TriggerType {
-		PORTFOLIO, RESEARCH, CURRENT_UNDERVALUE
-	}
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -2269885119216610117L;
+    public enum TriggerType {
+        PORTFOLIO,
+        RESEARCH,
+        CURRENT_UNDERVALUE
+    }
 
-	private TriggerType triggerType;
+    /** */
+    private static final long serialVersionUID = -2269885119216610117L;
 
-	public NotificationTriggerIO(TriggerType triggerType) {
-		super();
-		this.triggerType = triggerType;
-	}
+    private TriggerType triggerType;
 
-	public TriggerType getTriggerType() {
-		return triggerType;
-	}
+    public NotificationTriggerIO(TriggerType triggerType) {
+        super();
+        this.triggerType = triggerType;
+    }
 
-	public void setTriggerType(TriggerType triggerType) {
-		this.triggerType = triggerType;
-	}
+    public TriggerType getTriggerType() {
+        return triggerType;
+    }
 
-	@Override
-	public String toString() {
-		return "NotificationTriggerIO [triggerType=" + triggerType + "]";
-	}
-	
-	
+    public void setTriggerType(TriggerType triggerType) {
+        this.triggerType = triggerType;
+    }
+
+    @Override
+    public String toString() {
+        return "NotificationTriggerIO [triggerType=" + triggerType + "]";
+    }
 }

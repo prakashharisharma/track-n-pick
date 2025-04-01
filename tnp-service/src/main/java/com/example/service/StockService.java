@@ -2,268 +2,260 @@ package com.example.service;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.transaction.Transactional;
-
 import com.example.data.common.type.Timeframe;
-import com.example.model.type.Exchange;
-import com.example.model.type.IndiceType;
-
 import com.example.data.transactional.entities.Sector;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockFactor;
 import com.example.data.transactional.entities.StockPrice;
+import com.example.data.transactional.repo.StockFactorRepository;
+import com.example.data.transactional.repo.StockRepository;
+import com.example.external.factor.FactorRediff;
+import com.example.model.type.Exchange;
+import com.example.model.type.IndiceType;
 import com.example.util.DownloadCounterUtil;
+import com.example.util.FormulaService;
+import com.example.util.MiscUtil;
+import com.example.util.rules.RulesNotification;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.external.factor.FactorRediff;
-
-import com.example.data.transactional.repo.StockRepository;
-import com.example.data.transactional.repo.StockFactorRepository;
-import com.example.util.FormulaService;
-import com.example.util.MiscUtil;
-import com.example.util.rules.RulesNotification;
-
 @Transactional
 @Service
 public class StockService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(StockService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StockService.class);
 
-	@Autowired
-	private StockRepository stockRepository;
+    @Autowired private StockRepository stockRepository;
 
-	@Autowired
-	private StockFactorRepository stockFactorRepository;
+    @Autowired private StockFactorRepository stockFactorRepository;
 
-	@Autowired
-	private StockPriceService<StockPrice> stockPriceService;
+    @Autowired private StockPriceService<StockPrice> stockPriceService;
 
-	@Autowired
-	private FactorRediff factorRediff;
-	@Autowired
-	private FormulaService formulaService;
-	@Autowired
-	private RulesNotification notificationRules;
+    @Autowired private FactorRediff factorRediff;
+    @Autowired private FormulaService formulaService;
+    @Autowired private RulesNotification notificationRules;
 
-	@Autowired
-	private MiscUtil miscUtil;
+    @Autowired private MiscUtil miscUtil;
 
-	private static List<Stock> allstocks = null;
+    private static List<Stock> allstocks = null;
 
-	public Stock getStockByIsinCode(String isinCode) {
-		return stockRepository.findByIsinCode(isinCode);
-	}
+    public Stock getStockByIsinCode(String isinCode) {
+        return stockRepository.findByIsinCode(isinCode);
+    }
 
-	public Stock getStockByNseSymbol(String nseSymbol) {
-		return stockRepository.findFirstByNseSymbol(nseSymbol);
-	}
+    public Stock getStockByNseSymbol(String nseSymbol) {
+        return stockRepository.findFirstByNseSymbol(nseSymbol);
+    }
 
-	public Stock getStockById(long stockId) {
-		return stockRepository.findByStockId(stockId);
-	}
+    public Stock getStockById(long stockId) {
+        return stockRepository.findByStockId(stockId);
+    }
 
-	public List<Stock> getActiveStocks() {
-		return stockRepository.findByActive(true);
-	}
+    public List<Stock> getActiveStocks() {
+        return stockRepository.findByActive(true);
+    }
 
+    public Stock save(Stock stock) {
+        return stockRepository.save(stock);
+    }
 
-	public Stock save(Stock stock) {
-		return stockRepository.save(stock);
-	}
+    public List<Stock> nifty500() {
 
+        List<IndiceType> indiceList = new ArrayList<>();
 
-	public List<Stock> nifty500(){
-		
-		List<IndiceType> indiceList = new ArrayList<>();
-		
-		indiceList.add(IndiceType.NIFTY50);
-		indiceList.add(IndiceType.NIFTY100);
-		indiceList.add(IndiceType.NIFTY250);
-		indiceList.add(IndiceType.NIFTY500);
-		
-		List<Stock> stockList = stockRepository.findByActiveAndPrimaryIndiceIn(true, indiceList);
-		
-		return stockList;
-	}
-	
-	public List<Stock> nifty50(){
-		
-		List<IndiceType> indiceList = new ArrayList<>();
-		
-		indiceList.add(IndiceType.NIFTY50);
-		
-		List<Stock> stockList = stockRepository.findByActiveAndPrimaryIndiceIn(true, indiceList);
-		
-		return stockList;
-	}
-	
-	public List<Stock> nifty100(){
-		
-		List<IndiceType> indiceList = new ArrayList<>();
-		
-		indiceList.add(IndiceType.NIFTY50);
-		indiceList.add(IndiceType.NIFTY100);
-		
-		List<Stock> stockList = stockRepository.findByActiveAndPrimaryIndiceIn(true, indiceList);
-		
-		return stockList;
-	}
-	
-	public List<Stock> activeStocks() {
+        indiceList.add(IndiceType.NIFTY50);
+        indiceList.add(IndiceType.NIFTY100);
+        indiceList.add(IndiceType.NIFTY250);
+        indiceList.add(IndiceType.NIFTY500);
 
-		if (allstocks == null) {
-			allstocks = stockRepository.findByActive(true);
-		}
+        List<Stock> stockList = stockRepository.findByActiveAndPrimaryIndiceIn(true, indiceList);
 
-		return allstocks;
-	}
+        return stockList;
+    }
 
-	public List<Stock> getForActivity() {
-		return stockRepository.findByActivityCompleted(Boolean.FALSE);
-	}
+    public List<Stock> nifty50() {
 
-	public void setInactive(List<Stock> discontinueList) {
+        List<IndiceType> indiceList = new ArrayList<>();
 
-		for (Stock stock : discontinueList) {
-			stock.setActive(false);
-			stockRepository.save(stock);
-		}
-	}
+        indiceList.add(IndiceType.NIFTY50);
 
-	public void resetMaster() {
-		List<Stock> stocksList = stockRepository.findByActive(true);
-		for (Stock stock : stocksList) {
-			stock.setActive(false);
-			stock.setPrimaryIndice(IndiceType.NIFTY1500);
-			stockRepository.save(stock);
-		}
-	}
-	
-	public void resetFactors() {
-		
-		List<Stock> stocksList = stockRepository.findByActive(true);
-		
-		int i=0;
-		
-		for (Stock stock : stocksList) {
-			i++;
-			
-			StockFactor stockFactor = stock.getFactor();
-			
-			stockFactor.setLastModified(LocalDate.now().minusDays(20 + i));
-			
-			stockFactorRepository.save(stockFactor);
-			
-			if(i == 20) {
-				i=0;
-			}
-			
-		}
-		
-	}
-	
-	public Stock add(Exchange exchange, String series, String isinCode, String companyName, String nseSymbol, String bseCode, IndiceType primaryIndice,
-					 Sector sectorName) {
+        List<Stock> stockList = stockRepository.findByActiveAndPrimaryIndiceIn(true, indiceList);
 
-		Stock stock = new Stock(exchange, isinCode, companyName, nseSymbol,  primaryIndice, sectorName);
+        return stockList;
+    }
 
-		if(bseCode!=null && !bseCode.isBlank()){
-			stock.setBseCode(bseCode);
-		}
+    public List<Stock> nifty100() {
 
-		stock.setSeries(series);
-		stock.setActive(Boolean.TRUE);
+        List<IndiceType> indiceList = new ArrayList<>();
 
-		stock = stockRepository.save(stock);
+        indiceList.add(IndiceType.NIFTY50);
+        indiceList.add(IndiceType.NIFTY100);
 
-		//this.updatePrice(stock);
-		
-		//this.updateFactor(stock);
+        List<Stock> stockList = stockRepository.findByActiveAndPrimaryIndiceIn(true, indiceList);
 
-		return stock;
-	}
+        return stockList;
+    }
 
-	public boolean isActive(String nseSymbol) {
+    public List<Stock> activeStocks() {
 
-		boolean isActive = false;
+        if (allstocks == null) {
+            allstocks = stockRepository.findByActive(true);
+        }
 
-		Stock stock = this.getStockByNseSymbol(nseSymbol);
+        return allstocks;
+    }
 
-		if (stock != null && stock.isActive()) {
-			isActive = true;
-		}
+    public List<Stock> getForActivity() {
+        return stockRepository.findByActivityCompleted(Boolean.FALSE);
+    }
 
-		return isActive;
-	}
+    public void setInactive(List<Stock> discontinueList) {
 
-	
-	public StockFactor updateFactor(Stock stock) {
+        for (Stock stock : discontinueList) {
+            stock.setActive(false);
+            stockRepository.save(stock);
+        }
+    }
 
-		LOGGER.info("Updating Factor for : " + stock.getNseSymbol());
+    public void resetMaster() {
+        List<Stock> stocksList = stockRepository.findByActive(true);
+        for (Stock stock : stocksList) {
+            stock.setActive(false);
+            stock.setPrimaryIndice(IndiceType.NIFTY1500);
+            stockRepository.save(stock);
+        }
+    }
 
-		StockFactor stockFactor = stock.getFactor();
+    public void resetFactors() {
 
-		if (stock.getFactor() != null) {
+        List<Stock> stocksList = stockRepository.findByActive(true);
 
-			if (DAYS.between(stock.getFactor().getLastModified(), LocalDate.now()) > notificationRules.getFactorIntervalDays()) {
+        int i = 0;
 
-					if(DownloadCounterUtil.get() < notificationRules.getApiCallCounter()) {
+        for (Stock stock : stocksList) {
+            i++;
 
-						stockFactor = factorRediff.getFactor(stock);
+            StockFactor stockFactor = stock.getFactor();
 
-						stockFactorRepository.save(stockFactor);
+            stockFactor.setLastModified(LocalDate.now().minusDays(20 + i));
 
-						DownloadCounterUtil.increment();
-					}else{
-						LOGGER.warn("Counter exceeds {} for {} ", DownloadCounterUtil.get(), stock.getNseSymbol());
-					}
+            stockFactorRepository.save(stockFactor);
 
-			}else{
-				LOGGER.info("Factors recently updated.. {}", stock.getNseSymbol());
-			}
-		} else {
+            if (i == 20) {
+                i = 0;
+            }
+        }
+    }
 
-			stockFactor = factorRediff.getFactor(stock);
+    public Stock add(
+            Exchange exchange,
+            String series,
+            String isinCode,
+            String companyName,
+            String nseSymbol,
+            String bseCode,
+            IndiceType primaryIndice,
+            Sector sectorName) {
 
-			stockFactorRepository.save(stockFactor);
+        Stock stock =
+                new Stock(exchange, isinCode, companyName, nseSymbol, primaryIndice, sectorName);
 
-		}
+        if (bseCode != null && !bseCode.isBlank()) {
+            stock.setBseCode(bseCode);
+        }
 
-		return stockFactor;
-	}
+        stock.setSeries(series);
+        stock.setActive(Boolean.TRUE);
 
-	public double getPe(Stock stock) {
+        stock = stockRepository.save(stock);
 
-		StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+        // this.updatePrice(stock);
 
-		double currentPrice = stockPrice.getClose();
+        // this.updateFactor(stock);
 
-		double eps = stock.getFactor().getEps();
+        return stock;
+    }
 
-		double pe = formulaService.calculatePe(currentPrice, eps);
+    public boolean isActive(String nseSymbol) {
 
-		return pe;
+        boolean isActive = false;
 
-	}
+        Stock stock = this.getStockByNseSymbol(nseSymbol);
 
-	public double getPb(Stock stock) {
+        if (stock != null && stock.isActive()) {
+            isActive = true;
+        }
 
-		StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+        return isActive;
+    }
 
-		double currentPrice = stockPrice.getClose();
+    public StockFactor updateFactor(Stock stock) {
 
-		double bookValue = stock.getFactor().getBookValue();
+        LOGGER.info("Updating Factor for : " + stock.getNseSymbol());
 
-		double pb = formulaService.calculatePb(currentPrice, bookValue);
+        StockFactor stockFactor = stock.getFactor();
 
-		return pb;
-	}
+        if (stock.getFactor() != null) {
 
+            if (DAYS.between(stock.getFactor().getLastModified(), LocalDate.now())
+                    > notificationRules.getFactorIntervalDays()) {
+
+                if (DownloadCounterUtil.get() < notificationRules.getApiCallCounter()) {
+
+                    stockFactor = factorRediff.getFactor(stock);
+
+                    stockFactorRepository.save(stockFactor);
+
+                    DownloadCounterUtil.increment();
+                } else {
+                    LOGGER.warn(
+                            "Counter exceeds {} for {} ",
+                            DownloadCounterUtil.get(),
+                            stock.getNseSymbol());
+                }
+
+            } else {
+                LOGGER.info("Factors recently updated.. {}", stock.getNseSymbol());
+            }
+        } else {
+
+            stockFactor = factorRediff.getFactor(stock);
+
+            stockFactorRepository.save(stockFactor);
+        }
+
+        return stockFactor;
+    }
+
+    public double getPe(Stock stock) {
+
+        StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+
+        double currentPrice = stockPrice.getClose();
+
+        double eps = stock.getFactor().getEps();
+
+        double pe = formulaService.calculatePe(currentPrice, eps);
+
+        return pe;
+    }
+
+    public double getPb(Stock stock) {
+
+        StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+
+        double currentPrice = stockPrice.getClose();
+
+        double bookValue = stock.getFactor().getBookValue();
+
+        double pb = formulaService.calculatePb(currentPrice, bookValue);
+
+        return pb;
+    }
 }

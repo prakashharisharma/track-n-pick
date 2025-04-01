@@ -1,21 +1,18 @@
 package com.example.service.impl;
 
-import com.example.data.common.type.Timeframe;
+import static com.example.data.common.type.Timeframe.*;
 
-import com.example.service.ResistanceLevelDetector;
-import com.example.service.StockPriceService;
+import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
+import com.example.service.ResistanceLevelDetector;
+import com.example.service.StockPriceService;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.example.data.common.type.Timeframe.*;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -35,22 +32,22 @@ public class ResistanceLevelDetectorImpl implements ResistanceLevelDetector {
         boolean breakoutConfirmed = isResistanceBreak || isMultiTimeFrameBreakout;
 
         if (breakoutConfirmed) {
-            System.out.println("Breakout detected for " + stock.getNseSymbol() + " at " + timeframe);
+            System.out.println(
+                    "Breakout detected for " + stock.getNseSymbol() + " at " + timeframe);
         }
 
         return breakoutConfirmed;
     }
 
-
     private boolean isMultiTimeFrameBreakout(Stock stock, Timeframe timeframe) {
-        if(timeframe == DAILY) {
+        if (timeframe == DAILY) {
             return this.isNearResistance(stock, WEEKLY) && this.isNearResistance(stock, MONTHLY);
-        }
-        else if(timeframe == WEEKLY) {
-            return this.isNearResistance(stock, MONTHLY) && this.isNearResistance(stock, Timeframe.QUARTERLY);
-        }
-        else if(timeframe == MONTHLY) {
-            return this.isNearResistance(stock, Timeframe.QUARTERLY) && this.isNearResistance(stock, Timeframe.YEARLY);
+        } else if (timeframe == WEEKLY) {
+            return this.isNearResistance(stock, MONTHLY)
+                    && this.isNearResistance(stock, Timeframe.QUARTERLY);
+        } else if (timeframe == MONTHLY) {
+            return this.isNearResistance(stock, Timeframe.QUARTERLY)
+                    && this.isNearResistance(stock, Timeframe.YEARLY);
         }
         return false;
     }
@@ -80,29 +77,38 @@ public class ResistanceLevelDetectorImpl implements ResistanceLevelDetector {
         }
     }
 
-    private List<Double> getResistanceLevels(Stock stock, Timeframe t1, Timeframe t2, int limit1, int limit2) {
+    private List<Double> getResistanceLevels(
+            Stock stock, Timeframe t1, Timeframe t2, int limit1, int limit2) {
         StockPrice sp1 = stockPriceService.get(stock, t1);
         StockPrice sp2 = stockPriceService.get(stock, t2);
         if (sp1 == null || sp2 == null) return List.of();
 
         return Stream.concat(
-                getRecentHighs(sp1, limit1).stream(),
-                getRecentHighs(sp2, limit2).stream()
-        ).collect(Collectors.toList());
+                        getRecentHighs(sp1, limit1).stream(), getRecentHighs(sp2, limit2).stream())
+                .collect(Collectors.toList());
     }
 
     private List<Double> getRecentHighs(StockPrice sp, int limit) {
-        return Stream.of(sp.getHigh(), sp.getPrevHigh(), sp.getPrev2High(), sp.getPrev3High(), sp.getPrev4High())
+        return Stream.of(
+                        sp.getHigh(),
+                        sp.getPrevHigh(),
+                        sp.getPrev2High(),
+                        sp.getPrev3High(),
+                        sp.getPrev4High())
                 .limit(limit)
                 .filter(high -> high != null)
                 .collect(Collectors.toList());
     }
 
     private double findConfluenceResistance(List<Double> resistanceLevels) {
-        double maxResistance = resistanceLevels.stream().mapToDouble(v -> v).max().orElse(Double.NaN);
-        double avgResistance = resistanceLevels.stream().mapToDouble(v -> v).average().orElse(Double.NaN);
+        double maxResistance =
+                resistanceLevels.stream().mapToDouble(v -> v).max().orElse(Double.NaN);
+        double avgResistance =
+                resistanceLevels.stream().mapToDouble(v -> v).average().orElse(Double.NaN);
 
-        return isConfluence(maxResistance, avgResistance, THRESHOLD) ? avgResistance : maxResistance;
+        return isConfluence(maxResistance, avgResistance, THRESHOLD)
+                ? avgResistance
+                : maxResistance;
     }
 
     private boolean checkResistance(StockPrice currentStockPrice, double resistanceLevel) {

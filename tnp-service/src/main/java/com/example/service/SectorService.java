@@ -1,188 +1,215 @@
 package com.example.service;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.transaction.Transactional;
-
 import com.example.data.common.type.Timeframe;
-
-import com.example.service.impl.FundamentalResearchService;
 import com.example.data.transactional.entities.Sector;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
+import com.example.data.transactional.repo.SectorRepository;
+import com.example.service.impl.FundamentalResearchService;
+import com.example.util.FormulaService;
+import com.example.util.rules.RulesFundamental;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-
-import com.example.data.transactional.repo.SectorRepository;
-import com.example.util.FormulaService;
-import com.example.util.rules.RulesFundamental;
 
 @Transactional
 @Service
 @Slf4j
 public class SectorService {
 
-	@Autowired
-	private SectorRepository sectorRepository;
-	
-	@Autowired
-	private FormulaService formulaService;
-	
-	@Autowired
-	private RulesFundamental rules;
-	
-	@Autowired
-	private FundamentalResearchService fundamentalResearchService;
-	
-	@Autowired
-	private StockService stockService;
+    @Autowired private SectorRepository sectorRepository;
 
-	@Autowired
-	private StockPriceService<StockPrice> stockPriceService;
-	
-	public Sector getSectorByName(String sectorName) {
+    @Autowired private FormulaService formulaService;
 
-		System.out.println("Searching for sector : " + sectorName);
-		
-		List<Sector> sectorList = sectorRepository.findBySectorName(sectorName.toUpperCase().trim());
-		
-		Sector sector = null;
-		
-		if(sectorList != null && sectorList.size() > 0) {
-			sector = sectorList.get(0);
-		}
-		
-		return sector;
-	}
-	
-	public Sector getOrAddSectorByName(String sectorName) {
-		
-		if(this.isExist(sectorName)) {
-		
-			return getSectorByName(sectorName);
-		
-		}else {
-			
-			return this.add(sectorName);
-		}
-	}
-	
-	public List<Sector> allSectors(){
-		return sectorRepository.findAll();
-	}
-	
-public Sector add(String sectorName) {
-		
-		Sector sector = new Sector(sectorName.toUpperCase().trim());
-		
-		return sectorRepository.save(sector);
-	}
-	
-	public Sector add(String sectorName, double sectorPe, double sectorPb,double variationPe,double variationPb) {
-		
-		Sector sector = new Sector(sectorName.toUpperCase().trim(), sectorPe, sectorPb, variationPe, variationPb);
-		
-		return sectorRepository.save(sector);
-	}
-	
-	
-	
-	public Sector update(String sectorName, double newSectorPe, double newSectorPb,double newVariationPe,double newVariationPb) {
-		
-		Sector sector = this.getSectorByName(sectorName);
-		
-		sector.setSectorPe(newSectorPe);
-		sector.setSectorPb(newSectorPb);
-		sector.setVariationPe(newVariationPe);
-		sector.setVariationPb(newVariationPb);
-		
-		return sectorRepository.save(sector);
-	}
-	
-	public boolean isExist(String sectorName) {
-		
-		Sector sector = this.getSectorByName(sectorName);
-		
-		if(sector != null) {
-			return true;
-		}else {
-			return false;
-		}
-	}
-	
-	public void updateSectorPEPB() {
+    @Autowired private RulesFundamental rules;
 
-		log.info("Starting Update sector PE and PB");
+    @Autowired private FundamentalResearchService fundamentalResearchService;
 
-		List<Sector> sectorList = this.allSectors();
-	
-		sectorList.forEach(sector -> {
-		
-			double avgCmp = 0.00;
-			double avgEps = 0.00;
-			double sectorPe = 0.00;
-			double variationPe = 0.00;
-			double avgBookValue = 0.00;
-			double sectorPb = 0.00;
-			double variationPb = 0.00;
-			double sectorCurrentRatio = 0.00;
-			
-			//System.out.println(sector.getSectorName());
+    @Autowired private StockService stockService;
 
-			
-			//else{
-			try {
-				Set<Stock> stocks = sector.getStocks();
+    @Autowired private StockPriceService<StockPrice> stockPriceService;
 
-				List<Stock> activeStockList = stocks.stream().filter(stock -> (stock.isActive() && stock.getFactor()!=null)).collect(Collectors.toList());
+    public Sector getSectorByName(String sectorName) {
 
-				avgCmp = activeStockList.stream().map(stock -> stockPriceService.get(stock, Timeframe.DAILY)).mapToDouble(sp -> sp.getClose()).average().orElse(0.00);
+        System.out.println("Searching for sector : " + sectorName);
 
-				//activeStockList.forEach(System.out::println);
+        List<Sector> sectorList =
+                sectorRepository.findBySectorName(sectorName.toUpperCase().trim());
 
-				//System.out.println("AVERAGE_CMP : " + avgCmp);
+        Sector sector = null;
 
-				avgEps = activeStockList.stream().map(stock -> stock.getFactor()).mapToDouble(sf -> sf.getEps()).average().orElse(0.00);
+        if (sectorList != null && sectorList.size() > 0) {
+            sector = sectorList.get(0);
+        }
 
-				//System.out.println("AVERAGE_EPS : " + avgEps);
+        return sector;
+    }
 
-				sectorPe = formulaService.calculatePe(avgCmp, avgEps);
+    public Sector getOrAddSectorByName(String sectorName) {
 
-				variationPe = formulaService.calculateFraction(sectorPe, 5);
+        if (this.isExist(sectorName)) {
 
-				//System.out.println(sector.getSectorName() + " : PE : " + sectorPe);
+            return getSectorByName(sectorName);
 
-				avgBookValue = activeStockList.stream().map(stock -> stock.getFactor()).mapToDouble(sf -> sf.getBookValue()).average().orElse(0.00);
+        } else {
 
-				//System.out.println("AVERAGE_BV : " + avgBookValue);
+            return this.add(sectorName);
+        }
+    }
 
-				sectorPb = formulaService.calculatePb(avgCmp, avgBookValue);
+    public List<Sector> allSectors() {
+        return sectorRepository.findAll();
+    }
 
-				variationPb = formulaService.calculateFraction(sectorPb, 10);
+    public Sector add(String sectorName) {
 
-				sectorCurrentRatio = activeStockList.stream().map(stock -> stock.getFactor()).mapToDouble(sf -> sf.getCurrentRatio()).average().orElse(0.00);
+        Sector sector = new Sector(sectorName.toUpperCase().trim());
 
-				//System.out.println(sector.getSectorName() + " : PB : " + sectorPb);
+        return sectorRepository.save(sector);
+    }
 
-				//}
-			}catch (Exception e){
-				log.warn("An error occured ", e);
-			}
-			sector.setSectorPe(sectorPe);
-			sector.setSectorPb(sectorPb);
-			sector.setVariationPe(variationPe);
-			sector.setVariationPb(variationPb);
-			sector.setSectorCurrentRatio(sectorCurrentRatio);
-			
-			sectorRepository.save(sector);
-			
-		});
+    public Sector add(
+            String sectorName,
+            double sectorPe,
+            double sectorPb,
+            double variationPe,
+            double variationPb) {
 
-		log.info("Completed Update sector PE and PB");
-	}
-	
+        Sector sector =
+                new Sector(
+                        sectorName.toUpperCase().trim(),
+                        sectorPe,
+                        sectorPb,
+                        variationPe,
+                        variationPb);
+
+        return sectorRepository.save(sector);
+    }
+
+    public Sector update(
+            String sectorName,
+            double newSectorPe,
+            double newSectorPb,
+            double newVariationPe,
+            double newVariationPb) {
+
+        Sector sector = this.getSectorByName(sectorName);
+
+        sector.setSectorPe(newSectorPe);
+        sector.setSectorPb(newSectorPb);
+        sector.setVariationPe(newVariationPe);
+        sector.setVariationPb(newVariationPb);
+
+        return sectorRepository.save(sector);
+    }
+
+    public boolean isExist(String sectorName) {
+
+        Sector sector = this.getSectorByName(sectorName);
+
+        if (sector != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void updateSectorPEPB() {
+
+        log.info("Starting Update sector PE and PB");
+
+        List<Sector> sectorList = this.allSectors();
+
+        sectorList.forEach(
+                sector -> {
+                    double avgCmp = 0.00;
+                    double avgEps = 0.00;
+                    double sectorPe = 0.00;
+                    double variationPe = 0.00;
+                    double avgBookValue = 0.00;
+                    double sectorPb = 0.00;
+                    double variationPb = 0.00;
+                    double sectorCurrentRatio = 0.00;
+
+                    // System.out.println(sector.getSectorName());
+
+                    // else{
+                    try {
+                        Set<Stock> stocks = sector.getStocks();
+
+                        List<Stock> activeStockList =
+                                stocks.stream()
+                                        .filter(
+                                                stock ->
+                                                        (stock.isActive()
+                                                                && stock.getFactor() != null))
+                                        .collect(Collectors.toList());
+
+                        avgCmp =
+                                activeStockList.stream()
+                                        .map(stock -> stockPriceService.get(stock, Timeframe.DAILY))
+                                        .mapToDouble(sp -> sp.getClose())
+                                        .average()
+                                        .orElse(0.00);
+
+                        // activeStockList.forEach(System.out::println);
+
+                        // System.out.println("AVERAGE_CMP : " + avgCmp);
+
+                        avgEps =
+                                activeStockList.stream()
+                                        .map(stock -> stock.getFactor())
+                                        .mapToDouble(sf -> sf.getEps())
+                                        .average()
+                                        .orElse(0.00);
+
+                        // System.out.println("AVERAGE_EPS : " + avgEps);
+
+                        sectorPe = formulaService.calculatePe(avgCmp, avgEps);
+
+                        variationPe = formulaService.calculateFraction(sectorPe, 5);
+
+                        // System.out.println(sector.getSectorName() + " : PE : " + sectorPe);
+
+                        avgBookValue =
+                                activeStockList.stream()
+                                        .map(stock -> stock.getFactor())
+                                        .mapToDouble(sf -> sf.getBookValue())
+                                        .average()
+                                        .orElse(0.00);
+
+                        // System.out.println("AVERAGE_BV : " + avgBookValue);
+
+                        sectorPb = formulaService.calculatePb(avgCmp, avgBookValue);
+
+                        variationPb = formulaService.calculateFraction(sectorPb, 10);
+
+                        sectorCurrentRatio =
+                                activeStockList.stream()
+                                        .map(stock -> stock.getFactor())
+                                        .mapToDouble(sf -> sf.getCurrentRatio())
+                                        .average()
+                                        .orElse(0.00);
+
+                        // System.out.println(sector.getSectorName() + " : PB : " + sectorPb);
+
+                        // }
+                    } catch (Exception e) {
+                        log.warn("An error occured ", e);
+                    }
+                    sector.setSectorPe(sectorPe);
+                    sector.setSectorPb(sectorPb);
+                    sector.setVariationPe(variationPe);
+                    sector.setVariationPb(variationPb);
+                    sector.setSectorCurrentRatio(sectorCurrentRatio);
+
+                    sectorRepository.save(sector);
+                });
+
+        log.info("Completed Update sector PE and PB");
+    }
 }

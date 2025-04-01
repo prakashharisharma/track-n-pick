@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/tnpDB
+    username: riphco
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        default_schema: tnpDB
+        format_sql: true
+        enable_lazy_load_no_trans: true
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  redis:
+    cluster:
+      enabled: false
+      nodes:
+        - localhost:6379
+    key:
+      prefix: dev:tnp
+    connect-timeout: 10000
+  data:
+    mongodb:
+      database: tnpDB
+      uri: mongodb://localhost:27017/?connectTimeoutMS=300000&minPoolSize=32&maxPoolSize=512&maxIdleTimeMS=900000 

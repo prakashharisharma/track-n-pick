@@ -1,6 +1,5 @@
 package com.example.service;
 
-
 import com.example.data.transactional.entities.StockTechnicals;
 
 public interface MacdIndicatorService {

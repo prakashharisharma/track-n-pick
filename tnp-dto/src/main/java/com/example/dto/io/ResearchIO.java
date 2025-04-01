@@ -1,126 +1,133 @@
 package com.example.dto.io;
 
-
 import java.io.Serializable;
 import java.time.Instant;
 
-public class ResearchIO implements Serializable{
+public class ResearchIO implements Serializable {
 
-	public enum ResearchTrigger{
-		BUY, SELL, BUY_SELL
-	}
-	
-	public enum ResearchType{
-		
-		FUNDAMENTAL, TECHNICAL
-	}
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2062220561400715373L;
+    public enum ResearchTrigger {
+        BUY,
+        SELL,
+        BUY_SELL
+    }
 
-	String nseSymbol;
-	
-	ResearchType researchType;
-	
-	ResearchTrigger researchTrigger;
+    public enum ResearchType {
+        FUNDAMENTAL,
+        TECHNICAL
+    }
 
-	double researchPrice;
-	
-	double pe;
-	
-	double pb;
-	
-	Instant researchDate = Instant.now();
-	
-	public ResearchIO() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
+    /** */
+    private static final long serialVersionUID = 2062220561400715373L;
 
-	public ResearchIO(String nseSymbol, ResearchType researchType, ResearchTrigger researchTrigger) {
-		super();
-		this.nseSymbol = nseSymbol;
-		this.researchType = researchType;
-		this.researchTrigger = researchTrigger;
-		this.researchDate = Instant.now();
-	}
+    String nseSymbol;
 
-	public ResearchIO(String nseSymbol, ResearchType researchType, ResearchTrigger researchTrigger,
-			double researchPrice, double pe, double pb) {
-		super();
-		this.nseSymbol = nseSymbol;
-		this.researchType = researchType;
-		this.researchTrigger = researchTrigger;
-		this.researchPrice = researchPrice;
-		this.pe = pe;
-		this.pb = pb;
-		this.researchDate = Instant.now();
-	}
+    ResearchType researchType;
 
-	public String getNseSymbol() {
-		return nseSymbol;
-	}
+    ResearchTrigger researchTrigger;
 
-	public void setNseSymbol(String nseSymbol) {
-		this.nseSymbol = nseSymbol;
-	}
+    double researchPrice;
 
-	public ResearchType getResearchType() {
-		return researchType;
-	}
+    double pe;
 
-	public void setResearchType(ResearchType researchType) {
-		this.researchType = researchType;
-	}
+    double pb;
 
-	public ResearchTrigger getResearchTrigger() {
-		return researchTrigger;
-	}
+    Instant researchDate = Instant.now();
 
-	public void setResearchTrigger(ResearchTrigger researchTrigger) {
-		this.researchTrigger = researchTrigger;
-	}
+    public ResearchIO() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
 
-	public double getResearchPrice() {
-		return researchPrice;
-	}
+    public ResearchIO(
+            String nseSymbol, ResearchType researchType, ResearchTrigger researchTrigger) {
+        super();
+        this.nseSymbol = nseSymbol;
+        this.researchType = researchType;
+        this.researchTrigger = researchTrigger;
+        this.researchDate = Instant.now();
+    }
 
-	public void setResearchPrice(double researchPrice) {
-		this.researchPrice = researchPrice;
-	}
+    public ResearchIO(
+            String nseSymbol,
+            ResearchType researchType,
+            ResearchTrigger researchTrigger,
+            double researchPrice,
+            double pe,
+            double pb) {
+        super();
+        this.nseSymbol = nseSymbol;
+        this.researchType = researchType;
+        this.researchTrigger = researchTrigger;
+        this.researchPrice = researchPrice;
+        this.pe = pe;
+        this.pb = pb;
+        this.researchDate = Instant.now();
+    }
 
-	public Instant getResearchDate() {
-		return researchDate;
-	}
+    public String getNseSymbol() {
+        return nseSymbol;
+    }
 
-	public void setResearchDate(Instant researchDate) {
-		this.researchDate = researchDate;
-	}
+    public void setNseSymbol(String nseSymbol) {
+        this.nseSymbol = nseSymbol;
+    }
 
-	public double getPe() {
-		return pe;
-	}
+    public ResearchType getResearchType() {
+        return researchType;
+    }
 
-	public void setPe(double pe) {
-		this.pe = pe;
-	}
+    public void setResearchType(ResearchType researchType) {
+        this.researchType = researchType;
+    }
 
-	public double getPb() {
-		return pb;
-	}
+    public ResearchTrigger getResearchTrigger() {
+        return researchTrigger;
+    }
 
-	public void setPb(double pb) {
-		this.pb = pb;
-	}
+    public void setResearchTrigger(ResearchTrigger researchTrigger) {
+        this.researchTrigger = researchTrigger;
+    }
 
-	@Override
-	public String toString() {
-		return "ResearchIO [nseSymbol=" + nseSymbol + ", researchType=" + researchType + ", researchTrigger="
-				+ researchTrigger + "]";
-	}
+    public double getResearchPrice() {
+        return researchPrice;
+    }
 
-	
-	
+    public void setResearchPrice(double researchPrice) {
+        this.researchPrice = researchPrice;
+    }
+
+    public Instant getResearchDate() {
+        return researchDate;
+    }
+
+    public void setResearchDate(Instant researchDate) {
+        this.researchDate = researchDate;
+    }
+
+    public double getPe() {
+        return pe;
+    }
+
+    public void setPe(double pe) {
+        this.pe = pe;
+    }
+
+    public double getPb() {
+        return pb;
+    }
+
+    public void setPb(double pb) {
+        this.pb = pb;
+    }
+
+    @Override
+    public String toString() {
+        return "ResearchIO [nseSymbol="
+                + nseSymbol
+                + ", researchType="
+                + researchType
+                + ", researchTrigger="
+                + researchTrigger
+                + "]";
+    }
 }

@@ -1,23 +1,21 @@
 package com.example.service.impl;
 
+import static com.example.data.common.type.Timeframe.*;
+
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
-
 import com.example.service.SupportLevelDetector;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.example.data.common.type.Timeframe.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -52,8 +50,11 @@ public class SupportLevelDetectorImpl implements SupportLevelDetector {
         boolean breakdownConfirmed = isSupportBreak || isMultiTimeFrameBreakdown;
 
         if (breakdownConfirmed) {
-            log.warn("Breakdown detected for {} at timeframe {} | Current Price: {}",
-                    stock.getNseSymbol(), timeframe, currentStockPrice.getLow());
+            log.warn(
+                    "Breakdown detected for {} at timeframe {} | Current Price: {}",
+                    stock.getNseSymbol(),
+                    timeframe,
+                    currentStockPrice.getLow());
         }
 
         return breakdownConfirmed;
@@ -63,9 +64,11 @@ public class SupportLevelDetectorImpl implements SupportLevelDetector {
         if (timeframe == DAILY) {
             return !this.isNearSupport(stock, WEEKLY) && !this.isNearSupport(stock, MONTHLY);
         } else if (timeframe == WEEKLY) {
-            return !this.isNearSupport(stock, MONTHLY) && !this.isNearSupport(stock, Timeframe.QUARTERLY);
+            return !this.isNearSupport(stock, MONTHLY)
+                    && !this.isNearSupport(stock, Timeframe.QUARTERLY);
         } else if (timeframe == MONTHLY) {
-            return !this.isNearSupport(stock, Timeframe.QUARTERLY) && !this.isNearSupport(stock, Timeframe.YEARLY);
+            return !this.isNearSupport(stock, Timeframe.QUARTERLY)
+                    && !this.isNearSupport(stock, Timeframe.YEARLY);
         }
         return false;
     }
@@ -83,19 +86,24 @@ public class SupportLevelDetectorImpl implements SupportLevelDetector {
         }
     }
 
-    private List<Double> getSupportLevels(Stock stock, Timeframe t1, Timeframe t2, int limit1, int limit2) {
+    private List<Double> getSupportLevels(
+            Stock stock, Timeframe t1, Timeframe t2, int limit1, int limit2) {
         StockPrice sp1 = stockPriceService.get(stock, t1);
         StockPrice sp2 = stockPriceService.get(stock, t2);
         if (sp1 == null || sp2 == null) return List.of();
 
         return Stream.concat(
-                getRecentLows(sp1, limit1).stream(),
-                getRecentLows(sp2, limit2).stream()
-        ).collect(Collectors.toList());
+                        getRecentLows(sp1, limit1).stream(), getRecentLows(sp2, limit2).stream())
+                .collect(Collectors.toList());
     }
 
     private List<Double> getRecentLows(StockPrice sp, int limit) {
-        return Stream.of(sp.getLow(), sp.getPrevLow(), sp.getPrev2Low(), sp.getPrev3Low(), sp.getPrev4Low())
+        return Stream.of(
+                        sp.getLow(),
+                        sp.getPrevLow(),
+                        sp.getPrev2Low(),
+                        sp.getPrev3Low(),
+                        sp.getPrev4Low())
                 .limit(limit)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -112,10 +120,16 @@ public class SupportLevelDetectorImpl implements SupportLevelDetector {
         double currentLow = currentStockPrice.getLow();
         if (Math.abs(currentLow - supportLevel) / supportLevel <= THRESHOLD) {
             if (currentLow > supportLevel) {
-                log.info("Support is holding for {}. Possible bounce at {}.", currentLow, supportLevel);
+                log.info(
+                        "Support is holding for {}. Possible bounce at {}.",
+                        currentLow,
+                        supportLevel);
                 return true;
             } else {
-                log.warn("Price closed below support {} at {}. Possible breakdown.", supportLevel, currentLow);
+                log.warn(
+                        "Price closed below support {} at {}. Possible breakdown.",
+                        supportLevel,
+                        currentLow);
             }
         }
         return false;

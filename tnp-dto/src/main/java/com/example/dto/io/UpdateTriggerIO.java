@@ -2,37 +2,38 @@ package com.example.dto.io;
 
 import java.io.Serializable;
 
-public class UpdateTriggerIO implements Serializable{
+public class UpdateTriggerIO implements Serializable {
 
-	public enum TriggerType{
-		UPDATE_CYRO, UPDATE_FYRO, UPDATE_MONTHLY_VALUE, UPDATE_RESEARCH, RESET_MASTER,UPDATE_FACTORS, UPDATE_SECGORS_PE_PB
-	}
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -7457882787830533577L;
-	
-	private TriggerType trigger;
+    public enum TriggerType {
+        UPDATE_CYRO,
+        UPDATE_FYRO,
+        UPDATE_MONTHLY_VALUE,
+        UPDATE_RESEARCH,
+        RESET_MASTER,
+        UPDATE_FACTORS,
+        UPDATE_SECGORS_PE_PB
+    }
 
-	public UpdateTriggerIO(TriggerType trigger) {
-		super();
-		this.trigger = trigger;
-	}
+    /** */
+    private static final long serialVersionUID = -7457882787830533577L;
 
-	public TriggerType getTrigger() {
-		return trigger;
-	}
+    private TriggerType trigger;
 
-	public void setTrigger(TriggerType trigger) {
-		this.trigger = trigger;
-	}
+    public UpdateTriggerIO(TriggerType trigger) {
+        super();
+        this.trigger = trigger;
+    }
 
-	@Override
-	public String toString() {
-		return "UpdateTriggerIO [trigger=" + trigger + "]";
-	}
-	
-	
-	
+    public TriggerType getTrigger() {
+        return trigger;
+    }
+
+    public void setTrigger(TriggerType trigger) {
+        this.trigger = trigger;
+    }
+
+    @Override
+    public String toString() {
+        return "UpdateTriggerIO [trigger=" + trigger + "]";
+    }
 }

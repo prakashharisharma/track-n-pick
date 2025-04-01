@@ -12,11 +12,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class UpdateFactorServiceImpl implements UpdateFactorService {
 
-    @Autowired
-    private StockService stockService;
+    @Autowired private StockService stockService;
 
-    @Autowired
-    private FundamentalResearchService fundamentalResearchService;
+    @Autowired private FundamentalResearchService fundamentalResearchService;
 
     @Override
     public void updateFactors(Stock stock) {
@@ -24,17 +22,17 @@ public class UpdateFactorServiceImpl implements UpdateFactorService {
         log.info("{} Starting factors update.", stock.getNseSymbol());
         try {
             this.updateFactorsTxn(stock);
-        }catch(Exception e){
+        } catch (Exception e) {
             log.error("An error occured while updating factors {}", stock.getNseSymbol(), e);
         }
         log.info("{} Completed factors update.", stock.getNseSymbol());
     }
 
-    private void updateFactorsTxn(Stock stock){
+    private void updateFactorsTxn(Stock stock) {
 
         log.info("{} Updating transactional factors.", stock.getNseSymbol());
 
-       // Stock stock = stockService.getStockByNseSymbol(stockPriceIO.getNseSymbol());
+        // Stock stock = stockService.getStockByNseSymbol(stockPriceIO.getNseSymbol());
 
         StockFactor prevStockFactor = null;
 
@@ -48,12 +46,10 @@ public class UpdateFactorServiceImpl implements UpdateFactorService {
 
             if (newStockFactor.getQuarterEnded().isAfter(prevStockFactor.getQuarterEnded())) {
 
-                    //TODO: UPdate history
+                // TODO: UPdate history
 
                 log.info("{} Updated transactional factors.", stock.getNseSymbol());
-
             }
         }
-
     }
 }

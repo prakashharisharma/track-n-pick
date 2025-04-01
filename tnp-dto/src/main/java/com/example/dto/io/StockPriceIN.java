@@ -1,9 +1,8 @@
 package com.example.dto.io;
 
 import com.opencsv.bean.CsvBindByName;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 @Data
 public class StockPriceIN implements Serializable {

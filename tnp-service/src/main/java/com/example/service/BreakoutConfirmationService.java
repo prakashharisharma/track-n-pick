@@ -6,7 +6,15 @@ import com.example.data.transactional.entities.StockTechnicals;
 
 public interface BreakoutConfirmationService {
 
-    public boolean isBullishConfirmation(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals, double average);
+    public boolean isBullishConfirmation(
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            double average);
 
-    public boolean isBearishConfirmation(Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals, double average);
+    public boolean isBearishConfirmation(
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            double average);
 }

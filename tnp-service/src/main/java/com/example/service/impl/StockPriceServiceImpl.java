@@ -11,14 +11,13 @@ import com.example.data.transactional.entities.StockPriceYearly;
 import com.example.data.transactional.repo.StockPriceRepository;
 import com.example.data.transactional.repo.StockRepository;
 import com.example.service.StockPriceService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -29,35 +28,62 @@ public class StockPriceServiceImpl implements StockPriceService {
     private final StockRepository stockRepository;
 
     // Map to create instances dynamically based on timeframe
-    private static final Map<Timeframe, Supplier<StockPrice>> STOCK_PRICE_CREATORS = Map.of(
-            Timeframe.DAILY, StockPriceDaily::new,
-            Timeframe.WEEKLY, StockPriceWeekly::new,
-            Timeframe.MONTHLY, StockPriceMonthly::new,
-            Timeframe.QUARTERLY, StockPriceQuarterly::new,
-            Timeframe.YEARLY, StockPriceYearly::new
-    );
+    private static final Map<Timeframe, Supplier<StockPrice>> STOCK_PRICE_CREATORS =
+            Map.of(
+                    Timeframe.DAILY, StockPriceDaily::new,
+                    Timeframe.WEEKLY, StockPriceWeekly::new,
+                    Timeframe.MONTHLY, StockPriceMonthly::new,
+                    Timeframe.QUARTERLY, StockPriceQuarterly::new,
+                    Timeframe.YEARLY, StockPriceYearly::new);
 
     @Override
-    public StockPrice create(Long stockId, Timeframe timeframe, Double open, Double high, Double low, Double close, LocalDate sessionDate) {
+    public StockPrice create(
+            Long stockId,
+            Timeframe timeframe,
+            Double open,
+            Double high,
+            Double low,
+            Double close,
+            LocalDate sessionDate) {
         Stock stock = getStockById(stockId);
         return create(stock, timeframe, open, high, low, close, sessionDate);
     }
 
     @Override
-    public StockPrice create(Stock stock, Timeframe timeframe, Double open, Double high, Double low, Double close, LocalDate sessionDate) {
-        StockPrice existingStockPrice = stockPriceRepository.findByStockIdAndTimeframe(stock.getStockId(), timeframe)
-                .orElse(null);
+    public StockPrice create(
+            Stock stock,
+            Timeframe timeframe,
+            Double open,
+            Double high,
+            Double low,
+            Double close,
+            LocalDate sessionDate) {
+        StockPrice existingStockPrice =
+                stockPriceRepository
+                        .findByStockIdAndTimeframe(stock.getStockId(), timeframe)
+                        .orElse(null);
 
         // If a record with the same sessionDate exists, do nothing (return existing record)
-        if (existingStockPrice!=null && !sessionDate.isAfter(existingStockPrice.getSessionDate())) {
-            log.info("Skipping creation. A StockPrice record already exists for stockId: {}, timeframe: {}, sessionDate: {}",
-                    stock.getStockId(), timeframe, sessionDate);
+        if (existingStockPrice != null
+                && !sessionDate.isAfter(existingStockPrice.getSessionDate())) {
+            log.info(
+                    "Skipping creation. A StockPrice record already exists for stockId: {},"
+                            + " timeframe: {}, sessionDate: {}",
+                    stock.getStockId(),
+                    timeframe,
+                    sessionDate);
             return existingStockPrice;
         }
 
-        StockPrice newStockPrice = STOCK_PRICE_CREATORS
-                .getOrDefault(timeframe, () -> { throw new IllegalArgumentException("Unsupported timeframe: " + timeframe); })
-                .get();
+        StockPrice newStockPrice =
+                STOCK_PRICE_CREATORS
+                        .getOrDefault(
+                                timeframe,
+                                () -> {
+                                    throw new IllegalArgumentException(
+                                            "Unsupported timeframe: " + timeframe);
+                                })
+                        .get();
 
         newStockPrice.setStock(stock);
         newStockPrice.setTimeframe(timeframe);
@@ -72,20 +98,47 @@ public class StockPriceServiceImpl implements StockPriceService {
     }
 
     @Override
-    public StockPrice update(Long stockId, Timeframe timeframe, Double open, Double high, Double low, Double close, LocalDate sessionDate) {
+    public StockPrice update(
+            Long stockId,
+            Timeframe timeframe,
+            Double open,
+            Double high,
+            Double low,
+            Double close,
+            LocalDate sessionDate) {
         Stock stock = getStockById(stockId);
         return update(stock, timeframe, open, high, low, close, sessionDate);
     }
 
     @Override
-    public StockPrice update(Stock stock, Timeframe timeframe, Double open, Double high, Double low, Double close, LocalDate sessionDate) {
-        StockPrice stockPrice = stockPriceRepository.findByStockIdAndTimeframe(stock.getStockId(), timeframe)
-                .orElseThrow(() -> new EntityNotFoundException("StockPrice not found for stockId: " + stock.getStockId() + " and timeframe: " + timeframe));
+    public StockPrice update(
+            Stock stock,
+            Timeframe timeframe,
+            Double open,
+            Double high,
+            Double low,
+            Double close,
+            LocalDate sessionDate) {
+        StockPrice stockPrice =
+                stockPriceRepository
+                        .findByStockIdAndTimeframe(stock.getStockId(), timeframe)
+                        .orElseThrow(
+                                () ->
+                                        new EntityNotFoundException(
+                                                "StockPrice not found for stockId: "
+                                                        + stock.getStockId()
+                                                        + " and timeframe: "
+                                                        + timeframe));
 
         // If sessionDate is the same or earlier, do nothing
         if (!sessionDate.isAfter(stockPrice.getSessionDate())) {
-            log.info("Skipping update. Provided sessionDate: {} is not after existing sessionDate: {} for stockId: {}, timeframe: {}",
-                    sessionDate, stockPrice.getSessionDate(), stock.getStockId(), timeframe);
+            log.info(
+                    "Skipping update. Provided sessionDate: {} is not after existing sessionDate:"
+                            + " {} for stockId: {}, timeframe: {}",
+                    sessionDate,
+                    stockPrice.getSessionDate(),
+                    stock.getStockId(),
+                    timeframe);
             return stockPrice; // Return existing record without modification
         }
 
@@ -103,16 +156,28 @@ public class StockPriceServiceImpl implements StockPriceService {
     }
 
     @Override
-    public StockPrice createOrUpdate(Long stockId, Timeframe timeframe, Double open, Double high, Double low, Double close, LocalDate sessionDate) {
-       StockPrice existingStockPrice = get(stockId, timeframe);
+    public StockPrice createOrUpdate(
+            Long stockId,
+            Timeframe timeframe,
+            Double open,
+            Double high,
+            Double low,
+            Double close,
+            LocalDate sessionDate) {
+        StockPrice existingStockPrice = get(stockId, timeframe);
 
-        if (existingStockPrice !=null ) {
+        if (existingStockPrice != null) {
 
             StockPrice stockPrice = existingStockPrice;
 
             // If sessionDate is the same, do nothing
             if (sessionDate.equals(stockPrice.getSessionDate())) {
-                log.info("StockPrice already exists for stockId: {}, timeframe: {}, sessionDate: {}. No action taken.", stockId, timeframe, sessionDate);
+                log.info(
+                        "StockPrice already exists for stockId: {}, timeframe: {}, sessionDate: {}."
+                                + " No action taken.",
+                        stockId,
+                        timeframe,
+                        sessionDate);
                 return stockPrice;
             }
 
@@ -122,7 +187,13 @@ public class StockPriceServiceImpl implements StockPriceService {
             }
 
             // If sessionDate is before, do nothing
-            log.info("Skipping update. Provided sessionDate: {} is before existing sessionDate: {} for stockId: {}, timeframe: {}", sessionDate, stockPrice.getSessionDate(), stockId, timeframe);
+            log.info(
+                    "Skipping update. Provided sessionDate: {} is before existing sessionDate: {}"
+                            + " for stockId: {}, timeframe: {}",
+                    sessionDate,
+                    stockPrice.getSessionDate(),
+                    stockId,
+                    timeframe);
             return stockPrice;
         }
 
@@ -131,15 +202,27 @@ public class StockPriceServiceImpl implements StockPriceService {
     }
 
     @Override
-    public StockPrice createOrUpdate(Stock stock, Timeframe timeframe, Double open, Double high, Double low, Double close, LocalDate sessionDate) {
+    public StockPrice createOrUpdate(
+            Stock stock,
+            Timeframe timeframe,
+            Double open,
+            Double high,
+            Double low,
+            Double close,
+            LocalDate sessionDate) {
         StockPrice existingStockPrice = get(stock, timeframe);
 
-        if (existingStockPrice!=null) {
+        if (existingStockPrice != null) {
             StockPrice stockPrice = existingStockPrice;
 
             // If sessionDate is the same, do nothing
             if (sessionDate.equals(stockPrice.getSessionDate())) {
-                log.info("StockPrice already exists for stockId: {}, timeframe: {}, sessionDate: {}. No action taken.", stock.getStockId(), timeframe, sessionDate);
+                log.info(
+                        "StockPrice already exists for stockId: {}, timeframe: {}, sessionDate: {}."
+                                + " No action taken.",
+                        stock.getStockId(),
+                        timeframe,
+                        sessionDate);
                 return stockPrice;
             }
 
@@ -149,7 +232,13 @@ public class StockPriceServiceImpl implements StockPriceService {
             }
 
             // If sessionDate is before, do nothing
-            log.info("Skipping update. Provided sessionDate: {} is before existing sessionDate: {} for stockId: {}, timeframe: {}", sessionDate, stockPrice.getSessionDate(), stock.getStockId(), timeframe);
+            log.info(
+                    "Skipping update. Provided sessionDate: {} is before existing sessionDate: {}"
+                            + " for stockId: {}, timeframe: {}",
+                    sessionDate,
+                    stockPrice.getSessionDate(),
+                    stock.getStockId(),
+                    timeframe);
             return stockPrice;
         }
 
@@ -159,20 +248,30 @@ public class StockPriceServiceImpl implements StockPriceService {
 
     @Override
     public StockPrice get(Long stockId, Timeframe timeframe) {
-        return stockPriceRepository.findByStockIdAndTimeframe(stockId, timeframe)
-                .orElseThrow(() -> new EntityNotFoundException("StockPrice not found for stockId: " + stockId + " and timeframe: " + timeframe));
+        return stockPriceRepository
+                .findByStockIdAndTimeframe(stockId, timeframe)
+                .orElseThrow(
+                        () ->
+                                new EntityNotFoundException(
+                                        "StockPrice not found for stockId: "
+                                                + stockId
+                                                + " and timeframe: "
+                                                + timeframe));
     }
 
     @Override
     public StockPrice get(Stock stock, Timeframe timeframe) {
-        return stockPriceRepository.findByStockIdAndTimeframe(stock.getStockId(), timeframe)
+        return stockPriceRepository
+                .findByStockIdAndTimeframe(stock.getStockId(), timeframe)
                 .orElse(null);
     }
 
     // Helper method to avoid redundant stock fetching logic
     private Stock getStockById(Long stockId) {
-        return stockRepository.findById(stockId)
-                .orElseThrow(() -> new EntityNotFoundException("Stock not found with id: " + stockId));
+        return stockRepository
+                .findById(stockId)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Stock not found with id: " + stockId));
     }
 
     private void shiftPreviousPrice(StockPrice stockPrice) {
@@ -197,4 +296,3 @@ public class StockPriceServiceImpl implements StockPriceService {
         stockPrice.setPrevClose(stockPrice.getClose());
     }
 }
-

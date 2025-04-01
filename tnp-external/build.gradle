@@ -1,0 +1,22 @@
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.jsoup:jsoup:1.15.3'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    
+    implementation project(':tnp-data')
+    implementation project(':tnp-dto')
+    implementation project(':tnp-util')
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+    archiveFileName = 'tnp-external.jar'
+} 

@@ -1,97 +1,97 @@
 <soap:Envelope
-	xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
-	<env:Header
-		xmlns:env="http://www.w3.org/2003/05/soap-envelope" />
-	<soap:Body>
-		<ns1:generateDraft
-			xmlns:ns1="http://docgenerationservices.corehiscoxservices.com">
-			<request xmlns="http://io.service.oneshield.com/soa"
-				xmlns:ns2="http://io.common.integration.oneshield.com/xsd">
-				<dxfPayloadType>xml</dxfPayloadType>
-				<humanUserName>und5</humanUserName>
-				<operationLabel>generateDraft</operationLabel>
-				<payload>&lt;?xml version='1.0'
-					encoding='UTF-8'?&gt;&lt;CDXFTransactionSet os_st_id="56039187974"
-					os_id="CDXFTransactionSet_56039187974"
-					xmlns="http://www.oneshield.com/DragonSchema"
-					xmlns:xsi="http://www.w3.org/2001/XMLSchema"&gt;&lt;CDXFTransaction
-					os_st_id="56039188074"
-					os_id="CDXFTransaction_56039188074"&gt;&lt;GenericTransactionID&gt;56039188074&lt;/GenericTransactionID&gt;&lt;CDXFDeliveryMethod
-					os_st_id="55979241974"
-					os_id="CDXFDeliveryMethod_55979241974"&gt;&lt;AddressCity&gt;Bellevue&lt;/AddressCity&gt;&lt;AddressCountry&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;US&lt;/code&gt;&lt;value&gt;United
-					States&lt;/value&gt;&lt;/AddressCountry&gt;&lt;AddressCounty&gt;KING&lt;/AddressCounty&gt;&lt;AddressID&gt;55979241974&lt;/AddressID&gt;&lt;AddressLine1&gt;main
-					NOC
-					TestCase&lt;/AddressLine1&gt;&lt;AddressPostalCode&gt;98005&lt;/AddressPostalCode&gt;&lt;AddressStateProvince&gt;&lt;id&gt;48&lt;/id&gt;&lt;code&gt;WA&lt;/code&gt;&lt;value&gt;Washington&lt;/value&gt;&lt;/AddressStateProvince&gt;&lt;ContactMethod&gt;&lt;id&gt;2304114&lt;/id&gt;&lt;code&gt;2304114&lt;/code&gt;&lt;value&gt;CustomerAddress&lt;/value&gt;&lt;/ContactMethod&gt;&lt;ObjectLabel&gt;main
-					NOC TestCase | Bellevue | WA |
-					98005&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDeliveryMethod
-					os_st_id="55979241974"
-					os_id="CDXFDeliveryMethod_55979241974"&gt;&lt;AddressCity&gt;Bellevue&lt;/AddressCity&gt;&lt;AddressCountry&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;US&lt;/code&gt;&lt;value&gt;United
-					States&lt;/value&gt;&lt;/AddressCountry&gt;&lt;AddressCounty&gt;KING&lt;/AddressCounty&gt;&lt;AddressID&gt;55979241974&lt;/AddressID&gt;&lt;AddressLine1&gt;main
-					NOC
-					TestCase&lt;/AddressLine1&gt;&lt;AddressPostalCode&gt;98005&lt;/AddressPostalCode&gt;&lt;AddressStateProvince&gt;&lt;id&gt;48&lt;/id&gt;&lt;code&gt;WA&lt;/code&gt;&lt;value&gt;Washington&lt;/value&gt;&lt;/AddressStateProvince&gt;&lt;ContactMethod&gt;&lt;id&gt;2304114&lt;/id&gt;&lt;code&gt;2304114&lt;/code&gt;&lt;value&gt;CustomerAddress&lt;/value&gt;&lt;/ContactMethod&gt;&lt;ObjectLabel&gt;main
-					NOC TestCase | Bellevue | WA |
-					98005&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDeliveryMethod
-					os_st_id="55979241974"
-					os_id="CDXFDeliveryMethod_55979241974"&gt;&lt;AddressCity&gt;Bellevue&lt;/AddressCity&gt;&lt;AddressCountry&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;US&lt;/code&gt;&lt;value&gt;United
-					States&lt;/value&gt;&lt;/AddressCountry&gt;&lt;AddressCounty&gt;KING&lt;/AddressCounty&gt;&lt;AddressID&gt;55979241974&lt;/AddressID&gt;&lt;AddressLine1&gt;main
-					NOC
-					TestCase&lt;/AddressLine1&gt;&lt;AddressPostalCode&gt;98005&lt;/AddressPostalCode&gt;&lt;AddressStateProvince&gt;&lt;id&gt;48&lt;/id&gt;&lt;code&gt;WA&lt;/code&gt;&lt;value&gt;Washington&lt;/value&gt;&lt;/AddressStateProvince&gt;&lt;ContactMethod&gt;&lt;id&gt;2304114&lt;/id&gt;&lt;code&gt;2304114&lt;/code&gt;&lt;value&gt;CustomerAddress&lt;/value&gt;&lt;/ContactMethod&gt;&lt;ObjectLabel&gt;main
-					NOC TestCase | Bellevue | WA |
-					98005&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDeliveryMethod
-					os_st_id="55979241174"
-					os_id="CDXFDeliveryMethod_55979241174"&gt;&lt;PhoneID&gt;55979241174&lt;/PhoneID&gt;&lt;PhoneNumber&gt;8574545454&lt;/PhoneNumber&gt;&lt;PhoneType&gt;&lt;id&gt;7&lt;/id&gt;&lt;value&gt;Primary
-					Phone&lt;/value&gt;&lt;/PhoneType&gt;&lt;ObjectLabel&gt;8574545454&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDeliveryMethod
-					os_st_id="55979241274"
-					os_id="CDXFDeliveryMethod_55979241274"&gt;&lt;EmailAddress&gt;primary@os.com&lt;/EmailAddress&gt;&lt;EmailObjectID&gt;55979241274&lt;/EmailObjectID&gt;&lt;EmailType&gt;&lt;id&gt;20&lt;/id&gt;&lt;value&gt;Primary
-					Email&lt;/value&gt;&lt;/EmailType&gt;&lt;ObjectLabel&gt;primary@os.com&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDiary
-					os_st_id="56039185974"
-					os_id="CDXFDiary_56039185974"&gt;&lt;TaskID&gt;56039185974&lt;/TaskID&gt;&lt;TaskCategory&gt;&lt;id&gt;12064&lt;/id&gt;&lt;value&gt;Customer&lt;/value&gt;&lt;/TaskCategory&gt;&lt;TaskSubCategory&gt;&lt;id&gt;48964&lt;/id&gt;&lt;value&gt;Please
-					Call&lt;/value&gt;&lt;/TaskSubCategory&gt;&lt;TaskEmailTemplate&gt;&lt;id&gt;481764&lt;/id&gt;&lt;value&gt;Unable
-					to Reach
-					You&lt;/value&gt;&lt;/TaskEmailTemplate&gt;&lt;/CDXFDiary&gt;&lt;CDXFDocument
-					os_st_id="56039186974"
-					os_id="CDXFDocument_56039186974"&gt;&lt;CDXFEndorsementChangeType&gt;&lt;id&gt;1&lt;/id&gt;&lt;value&gt;Added&lt;/value&gt;&lt;/CDXFEndorsementChangeType&gt;&lt;CDXFPackageFileName&gt;Unable
-					to Reach
-					You-56039186974.HTML&lt;/CDXFPackageFileName&gt;&lt;DocumentCode&gt;EMAIL&lt;/DocumentCode&gt;&lt;DocumentComponentOrder&gt;1&lt;/DocumentComponentOrder&gt;&lt;DocumentContentID&gt;56039187074&lt;/DocumentContentID&gt;&lt;DocumentContentType&gt;&lt;id&gt;20564&lt;/id&gt;&lt;code&gt;20564&lt;/code&gt;&lt;value&gt;Email
-					-
-					Policy&lt;/value&gt;&lt;/DocumentContentType&gt;&lt;DocumentFileName&gt;Unable
-					to Reach
-					You&lt;/DocumentFileName&gt;&lt;DocumentID&gt;56039186974&lt;/DocumentID&gt;&lt;DocumentRenderingType&gt;&lt;id&gt;12064&lt;/id&gt;&lt;code&gt;HTML&lt;/code&gt;&lt;value&gt;HTML&lt;/value&gt;&lt;/DocumentRenderingType&gt;&lt;ReferenceCoveredObject&gt;CDXFNotes_56039185974&lt;/ReferenceCoveredObject&gt;&lt;TemplateFileName&gt;DPD_Email_Unable_to_Reach_You&lt;/TemplateFileName&gt;&lt;TemplateRequestType&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;DRAFT&lt;/code&gt;&lt;value&gt;DRAFT&lt;/value&gt;&lt;/TemplateRequestType&gt;&lt;TemplateID&gt;157936112&lt;/TemplateID&gt;&lt;/CDXFDocument&gt;&lt;CDXFEntity
-					os_st_id="55979241074"
-					os_id="CDXFEntity_55979241074"&gt;&lt;BusinessLegalEntity&gt;&lt;id&gt;4&lt;/id&gt;&lt;code&gt;Corporation&lt;/code&gt;&lt;value&gt;Corporation&lt;/value&gt;&lt;/BusinessLegalEntity&gt;&lt;EntityBusinessName&gt;NOC
-					TestCase&lt;/EntityBusinessName&gt;&lt;EntityID&gt;55979241074&lt;/EntityID&gt;&lt;UTemplateID&gt;55979241074&lt;/UTemplateID&gt;&lt;EntityRole&gt;&lt;id&gt;7&lt;/id&gt;&lt;code&gt;Primary
-					Entity/Customer&lt;/code&gt;&lt;value&gt;Primary
-					Entity/Customer&lt;/value&gt;&lt;/EntityRole&gt;&lt;EntityType&gt;&lt;id&gt;205&lt;/id&gt;&lt;code&gt;205&lt;/code&gt;&lt;value&gt;CustomerEntity&lt;/value&gt;&lt;/EntityType&gt;&lt;PreferredBillingAddressEntityRef&gt;CDXFDeliveryMethod_55979241974&lt;/PreferredBillingAddressEntityRef&gt;&lt;PreferredPrimaryAddressEntityRef&gt;CDXFDeliveryMethod_55979241974&lt;/PreferredPrimaryAddressEntityRef&gt;&lt;PreferredPrimaryEmailEntityRef&gt;CDXFDeliveryMethod_55979241274&lt;/PreferredPrimaryEmailEntityRef&gt;&lt;PreferredPrimaryPhoneNumberEntityRef&gt;CDXFDeliveryMethod_55979241174&lt;/PreferredPrimaryPhoneNumberEntityRef&gt;&lt;ObjectLabel&gt;NOC
-					TestCase
-					&lt;/ObjectLabel&gt;&lt;EntityNumberFormattedForDisplay&gt;100.004.395&lt;/EntityNumberFormattedForDisplay&gt;&lt;EntityNumber&gt;100004395&lt;/EntityNumber&gt;&lt;EntityIncludedBusinessName&gt;NOC
-					TestCase&lt;/EntityIncludedBusinessName&gt;&lt;EntityBusinessContactFirstName&gt;NOC&lt;/EntityBusinessContactFirstName&gt;&lt;EntityBusinessContactLastName&gt;TestCase&lt;/EntityBusinessContactLastName&gt;&lt;EntityBusinessFinancialSummary&gt;5252.0&lt;/EntityBusinessFinancialSummary&gt;&lt;EntitySystemIndicator&gt;&lt;id&gt;2&lt;/id&gt;&lt;value&gt;No&lt;/value&gt;&lt;/EntitySystemIndicator&gt;&lt;EntityIsBusinessOrPerson&gt;&lt;id&gt;2&lt;/id&gt;&lt;value&gt;Legal
-					Entity&lt;/value&gt;&lt;/EntityIsBusinessOrPerson&gt;&lt;EntityBusinessContactRole&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;1&lt;/code&gt;&lt;value&gt;Business
-					Owner&lt;/value&gt;&lt;/EntityBusinessContactRole&gt;&lt;EntityBusinessNoOfEmployees&gt;52&lt;/EntityBusinessNoOfEmployees&gt;&lt;EntityBusinessEstablishDate&gt;19630101000100&lt;/EntityBusinessEstablishDate&gt;&lt;/CDXFEntity&gt;&lt;CDXFPartner
-					os_st_id="55979241074"
-					os_id="CDXFPartner_55979241074"/&gt;&lt;/CDXFTransaction&gt;&lt;/CDXFTransactionSet&gt;&lt;!--OneShield
-					Proprietary . Do Not Distribute--&gt;</payload>
-				<processingDirectives>
-					<ns2:directive>
-						<ns2:name>STORE</ns2:name>
-						<ns2:value>F</ns2:value>
-					</ns2:directive>
-					<ns2:directive>
-						<ns2:name>RETURN</ns2:name>
-						<ns2:value>T</ns2:value>
-					</ns2:directive>
-					<ns2:directive>
-						<ns2:name>DOCUMENT_ID</ns2:name>
-						<ns2:value>56039187074</ns2:value>
-					</ns2:directive>
-					<ns2:directive>
-						<ns2:name>schemaVersion</ns2:name>
-						<ns2:value>19246</ns2:value>
-					</ns2:directive>
-				</processingDirectives>
-				<sessionId>56038979974</sessionId>
-				<systemId>Oneshield</systemId>
-				<transactionId>172069925</transactionId>
-			</request>
-		</ns1:generateDraft>
-	</soap:Body>
+    xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+    <env:Header
+        xmlns:env="http://www.w3.org/2003/05/soap-envelope" />
+    <soap:Body>
+        <ns1:generateDraft
+            xmlns:ns1="http://docgenerationservices.corehiscoxservices.com">
+            <request xmlns="http://io.service.oneshield.com/soa"
+                xmlns:ns2="http://io.common.integration.oneshield.com/xsd">
+                <dxfPayloadType>xml</dxfPayloadType>
+                <humanUserName>und5</humanUserName>
+                <operationLabel>generateDraft</operationLabel>
+                <payload>&lt;?xml version='1.0'
+                    encoding='UTF-8'?&gt;&lt;CDXFTransactionSet os_st_id="56039187974"
+                    os_id="CDXFTransactionSet_56039187974"
+                    xmlns="http://www.oneshield.com/DragonSchema"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema"&gt;&lt;CDXFTransaction
+                    os_st_id="56039188074"
+                    os_id="CDXFTransaction_56039188074"&gt;&lt;GenericTransactionID&gt;56039188074&lt;/GenericTransactionID&gt;&lt;CDXFDeliveryMethod
+                    os_st_id="55979241974"
+                    os_id="CDXFDeliveryMethod_55979241974"&gt;&lt;AddressCity&gt;Bellevue&lt;/AddressCity&gt;&lt;AddressCountry&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;US&lt;/code&gt;&lt;value&gt;United
+                    States&lt;/value&gt;&lt;/AddressCountry&gt;&lt;AddressCounty&gt;KING&lt;/AddressCounty&gt;&lt;AddressID&gt;55979241974&lt;/AddressID&gt;&lt;AddressLine1&gt;main
+                    NOC
+                    TestCase&lt;/AddressLine1&gt;&lt;AddressPostalCode&gt;98005&lt;/AddressPostalCode&gt;&lt;AddressStateProvince&gt;&lt;id&gt;48&lt;/id&gt;&lt;code&gt;WA&lt;/code&gt;&lt;value&gt;Washington&lt;/value&gt;&lt;/AddressStateProvince&gt;&lt;ContactMethod&gt;&lt;id&gt;2304114&lt;/id&gt;&lt;code&gt;2304114&lt;/code&gt;&lt;value&gt;CustomerAddress&lt;/value&gt;&lt;/ContactMethod&gt;&lt;ObjectLabel&gt;main
+                    NOC TestCase | Bellevue | WA |
+                    98005&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDeliveryMethod
+                    os_st_id="55979241974"
+                    os_id="CDXFDeliveryMethod_55979241974"&gt;&lt;AddressCity&gt;Bellevue&lt;/AddressCity&gt;&lt;AddressCountry&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;US&lt;/code&gt;&lt;value&gt;United
+                    States&lt;/value&gt;&lt;/AddressCountry&gt;&lt;AddressCounty&gt;KING&lt;/AddressCounty&gt;&lt;AddressID&gt;55979241974&lt;/AddressID&gt;&lt;AddressLine1&gt;main
+                    NOC
+                    TestCase&lt;/AddressLine1&gt;&lt;AddressPostalCode&gt;98005&lt;/AddressPostalCode&gt;&lt;AddressStateProvince&gt;&lt;id&gt;48&lt;/id&gt;&lt;code&gt;WA&lt;/code&gt;&lt;value&gt;Washington&lt;/value&gt;&lt;/AddressStateProvince&gt;&lt;ContactMethod&gt;&lt;id&gt;2304114&lt;/id&gt;&lt;code&gt;2304114&lt;/code&gt;&lt;value&gt;CustomerAddress&lt;/value&gt;&lt;/ContactMethod&gt;&lt;ObjectLabel&gt;main
+                    NOC TestCase | Bellevue | WA |
+                    98005&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDeliveryMethod
+                    os_st_id="55979241974"
+                    os_id="CDXFDeliveryMethod_55979241974"&gt;&lt;AddressCity&gt;Bellevue&lt;/AddressCity&gt;&lt;AddressCountry&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;US&lt;/code&gt;&lt;value&gt;United
+                    States&lt;/value&gt;&lt;/AddressCountry&gt;&lt;AddressCounty&gt;KING&lt;/AddressCounty&gt;&lt;AddressID&gt;55979241974&lt;/AddressID&gt;&lt;AddressLine1&gt;main
+                    NOC
+                    TestCase&lt;/AddressLine1&gt;&lt;AddressPostalCode&gt;98005&lt;/AddressPostalCode&gt;&lt;AddressStateProvince&gt;&lt;id&gt;48&lt;/id&gt;&lt;code&gt;WA&lt;/code&gt;&lt;value&gt;Washington&lt;/value&gt;&lt;/AddressStateProvince&gt;&lt;ContactMethod&gt;&lt;id&gt;2304114&lt;/id&gt;&lt;code&gt;2304114&lt;/code&gt;&lt;value&gt;CustomerAddress&lt;/value&gt;&lt;/ContactMethod&gt;&lt;ObjectLabel&gt;main
+                    NOC TestCase | Bellevue | WA |
+                    98005&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDeliveryMethod
+                    os_st_id="55979241174"
+                    os_id="CDXFDeliveryMethod_55979241174"&gt;&lt;PhoneID&gt;55979241174&lt;/PhoneID&gt;&lt;PhoneNumber&gt;8574545454&lt;/PhoneNumber&gt;&lt;PhoneType&gt;&lt;id&gt;7&lt;/id&gt;&lt;value&gt;Primary
+                    Phone&lt;/value&gt;&lt;/PhoneType&gt;&lt;ObjectLabel&gt;8574545454&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDeliveryMethod
+                    os_st_id="55979241274"
+                    os_id="CDXFDeliveryMethod_55979241274"&gt;&lt;EmailAddress&gt;primary@os.com&lt;/EmailAddress&gt;&lt;EmailObjectID&gt;55979241274&lt;/EmailObjectID&gt;&lt;EmailType&gt;&lt;id&gt;20&lt;/id&gt;&lt;value&gt;Primary
+                    Email&lt;/value&gt;&lt;/EmailType&gt;&lt;ObjectLabel&gt;primary@os.com&lt;/ObjectLabel&gt;&lt;/CDXFDeliveryMethod&gt;&lt;CDXFDiary
+                    os_st_id="56039185974"
+                    os_id="CDXFDiary_56039185974"&gt;&lt;TaskID&gt;56039185974&lt;/TaskID&gt;&lt;TaskCategory&gt;&lt;id&gt;12064&lt;/id&gt;&lt;value&gt;Customer&lt;/value&gt;&lt;/TaskCategory&gt;&lt;TaskSubCategory&gt;&lt;id&gt;48964&lt;/id&gt;&lt;value&gt;Please
+                    Call&lt;/value&gt;&lt;/TaskSubCategory&gt;&lt;TaskEmailTemplate&gt;&lt;id&gt;481764&lt;/id&gt;&lt;value&gt;Unable
+                    to Reach
+                    You&lt;/value&gt;&lt;/TaskEmailTemplate&gt;&lt;/CDXFDiary&gt;&lt;CDXFDocument
+                    os_st_id="56039186974"
+                    os_id="CDXFDocument_56039186974"&gt;&lt;CDXFEndorsementChangeType&gt;&lt;id&gt;1&lt;/id&gt;&lt;value&gt;Added&lt;/value&gt;&lt;/CDXFEndorsementChangeType&gt;&lt;CDXFPackageFileName&gt;Unable
+                    to Reach
+                    You-56039186974.HTML&lt;/CDXFPackageFileName&gt;&lt;DocumentCode&gt;EMAIL&lt;/DocumentCode&gt;&lt;DocumentComponentOrder&gt;1&lt;/DocumentComponentOrder&gt;&lt;DocumentContentID&gt;56039187074&lt;/DocumentContentID&gt;&lt;DocumentContentType&gt;&lt;id&gt;20564&lt;/id&gt;&lt;code&gt;20564&lt;/code&gt;&lt;value&gt;Email
+                    -
+                    Policy&lt;/value&gt;&lt;/DocumentContentType&gt;&lt;DocumentFileName&gt;Unable
+                    to Reach
+                    You&lt;/DocumentFileName&gt;&lt;DocumentID&gt;56039186974&lt;/DocumentID&gt;&lt;DocumentRenderingType&gt;&lt;id&gt;12064&lt;/id&gt;&lt;code&gt;HTML&lt;/code&gt;&lt;value&gt;HTML&lt;/value&gt;&lt;/DocumentRenderingType&gt;&lt;ReferenceCoveredObject&gt;CDXFNotes_56039185974&lt;/ReferenceCoveredObject&gt;&lt;TemplateFileName&gt;DPD_Email_Unable_to_Reach_You&lt;/TemplateFileName&gt;&lt;TemplateRequestType&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;DRAFT&lt;/code&gt;&lt;value&gt;DRAFT&lt;/value&gt;&lt;/TemplateRequestType&gt;&lt;TemplateID&gt;157936112&lt;/TemplateID&gt;&lt;/CDXFDocument&gt;&lt;CDXFEntity
+                    os_st_id="55979241074"
+                    os_id="CDXFEntity_55979241074"&gt;&lt;BusinessLegalEntity&gt;&lt;id&gt;4&lt;/id&gt;&lt;code&gt;Corporation&lt;/code&gt;&lt;value&gt;Corporation&lt;/value&gt;&lt;/BusinessLegalEntity&gt;&lt;EntityBusinessName&gt;NOC
+                    TestCase&lt;/EntityBusinessName&gt;&lt;EntityID&gt;55979241074&lt;/EntityID&gt;&lt;UTemplateID&gt;55979241074&lt;/UTemplateID&gt;&lt;EntityRole&gt;&lt;id&gt;7&lt;/id&gt;&lt;code&gt;Primary
+                    Entity/Customer&lt;/code&gt;&lt;value&gt;Primary
+                    Entity/Customer&lt;/value&gt;&lt;/EntityRole&gt;&lt;EntityType&gt;&lt;id&gt;205&lt;/id&gt;&lt;code&gt;205&lt;/code&gt;&lt;value&gt;CustomerEntity&lt;/value&gt;&lt;/EntityType&gt;&lt;PreferredBillingAddressEntityRef&gt;CDXFDeliveryMethod_55979241974&lt;/PreferredBillingAddressEntityRef&gt;&lt;PreferredPrimaryAddressEntityRef&gt;CDXFDeliveryMethod_55979241974&lt;/PreferredPrimaryAddressEntityRef&gt;&lt;PreferredPrimaryEmailEntityRef&gt;CDXFDeliveryMethod_55979241274&lt;/PreferredPrimaryEmailEntityRef&gt;&lt;PreferredPrimaryPhoneNumberEntityRef&gt;CDXFDeliveryMethod_55979241174&lt;/PreferredPrimaryPhoneNumberEntityRef&gt;&lt;ObjectLabel&gt;NOC
+                    TestCase
+                    &lt;/ObjectLabel&gt;&lt;EntityNumberFormattedForDisplay&gt;100.004.395&lt;/EntityNumberFormattedForDisplay&gt;&lt;EntityNumber&gt;100004395&lt;/EntityNumber&gt;&lt;EntityIncludedBusinessName&gt;NOC
+                    TestCase&lt;/EntityIncludedBusinessName&gt;&lt;EntityBusinessContactFirstName&gt;NOC&lt;/EntityBusinessContactFirstName&gt;&lt;EntityBusinessContactLastName&gt;TestCase&lt;/EntityBusinessContactLastName&gt;&lt;EntityBusinessFinancialSummary&gt;5252.0&lt;/EntityBusinessFinancialSummary&gt;&lt;EntitySystemIndicator&gt;&lt;id&gt;2&lt;/id&gt;&lt;value&gt;No&lt;/value&gt;&lt;/EntitySystemIndicator&gt;&lt;EntityIsBusinessOrPerson&gt;&lt;id&gt;2&lt;/id&gt;&lt;value&gt;Legal
+                    Entity&lt;/value&gt;&lt;/EntityIsBusinessOrPerson&gt;&lt;EntityBusinessContactRole&gt;&lt;id&gt;1&lt;/id&gt;&lt;code&gt;1&lt;/code&gt;&lt;value&gt;Business
+                    Owner&lt;/value&gt;&lt;/EntityBusinessContactRole&gt;&lt;EntityBusinessNoOfEmployees&gt;52&lt;/EntityBusinessNoOfEmployees&gt;&lt;EntityBusinessEstablishDate&gt;19630101000100&lt;/EntityBusinessEstablishDate&gt;&lt;/CDXFEntity&gt;&lt;CDXFPartner
+                    os_st_id="55979241074"
+                    os_id="CDXFPartner_55979241074"/&gt;&lt;/CDXFTransaction&gt;&lt;/CDXFTransactionSet&gt;&lt;!--OneShield
+                    Proprietary . Do Not Distribute--&gt;</payload>
+                <processingDirectives>
+                    <ns2:directive>
+                        <ns2:name>STORE</ns2:name>
+                        <ns2:value>F</ns2:value>
+                    </ns2:directive>
+                    <ns2:directive>
+                        <ns2:name>RETURN</ns2:name>
+                        <ns2:value>T</ns2:value>
+                    </ns2:directive>
+                    <ns2:directive>
+                        <ns2:name>DOCUMENT_ID</ns2:name>
+                        <ns2:value>56039187074</ns2:value>
+                    </ns2:directive>
+                    <ns2:directive>
+                        <ns2:name>schemaVersion</ns2:name>
+                        <ns2:value>19246</ns2:value>
+                    </ns2:directive>
+                </processingDirectives>
+                <sessionId>56038979974</sessionId>
+                <systemId>Oneshield</systemId>
+                <transactionId>172069925</transactionId>
+            </request>
+        </ns1:generateDraft>
+    </soap:Body>
 </soap:Envelope>

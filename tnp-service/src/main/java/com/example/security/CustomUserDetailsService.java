@@ -1,6 +1,5 @@
 package com.example.security;
 
-
 import com.example.data.transactional.entities.Role;
 import com.example.data.transactional.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +19,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        com.example.data.transactional.entities.User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        com.example.data.transactional.entities.User user =
+                userRepository
+                        .findByUsername(username)
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         log.error("DEBUG: loadUserByUsername called for: " + username);
-        //throw new RuntimeException("DEBUG: Checking if this method is being called!");
-
+        // throw new RuntimeException("DEBUG: Checking if this method is being called!");
 
         return User.builder()
                 .username(user.getUsername())
@@ -33,8 +33,10 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .accountLocked(user.isAccountLocked())
                 .credentialsExpired(user.isCredentialsExpired())
                 .disabled(!user.isEnabled())
-                .roles(user.getRoles().stream().map(Role::name) // Convert Enum to String
-                .toArray(String[]::new))
+                .roles(
+                        user.getRoles().stream()
+                                .map(Role::name) // Convert Enum to String
+                                .toArray(String[]::new))
                 .build();
     }
 }

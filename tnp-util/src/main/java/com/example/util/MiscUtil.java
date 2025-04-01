@@ -1,6 +1,7 @@
 package com.example.util;
 
-import org.springframework.stereotype.Service;
+import static java.time.temporal.TemporalAdjusters.nextOrSame;
+import static java.time.temporal.TemporalAdjusters.previousOrSame;
 
 import java.text.DecimalFormat;
 import java.time.DayOfWeek;
@@ -13,243 +14,247 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
-
-
-import static java.time.temporal.TemporalAdjusters.nextOrSame;
-import static java.time.temporal.TemporalAdjusters.previousOrSame;
+import org.springframework.stereotype.Service;
 
 @Service
 public class MiscUtil {
 
-	private static int min = 750;
-	private static int max = 8763;
+    private static int min = 750;
+    private static int max = 8763;
 
-	public String formatDouble(double value) {
+    public String formatDouble(double value) {
 
-		DecimalFormat dec = new DecimalFormat("#0.00");
+        DecimalFormat dec = new DecimalFormat("#0.00");
 
-		return dec.format(value);
-	}
+        return dec.format(value);
+    }
 
-	public double formatDouble(double value, String decimalZeros) {
+    public double formatDouble(double value, String decimalZeros) {
 
-		DecimalFormat dec = new DecimalFormat("#0."+ decimalZeros);
+        DecimalFormat dec = new DecimalFormat("#0." + decimalZeros);
 
-		return Double.parseDouble(dec.format(value));
-	}
+        return Double.parseDouble(dec.format(value));
+    }
 
-	public long getInterval() {
+    public long getInterval() {
 
-		return new Random().nextInt(max - min + 1) + min;
-	}
-	
-	public void delay() throws InterruptedException {
-		long interval = this.getInterval();
-		System.out.println("sleeping "+ interval);
-		Thread.sleep(interval);
-	}
-	public void delay(long ms) throws InterruptedException {
-		Thread.sleep(ms);
-	}
+        return new Random().nextInt(max - min + 1) + min;
+    }
 
-	private int getRandomNumberInRange(int min, int max) {
-		return (int) (Math.random() * ((max - min) + 1)) + min;
-	}
+    public void delay() throws InterruptedException {
+        long interval = this.getInterval();
+        System.out.println("sleeping " + interval);
+        Thread.sleep(interval);
+    }
 
-	// Return true if c is between a and b.
-	public boolean isBetween(double a, double b, double c) {
+    public void delay(long ms) throws InterruptedException {
+        Thread.sleep(ms);
+    }
 
-		if (c < a || c > b) {
-			return false;
-		}
+    private int getRandomNumberInRange(int min, int max) {
+        return (int) (Math.random() * ((max - min) + 1)) + min;
+    }
 
-		return b > a ? c > a && c < b : c > b && c < a;
-	}
+    // Return true if c is between a and b.
+    public boolean isBetween(double a, double b, double c) {
 
-	public boolean isResultMonth(LocalDate modifiedDate) {
+        if (c < a || c > b) {
+            return false;
+        }
 
-		List<String> resultsMonths = new ArrayList<>();
+        return b > a ? c > a && c < b : c > b && c < a;
+    }
 
-		resultsMonths.add("FEB");
-		resultsMonths.add("MAY");
-		resultsMonths.add("AUG");
-		resultsMonths.add("NOV");
+    public boolean isResultMonth(LocalDate modifiedDate) {
 
-		LocalDate localDate = LocalDate.now();
+        List<String> resultsMonths = new ArrayList<>();
 
-		String existingMonth = modifiedDate.getMonth().getDisplayName(TextStyle.SHORT, Locale.US).toUpperCase();
+        resultsMonths.add("FEB");
+        resultsMonths.add("MAY");
+        resultsMonths.add("AUG");
+        resultsMonths.add("NOV");
 
-		String month = localDate.getMonth().getDisplayName(TextStyle.SHORT, Locale.US).toUpperCase();
+        LocalDate localDate = LocalDate.now();
 
-		if (resultsMonths.contains(existingMonth)) {
-			return false;
-		} else if (resultsMonths.contains(month)) {
-			return true;
-		}
+        String existingMonth =
+                modifiedDate.getMonth().getDisplayName(TextStyle.SHORT, Locale.US).toUpperCase();
 
-		return false;
-	}
+        String month =
+                localDate.getMonth().getDisplayName(TextStyle.SHORT, Locale.US).toUpperCase();
 
-	public LocalDate currentDate() {
-		//return LocalDate.of(2025,03,21);
-		return LocalDate.now();
-	}
+        if (resultsMonths.contains(existingMonth)) {
+            return false;
+        } else if (resultsMonths.contains(month)) {
+            return true;
+        }
 
-	public LocalDate currentYearFirstDay() {
+        return false;
+    }
 
-		LocalDate yearFirstdate = LocalDate.now().with(TemporalAdjusters.firstDayOfYear());
+    public LocalDate currentDate() {
+        // return LocalDate.of(2025,03,21);
+        return LocalDate.now();
+    }
 
-		return yearFirstdate;
-	}
+    public LocalDate currentYearFirstDay() {
 
-	public LocalDate previousMonthLastDay() {
+        LocalDate yearFirstdate = LocalDate.now().with(TemporalAdjusters.firstDayOfYear());
 
-		LocalDate previousMonthLastDay = LocalDate.now().minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
+        return yearFirstdate;
+    }
 
-		return previousMonthLastDay;
-	}
+    public LocalDate previousMonthLastDay() {
 
-	public LocalDate previousMonthFirstDay() {
+        LocalDate previousMonthLastDay =
+                LocalDate.now().minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
 
-		LocalDate previousMonthFirstDay = LocalDate.now().minusMonths(1).with(TemporalAdjusters.firstDayOfMonth());
+        return previousMonthLastDay;
+    }
 
-		return previousMonthFirstDay;
-	}
+    public LocalDate previousMonthFirstDay() {
 
-	public LocalDate currentQuarterFirstDay(){
-		final Month yearStart = Month.JANUARY;
-		final int yearStartValue = yearStart.getValue();
-		int monthInQuarter = (this.currentDate().getMonthValue() + 12 - yearStartValue) % 3;
-		LocalDate currentQuarterStart
-				= this.currentDate().withDayOfMonth(1).minusMonths(monthInQuarter);
+        LocalDate previousMonthFirstDay =
+                LocalDate.now().minusMonths(1).with(TemporalAdjusters.firstDayOfMonth());
 
-		return currentQuarterStart;
-	}
+        return previousMonthFirstDay;
+    }
 
-	public LocalDate quarterFirstDay(LocalDate date) {
-		int month = date.getMonthValue();
-		Month firstMonthOfQuarter;
+    public LocalDate currentQuarterFirstDay() {
+        final Month yearStart = Month.JANUARY;
+        final int yearStartValue = yearStart.getValue();
+        int monthInQuarter = (this.currentDate().getMonthValue() + 12 - yearStartValue) % 3;
+        LocalDate currentQuarterStart =
+                this.currentDate().withDayOfMonth(1).minusMonths(monthInQuarter);
 
-		if (month <= 3) {
-			firstMonthOfQuarter = Month.JANUARY;
-		} else if (month <= 6) {
-			firstMonthOfQuarter = Month.APRIL;
-		} else if (month <= 9) {
-			firstMonthOfQuarter = Month.JULY;
-		} else {
-			firstMonthOfQuarter = Month.OCTOBER;
-		}
+        return currentQuarterStart;
+    }
 
-		return LocalDate.of(date.getYear(), firstMonthOfQuarter, 1);
-	}
+    public LocalDate quarterFirstDay(LocalDate date) {
+        int month = date.getMonthValue();
+        Month firstMonthOfQuarter;
 
-	public LocalDate quarterLastDay(LocalDate date) {
-		int month = date.getMonthValue();
-		Month lastMonthOfQuarter;
+        if (month <= 3) {
+            firstMonthOfQuarter = Month.JANUARY;
+        } else if (month <= 6) {
+            firstMonthOfQuarter = Month.APRIL;
+        } else if (month <= 9) {
+            firstMonthOfQuarter = Month.JULY;
+        } else {
+            firstMonthOfQuarter = Month.OCTOBER;
+        }
 
-		if (month <= 3) {
-			lastMonthOfQuarter = Month.MARCH;
-		} else if (month <= 6) {
-			lastMonthOfQuarter = Month.JUNE;
-		} else if (month <= 9) {
-			lastMonthOfQuarter = Month.SEPTEMBER;
-		} else {
-			lastMonthOfQuarter = Month.DECEMBER;
-		}
+        return LocalDate.of(date.getYear(), firstMonthOfQuarter, 1);
+    }
 
-		// Get the last day of the determined month
-		return YearMonth.of(date.getYear(), lastMonthOfQuarter).atEndOfMonth();
-	}
+    public LocalDate quarterLastDay(LocalDate date) {
+        int month = date.getMonthValue();
+        Month lastMonthOfQuarter;
 
-	public static LocalDate yearLastDay(LocalDate date) {
-		return LocalDate.of(date.getYear(), Month.DECEMBER, 31);
-	}
-	public static LocalDate yearFirstDay(LocalDate date) {
-		return LocalDate.of(date.getYear(), Month.JANUARY, 01);
-	}
+        if (month <= 3) {
+            lastMonthOfQuarter = Month.MARCH;
+        } else if (month <= 6) {
+            lastMonthOfQuarter = Month.JUNE;
+        } else if (month <= 9) {
+            lastMonthOfQuarter = Month.SEPTEMBER;
+        } else {
+            lastMonthOfQuarter = Month.DECEMBER;
+        }
 
-	public LocalDate previousQuarterLastDay() {
+        // Get the last day of the determined month
+        return YearMonth.of(date.getYear(), lastMonthOfQuarter).atEndOfMonth();
+    }
 
-		LocalDate previousQuarterLastDay = this.currentQuarterFirstDay().minusDays(1);
+    public static LocalDate yearLastDay(LocalDate date) {
+        return LocalDate.of(date.getYear(), Month.DECEMBER, 31);
+    }
 
-		return previousQuarterLastDay;
-	}
+    public static LocalDate yearFirstDay(LocalDate date) {
+        return LocalDate.of(date.getYear(), Month.JANUARY, 01);
+    }
 
-	public LocalDate previousQuarterFirstDay() {
+    public LocalDate previousQuarterLastDay() {
 
-		LocalDate previousQuarterStart = this.currentQuarterFirstDay().minusMonths(3);
+        LocalDate previousQuarterLastDay = this.currentQuarterFirstDay().minusDays(1);
 
-		return previousQuarterStart;
-	}
+        return previousQuarterLastDay;
+    }
 
-	public LocalDate currentYearLastDay() {
+    public LocalDate previousQuarterFirstDay() {
 
-		LocalDate yearLasttdate = LocalDate.now().with(TemporalAdjusters.lastDayOfYear());
+        LocalDate previousQuarterStart = this.currentQuarterFirstDay().minusMonths(3);
 
-		return yearLasttdate;
-	}
-	public LocalDate previousWeekLastDay() {
+        return previousQuarterStart;
+    }
 
-		LocalDate previousWeekLastDay = LocalDate.now().with(nextOrSame(DayOfWeek.SUNDAY)).minusWeeks(1);
+    public LocalDate currentYearLastDay() {
 
-		return previousWeekLastDay;
-	}
+        LocalDate yearLasttdate = LocalDate.now().with(TemporalAdjusters.lastDayOfYear());
 
-	public LocalDate previousWeekFirstDay() {
+        return yearLasttdate;
+    }
 
-		LocalDate previousWeekFirstDay = LocalDate.now().with(previousOrSame(DayOfWeek.MONDAY)).minusWeeks(1);
+    public LocalDate previousWeekLastDay() {
 
-		return previousWeekFirstDay;
-	}
+        LocalDate previousWeekLastDay =
+                LocalDate.now().with(nextOrSame(DayOfWeek.SUNDAY)).minusWeeks(1);
 
-	public LocalDate currentWeekFirstDay(){
-		 return LocalDate.now().with(DayOfWeek.MONDAY);
-	}
+        return previousWeekLastDay;
+    }
 
+    public LocalDate previousWeekFirstDay() {
 
-	public LocalDate currentMonthFirstDay() {
+        LocalDate previousWeekFirstDay =
+                LocalDate.now().with(previousOrSame(DayOfWeek.MONDAY)).minusWeeks(1);
 
-		LocalDate monthFirstDate = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
+        return previousWeekFirstDay;
+    }
 
-		return monthFirstDate;
-	}
+    public LocalDate currentWeekFirstDay() {
+        return LocalDate.now().with(DayOfWeek.MONDAY);
+    }
 
-	public LocalDate currentMonthLastDay() {
+    public LocalDate currentMonthFirstDay() {
 
-		LocalDate monthLastDate = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
+        LocalDate monthFirstDate = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
 
-		return monthLastDate;
-	}
-	
-	public LocalDate currentDatePrevYear() {
-		LocalDate currentDatePrevYear  = this.currentDate().minusMonths(12);
-		
-		return currentDatePrevYear;
-	}
-	
-	public LocalDate currentFinYearFirstDay() {
+        return monthFirstDate;
+    }
 
-		LocalDate FinYearFirstdate;
+    public LocalDate currentMonthLastDay() {
 
-		if (this.currentDate().getMonthValue() < 4) {
-			FinYearFirstdate = LocalDate.of(this.currentDate().getYear() - 1, Month.APRIL, 01);
-		} else {
-			FinYearFirstdate = LocalDate.of(this.currentDate().getYear(), Month.APRIL, 01);
-		}
+        LocalDate monthLastDate = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
 
-		return FinYearFirstdate;
-	}
+        return monthLastDate;
+    }
 
-	public LocalDate currentFinYearLastDay() {
-		LocalDate FinYearLasttdate;
+    public LocalDate currentDatePrevYear() {
+        LocalDate currentDatePrevYear = this.currentDate().minusMonths(12);
 
-		if (this.currentDate().getMonthValue() < 4) {
-			FinYearLasttdate = LocalDate.of(this.currentDate().getYear(), Month.MARCH, 31);
-		} else {
-			FinYearLasttdate = LocalDate.of(this.currentDate().getYear() + 1, Month.MARCH, 31);
-		}
+        return currentDatePrevYear;
+    }
 
-		return FinYearLasttdate;
-	}
+    public LocalDate currentFinYearFirstDay() {
 
+        LocalDate FinYearFirstdate;
+
+        if (this.currentDate().getMonthValue() < 4) {
+            FinYearFirstdate = LocalDate.of(this.currentDate().getYear() - 1, Month.APRIL, 01);
+        } else {
+            FinYearFirstdate = LocalDate.of(this.currentDate().getYear(), Month.APRIL, 01);
+        }
+
+        return FinYearFirstdate;
+    }
+
+    public LocalDate currentFinYearLastDay() {
+        LocalDate FinYearLasttdate;
+
+        if (this.currentDate().getMonthValue() < 4) {
+            FinYearLasttdate = LocalDate.of(this.currentDate().getYear(), Month.MARCH, 31);
+        } else {
+            FinYearLasttdate = LocalDate.of(this.currentDate().getYear() + 1, Month.MARCH, 31);
+        }
+
+        return FinYearLasttdate;
+    }
 }

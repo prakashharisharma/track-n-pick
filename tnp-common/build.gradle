@@ -1,0 +1,22 @@
+apply plugin: 'java-library'
+
+dependencies {
+    api 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    api 'org.springframework.boot:spring-boot-starter-data-redis'
+    api 'org.springframework.retry:spring-retry'
+    api 'io.jsonwebtoken:jjwt-api'
+    api 'io.jsonwebtoken:jjwt-impl'
+    api 'io.jsonwebtoken:jjwt-jackson'
+    api 'org.springframework.session:spring-session-core'
+    api 'net.logstash.logback:logstash-logback-encoder'
+    api 'com.github.ben-manes.caffeine:caffeine'
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+    archiveFileName = 'tnp-common.jar'
+} 

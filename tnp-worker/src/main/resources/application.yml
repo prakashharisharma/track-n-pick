@@ -1,0 +1,103 @@
+server:
+  port: 8081
+
+spring:
+  main:
+    banner-mode: OFF
+  application:
+    name: tnp-worker
+  profiles:
+    active: dev
+  cache:
+    type: redis
+  redis:
+    key:
+      prefix: ${SPRING_PROFILES_ACTIVE:default}:tnp
+    connect-timeout: 10000
+    cluster:
+      enabled: ${REDIS_CLUSTER_ENABLED:false}
+      nodes: ${REDIS_NODES:localhost:6379}
+      max-redirects: 3
+  datasource:
+    url: jdbc:mysql://localhost:3306/tnpDB
+    username: riphco
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    properties:
+      hibernate:
+        default_schema: tnpDB
+        format_sql: true
+        enable_lazy_load_no_trans: true
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  data:
+    mongodb:
+      database: tnpDB
+      uri: mongodb://localhost:27017/?connectTimeoutMS=300000&minPoolSize=32&maxPoolSize=512&maxIdleTimeMS=900000
+  activemq:
+    broker-url: tcp://localhost:61616
+    in-memory: true
+    pool:
+      enabled: true
+    packages:
+      trust-all: true
+      trusted: com.example.util.io.model
+  mail:
+    host: smtp.gmail.com
+    username: tracknpick@gmail.com
+    displayname: Track n Pick Research
+    password: Something@123
+    port: 587
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: true
+            required: true
+          auth: true
+  timezone: Asia/Kolkata
+  output:
+    ansi:
+      enabled: always
+
+logging:
+  file:
+    path: /Users/phs/mydrive/repo/tnp/logs
+  level:
+    root: info
+    com.example: debug
+    org.springframework: debug
+    com.mongodb: DEBUG
+    org.hibernate: DEBUG
+    org.hibernate.SQL: info
+    org.hibernate.type.descriptor.sql.BasicBinder: info
+
+kafka:
+  consumer:
+    enabled: true
+  topic:
+    prefix: ${KAFKA_TOPIC_PREFIX:}
+
+spring.kafka:
+  consumer:
+    group-id: tnp
+    auto-offset-reset: earliest
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+  listener:
+    concurrency: 4
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

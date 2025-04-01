@@ -9,7 +9,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 
-//@Slf4j
+// @Slf4j
 public class CustomBeanUtils {
 
     public static void copyProperties(Object source, Object target) {
@@ -71,4 +71,3 @@ public class CustomBeanUtils {
         return attributes;
     }
 }
-

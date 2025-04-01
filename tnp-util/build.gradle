@@ -1,0 +1,18 @@
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.apache.commons:commons-lang3'
+    implementation 'commons-beanutils:commons-beanutils:1.9.4'
+    implementation 'org.decampo:xirr:0.1'
+    
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+    archiveFileName = 'tnp-util.jar'
+} 

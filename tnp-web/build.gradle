@@ -1,0 +1,17 @@
+dependencies {
+    implementation project(':tnp-common')
+    implementation project(':tnp-service')
+    implementation project(':tnp-data')
+    implementation project(':tnp-dto')
+    implementation project(':tnp-util')
+    implementation project(':tnp-external')
+}
+
+bootJar {
+    enabled = true
+    archiveFileName = 'tnp-web.jar'
+}
+
+jar {
+    enabled = false
+} 

@@ -1,11 +1,9 @@
 package com.example.service;
 
-
 import com.example.data.transactional.entities.StockPrice;
 import com.example.util.FibonacciRatio;
 
 public interface CandleStickService {
-
 
     public static final double DEFAULT_SELLING_WICK_PER = 21.0;
 
@@ -15,19 +13,16 @@ public interface CandleStickService {
 
     public static final double MAX_WICK_SIZE = FibonacciRatio.RATIO_78_6 * 10;
 
-    //FibonacciRatio.RATIO_161_8 * 10;  //2.0;
-    public static final double MIN_BODY_SIZE = (FibonacciRatio.RATIO_23_6 * 100)/2;
-    //FibonacciRatio.RATIO_261_8 * 10;// 3.0;
-    public static final double MIN_RANGE = (FibonacciRatio.RATIO_38_2 * 100)/2;
+    // FibonacciRatio.RATIO_161_8 * 10;  //2.0;
+    public static final double MIN_BODY_SIZE = (FibonacciRatio.RATIO_23_6 * 100) / 2;
+    // FibonacciRatio.RATIO_261_8 * 10;// 3.0;
+    public static final double MIN_RANGE = (FibonacciRatio.RATIO_38_2 * 100) / 2;
 
     public static final double MAX_RANGE = 20.0;
 
-    //public static final double EPSILON_PER = FormulaService.EPSILON_PER;
+    // public static final double EPSILON_PER = FormulaService.EPSILON_PER;
 
     public static final double EPSILON_PER = 0.1618;
-
-
-
 
     public boolean isDead(StockPrice stockPrice);
 
@@ -42,6 +37,7 @@ public interface CandleStickService {
     public double range(StockPrice stockPrice);
 
     public double prevRange(StockPrice stockPrice);
+
     public boolean hasLongLowerWick(StockPrice stockPrice);
 
     public boolean isOpenInsidePrevBody(StockPrice stockPrice);
@@ -65,6 +61,7 @@ public interface CandleStickService {
     public boolean isOpenBelowPrevOpen(StockPrice stockPrice);
 
     public boolean isCloseAbovePrevOpen(StockPrice stockPrice);
+
     public boolean isCloseBelowPrevOpen(StockPrice stockPrice);
 
     public boolean isOpenAndLowEqual(StockPrice stockPrice);
@@ -87,10 +84,10 @@ public interface CandleStickService {
 
     public boolean isLowerHigh(StockPrice stockPrice);
 
-
     public boolean isLowerLow(StockPrice stockPrice);
 
     public boolean isPrevLowerHigh(StockPrice stockPrice);
+
     public boolean isPrevLowerLow(StockPrice stockPrice);
 
     public boolean isSellingWickPresent(StockPrice stockPrice);
@@ -101,42 +98,42 @@ public interface CandleStickService {
 
     public boolean isBuyingWickPresent(StockPrice stockPrice, double benchmark);
 
-
     public boolean isGapUp(StockPrice stockPrice);
 
     public boolean isGapDown(StockPrice stockPrice);
 
     public boolean isRisingWindow(StockPrice stockPrice);
+
     public boolean isFallingWindow(StockPrice stockPrice);
 
     public boolean isGreen(StockPrice stockPrice);
 
     public boolean isPreviousSessionGreen(StockPrice stockPrice);
+
     public boolean isRed(StockPrice stockPrice);
+
     public boolean isPreviousSessionRed(StockPrice stockPrice);
 
     /**
-     * The following conditions enhance the probability
-     * Stock must be in overbaught / oversold condition
-     * Volume above avg
-     * Gap up or gap down next day
+     * The following conditions enhance the probability Stock must be in overbaught / oversold
+     * condition Volume above avg Gap up or gap down next day
+     *
      * @param stockPrice
      * @return
      */
     public boolean isDoji(StockPrice stockPrice);
+
     public boolean isPrevDoji(StockPrice stockPrice);
     /**
-     * The following conditions enhance the probability
-     * Stock must be in overbaught / oversold condition
-     * Volume above avg
-     * Gap up or gap down next day
+     * The following conditions enhance the probability Stock must be in overbaught / oversold
+     * condition Volume above avg Gap up or gap down next day
+     *
      * @param stockPrice
      * @return
      */
     public boolean isGravestoneDoji(StockPrice stockPrice);
 
     public boolean isDragonflyDoji(StockPrice stockPrice);
-
 
     public boolean isBullishPinBar(StockPrice stockPrice);
 
@@ -156,6 +153,7 @@ public interface CandleStickService {
 
     /**
      * Need confirmation
+     *
      * @param stockPrice
      * @return
      */
@@ -167,6 +165,7 @@ public interface CandleStickService {
 
     /**
      * Need confirmation
+     *
      * @param stockPrice
      * @return
      */
@@ -175,10 +174,10 @@ public interface CandleStickService {
     public boolean isOpenHigh(StockPrice stockPrice);
 
     public boolean isOpenLow(StockPrice stockPrice);
+
     public boolean isBearishMarubozu(StockPrice stockPrice);
 
     public boolean isBullishMarubozu(StockPrice stockPrice);
-
 
     public boolean isBearishEngulfing(StockPrice stockPrice);
 
@@ -192,8 +191,8 @@ public interface CandleStickService {
 
     public boolean isDoubleTop(StockPrice stockPrice);
 
-
     public boolean isTweezerBottom(StockPrice stockPrice);
+
     public boolean isDoubleBottom(StockPrice stockPrice);
 
     public boolean isDarkCloudCover(StockPrice stockPrice);
@@ -214,6 +213,7 @@ public interface CandleStickService {
 
     /**
      * Need confirmation
+     *
      * @param stockPrice
      * @return
      */
@@ -221,6 +221,7 @@ public interface CandleStickService {
 
     /**
      * Need confirmation
+     *
      * @param stockPrice
      * @return
      */
@@ -228,6 +229,7 @@ public interface CandleStickService {
 
     /**
      * Need confirmation
+     *
      * @param stockPrice
      * @return
      */
@@ -235,11 +237,11 @@ public interface CandleStickService {
 
     /**
      * Need confirmation
+     *
      * @param stockPrice
      * @return
      */
     public boolean isBearishInsideBar(StockPrice stockPrice);
-
 
     public boolean isThreeWhiteSoldiers(StockPrice stockPrice);
 

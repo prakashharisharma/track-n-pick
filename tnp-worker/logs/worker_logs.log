@@ -1,0 +1,30 @@
+01-04-2025 11:31:54.240 [restartedMain] INFO 
+                com.example.WorkerApplication.logStarting - Starting WorkerApplication using Java 17.0.14 on RI-L053.local with PID 23957 (/Users/phs/mydrive/repo/track-n-pick/tnp-worker/build/classes/java/main started by phs in /Users/phs/mydrive/repo/track-n-pick/tnp-worker)
+01-04-2025 11:31:54.248 [restartedMain] DEBUG
+                com.example.WorkerApplication.logStarting - Running with Spring Boot v2.6.6, Spring v5.3.18
+01-04-2025 11:31:54.250 [restartedMain] INFO 
+                com.example.WorkerApplication.logStartupProfileInfo - No active profile set, falling back to 1 default profile: "default"
+01-04-2025 11:32:08.739 [restartedMain] INFO 
+                com.example.WorkerApplication.logStarted - Started WorkerApplication in 15.765 seconds (JVM running for 18.756)
+01-04-2025 11:32:08.742 [restartedMain] INFO 
+                com.example.WorkerRunner.run - Worker started....
+01-04-2025 11:45:55.698 [main] INFO 
+                com.example.WorkerApplication.logStarting - Starting WorkerApplication using Java 17.0.14 on RI-L053.local with PID 28747 (/Users/phs/mydrive/repo/track-n-pick/tnp-worker/build/classes/java/main started by phs in /Users/phs/mydrive/repo/track-n-pick/tnp-worker)
+01-04-2025 11:45:55.703 [main] DEBUG
+                com.example.WorkerApplication.logStarting - Running with Spring Boot v2.6.6, Spring v5.3.18
+01-04-2025 11:45:55.705 [main] INFO 
+                com.example.WorkerApplication.logStartupProfileInfo - No active profile set, falling back to 1 default profile: "default"
+01-04-2025 11:46:08.980 [main] INFO 
+                com.example.WorkerApplication.logStarted - Started WorkerApplication in 13.903 seconds (JVM running for 14.9)
+01-04-2025 11:46:08.985 [main] INFO 
+                com.example.WorkerRunner.run - Worker started....
+01-04-2025 12:34:00.893 [main] INFO 
+                com.example.WorkerApplication.logStarting - Starting WorkerApplication using Java 17.0.14 on RI-L053.local with PID 36209 (/Users/phs/mydrive/repo/track-n-pick/tnp-worker/build/classes/java/main started by phs in /Users/phs/mydrive/repo/track-n-pick/tnp-worker)
+01-04-2025 12:34:00.896 [main] DEBUG
+                com.example.WorkerApplication.logStarting - Running with Spring Boot v2.6.6, Spring v5.3.18
+01-04-2025 12:34:00.897 [main] INFO 
+                com.example.WorkerApplication.logStartupProfileInfo - The following 1 profile is active: "dev"
+01-04-2025 12:34:07.848 [main] INFO 
+                com.example.WorkerApplication.logStarted - Started WorkerApplication in 7.291 seconds (JVM running for 7.686)
+01-04-2025 12:34:07.851 [main] INFO 
+                com.example.WorkerRunner.run - Worker started....

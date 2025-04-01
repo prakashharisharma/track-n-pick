@@ -1,19 +1,17 @@
 package com.example.worker.scheduler;
 
-
 import com.example.dto.io.StockPriceIN;
 import com.example.processor.BhavProcessor;
 import com.example.service.BhavcopyService;
 import com.example.service.CalendarService;
 import com.example.util.MiscUtil;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,10 +26,8 @@ public class ProcessBhavScheduler {
 
     private final MiscUtil miscUtil;
 
-    /**
-     * Scheduled task to start downloading Bhavcopy at 4:45 AM IST
-     */
-    @Scheduled(cron = "0 45 16 * * *", zone = "Asia/Kolkata")// Runs every day at 4:45 AM IST
+    /** Scheduled task to start downloading Bhavcopy at 4:45 AM IST */
+    @Scheduled(cron = "0 45 16 * * *", zone = "Asia/Kolkata") // Runs every day at 4:45 AM IST
     public void scheduleBhavCopyDownload() {
 
         LocalDate sessionDate = miscUtil.currentDate(); // Adjust if needed
@@ -39,11 +35,12 @@ public class ProcessBhavScheduler {
         try {
             log.info("Starting scheduled bhav copy download for session date: {}", sessionDate);
 
-            if(calendarService.isWorkingDay(sessionDate)) {
+            if (calendarService.isWorkingDay(sessionDate)) {
 
-                List<StockPriceIN> nseBhavIOList = bhavcopyService.downloadAndProcessBhavcopy(sessionDate);
+                List<StockPriceIN> nseBhavIOList =
+                        bhavcopyService.downloadAndProcessBhavcopy(sessionDate);
 
-                if (nseBhavIOList!= null && !nseBhavIOList.isEmpty()){
+                if (nseBhavIOList != null && !nseBhavIOList.isEmpty()) {
                     bhavProcessor.process(nseBhavIOList);
                 }
             }

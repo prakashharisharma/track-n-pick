@@ -1,10 +1,9 @@
 package com.example.processor;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.util.HashSet;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -237,13 +236,12 @@ public class SkipBhavProcessServiceImpl implements SkipBhavProcessService {
         ignoreSet.add("LIQUIDPLUS");
     }
 
-
     @Override
     public boolean isSkipped(String nseSymbol) {
-        if(nseSymbol.endsWith("-RE") || nseSymbol.endsWith("-RE1") || nseSymbol.endsWith("-RE2")){
+        if (nseSymbol.endsWith("-RE") || nseSymbol.endsWith("-RE1") || nseSymbol.endsWith("-RE2")) {
             return Boolean.TRUE;
         }
 
-        return ignoreSet.contains(nseSymbol)? Boolean.TRUE : Boolean.FALSE;
+        return ignoreSet.contains(nseSymbol) ? Boolean.TRUE : Boolean.FALSE;
     }
 }

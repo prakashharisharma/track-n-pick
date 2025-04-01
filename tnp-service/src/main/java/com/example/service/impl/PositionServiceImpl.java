@@ -14,10 +14,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class PositionServiceImpl implements PositionService {
 
-    @Autowired
-    private FormulaService formulaService;
-    @Autowired
-    private FundsLedgerService fundsLedgerService;
+    @Autowired private FormulaService formulaService;
+    @Autowired private FundsLedgerService fundsLedgerService;
 
     @Override
     public long calculate(User user, ResearchTechnical researchTechnical) {
@@ -32,32 +30,28 @@ public class PositionServiceImpl implements PositionService {
 
         double risk = formulaService.calculateFraction(capital, riskFactor);
 
-        double stopLoss = (researchTechnical.getResearchPrice()  - researchTechnical.getStopLoss());
+        double stopLoss = (researchTechnical.getResearchPrice() - researchTechnical.getStopLoss());
 
         long positionSize = (long) (risk / stopLoss);
 
         return positionSize;
     }
 
-    private double getRiskFactor(ResearchTechnical researchTechnical){
-        if(researchTechnical.getStrategy() == ResearchTechnical.Strategy.VOLUME){
+    private double getRiskFactor(ResearchTechnical researchTechnical) {
+        if (researchTechnical.getStrategy() == ResearchTechnical.Strategy.VOLUME) {
             return RiskFactor.VOLUME_HV;
-        }
-        else if(researchTechnical.getStrategy() == ResearchTechnical.Strategy.PRICE){
-            if(researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.SRMA) {
+        } else if (researchTechnical.getStrategy() == ResearchTechnical.Strategy.PRICE) {
+            if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.SRMA) {
                 return RiskFactor.PRICE_SRMA;
-            }
-            else if(researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.SRTF) {
+            } else if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.SRTF) {
                 return RiskFactor.PRICE_SRTF;
-            }else if(researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.RMAO) {
+            } else if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.RMAO) {
                 return RiskFactor.PRICE_RMAO;
             }
-        }
-        else if(researchTechnical.getStrategy() == ResearchTechnical.Strategy.SWING){
-            if(researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.RM) {
+        } else if (researchTechnical.getStrategy() == ResearchTechnical.Strategy.SWING) {
+            if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.RM) {
                 return RiskFactor.SWING_RM;
-            }
-            else if(researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.TEMA) {
+            } else if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.TEMA) {
                 return RiskFactor.SWING_TEMA;
             }
         }

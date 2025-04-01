@@ -1,17 +1,15 @@
 package com.example.service.impl;
 
 import com.example.dto.OHLCV;
+import com.example.service.CalendarService;
+import com.example.service.OHLCVAggregatorService;
+import java.time.*;
 import java.time.Instant;
+import java.util.*;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import java.time.*;
-import java.util.*;
-
-import com.example.service.OHLCVAggregatorService;
-import com.example.service.CalendarService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +20,6 @@ import org.springframework.stereotype.Service;
 public class OHLCVAggregatorServiceImpl implements OHLCVAggregatorService {
 
     private final CalendarService calendarService;
-
 
     private static Instant getStartOfWeek(Instant instant) {
         return instant.atZone(ZoneOffset.UTC)
@@ -58,26 +55,52 @@ public class OHLCVAggregatorServiceImpl implements OHLCVAggregatorService {
 
     @Override
     public List<OHLCV> aggregateToWeekly(List<OHLCV> dailyOHLCV) {
-        return aggregate(dailyOHLCV, OHLCVAggregatorServiceImpl::getStartOfWeek, calendarService::isLastTradingSessionOfWeek);
+        return aggregate(
+                dailyOHLCV,
+                OHLCVAggregatorServiceImpl::getStartOfWeek,
+                calendarService::isLastTradingSessionOfWeek);
     }
 
     @Override
     public List<OHLCV> aggregateToMonthly(List<OHLCV> dailyOHLCV) {
-        return aggregate(dailyOHLCV, OHLCVAggregatorServiceImpl::getStartOfMonth, calendarService::isLastTradingSessionOfMonth);
-    }
-    @Override
-    public List<OHLCV> aggregateToQuarterly(List<OHLCV> dailyOHLCV) {
-        return aggregate(dailyOHLCV, OHLCVAggregatorServiceImpl::getStartOfQuarter, calendarService::isLastTradingSessionOfQuarter);
-    }
-    @Override
-    public List<OHLCV> aggregateToYearly(List<OHLCV> dailyOHLCV) {
-        return aggregate(dailyOHLCV, OHLCVAggregatorServiceImpl::getStartOfYear, calendarService::isLastTradingSessionOfYear);
+        return aggregate(
+                dailyOHLCV,
+                OHLCVAggregatorServiceImpl::getStartOfMonth,
+                calendarService::isLastTradingSessionOfMonth);
     }
 
-    private List<OHLCV> aggregate(List<OHLCV> dailyOHLCV, TimeframeAggregator aggregator, Predicate<LocalDate> isLastTradingSession) {
-        Map<Instant, List<OHLCV>> grouped = dailyOHLCV.stream()
-                .filter(ohlcv -> isLastTradingSession.test(ohlcv.getBhavDate().atZone(ZoneOffset.UTC).toLocalDate())) // Ensures only prior completed periods
-                .collect(Collectors.groupingBy(ohlcv -> aggregator.getStart(ohlcv.getBhavDate())));
+    @Override
+    public List<OHLCV> aggregateToQuarterly(List<OHLCV> dailyOHLCV) {
+        return aggregate(
+                dailyOHLCV,
+                OHLCVAggregatorServiceImpl::getStartOfQuarter,
+                calendarService::isLastTradingSessionOfQuarter);
+    }
+
+    @Override
+    public List<OHLCV> aggregateToYearly(List<OHLCV> dailyOHLCV) {
+        return aggregate(
+                dailyOHLCV,
+                OHLCVAggregatorServiceImpl::getStartOfYear,
+                calendarService::isLastTradingSessionOfYear);
+    }
+
+    private List<OHLCV> aggregate(
+            List<OHLCV> dailyOHLCV,
+            TimeframeAggregator aggregator,
+            Predicate<LocalDate> isLastTradingSession) {
+        Map<Instant, List<OHLCV>> grouped =
+                dailyOHLCV.stream()
+                        .filter(
+                                ohlcv ->
+                                        isLastTradingSession.test(
+                                                ohlcv.getBhavDate()
+                                                        .atZone(ZoneOffset.UTC)
+                                                        .toLocalDate())) // Ensures only prior
+                        // completed periods
+                        .collect(
+                                Collectors.groupingBy(
+                                        ohlcv -> aggregator.getStart(ohlcv.getBhavDate())));
 
         return grouped.entrySet().stream()
                 .map(entry -> aggregateOHLC(entry.getValue()))
@@ -92,7 +115,8 @@ public class OHLCVAggregatorServiceImpl implements OHLCVAggregatorService {
         double close = ohlcvs.get(ohlcvs.size() - 1).getClose();
         long volume = ohlcvs.stream().mapToLong(OHLCV::getVolume).sum();
 
-        Instant lastBhavDate = ohlcvs.stream().map(OHLCV::getBhavDate).max(Comparator.naturalOrder()).orElse(null);
+        Instant lastBhavDate =
+                ohlcvs.stream().map(OHLCV::getBhavDate).max(Comparator.naturalOrder()).orElse(null);
 
         return new OHLCV(lastBhavDate, open, high, low, close, volume);
     }

@@ -2,8 +2,6 @@ package com.example.service;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Stock;
-
-
 import java.time.LocalDate;
 
 public interface ResearchExecutorService {
