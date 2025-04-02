@@ -43,6 +43,9 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
     @Override
     public boolean isMcapInRange(Stock stock) {
 
+        return true;
+
+        /*
         if (stock.getCompanyName().contains("AMC") || stock.getCompanyName().contains("ETF")) {
             return true;
         }
@@ -53,6 +56,7 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
             return Boolean.TRUE;
         }
         return Boolean.FALSE;
+        */
     }
 
     @Override

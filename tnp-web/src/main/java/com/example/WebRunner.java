@@ -280,18 +280,18 @@ public class WebRunner implements CommandLineRunner {
         stockList.forEach(
                 stk -> {
                     Trend trend = trendService.detect(stk, Timeframe.DAILY);
-                    if (trend.getDirection() != Trend.Direction.INVALID) {
-                        System.out.println(
-                                "DAILY -> "
-                                        + stk.getNseSymbol()
-                                        + " Direction: "
-                                        + trend.getDirection()
-                                        + " Strength: "
-                                        + trend.getStrength()
-                                        + " Momentum: "
-                                        + trend.getMomentum());
-                    }
-
+                    // if (trend.getDirection() != Trend.Direction.INVALID) {
+                    System.out.println(
+                            "DAILY -> "
+                                    + stk.getNseSymbol()
+                                    + " Direction: "
+                                    + trend.getDirection()
+                                    + " Strength: "
+                                    + trend.getStrength()
+                                    + " Momentum: "
+                                    + trend.getMomentum());
+                    // }
+                    /*
                     trend = trendService.detect(stk, Timeframe.WEEKLY);
                     if (trend.getDirection() != Trend.Direction.INVALID) {
                         System.out.println(
@@ -316,7 +316,7 @@ public class WebRunner implements CommandLineRunner {
                                         + trend.getStrength()
                                         + " Momentum: "
                                         + trend.getMomentum());
-                    }
+                    }*/
                 });
     }
 
@@ -338,13 +338,16 @@ public class WebRunner implements CommandLineRunner {
                         System.out.println("FUNDAMENTAL " + stock.getNseSymbol());
                     }
                     System.out.println("******* DAILY :" + stock.getNseSymbol() + " *******");
-                    TradeSetup tradeSetup = priceActionService.breakOut(stock, Timeframe.DAILY);
+
                     StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
                     StockTechnicals stockTechnicals =
                             stockTechnicalsService.get(stock, Timeframe.DAILY);
-
+                    TradeSetup tradeSetup = priceActionService.breakOut(stock, Timeframe.DAILY);
+                    System.out.println(
+                            stock.getNseSymbol() + " : Price Action " + tradeSetup.isActive());
                     tradeSetup = swingActionService.breakOut(stock, Timeframe.DAILY);
-
+                    System.out.println(
+                            stock.getNseSymbol() + " : Swing Action " + tradeSetup.isActive());
                     if (calendarService.isLastTradingSessionOfWeek(miscUtil.currentDate())) {
                         System.out.println("******* WEEKLY :" + stock.getNseSymbol() + " *******");
                         stockPrice = stockPriceService.get(stock, Timeframe.WEEKLY);

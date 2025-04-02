@@ -13,6 +13,7 @@ import com.example.model.type.IndiceType;
 import com.example.service.*;
 import com.example.service.UpdatePriceService;
 import com.example.util.MiscUtil;
+import com.example.util.ThreadsUtil;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -159,7 +160,7 @@ public class BhavProcessorImpl implements BhavProcessor {
 
     private void importAndProcessDailyPrice(List<StockPriceIO> stockPriceIOList) {
         // int numThreads = 4; // Number of threads
-        int numThreads = Runtime.getRuntime().availableProcessors();
+        int numThreads = ThreadsUtil.poolSize();
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 
         List<Future<List<StockPrice>>> futures = new ArrayList<>();
@@ -176,7 +177,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                 // Submit batch processing tasks
                 Future<List<StockPrice>> future = executor.submit(() -> processBatch(batch));
                 futures.add(future);
-                miscUtil.delay(160);
+                miscUtil.delay(numThreads * 16);
             } catch (Exception e) {
                 log.error("An eoor occurd while processing monthly batch", e);
             }
@@ -225,7 +226,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                 updatePriceService.updatePrice(Timeframe.DAILY, stock, stockPrice);
                 researchExecutorService.executeFundamental(stock);
                 stockPriceList.add(stockPrice);
-                miscUtil.delay(32);
+                miscUtil.delay(ThreadsUtil.poolSize() * 8);
             } catch (Exception e) {
                 log.error(
                         "{} An error occurred while processing daily batch",
@@ -264,7 +265,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                     Future<List<StockPrice>> yearlyFuture =
                             executor.submit(() -> processYearlyBatch(batch));
                     yearlyFutures.add(yearlyFuture);
-                    miscUtil.delay(1600);
+                    miscUtil.delay(numThreads * 128);
                 } catch (Exception e) {
                     log.error("{} An eoor occurd while processing monthly batch", e);
                 }
@@ -276,7 +277,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                     Future<List<StockPrice>> quarterlyFuture =
                             executor.submit(() -> processQuarterlyBatch(batch));
                     quarterlyFutures.add(quarterlyFuture);
-                    miscUtil.delay(1600);
+                    miscUtil.delay(numThreads * 128);
                 } catch (Exception e) {
                     log.error("{} An eoor occurd while processing monthly batch", e);
                 }
@@ -288,7 +289,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                     Future<List<StockPrice>> monthlyFuture =
                             executor.submit(() -> processMonthlyBatch(batch));
                     monthlyFutures.add(monthlyFuture);
-                    miscUtil.delay(1600);
+                    miscUtil.delay(numThreads * 128);
                 } catch (Exception e) {
                     log.error("{} An eoor occurd while processing monthly batch", e);
                 }
@@ -300,7 +301,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                     Future<List<StockPrice>> weeklyFuture =
                             executor.submit(() -> processWeeklyBatch(batch));
                     weeklyFutures.add(weeklyFuture);
-                    miscUtil.delay(1600);
+                    miscUtil.delay(numThreads * 128);
                 } catch (Exception e) {
                     log.error("{} An eoor occurd while processing monthly batch", e);
                 }
@@ -391,7 +392,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                         updatePriceService.build(Timeframe.YEARLY, stock, miscUtil.currentDate());
                 updatePriceService.updatePrice(Timeframe.YEARLY, stock, stockPrice);
                 yearlyStockPriceList.add(stockPrice);
-                miscUtil.delay(320);
+                miscUtil.delay(ThreadsUtil.poolSize() * 64);
             } catch (Exception e) {
                 log.error(
                         "{} An eoor occurd while processing yearly batch", stock.getNseSymbol(), e);
@@ -410,7 +411,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                                 Timeframe.QUARTERLY, stock, miscUtil.currentDate());
                 updatePriceService.updatePrice(Timeframe.QUARTERLY, stock, stockPrice);
                 quarterlyStockPriceList.add(stockPrice);
-                miscUtil.delay(320);
+                miscUtil.delay(ThreadsUtil.poolSize() * 64);
             } catch (Exception e) {
                 log.error(
                         "{} An eoor occurd while processing quarterly batch",
@@ -429,7 +430,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                         updatePriceService.build(Timeframe.MONTHLY, stock, miscUtil.currentDate());
                 updatePriceService.updatePrice(Timeframe.MONTHLY, stock, stockPrice);
                 monthlyStockPriceList.add(stockPrice);
-                miscUtil.delay(320);
+                miscUtil.delay(ThreadsUtil.poolSize() * 64);
             } catch (Exception e) {
                 log.error(
                         "{} An eoor occurd while processing monthly batch",
@@ -449,7 +450,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                         updatePriceService.build(Timeframe.WEEKLY, stock, miscUtil.currentDate());
                 updatePriceService.updatePrice(Timeframe.WEEKLY, stock, stockPrice);
                 weeklyStockPriceList.add(stockPrice);
-                miscUtil.delay(320);
+                miscUtil.delay(ThreadsUtil.poolSize() * 64);
             } catch (Exception e) {
                 log.error(
                         "{} An eoor occurd while processing weekly batch", stock.getNseSymbol(), e);
@@ -468,7 +469,7 @@ public class BhavProcessorImpl implements BhavProcessor {
         for (Stock stock : stockList) {
             try {
                 executor.submit(() -> processTechnicalsBatch(stock));
-                miscUtil.delay(800);
+                miscUtil.delay(ThreadsUtil.poolSize() * 64);
             } catch (Exception e) {
                 log.error(
                         "{} An eoor occurd while processing monthly batch",
@@ -490,7 +491,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                 updateTechnicalsService.updateTechnicals(Timeframe.MONTHLY, stock, stockTechnicals);
                 researchExecutorService.executeTechnical(
                         Timeframe.MONTHLY, stock, miscUtil.currentDate());
-                miscUtil.delay(160);
+                miscUtil.delay(ThreadsUtil.poolSize() * 32);
             } catch (Exception e) {
                 log.error(
                         "{} An eoor occurd while processing monthly batch",
@@ -507,7 +508,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                 updateTechnicalsService.updateTechnicals(Timeframe.WEEKLY, stock, stockTechnicals);
                 researchExecutorService.executeTechnical(
                         Timeframe.WEEKLY, stock, miscUtil.currentDate());
-                miscUtil.delay(160);
+                miscUtil.delay(ThreadsUtil.poolSize() * 32);
             } catch (Exception e) {
                 log.error(
                         "{} An eoor occurd while processing weekly batch", stock.getNseSymbol(), e);
@@ -520,7 +521,7 @@ public class BhavProcessorImpl implements BhavProcessor {
             updateTechnicalsService.updateTechnicals(Timeframe.DAILY, stock, stockTechnicals);
             researchExecutorService.executeTechnical(
                     Timeframe.DAILY, stock, miscUtil.currentDate());
-            miscUtil.delay(160);
+            miscUtil.delay(ThreadsUtil.poolSize() * 32);
         } catch (Exception e) {
             log.error("{} An eoor occurd while processing daily batch", stock.getNseSymbol(), e);
         }

@@ -54,7 +54,13 @@ public class SwingActionServiceImpl implements SwingActionService {
         StockPrice stockPrice = stockPriceService.get(stock, timeframe);
         StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
         Trend trend = trendService.detect(stock, timeframe);
-        if (trend.getMomentum() == Trend.Momentum.PULLBACK
+        log.info(
+                "{} : Scanning swing action breakout Direction: {}, Momentum:{}",
+                stock.getNseSymbol(),
+                trend.getDirection(),
+                trend.getMomentum());
+        if (trend.getMomentum() == Trend.Momentum.DIP
+                || trend.getMomentum() == Trend.Momentum.PULLBACK
                 || trend.getMomentum() == Trend.Momentum.CORRECTION) {
             if (candleStickHelperService.isBullishConfirmed(
                     timeframe, stockPrice, stockTechnicals)) {
@@ -119,8 +125,14 @@ public class SwingActionServiceImpl implements SwingActionService {
         StockPrice stockPrice = stockPriceService.get(stock, timeframe);
         StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
         Trend trend = trendService.detect(stock, timeframe);
+        log.info(
+                "{} : Scanning swing action breakdown Direction: {}, Momentum:{}",
+                stock.getNseSymbol(),
+                trend.getDirection(),
+                trend.getMomentum());
         if (trend.getMomentum() == Trend.Momentum.TOP
-                || trend.getMomentum() == Trend.Momentum.ADVANCE) {
+                || trend.getMomentum() == Trend.Momentum.ADVANCE
+                || trend.getMomentum() == Trend.Momentum.RECOVERY) {
             // if (trend.getMomentum() == Trend.Momentum.RECOVERY || trend.getMomentum() ==
             // Trend.Momentum.ADVANCE) {
             if (candleStickHelperService.isBearishConfirmed(

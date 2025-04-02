@@ -18,13 +18,16 @@ public class MovingAverageUtil {
     }
 
     public static double getMovingAverage50(Timeframe timeframe, StockTechnicals stockTechnicals) {
-        return (timeframe == Timeframe.MONTHLY)
-                ? stockTechnicals.getSma50()
-                : stockTechnicals.getEma50();
+        return stockTechnicals.getEma50();
+        /*
+         return (timeframe == Timeframe.MONTHLY)
+                 ? stockTechnicals.getSma50()
+                 : stockTechnicals.getEma50();
+        */
     }
 
     public static double getMovingAverage100(Timeframe timeframe, StockTechnicals stockTechnicals) {
-        return (timeframe == Timeframe.MONTHLY || timeframe == Timeframe.WEEKLY)
+        return (timeframe == Timeframe.MONTHLY)
                 ? stockTechnicals.getSma100()
                 : stockTechnicals.getEma100();
     }

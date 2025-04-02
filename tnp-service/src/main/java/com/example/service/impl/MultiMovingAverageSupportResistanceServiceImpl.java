@@ -62,10 +62,19 @@ public class MultiMovingAverageSupportResistanceServiceImpl
         // Daily Timeframe
         Map<Trend.Momentum, List<MovingAverageSupportResistanceService>> dailyBreakout =
                 new HashMap<>();
+
         dailyBreakout.put(
-                Trend.Momentum.PULLBACK, List.of(twentyDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.DIP, List.of(twentyDaysMovingAverageSupportResistanceService));
         dailyBreakout.put(
-                Trend.Momentum.CORRECTION, List.of(fiftyDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.PULLBACK,
+                List.of(
+                        twentyDaysMovingAverageSupportResistanceService,
+                        fiftyDaysMovingAverageSupportResistanceService));
+        dailyBreakout.put(
+                Trend.Momentum.CORRECTION,
+                List.of(
+                        fiftyDaysMovingAverageSupportResistanceService,
+                        oneHundredDaysMovingAverageSupportResistanceService));
         dailyBreakout.put(
                 Trend.Momentum.BOTTOM,
                 List.of(
@@ -76,29 +85,42 @@ public class MultiMovingAverageSupportResistanceServiceImpl
         Map<Trend.Momentum, List<MovingAverageSupportResistanceService>> weeklyBreakout =
                 new HashMap<>();
         weeklyBreakout.put(
-                Trend.Momentum.PULLBACK, List.of(tenDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.DIP, List.of(twentyDaysMovingAverageSupportResistanceService));
+        weeklyBreakout.put(
+                Trend.Momentum.PULLBACK,
+                List.of(
+                        twentyDaysMovingAverageSupportResistanceService,
+                        fiftyDaysMovingAverageSupportResistanceService));
         weeklyBreakout.put(
                 Trend.Momentum.CORRECTION,
-                List.of(twentyDaysMovingAverageSupportResistanceService));
+                List.of(
+                        fiftyDaysMovingAverageSupportResistanceService,
+                        oneHundredDaysMovingAverageSupportResistanceService));
         weeklyBreakout.put(
                 Trend.Momentum.BOTTOM,
                 List.of(
-                        fiftyDaysMovingAverageSupportResistanceService,
                         oneHundredDaysMovingAverageSupportResistanceService,
                         twoHundredDaysMovingAverageSupportResistanceService));
 
         // Monthly Timeframe
         Map<Trend.Momentum, List<MovingAverageSupportResistanceService>> monthlyBreakout =
                 new HashMap<>();
+
         monthlyBreakout.put(
-                Trend.Momentum.PULLBACK, List.of(fiveDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.DIP, List.of(tenDaysMovingAverageSupportResistanceService));
         monthlyBreakout.put(
-                Trend.Momentum.CORRECTION, List.of(tenDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.PULLBACK,
+                List.of(
+                        tenDaysMovingAverageSupportResistanceService,
+                        fiftyDaysMovingAverageSupportResistanceService));
+        monthlyBreakout.put(
+                Trend.Momentum.CORRECTION,
+                List.of(
+                        fiftyDaysMovingAverageSupportResistanceService,
+                        oneHundredDaysMovingAverageSupportResistanceService));
         monthlyBreakout.put(
                 Trend.Momentum.BOTTOM,
                 List.of(
-                        twentyDaysMovingAverageSupportResistanceService,
-                        fiftyDaysMovingAverageSupportResistanceService,
                         oneHundredDaysMovingAverageSupportResistanceService,
                         twoHundredDaysMovingAverageSupportResistanceService));
 
@@ -127,10 +149,19 @@ public class MultiMovingAverageSupportResistanceServiceImpl
         // Manually populating the maps to avoid type inference issues
         Map<Trend.Momentum, List<MovingAverageSupportResistanceService>> dailySupport =
                 new HashMap<>();
+
         dailySupport.put(
-                Trend.Momentum.PULLBACK, List.of(twentyDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.DIP, List.of(twentyDaysMovingAverageSupportResistanceService));
         dailySupport.put(
-                Trend.Momentum.CORRECTION, List.of(fiftyDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.PULLBACK,
+                List.of(
+                        twentyDaysMovingAverageSupportResistanceService,
+                        fiftyDaysMovingAverageSupportResistanceService));
+        dailySupport.put(
+                Trend.Momentum.CORRECTION,
+                List.of(
+                        fiftyDaysMovingAverageSupportResistanceService,
+                        oneHundredDaysMovingAverageSupportResistanceService));
         dailySupport.put(
                 Trend.Momentum.BOTTOM,
                 List.of(
@@ -140,28 +171,40 @@ public class MultiMovingAverageSupportResistanceServiceImpl
         Map<Trend.Momentum, List<MovingAverageSupportResistanceService>> weeklySupport =
                 new HashMap<>();
         weeklySupport.put(
-                Trend.Momentum.PULLBACK, List.of(tenDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.DIP, List.of(twentyDaysMovingAverageSupportResistanceService));
+        weeklySupport.put(
+                Trend.Momentum.PULLBACK,
+                List.of(
+                        twentyDaysMovingAverageSupportResistanceService,
+                        fiftyDaysMovingAverageSupportResistanceService));
         weeklySupport.put(
                 Trend.Momentum.CORRECTION,
-                List.of(twentyDaysMovingAverageSupportResistanceService));
+                List.of(
+                        fiftyDaysMovingAverageSupportResistanceService,
+                        oneHundredDaysMovingAverageSupportResistanceService));
         weeklySupport.put(
                 Trend.Momentum.BOTTOM,
                 List.of(
-                        fiftyDaysMovingAverageSupportResistanceService,
                         oneHundredDaysMovingAverageSupportResistanceService,
                         twoHundredDaysMovingAverageSupportResistanceService));
 
         Map<Trend.Momentum, List<MovingAverageSupportResistanceService>> monthlySupport =
                 new HashMap<>();
         monthlySupport.put(
-                Trend.Momentum.PULLBACK, List.of(fiveDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.DIP, List.of(twentyDaysMovingAverageSupportResistanceService));
         monthlySupport.put(
-                Trend.Momentum.CORRECTION, List.of(tenDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.PULLBACK,
+                List.of(
+                        twentyDaysMovingAverageSupportResistanceService,
+                        fiftyDaysMovingAverageSupportResistanceService));
+        monthlySupport.put(
+                Trend.Momentum.CORRECTION,
+                List.of(
+                        fiftyDaysMovingAverageSupportResistanceService,
+                        oneHundredDaysMovingAverageSupportResistanceService));
         monthlySupport.put(
                 Trend.Momentum.BOTTOM,
                 List.of(
-                        twentyDaysMovingAverageSupportResistanceService,
-                        fiftyDaysMovingAverageSupportResistanceService,
                         oneHundredDaysMovingAverageSupportResistanceService,
                         twoHundredDaysMovingAverageSupportResistanceService));
 
@@ -191,9 +234,18 @@ public class MultiMovingAverageSupportResistanceServiceImpl
         Map<Trend.Momentum, List<MovingAverageSupportResistanceService>> dailyBreakdown =
                 new HashMap<>();
         dailyBreakdown.put(
-                Trend.Momentum.RECOVERY, List.of(twentyDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.EARLY_RECOVERY,
+                List.of(twentyDaysMovingAverageSupportResistanceService));
         dailyBreakdown.put(
-                Trend.Momentum.ADVANCE, List.of(fiftyDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.RECOVERY,
+                List.of(
+                        twentyDaysMovingAverageSupportResistanceService,
+                        fiftyDaysMovingAverageSupportResistanceService));
+        dailyBreakdown.put(
+                Trend.Momentum.ADVANCE,
+                List.of(
+                        fiftyDaysMovingAverageSupportResistanceService,
+                        oneHundredDaysMovingAverageSupportResistanceService));
         dailyBreakdown.put(
                 Trend.Momentum.TOP,
                 List.of(
@@ -204,13 +256,21 @@ public class MultiMovingAverageSupportResistanceServiceImpl
         Map<Trend.Momentum, List<MovingAverageSupportResistanceService>> weeklyBreakdown =
                 new HashMap<>();
         weeklyBreakdown.put(
-                Trend.Momentum.RECOVERY, List.of(tenDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.EARLY_RECOVERY,
+                List.of(twentyDaysMovingAverageSupportResistanceService));
         weeklyBreakdown.put(
-                Trend.Momentum.ADVANCE, List.of(twentyDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.RECOVERY,
+                List.of(
+                        twentyDaysMovingAverageSupportResistanceService,
+                        fiftyDaysMovingAverageSupportResistanceService));
+        weeklyBreakdown.put(
+                Trend.Momentum.ADVANCE,
+                List.of(
+                        fiftyDaysMovingAverageSupportResistanceService,
+                        oneHundredDaysMovingAverageSupportResistanceService));
         weeklyBreakdown.put(
                 Trend.Momentum.TOP,
                 List.of(
-                        fiftyDaysMovingAverageSupportResistanceService,
                         oneHundredDaysMovingAverageSupportResistanceService,
                         twoHundredDaysMovingAverageSupportResistanceService));
 
@@ -218,14 +278,21 @@ public class MultiMovingAverageSupportResistanceServiceImpl
         Map<Trend.Momentum, List<MovingAverageSupportResistanceService>> monthlyBreakdown =
                 new HashMap<>();
         monthlyBreakdown.put(
-                Trend.Momentum.RECOVERY, List.of(fiveDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.EARLY_RECOVERY,
+                List.of(twentyDaysMovingAverageSupportResistanceService));
         monthlyBreakdown.put(
-                Trend.Momentum.ADVANCE, List.of(tenDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.RECOVERY,
+                List.of(
+                        twentyDaysMovingAverageSupportResistanceService,
+                        fiftyDaysMovingAverageSupportResistanceService));
+        monthlyBreakdown.put(
+                Trend.Momentum.ADVANCE,
+                List.of(
+                        fiftyDaysMovingAverageSupportResistanceService,
+                        oneHundredDaysMovingAverageSupportResistanceService));
         monthlyBreakdown.put(
                 Trend.Momentum.TOP,
                 List.of(
-                        twentyDaysMovingAverageSupportResistanceService,
-                        fiftyDaysMovingAverageSupportResistanceService,
                         oneHundredDaysMovingAverageSupportResistanceService,
                         twoHundredDaysMovingAverageSupportResistanceService));
 
@@ -255,9 +322,18 @@ public class MultiMovingAverageSupportResistanceServiceImpl
         Map<Trend.Momentum, List<MovingAverageSupportResistanceService>> dailyResistance =
                 new HashMap<>();
         dailyResistance.put(
-                Trend.Momentum.RECOVERY, List.of(twentyDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.EARLY_RECOVERY,
+                List.of(twentyDaysMovingAverageSupportResistanceService));
         dailyResistance.put(
-                Trend.Momentum.ADVANCE, List.of(fiftyDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.RECOVERY,
+                List.of(
+                        twentyDaysMovingAverageSupportResistanceService,
+                        fiftyDaysMovingAverageSupportResistanceService));
+        dailyResistance.put(
+                Trend.Momentum.ADVANCE,
+                List.of(
+                        fiftyDaysMovingAverageSupportResistanceService,
+                        oneHundredDaysMovingAverageSupportResistanceService));
         dailyResistance.put(
                 Trend.Momentum.TOP,
                 List.of(
@@ -268,13 +344,21 @@ public class MultiMovingAverageSupportResistanceServiceImpl
         Map<Trend.Momentum, List<MovingAverageSupportResistanceService>> weeklyResistance =
                 new HashMap<>();
         weeklyResistance.put(
-                Trend.Momentum.RECOVERY, List.of(tenDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.EARLY_RECOVERY,
+                List.of(twentyDaysMovingAverageSupportResistanceService));
         weeklyResistance.put(
-                Trend.Momentum.ADVANCE, List.of(twentyDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.RECOVERY,
+                List.of(
+                        twentyDaysMovingAverageSupportResistanceService,
+                        fiftyDaysMovingAverageSupportResistanceService));
+        weeklyResistance.put(
+                Trend.Momentum.ADVANCE,
+                List.of(
+                        fiftyDaysMovingAverageSupportResistanceService,
+                        oneHundredDaysMovingAverageSupportResistanceService));
         weeklyResistance.put(
                 Trend.Momentum.TOP,
                 List.of(
-                        fiftyDaysMovingAverageSupportResistanceService,
                         oneHundredDaysMovingAverageSupportResistanceService,
                         twoHundredDaysMovingAverageSupportResistanceService));
 
@@ -282,14 +366,21 @@ public class MultiMovingAverageSupportResistanceServiceImpl
         Map<Trend.Momentum, List<MovingAverageSupportResistanceService>> monthlyResistance =
                 new HashMap<>();
         monthlyResistance.put(
-                Trend.Momentum.RECOVERY, List.of(fiveDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.EARLY_RECOVERY,
+                List.of(twentyDaysMovingAverageSupportResistanceService));
         monthlyResistance.put(
-                Trend.Momentum.ADVANCE, List.of(tenDaysMovingAverageSupportResistanceService));
+                Trend.Momentum.RECOVERY,
+                List.of(
+                        twentyDaysMovingAverageSupportResistanceService,
+                        fiftyDaysMovingAverageSupportResistanceService));
+        monthlyResistance.put(
+                Trend.Momentum.ADVANCE,
+                List.of(
+                        fiftyDaysMovingAverageSupportResistanceService,
+                        oneHundredDaysMovingAverageSupportResistanceService));
         monthlyResistance.put(
                 Trend.Momentum.TOP,
                 List.of(
-                        twentyDaysMovingAverageSupportResistanceService,
-                        fiftyDaysMovingAverageSupportResistanceService,
                         oneHundredDaysMovingAverageSupportResistanceService,
                         twoHundredDaysMovingAverageSupportResistanceService));
 
