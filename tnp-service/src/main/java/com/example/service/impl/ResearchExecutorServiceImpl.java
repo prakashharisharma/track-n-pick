@@ -8,7 +8,7 @@ import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.data.transactional.entities.Trade;
 import com.example.data.transactional.entities.ValuationLedger;
-import com.example.dto.TradeSetup;
+import com.example.dto.common.TradeSetup;
 import com.example.service.*;
 import com.example.service.ResearchTechnicalService;
 import com.example.service.StockPriceService;

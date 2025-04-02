@@ -6,7 +6,7 @@ import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.data.transactional.entities.Trade;
-import com.example.dto.TradeSetup;
+import com.example.dto.common.TradeSetup;
 import java.time.LocalDate;
 import java.util.List;
 

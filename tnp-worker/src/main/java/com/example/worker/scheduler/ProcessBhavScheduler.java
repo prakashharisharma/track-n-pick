@@ -48,5 +48,4 @@ public class ProcessBhavScheduler {
             log.error("bhav copy download failed for {}: {}", sessionDate, e.getMessage());
         }
     }
-
 }

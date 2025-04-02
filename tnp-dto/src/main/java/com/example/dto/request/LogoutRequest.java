@@ -1,11 +1,10 @@
-package com.example.dto.security;
+package com.example.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class LoginRequest {
+public class LogoutRequest {
     private String username;
-    private String password;
 }

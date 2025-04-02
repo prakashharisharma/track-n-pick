@@ -1,4 +1,4 @@
-package com.example.dto.security;
+package com.example.dto.response;
 
 public class JwtResponse {
     private String accessToken;
