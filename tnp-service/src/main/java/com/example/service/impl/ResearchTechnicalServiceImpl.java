@@ -3,7 +3,7 @@ package com.example.service.impl;
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.*;
 import com.example.data.transactional.repo.ResearchTechnicalRepository;
-import com.example.dto.TradeSetup;
+import com.example.dto.common.TradeSetup;
 import com.example.service.ResearchTechnicalService;
 import com.example.service.RiskFactor;
 import com.example.util.FormulaService;

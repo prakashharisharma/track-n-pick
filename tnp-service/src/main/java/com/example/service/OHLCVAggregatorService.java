@@ -1,6 +1,6 @@
 package com.example.service;
 
-import com.example.dto.OHLCV;
+import com.example.dto.common.OHLCV;
 import java.util.List;
 
 public interface OHLCVAggregatorService {

@@ -1,4 +1,4 @@
-package com.example.dto;
+package com.example.dto.common;
 
 import com.example.data.transactional.entities.ResearchTechnical;
 import java.io.Serializable;

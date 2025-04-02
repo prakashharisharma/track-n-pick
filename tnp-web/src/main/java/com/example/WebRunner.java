@@ -2,15 +2,15 @@ package com.example;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
-import com.example.data.storage.documents.assembler.StockPriceOHLCVAssembler;
 import com.example.data.storage.repo.PriceTemplate;
 import com.example.data.storage.repo.TechnicalsTemplate;
 import com.example.data.transactional.entities.*;
 import com.example.data.transactional.entities.User;
 import com.example.data.transactional.repo.*;
 import com.example.data.transactional.repo.TradingHolidayRepository;
-import com.example.dto.OHLCV;
-import com.example.dto.TradeSetup;
+import com.example.dto.assembler.StockPriceOHLCVAssembler;
+import com.example.dto.common.OHLCV;
+import com.example.dto.common.TradeSetup;
 import com.example.dto.io.StockPriceIO;
 import com.example.external.factor.FactorRediff;
 import com.example.external.ta.service.McService;
