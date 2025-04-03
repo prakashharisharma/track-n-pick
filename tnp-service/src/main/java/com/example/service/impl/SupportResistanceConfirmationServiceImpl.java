@@ -5,6 +5,7 @@ import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.AdxIndicatorService;
 import com.example.service.SupportResistanceConfirmationService;
+import com.example.service.utils.CandleStickUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,9 +24,27 @@ public class SupportResistanceConfirmationServiceImpl
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
             double supportLevel) {
-        boolean priceRejection =
+
+        boolean priceRejectionWithLowerWick =
                 stockPrice.getLow() <= supportLevel && stockPrice.getClose() > supportLevel;
 
+        boolean isWithin1Percent =
+                stockPrice.getLow() > supportLevel && stockPrice.getLow() <= supportLevel * 1.01;
+
+        double lowerWickSize = CandleStickUtils.lowerWickSize(stockPrice);
+        double upperWickSize = CandleStickUtils.upperWickSize(stockPrice);
+        double bodySize = CandleStickUtils.bodySize(stockPrice);
+
+        boolean isLowerWickSignificant =
+                lowerWickSize > (0.50 * bodySize) && lowerWickSize > upperWickSize;
+
+        boolean strongClose =
+                (stockPrice.getClose() - stockPrice.getLow())
+                        > (0.5 * (stockPrice.getHigh() - stockPrice.getLow()));
+
+        boolean priceRejection =
+                priceRejectionWithLowerWick
+                        || (isWithin1Percent && (isLowerWickSignificant || strongClose));
         boolean adxStrong = stockTechnicals.getAdx() > 20;
         boolean dmiPositive = stockTechnicals.getPlusDi() > stockTechnicals.getMinusDi();
 
@@ -69,8 +88,27 @@ public class SupportResistanceConfirmationServiceImpl
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
             double resistanceLevel) {
-        boolean priceRejection =
+        boolean priceRejectionWithUpperWick =
                 stockPrice.getHigh() >= resistanceLevel && stockPrice.getClose() < resistanceLevel;
+
+        boolean isWithin1Percent =
+                stockPrice.getHigh() < resistanceLevel * 1.01
+                        && stockPrice.getHigh() >= resistanceLevel;
+
+        double lowerWickSize = CandleStickUtils.lowerWickSize(stockPrice);
+        double upperWickSize = CandleStickUtils.upperWickSize(stockPrice);
+        double bodySize = CandleStickUtils.bodySize(stockPrice);
+
+        boolean isUpperWickSignificant =
+                upperWickSize > (0.50 * bodySize) && upperWickSize > lowerWickSize;
+
+        boolean weakClose =
+                (stockPrice.getHigh() - stockPrice.getClose())
+                        > (0.5 * (stockPrice.getHigh() - stockPrice.getLow()));
+
+        boolean priceRejection =
+                priceRejectionWithUpperWick
+                        || (isWithin1Percent && (isUpperWickSignificant || weakClose));
 
         boolean adxStrong = stockTechnicals.getAdx() > 20;
         boolean dmiNegative = stockTechnicals.getMinusDi() > stockTechnicals.getPlusDi();
