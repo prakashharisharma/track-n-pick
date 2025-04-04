@@ -5,10 +5,12 @@ import com.example.data.transactional.entities.Sector;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.repo.SectorRepository;
+import com.example.dto.io.SectorIO;
 import com.example.service.impl.FundamentalResearchService;
 import com.example.util.FormulaService;
 import com.example.util.rules.RulesFundamental;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
@@ -33,12 +35,15 @@ public class SectorService {
 
     @Autowired private StockPriceService<StockPrice> stockPriceService;
 
+    public Optional<Sector> getByCode(String code) {
+        return sectorRepository.findByCode(code);
+    }
+
     public Sector getSectorByName(String sectorName) {
 
         System.out.println("Searching for sector : " + sectorName);
 
-        List<Sector> sectorList =
-                sectorRepository.findBySectorName(sectorName.toUpperCase().trim());
+        List<Sector> sectorList = sectorRepository.findBySectorName(sectorName.trim());
 
         Sector sector = null;
 
@@ -49,9 +54,19 @@ public class SectorService {
         return sector;
     }
 
+    public Sector getOrCreate(SectorIO sectorIO) {
+        if (this.isExist(sectorIO.getCode())) {
+            return sectorRepository.findByCode(sectorIO.getCode()).get();
+        }
+
+        Sector sector = new Sector(sectorIO.getSectorName().trim());
+        sector.setCode(sectorIO.getCode().trim());
+        return sectorRepository.save(sector);
+    }
+
     public Sector getOrAddSectorByName(String sectorName) {
 
-        if (this.isExist(sectorName)) {
+        if (this.isExistByName(sectorName)) {
 
             return getSectorByName(sectorName);
 
@@ -107,15 +122,14 @@ public class SectorService {
         return sectorRepository.save(sector);
     }
 
-    public boolean isExist(String sectorName) {
+    public boolean isExistByName(String sectorName) {
 
-        Sector sector = this.getSectorByName(sectorName);
+        return this.getSectorByName(sectorName) != null ? true : false;
+    }
 
-        if (sector != null) {
-            return true;
-        } else {
-            return false;
-        }
+    public boolean isExist(String sectorCode) {
+
+        return this.getByCode(sectorCode).isPresent();
     }
 
     public void updateSectorPEPB() {

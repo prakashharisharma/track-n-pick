@@ -469,7 +469,7 @@ public class BhavProcessorImpl implements BhavProcessor {
         for (Stock stock : stockList) {
             try {
                 executor.submit(() -> processTechnicalsBatch(stock));
-                miscUtil.delay(ThreadsUtil.poolSize() * 64);
+                miscUtil.delay(ThreadsUtil.poolSize() * 128);
             } catch (Exception e) {
                 log.error(
                         "{} An eoor occurd while processing monthly batch",
@@ -491,7 +491,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                 updateTechnicalsService.updateTechnicals(Timeframe.MONTHLY, stock, stockTechnicals);
                 researchExecutorService.executeTechnical(
                         Timeframe.MONTHLY, stock, miscUtil.currentDate());
-                miscUtil.delay(ThreadsUtil.poolSize() * 32);
+                miscUtil.delay(ThreadsUtil.poolSize() * 64);
             } catch (Exception e) {
                 log.error(
                         "{} An eoor occurd while processing monthly batch",
@@ -508,7 +508,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                 updateTechnicalsService.updateTechnicals(Timeframe.WEEKLY, stock, stockTechnicals);
                 researchExecutorService.executeTechnical(
                         Timeframe.WEEKLY, stock, miscUtil.currentDate());
-                miscUtil.delay(ThreadsUtil.poolSize() * 32);
+                miscUtil.delay(ThreadsUtil.poolSize() * 64);
             } catch (Exception e) {
                 log.error(
                         "{} An eoor occurd while processing weekly batch", stock.getNseSymbol(), e);
@@ -521,7 +521,7 @@ public class BhavProcessorImpl implements BhavProcessor {
             updateTechnicalsService.updateTechnicals(Timeframe.DAILY, stock, stockTechnicals);
             researchExecutorService.executeTechnical(
                     Timeframe.DAILY, stock, miscUtil.currentDate());
-            miscUtil.delay(ThreadsUtil.poolSize() * 32);
+            miscUtil.delay(ThreadsUtil.poolSize() * 64);
         } catch (Exception e) {
             log.error("{} An eoor occurd while processing daily batch", stock.getNseSymbol(), e);
         }

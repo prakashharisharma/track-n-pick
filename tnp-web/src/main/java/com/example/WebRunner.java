@@ -11,7 +11,11 @@ import com.example.data.transactional.repo.TradingHolidayRepository;
 import com.example.dto.assembler.StockPriceOHLCVAssembler;
 import com.example.dto.common.OHLCV;
 import com.example.dto.common.TradeSetup;
+import com.example.dto.io.BseSectorListResponse;
+import com.example.dto.io.SectorIO;
 import com.example.dto.io.StockPriceIO;
+import com.example.external.NSEIndustryFetcher;
+import com.example.external.SectorDownloadService;
 import com.example.external.factor.FactorRediff;
 import com.example.external.ta.service.McService;
 import com.example.processor.BhavProcessor;
@@ -23,7 +27,12 @@ import com.example.util.MiscUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
@@ -38,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Slf4j
@@ -67,6 +77,7 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private MiscUtil miscUtil;
     @Autowired private BhavProcessor bhavProcessor;
 
+    @Autowired private NSEIndustryFetcher sectorScrappingService;
     @Autowired private UpdatePriceService updatePriceService;
 
     @Autowired private TechnicalsTemplate technicalsTemplate;
@@ -135,6 +146,8 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private TimeframeSupportResistanceService timeframeSupportResistanceService;
 
+    @Autowired private SectorDownloadService sectorDownloadService;
+
     @Override
     public void run(String... arg0) throws InterruptedException, IOException {
 
@@ -157,11 +170,14 @@ public class WebRunner implements CommandLineRunner {
         // this.testObv();
         // this.testTimeFrameSR();
         // this.testTrend();
-        this.scanCandleStickPattern();
+
         // this.allocatePositions();
+        // this.updateSectorsActivity();
+        this.updateRemainigSectorsActivityFromNSE();
+
+        this.scanCandleStickPattern();
 
         // this.testScore();
-
         // this.updatePriceHistory();
         // this.updateTechnicals();
         // this.processBhavFromApi();
@@ -322,6 +338,157 @@ public class WebRunner implements CommandLineRunner {
 
     private void testCandleStick() {
         System.out.println("******* Testing CandleSticks *******");
+    }
+
+    private void updateRemainigSectorsActivityFromNSE() {
+
+        List<Stock> stockList = stockRepository.findByActivityCompleted(false);
+
+        List<String> results = new ArrayList<>();
+
+        int countTotal = stockList.size();
+
+        for (Stock stock : stockList) {
+            try {
+                miscUtil.delay();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            try {
+                long startTime = System.currentTimeMillis();
+                System.out.println("Starting activity for " + stock.getNseSymbol());
+
+                String industry = sectorScrappingService.getIndustry(stock.getNseSymbol());
+                // String industry = null;
+                if (!industry.equalsIgnoreCase("NSE")) {
+                    log.info("Industry found: {}", industry);
+                    Sector sector = sectorService.getSectorByName(industry);
+                    if (sector != null) {
+                        log.info("Sector found code: {}, name: {}", sector.getCode(), industry);
+                        stock.setSector(sector);
+                        stock.setSectorName(sector.getSectorName());
+                        stock.setActivityCompleted(true);
+                        stockRepository.save(stock);
+                        --countTotal;
+                    } else {
+                        log.info("Sector Not found name: {}", industry);
+                        results.add(stock.getNseSymbol());
+                    }
+                }
+
+                long endTime = System.currentTimeMillis();
+
+                System.out.println(
+                        "Completed activity for "
+                                + stock.getNseSymbol()
+                                + " took "
+                                + (endTime - startTime)
+                                + "ms");
+                System.out.println("Remaining " + countTotal);
+
+                // miscUtil.delay(25);
+            } catch (Exception e) {
+                System.out.println("An Error occurred while updating price");
+            }
+        }
+        System.out.println("Not in master.............");
+        results.forEach(
+                result -> {
+                    System.out.println(result);
+                });
+    }
+
+    private void updateSectorsActivity() {
+
+        log.info("Starting update sector activity");
+
+        List<SectorIO> sectorIOList = null;
+        try {
+            sectorIOList = this.loadSectors();
+
+            for (SectorIO sectorIO : sectorIOList) {
+                log.info(
+                        "Starting updating code:{}, name:{}",
+                        sectorIO.getCode(),
+                        sectorIO.getSectorName());
+                Sector sector = sectorService.getOrCreate(sectorIO);
+                this.downloadAndUpdateSectorStocksList(sector);
+                miscUtil.delay();
+            }
+
+        } catch (IOException | InterruptedException e) {
+            log.error("An error occured", e);
+        }
+
+        log.info("Completed update sector activity");
+    }
+
+    @Transactional
+    private void downloadAndUpdateSectorStocksList(Sector sector) {
+        log.info("Updating stocks for code:{}, name:{}", sector.getCode(), sector.getSectorName());
+        List<BseSectorListResponse> bseSectorListResponseList = null;
+
+        try {
+            bseSectorListResponseList =
+                    sectorDownloadService.downloadAndProcessSectors(sector.getCode());
+
+            if (bseSectorListResponseList != null && !bseSectorListResponseList.isEmpty()) {
+                bseSectorListResponseList.forEach(
+                        bseSectorResponse -> {
+                            Stock stock =
+                                    stockService.getStockByNseSymbol(
+                                            bseSectorResponse.getSecurityName().trim());
+                            if (stock != null) {
+                                log.info(
+                                        "Found stocks in master :{}",
+                                        bseSectorResponse.getSecurityName().trim());
+                                stock.setSector(sector);
+                                stock.setSectorName(sector.getSectorName());
+                                stock.setActivityCompleted(true);
+                                stockRepository.save(stock);
+                                log.info("Sector updated in master :{}", stock.getNseSymbol());
+                            } else {
+                                log.info(
+                                        "Not Found stocks in master :{}",
+                                        bseSectorResponse.getSecurityName().trim());
+                            }
+                        });
+            }
+
+        } catch (IOException e) {
+            log.error("An error occured while updating sectors {}", sector.getCode(), e);
+        }
+
+        log.info("Updated stocks for code:{}, name:{}", sector.getCode(), sector.getSectorName());
+    }
+
+    public List<SectorIO> loadSectors() throws IOException {
+
+        String CSV_FILE_PATH =
+                System.getProperty("user.home") + "/mydrive/repo/tnp/sector_master.csv";
+
+        List<SectorIO> sectors = new ArrayList<>();
+        Path filePath = Paths.get(CSV_FILE_PATH);
+
+        if (!Files.exists(filePath)) {
+            throw new FileNotFoundException("CSV file not found: " + CSV_FILE_PATH);
+        }
+
+        try (BufferedReader br = Files.newBufferedReader(filePath)) {
+            String line;
+            boolean firstLine = true;
+            while ((line = br.readLine()) != null) {
+                if (firstLine) { // Skip header
+                    firstLine = false;
+                    continue;
+                }
+                String[] values = line.split(",");
+                if (values.length >= 2) {
+                    sectors.add(new SectorIO(values[0].trim(), values[1].trim()));
+                }
+            }
+        }
+        return sectors;
     }
 
     private void scanCandleStickPattern() {

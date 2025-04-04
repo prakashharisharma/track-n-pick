@@ -19,8 +19,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class MiscUtil {
 
-    private static int min = 750;
-    private static int max = 8763;
+    private static int min = 1437;
+    private static int max = 5897;
 
     public String formatDouble(double value) {
 
@@ -92,8 +92,8 @@ public class MiscUtil {
     }
 
     public LocalDate currentDate() {
-        // return LocalDate.of(2025,03,21);
-        return LocalDate.now();
+        //return LocalDate.of(2025, 04, 03);
+         return LocalDate.now();
     }
 
     public LocalDate currentYearFirstDay() {
