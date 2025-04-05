@@ -66,17 +66,18 @@ public class SwingActionServiceImpl implements SwingActionService {
                     timeframe, stockPrice, stockTechnicals)) {
                 ResearchTechnical.SubStrategy subStrategy = ResearchTechnical.SubStrategy.RM;
 
-                boolean isTmaConvergenceAndDivergence =
-                        this.isTmaDivergence(stock, timeframe, trend);
+                // boolean isTmaConvergenceAndDivergence = this.isTmaDivergence(stock, timeframe,
+                // trend);
                 boolean isRsiMacdBreakout = this.isRsiMacdBreakout(stock, timeframe, trend);
 
                 boolean isSwingAction = Boolean.FALSE;
 
-                if (isTmaConvergenceAndDivergence) {
+                /*if (isTmaConvergenceAndDivergence) {
                     subStrategy = ResearchTechnical.SubStrategy.TEMA;
 
                     isSwingAction = Boolean.TRUE;
-                } else if (isRsiMacdBreakout) {
+                } else */
+                if (isRsiMacdBreakout) {
                     subStrategy = ResearchTechnical.SubStrategy.RM;
                     isSwingAction = Boolean.TRUE;
                 }

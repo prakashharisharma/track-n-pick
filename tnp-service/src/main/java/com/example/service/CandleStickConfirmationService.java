@@ -6,6 +6,12 @@ import com.example.data.transactional.entities.StockTechnicals;
 
 public interface CandleStickConfirmationService {
 
+    public boolean isUpperWickSizeConfirmed(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
+
+    public boolean isLowerWickSizeConfirmed(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
+
     public boolean isBullishConfirmed(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 

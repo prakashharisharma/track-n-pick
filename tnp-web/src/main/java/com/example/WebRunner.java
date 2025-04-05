@@ -173,7 +173,8 @@ public class WebRunner implements CommandLineRunner {
 
         // this.allocatePositions();
         // this.updateSectorsActivity();
-        this.updateRemainigSectorsActivityFromNSE();
+
+        // this.updateRemainigSectorsActivityFromNSE();
 
         this.scanCandleStickPattern();
 

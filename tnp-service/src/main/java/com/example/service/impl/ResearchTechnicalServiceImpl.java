@@ -6,6 +6,7 @@ import com.example.data.transactional.repo.ResearchTechnicalRepository;
 import com.example.dto.common.TradeSetup;
 import com.example.service.ResearchTechnicalService;
 import com.example.service.RiskFactor;
+import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
 import java.time.LocalDate;
 import java.util.List;
@@ -68,13 +69,14 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         newResearchTechnical.setStrategy(tradeSetup.getStrategy());
         newResearchTechnical.setSubStrategy(tradeSetup.getSubStrategy());
 
-        newResearchTechnical.setResearchPrice(stockPrice.getHigh());
-        newResearchTechnical.setStopLoss(stockPrice.getLow());
+        newResearchTechnical.setResearchPrice(this.calculateResearchPrice(tradeSetup, stockPrice));
+
+        newResearchTechnical.setStopLoss(this.calculateStopLoss(stockPrice, newResearchTechnical));
         newResearchTechnical.setTarget(
                 formulaService.calculateTarget(
                         stockPrice.getHigh(),
                         stockPrice.getLow(),
-                        this.calculateRiskRewardRatio(timeframe)));
+                        this.calculateRiskRewardRatio(tradeSetup.getSubStrategy())));
         newResearchTechnical.setRisk(
                 Math.abs(
                         formulaService.calculateChangePercentage(
@@ -125,16 +127,51 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         return researchTechnicalRepository.findAllByType(type);
     }
 
-    private double calculateRiskRewardRatio(Timeframe timeframe) {
+    private double calculateRiskRewardRatio(ResearchTechnical.SubStrategy subStrategy) {
 
-        if (timeframe == Timeframe.MONTHLY) {
-            return 5.0;
-        }
-        if (timeframe == Timeframe.WEEKLY) {
-            return 3.5;
+        if (subStrategy == ResearchTechnical.SubStrategy.STRONG_SUPPORT) {
+            return 3.0;
+        } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT) {
+            return 2.0;
+        } else if (subStrategy == ResearchTechnical.SubStrategy.STRONG_BREAKOUT) {
+            return 3.0;
+        } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_BREAKOUT) {
+            return 2.0;
+        } else if (subStrategy == ResearchTechnical.SubStrategy.BULLISH_INDICATORS) {
+            return 2.0;
         }
 
         return 2.0;
+    }
+
+    private double calculateStopLoss(StockPrice stockPrice, ResearchTechnical researchTechnical) {
+        double buffer = 0.005 * stockPrice.getLow(); // 0.5% buffer
+        double stopLoss =
+                researchTechnical.getResearchPrice() > stockPrice.getLow()
+                        ? stockPrice.getLow()
+                        : stockPrice.getLow() - buffer;
+
+        return Math.max(stopLoss, 0.01); // prevent negative or 0 SL
+    }
+
+    private double calculateResearchPrice(TradeSetup tradeSetup, StockPrice stockPrice) {
+        ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
+        boolean isWeakSignal = this.isWeakSubStrategy(subStrategy);
+
+        boolean isRedCandle = CandleStickUtils.isRed(stockPrice);
+
+        if (isWeakSignal) {
+            return isRedCandle
+                    ? stockPrice.getLow()
+                    : (stockPrice.getOpen() + stockPrice.getLow()) / 2.0;
+        }
+
+        return isRedCandle ? stockPrice.getClose() : stockPrice.getHigh();
+    }
+
+    private boolean isWeakSubStrategy(ResearchTechnical.SubStrategy subStrategy) {
+        return subStrategy == ResearchTechnical.SubStrategy.WEAK_BREAKOUT
+                || subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT;
     }
 
     public double calculateScore(

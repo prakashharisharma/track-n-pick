@@ -29,7 +29,7 @@ public class SupportResistanceConfirmationServiceImpl
                 stockPrice.getLow() <= supportLevel && stockPrice.getClose() > supportLevel;
 
         boolean isWithin1Percent =
-                stockPrice.getLow() > supportLevel && stockPrice.getLow() <= supportLevel * 0.51;
+                stockPrice.getLow() > supportLevel && stockPrice.getLow() <= supportLevel * 0.985;
 
         double lowerWickSize = CandleStickUtils.lowerWickSize(stockPrice);
         double upperWickSize = CandleStickUtils.upperWickSize(stockPrice);
@@ -45,11 +45,11 @@ public class SupportResistanceConfirmationServiceImpl
         boolean priceRejection =
                 priceRejectionWithLowerWick
                         || (isWithin1Percent && (isLowerWickSignificant || strongClose));
-        boolean adxStrong = stockTechnicals.getAdx() > 20;
+        boolean adxStrong = stockTechnicals.getAdx() > 25;
         boolean dmiPositive = stockTechnicals.getPlusDi() > stockTechnicals.getMinusDi();
 
         double atr = stockTechnicals.getAtr();
-        boolean atrSupportConfirmed = (stockPrice.getLow() - supportLevel) > (-1.5 * atr);
+        boolean atrSupportConfirmed = Math.abs(stockPrice.getLow() - supportLevel) <= (1.2 * atr);
 
         if (priceRejection) {
             log.info(
@@ -92,7 +92,7 @@ public class SupportResistanceConfirmationServiceImpl
                 stockPrice.getHigh() >= resistanceLevel && stockPrice.getClose() < resistanceLevel;
 
         boolean isWithin1Percent =
-                stockPrice.getHigh() < resistanceLevel * 0.51
+                stockPrice.getHigh() < resistanceLevel * 0.985
                         && stockPrice.getHigh() >= resistanceLevel;
 
         double lowerWickSize = CandleStickUtils.lowerWickSize(stockPrice);
@@ -110,11 +110,12 @@ public class SupportResistanceConfirmationServiceImpl
                 priceRejectionWithUpperWick
                         || (isWithin1Percent && (isUpperWickSignificant || weakClose));
 
-        boolean adxStrong = stockTechnicals.getAdx() > 20;
+        boolean adxStrong = stockTechnicals.getAdx() > 25;
         boolean dmiNegative = stockTechnicals.getMinusDi() > stockTechnicals.getPlusDi();
 
         double atr = stockTechnicals.getAtr();
-        boolean atrResistanceConfirmed = (stockPrice.getHigh() - resistanceLevel) < (1.5 * atr);
+        boolean atrResistanceConfirmed =
+                Math.abs(stockPrice.getHigh() - resistanceLevel) <= (1.2 * atr);
 
         if (priceRejection) {
             log.info(
