@@ -12,6 +12,8 @@ import com.example.service.*;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
 import com.example.util.FormulaService;
+import java.util.EnumSet;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,29 +51,21 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         boolean isCandleActive = Boolean.FALSE;
         Trend trend = trendService.detect(stock, timeframe);
+
         log.info(
-                "{} : Scanning price action breakout Direction: {}, Momentum:{}",
+                "{} [{}]: Scanning breakout | Direction: {}, Momentum: {}",
                 stock.getNseSymbol(),
+                timeframe,
                 trend.getDirection(),
                 trend.getMomentum());
-        ResearchTechnical.SubStrategy subStrategy = ResearchTechnical.SubStrategy.SRTF;
+
+        AtomicReference<ResearchTechnical.SubStrategy> subStrategyRef = new AtomicReference<>();
+
         if (trend.getDirection() != Trend.Direction.INVALID) {
-            if (candleStickHelperService.isBullishConfirmed(
-                    timeframe, stockPrice, stockTechnicals)) {
-                if (relevanceService.isBullishIndicator(
-                        trend, timeframe, stockPrice, stockTechnicals)) {
-                    subStrategy = ResearchTechnical.SubStrategy.RMAO;
-                    isCandleActive = Boolean.TRUE;
-                } else if (relevanceService.isBullishTimeFrame(
-                        trend, timeframe, stockPrice, stockTechnicals, 1.5)) {
-                    subStrategy = ResearchTechnical.SubStrategy.SRTF;
-                    isCandleActive = Boolean.TRUE;
-                } else if (relevanceService.isBullishMovingAverage(
-                        trend, timeframe, stockPrice, stockTechnicals, 1.5)) {
-                    subStrategy = ResearchTechnical.SubStrategy.SRMA;
-                    isCandleActive = Boolean.TRUE;
-                }
-            }
+
+            isCandleActive =
+                    this.isBullishAction(
+                            trend, timeframe, stockPrice, stockTechnicals, subStrategyRef);
         }
 
         if (isCandleActive) {
@@ -79,16 +73,74 @@ public class PriceActionServiceImpl implements PriceActionService {
                     "{} bullish candlestick confirmed using {}:{}",
                     stock.getNseSymbol(),
                     ResearchTechnical.Strategy.PRICE,
-                    subStrategy);
+                    subStrategyRef.get());
 
             return TradeSetup.builder()
                     .active(Boolean.TRUE)
                     .strategy(ResearchTechnical.Strategy.PRICE)
-                    .subStrategy(subStrategy)
+                    .subStrategy(subStrategyRef.get())
                     .build();
         }
 
         return TradeSetup.builder().active(Boolean.FALSE).build();
+    }
+
+    private boolean isBullishAction(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            AtomicReference<ResearchTechnical.SubStrategy> subStrategyRef) {
+
+        boolean isUpperWickSizeConfirmed =
+                candleStickHelperService.isUpperWickSizeConfirmed(
+                        timeframe, stockPrice, stockTechnicals);
+
+        if (!isUpperWickSizeConfirmed) {
+            return false;
+        }
+
+        Trend.Momentum momentum = trend.getMomentum();
+
+        boolean isBullishCandleStick =
+                candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
+
+        if (relevanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals)) {
+            if (isBullishCandleStick
+                    || EnumSet.of(
+                                    Trend.Momentum.DIP,
+                                    Trend.Momentum.PULLBACK,
+                                    Trend.Momentum.CORRECTION)
+                            .contains(momentum)) {
+                subStrategyRef.set(
+                        isBullishCandleStick
+                                ? ResearchTechnical.SubStrategy.STRONG_SUPPORT
+                                : ResearchTechnical.SubStrategy.WEAK_SUPPORT);
+                return true;
+            }
+        }
+
+        if (relevanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals)) {
+            if (isBullishCandleStick
+                    || EnumSet.of(
+                                    Trend.Momentum.RECOVERY,
+                                    Trend.Momentum.ADVANCE,
+                                    Trend.Momentum.TOP)
+                            .contains(momentum)) {
+                subStrategyRef.set(
+                        isBullishCandleStick
+                                ? ResearchTechnical.SubStrategy.STRONG_BREAKOUT
+                                : ResearchTechnical.SubStrategy.WEAK_BREAKOUT);
+                return true;
+            }
+        }
+
+        if (relevanceService.isBullishIndicator(trend, timeframe, stockPrice, stockTechnicals)) {
+            subStrategyRef.set(ResearchTechnical.SubStrategy.BULLISH_INDICATORS);
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -104,28 +156,18 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         Trend trend = trendService.detect(stock, timeframe);
         log.info(
-                "{} : Scanning price action breakdown Direction: {}, Momentum:{}",
+                "{} [{}]: Scanning breakdown | Direction: {}, Momentum: {}",
                 stock.getNseSymbol(),
+                timeframe,
                 trend.getDirection(),
                 trend.getMomentum());
-        ResearchTechnical.SubStrategy subStrategy = ResearchTechnical.SubStrategy.SRTF;
+
+        AtomicReference<ResearchTechnical.SubStrategy> subStrategyRef = new AtomicReference<>();
+
         if (trend.getDirection() != Trend.Direction.INVALID) {
-            if (candleStickHelperService.isBearishConfirmed(
-                    timeframe, stockPrice, stockTechnicals)) {
-                if (relevanceService.isBearishIndicator(
-                        trend, timeframe, stockPrice, stockTechnicals)) {
-                    subStrategy = ResearchTechnical.SubStrategy.RMAO;
-                    isCandleActive = Boolean.TRUE;
-                } else if (relevanceService.isBearishTimeFrame(
-                        trend, timeframe, stockPrice, stockTechnicals, 1.5)) {
-                    subStrategy = ResearchTechnical.SubStrategy.SRTF;
-                    isCandleActive = Boolean.TRUE;
-                } else if (relevanceService.isBearishMovingAverage(
-                        trend, timeframe, stockPrice, stockTechnicals, 1.5)) {
-                    subStrategy = ResearchTechnical.SubStrategy.SRMA;
-                    isCandleActive = Boolean.TRUE;
-                }
-            }
+            isCandleActive =
+                    this.isBearishAction(
+                            trend, timeframe, stockPrice, stockTechnicals, subStrategyRef);
         }
 
         if (isCandleActive) {
@@ -133,17 +175,75 @@ public class PriceActionServiceImpl implements PriceActionService {
                     "{} bearish candlestick confirmed using {}:{}",
                     stock.getNseSymbol(),
                     ResearchTechnical.Strategy.PRICE,
-                    subStrategy);
+                    subStrategyRef.get());
 
             breakoutLedgerService.addNegative(
                     stock, timeframe, BreakoutLedger.BreakoutCategory.BREAKDOWN_CANDLESTICK);
             return TradeSetup.builder()
                     .active(Boolean.TRUE)
                     .strategy(ResearchTechnical.Strategy.PRICE)
-                    .subStrategy(subStrategy)
+                    .subStrategy(subStrategyRef.get())
                     .build();
         }
 
         return TradeSetup.builder().active(Boolean.FALSE).build();
+    }
+
+    private boolean isBearishAction(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            AtomicReference<ResearchTechnical.SubStrategy> subStrategyRef) {
+
+        boolean isLowerWickSizeConfirmed =
+                candleStickHelperService.isLowerWickSizeConfirmed(
+                        timeframe, stockPrice, stockTechnicals);
+
+        if (!isLowerWickSizeConfirmed) {
+            return false;
+        }
+
+        Trend.Momentum momentum = trend.getMomentum();
+
+        boolean isBearishCandleStick =
+                candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
+
+        if (relevanceService.isNearResistance(trend, timeframe, stockPrice, stockTechnicals)) {
+            if (isBearishCandleStick
+                    || EnumSet.of(
+                                    Trend.Momentum.RECOVERY,
+                                    Trend.Momentum.ADVANCE,
+                                    Trend.Momentum.TOP)
+                            .contains(momentum)) {
+                subStrategyRef.set(
+                        isBearishCandleStick
+                                ? ResearchTechnical.SubStrategy.STRONG_RESISTANCE
+                                : ResearchTechnical.SubStrategy.WEAK_RESISTANCE);
+                return true;
+            }
+        }
+
+        if (relevanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals)) {
+            if (isBearishCandleStick
+                    || EnumSet.of(
+                                    Trend.Momentum.DIP,
+                                    Trend.Momentum.PULLBACK,
+                                    Trend.Momentum.CORRECTION)
+                            .contains(momentum)) {
+                subStrategyRef.set(
+                        isBearishCandleStick
+                                ? ResearchTechnical.SubStrategy.STRONG_BREAKDOWN
+                                : ResearchTechnical.SubStrategy.WEAK_BREAKDOWN);
+                return true;
+            }
+        }
+
+        if (relevanceService.isBearishIndicator(trend, timeframe, stockPrice, stockTechnicals)) {
+            subStrategyRef.set(ResearchTechnical.SubStrategy.BEARISH_INDICATORS);
+            return true;
+        }
+
+        return false;
     }
 }

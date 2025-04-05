@@ -121,21 +121,21 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             log.info("{} Found  mcap range stock", stock.getNseSymbol());
             if (stock.getSeries().equalsIgnoreCase("EQ")) {
                 log.info("{} Found EQ stock ", stock.getNseSymbol());
-                TradeSetup tradeSetup = swingActionService.breakOut(stock, timeframe);
-                log.info(" {} swing {} ", stock.getNseSymbol(), tradeSetup.isActive());
+                TradeSetup tradeSetup = priceActionService.breakOut(stock, timeframe);
+
                 if (!tradeSetup.isActive()) {
-                    tradeSetup = priceActionService.breakOut(stock, timeframe);
-                    log.info(" {} price {} ", stock.getNseSymbol(), tradeSetup.isActive());
+                    tradeSetup = swingActionService.breakOut(stock, timeframe);
                 }
 
                 if (tradeSetup.isActive()) {
                     log.info(
-                            "{} Trade setup active, creating entry {} ",
+                            "{} Bullish Trade active timeframe: {}, strategy:{}, subStrategy:{} ",
                             stock.getNseSymbol(),
-                            timeframe);
+                            timeframe,
+                            tradeSetup.getStrategy(),
+                            tradeSetup.getSubStrategy());
                     researchTechnicalService.entry(
                             stock, timeframe, tradeSetup, stockPrice, stockTechnicals, sessionDate);
-                    log.info("{} created entry {} ", stock.getNseSymbol(), timeframe);
                 }
             }
         }

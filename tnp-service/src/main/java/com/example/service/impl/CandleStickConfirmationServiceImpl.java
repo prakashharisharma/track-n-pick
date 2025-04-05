@@ -19,7 +19,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
     private final ThreeSessionCandleStickService threeSessionCandleStickService;
     private final VolumeIndicatorService volumeIndicatorService;
 
-    private boolean isUpperWickSizeConfirmed(
+    @Override
+    public boolean isUpperWickSizeConfirmed(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         double bodySize = CandleStickUtils.bodySize(stockPrice);
         double upperWick = CandleStickUtils.upperWickSize(stockPrice);
@@ -96,7 +97,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
         }
     }
 
-    private boolean isLowerWickSizeConfirmed(
+    @Override
+    public boolean isLowerWickSizeConfirmed(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         double bodySize = CandleStickUtils.bodySize(stockPrice);
         double lowerWick = CandleStickUtils.lowerWickSize(stockPrice);

@@ -44,19 +44,20 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
     public boolean isMcapInRange(Stock stock) {
 
         return true;
-
         /*
-        if (stock.getCompanyName().contains("AMC") || stock.getCompanyName().contains("ETF")) {
+        if (stock.getSector()!=null && stock.getSector().getSectorName().equalsIgnoreCase("Mutual Fund Scheme")) {
             return true;
         }
 
         StockFactor stockFactor = stock.getFactor();
 
         if (stockFactor != null && stockFactor.getMarketCap() >= rules.getMcap()) {
-            return Boolean.TRUE;
+            return true;
         }
-        return Boolean.FALSE;
-        */
+
+        return false;
+         */
+
     }
 
     @Override
@@ -125,8 +126,8 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 
         boolean isUndervalued = false;
 
-        // Sector sector = stock.getSector();
-        Sector sector = null;
+        Sector sector = stock.getSector();
+        // Sector sector = null;
 
         if (stock != null) {
 

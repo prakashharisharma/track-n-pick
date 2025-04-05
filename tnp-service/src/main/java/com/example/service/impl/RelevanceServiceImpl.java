@@ -42,6 +42,129 @@ public class RelevanceServiceImpl implements RelevanceService {
     @Autowired private TrendService trendService;
 
     @Override
+    public boolean isNearSupport(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals) {
+        if (trend.getDirection() == Trend.Direction.DOWN) {
+            if (timeframeSupportResistanceService.isNearSupport(
+                            trend, timeframe, stockPrice, stockTechnicals)
+                    && rsiIndicatorService.isOverSold(stockTechnicals)) {
+                log.info(
+                        "{} timeframe support active {} momentum {}",
+                        stockPrice.getStock().getNseSymbol(),
+                        trend.getStrength(),
+                        trend.getMomentum());
+                return true;
+            } else if (multiMovingAverageSupportResistanceService.isNearSupport(
+                            trend, timeframe, stockPrice, stockTechnicals)
+                    && rsiIndicatorService.isOverSold(stockTechnicals)) {
+                log.info(
+                        "{} moving average support active {} momentum {}",
+                        stockPrice.getStock().getNseSymbol(),
+                        trend.getStrength(),
+                        trend.getMomentum());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isNearResistance(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals) {
+        if (trend.getDirection() == Trend.Direction.UP) {
+            if (timeframeSupportResistanceService.isNearResistance(
+                            trend, timeframe, stockPrice, stockTechnicals)
+                    && rsiIndicatorService.isOverBought(stockTechnicals)) {
+                log.info(
+                        "{} timeframe resistance {} momentum {}",
+                        stockPrice.getStock().getNseSymbol(),
+                        trend.getStrength(),
+                        trend.getMomentum());
+                return true;
+            } else if (multiMovingAverageSupportResistanceService.isNearResistance(
+                            trend, timeframe, stockPrice, stockTechnicals)
+                    && rsiIndicatorService.isOverBought(stockTechnicals)) {
+                log.info(
+                        "{} moving average resistance {} momentum {}",
+                        stockPrice.getStock().getNseSymbol(),
+                        trend.getStrength(),
+                        trend.getMomentum());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isBreakout(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals) {
+        if (trend.getDirection() == Trend.Direction.UP) {
+            if (timeframeSupportResistanceService.isBreakout(
+                            trend, timeframe, stockPrice, stockTechnicals)
+                    && rsiIndicatorService.isBullish(stockTechnicals)) {
+                log.info(
+                        "{} timeframe breakout active {} momentum {}}",
+                        stockPrice.getStock().getNseSymbol(),
+                        trend.getStrength(),
+                        trend.getMomentum());
+                return true;
+            } else if (multiMovingAverageSupportResistanceService.isBreakout(
+                            trend, timeframe, stockPrice, stockTechnicals)
+                    && rsiIndicatorService.isBullish(stockTechnicals)) {
+                log.info(
+                        "{} moving average breakout active {} momentum {}",
+                        stockPrice.getStock().getNseSymbol(),
+                        trend.getStrength(),
+                        trend.getMomentum());
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean isBreakdown(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals) {
+        if (trend.getDirection() == Trend.Direction.DOWN) {
+            if (timeframeSupportResistanceService.isBreakdown(
+                            trend, timeframe, stockPrice, stockTechnicals)
+                    && rsiIndicatorService.isBearish(stockTechnicals)) {
+                log.info(
+                        "{} timeframe breakdown {} momentum {}",
+                        stockPrice.getStock().getNseSymbol(),
+                        trend.getStrength(),
+                        trend.getMomentum());
+                return true;
+
+            } else if (multiMovingAverageSupportResistanceService.isBreakdown(
+                            trend, timeframe, stockPrice, stockTechnicals)
+                    && rsiIndicatorService.isBearish(stockTechnicals)) {
+                log.info(
+                        "{} moving average breakdown {} momentum {}",
+                        stockPrice.getStock().getNseSymbol(),
+                        trend.getStrength(),
+                        trend.getMomentum());
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
     public boolean isBullishTimeFrame(
             Trend trend,
             Timeframe timeframe,
