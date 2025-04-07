@@ -6,9 +6,7 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
-import com.example.service.StockPriceService;
-import com.example.service.StockTechnicalsService;
-import com.example.service.SupportLevelDetector;
+import com.example.service.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -26,38 +24,53 @@ public class SupportLevelDetectorImpl implements SupportLevelDetector {
 
     private final StockPriceService<StockPrice> stockPriceService;
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
+    private final SupportResistanceConfirmationService supportResistanceConfirmationService;
+    private final BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
 
     @Override
     public boolean isNearSupport(Stock stock, Timeframe timeframe) {
         StockPrice currentStockPrice = stockPriceService.get(stock, timeframe);
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
         if (currentStockPrice == null) return false;
 
         List<Double> supportLevels = getRelevantSupportLevels(stock, timeframe);
         if (supportLevels.isEmpty()) return false;
 
         double supportLevel = findConfluenceSupport(supportLevels);
-        return checkSupport(currentStockPrice, supportLevel);
+
+        boolean isNear = checkSupport(currentStockPrice, supportLevel);
+        boolean isConfirmed =
+                supportResistanceConfirmationService.isSupportConfirmed(
+                        timeframe, currentStockPrice, stockTechnicals, supportLevel);
+
+        return isNear && isConfirmed;
     }
 
     @Override
     public boolean isBreakDown(Stock stock, Timeframe timeframe) {
         StockPrice currentStockPrice = stockPriceService.get(stock, timeframe);
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
         if (currentStockPrice == null) return false;
 
         boolean isSupportBreak = !this.isNearSupport(stock, timeframe);
         boolean isMultiTimeFrameBreakdown = this.isMultiTimeFrameBreakdown(stock, timeframe);
+        boolean potentialBreakdown = isSupportBreak || isMultiTimeFrameBreakdown;
 
-        boolean breakdownConfirmed = isSupportBreak || isMultiTimeFrameBreakdown;
+        if (!potentialBreakdown) return false;
 
-        if (breakdownConfirmed) {
+        boolean isConfirmed =
+                breakoutBreakdownConfirmationService.isBreakdownConfirmed(
+                        timeframe, currentStockPrice, stockTechnicals, currentStockPrice.getLow());
+
+        if (isConfirmed) {
             log.warn(
-                    "Breakdown detected for {} at timeframe {} | Current Price: {}",
+                    "Breakdown confirmed for {} at timeframe {} | Current Price: {}",
                     stock.getNseSymbol(),
                     timeframe,
                     currentStockPrice.getLow());
         }
 
-        return breakdownConfirmed;
+        return isConfirmed;
     }
 
     private boolean isMultiTimeFrameBreakdown(Stock stock, Timeframe timeframe) {

@@ -19,8 +19,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class MiscUtil {
 
-    private static int min = 1437;
-    private static int max = 5897;
+    private static int min = 2837;
+    private static int max = 8897;
 
     public String formatDouble(double value) {
 

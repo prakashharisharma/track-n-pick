@@ -20,7 +20,7 @@ public class TenDaysMovingAverageSupportResistanceServiceImpl
 
     private final SupportResistanceConfirmationService supportResistanceConfirmationService;
 
-    private final BreakoutConfirmationService breakoutConfirmationService;
+    private final BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
 
     private final SupportResistanceUtilService supportResistanceService;
 
@@ -47,7 +47,7 @@ public class TenDaysMovingAverageSupportResistanceServiceImpl
         // if(candleStickService.isHigherHigh(stockPrice) && candleStickService.range(stockPrice) >
         // CandleStickService.MIN_RANGE) {
         // Breakout EMA20
-        if (breakoutConfirmationService.isBullishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakoutConfirmed(
                         timeframe, stockPrice, stockTechnicals, ema10)
                 && breakoutService.isBreakOut(prevClose, prevEma10, close, ema10)) {
             return Boolean.TRUE;
@@ -112,7 +112,7 @@ public class TenDaysMovingAverageSupportResistanceServiceImpl
         // if(candleStickService.isLowerLow(stockPrice) && candleStickService.range(stockPrice) >
         // CandleStickService.MIN_RANGE){
         // Breakdown EMA20
-        if (breakoutConfirmationService.isBearishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakdownConfirmed(
                         timeframe, stockPrice, stockTechnicals, ema10)
                 && breakoutService.isBreakDown(prevClose, prevEma10, close, ema10)) {
             return Boolean.TRUE;

@@ -18,7 +18,7 @@ public class TwentyDaysAverageMovingSupportResistanceServiceImpl
         implements TwentyDaysMovingAverageSupportResistanceService {
 
     @Autowired private SupportResistanceConfirmationService supportResistanceConfirmationService;
-    @Autowired private BreakoutConfirmationService breakoutConfirmationService;
+    @Autowired private BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
     @Autowired private SupportResistanceUtilService supportResistanceService;
     @Autowired private CandleStickService candleStickService;
     @Autowired private BreakoutService breakoutService;
@@ -41,7 +41,7 @@ public class TwentyDaysAverageMovingSupportResistanceServiceImpl
         // if(candleStickService.isHigherHigh(stockPrice) && candleStickService.range(stockPrice) >
         // CandleStickService.MIN_RANGE) {
         // Breakout EMA20
-        if (breakoutConfirmationService.isBullishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakoutConfirmed(
                         timeframe, stockPrice, stockTechnicals, ema20)
                 && breakoutService.isBreakOut(prevClose, prevEma20, close, ema20)) {
             return Boolean.TRUE;
@@ -106,7 +106,7 @@ public class TwentyDaysAverageMovingSupportResistanceServiceImpl
         // if(candleStickService.isLowerLow(stockPrice) && candleStickService.range(stockPrice) >
         // CandleStickService.MIN_RANGE){
         // Breakdown EMA20
-        if (breakoutConfirmationService.isBearishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakdownConfirmed(
                         timeframe, stockPrice, stockTechnicals, ema20)
                 && breakoutService.isBreakDown(prevClose, prevEma20, close, ema20)) {
             return Boolean.TRUE;

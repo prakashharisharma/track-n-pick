@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 public class WeeklySupportResistanceServiceImpl implements WeeklySupportResistanceService {
 
     @Autowired private SupportResistanceConfirmationService supportResistanceConfirmationService;
-    @Autowired private BreakoutConfirmationService breakoutConfirmationService;
+    @Autowired private BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
     @Autowired private SupportResistanceUtilService supportResistanceService;
     @Autowired private CandleStickService candleStickService;
     @Autowired private BreakoutService breakoutService;
@@ -50,7 +50,7 @@ public class WeeklySupportResistanceServiceImpl implements WeeklySupportResistan
         }
 
         // Check for Current Day Breakout
-        if (breakoutConfirmationService.isBullishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakoutConfirmed(
                 timeframe, stockPrice, stockTechnicals, resistance)) {
             // Breakout resistance
 
@@ -122,7 +122,7 @@ public class WeeklySupportResistanceServiceImpl implements WeeklySupportResistan
         }
 
         // Check for Current Day Breakout
-        if (breakoutConfirmationService.isBearishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakdownConfirmed(
                         timeframe, stockPrice, stockTechnicals, support)
                 && candleStickService.range(stockPrice) > CandleStickService.MIN_RANGE) {
             // Breakdown

@@ -1,55 +1,53 @@
 package com.example.service.impl;
 
 import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockFactor;
+import com.example.service.StockFinancialsService;
 import com.example.service.StockService;
-import com.example.service.UpdateFactorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class UpdateFactorServiceImpl implements UpdateFactorService {
+public class StockFinancialsServiceImpl implements StockFinancialsService {
 
     @Autowired private StockService stockService;
 
     @Autowired private FundamentalResearchService fundamentalResearchService;
 
     @Override
-    public void updateFactors(Stock stock) {
+    public void update(Stock stock) {
 
         log.info("{} Starting factors update.", stock.getNseSymbol());
         try {
-            this.updateFactorsTxn(stock);
+            this.updateFinancialsTxn(stock);
         } catch (Exception e) {
             log.error("An error occured while updating factors {}", stock.getNseSymbol(), e);
         }
         log.info("{} Completed factors update.", stock.getNseSymbol());
     }
 
-    private void updateFactorsTxn(Stock stock) {
+    private void updateFinancialsTxn(Stock stock) {
+        /*
 
         log.info("{} Updating transactional factors.", stock.getNseSymbol());
 
-        // Stock stock = stockService.getStockByNseSymbol(stockPriceIO.getNseSymbol());
+        StockFinancials prevStockFinancials = null;
 
-        StockFactor prevStockFactor = null;
+        StockFinancials newStockFinancials = null;
 
-        StockFactor newStockFactor = null;
+        prevStockFinancials = stock.getFactor();
 
-        prevStockFactor = stock.getFactor();
+        newStockFinancials = stockService.updateFactor(stock);
 
-        newStockFactor = stockService.updateFactor(stock);
+        if (prevStockFinancials != null) {
 
-        if (prevStockFactor != null) {
-
-            if (newStockFactor.getQuarterEnded().isAfter(prevStockFactor.getQuarterEnded())) {
+            if (newStockFinancials.getQuarterEnded().isAfter(prevStockFinancials.getQuarterEnded())) {
 
                 // TODO: UPdate history
 
                 log.info("{} Updated transactional factors.", stock.getNseSymbol());
             }
-        }
+        }*/
     }
 }

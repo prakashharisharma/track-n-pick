@@ -14,12 +14,12 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     private static double BEARISH_MULTIPLIER_DAILY = 1.5;
     private static double THRESHOLD_DAILY = 0.5;
 
-    private static double BULLISH_MULTIPLIER_WEEKLY = 1.8;
-    private static double BEARISH_MULTIPLIER_WEEKLY = 1.3;
+    private static double BULLISH_MULTIPLIER_WEEKLY = 2.0;
+    private static double BEARISH_MULTIPLIER_WEEKLY = 1.5;
     private static double THRESHOLD_WEEKLY = 0.5;
 
-    private static double BULLISH_MULTIPLIER_MONTHLY = 1.5;
-    private static double BEARISH_MULTIPLIER_MONTHLY = 1.0;
+    private static double BULLISH_MULTIPLIER_MONTHLY = 2.0;
+    private static double BEARISH_MULTIPLIER_MONTHLY = 1.5;
     private static double THRESHOLD_MONTHLY = 0.5;
 
     @Override
@@ -30,6 +30,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
                         stockTechnicals, timeframe, this.getBullishMultiplier(timeframe));
     }
 
+    @Override
     public boolean isBullish(
             StockTechnicals stockTechnicals, Timeframe timeframe, double multiplier) {
         return this.isCurrentSessionHigh(stockTechnicals, timeframe, multiplier)
@@ -44,6 +45,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
                         stockTechnicals, timeframe, this.getBearishMultiplier(timeframe));
     }
 
+    @Override
     public boolean isBearish(
             StockTechnicals stockTechnicals, Timeframe timeframe, double multiplier) {
         return this.isCurrentSessionHigh(stockTechnicals, timeframe, multiplier)
