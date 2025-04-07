@@ -108,9 +108,8 @@ public class PriceActionServiceImpl implements PriceActionService {
                 candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
         boolean isBearishCandleStick =
                 candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
-         boolean isVolumeSurge = volumeIndicatorService.isBullish(stockTechnicals, timeframe,
-         2.0);
-        //boolean isVolumeSurge = true;
+        boolean isVolumeSurge = volumeIndicatorService.isBullish(stockTechnicals, timeframe, 2.0);
+        // boolean isVolumeSurge = true;
         if (relevanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBullishCandleStick
                     || (EnumSet.of(
@@ -221,9 +220,8 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         boolean isBullishCandleStick =
                 candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
-         boolean isVolumeSurge = volumeIndicatorService.isBullish(stockTechnicals, timeframe,
-         1.5);
-        //boolean isVolumeSurge = true;
+        boolean isVolumeSurge = volumeIndicatorService.isBullish(stockTechnicals, timeframe, 1.5);
+        // boolean isVolumeSurge = true;
         if (relevanceService.isNearResistance(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBearishCandleStick
                     || (EnumSet.of(

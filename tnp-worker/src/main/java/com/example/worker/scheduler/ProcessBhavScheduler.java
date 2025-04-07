@@ -27,12 +27,13 @@ public class ProcessBhavScheduler {
     private final MiscUtil miscUtil;
 
     /** Scheduled task to start downloading Bhavcopy at 4:45 AM IST */
-    @Scheduled(cron = "0 48 16 * * *", zone = "Asia/Kolkata") // Runs every day at 4:45 AM IST
+    @Scheduled(cron = "0 30 18 * * *", zone = "Asia/Kolkata") // Runs every day at 4:45 AM IST
     public void scheduleBhavCopyDownload() {
 
         LocalDate sessionDate = miscUtil.currentDate(); // Adjust if needed
 
         try {
+
             log.info("Starting scheduled bhav copy download for session date: {}", sessionDate);
 
             if (calendarService.isWorkingDay(sessionDate)) {
