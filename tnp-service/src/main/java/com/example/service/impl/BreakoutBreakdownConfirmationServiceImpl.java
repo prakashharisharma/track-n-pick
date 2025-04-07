@@ -4,7 +4,7 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.AdxIndicatorService;
-import com.example.service.BreakoutConfirmationService;
+import com.example.service.BreakoutBreakdownConfirmationService;
 import com.example.service.CandleStickService;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
@@ -15,7 +15,8 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class BreakoutConfirmationServiceImpl implements BreakoutConfirmationService {
+public class BreakoutBreakdownConfirmationServiceImpl
+        implements BreakoutBreakdownConfirmationService {
 
     @Autowired private CandleStickService candleStickService;
     @Autowired private AdxIndicatorService adxIndicatorService;
@@ -25,7 +26,7 @@ public class BreakoutConfirmationServiceImpl implements BreakoutConfirmationServ
     @Autowired private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
     @Override
-    public boolean isBullishConfirmation(
+    public boolean isBreakoutConfirmed(
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
@@ -91,7 +92,7 @@ public class BreakoutConfirmationServiceImpl implements BreakoutConfirmationServ
     }
 
     @Override
-    public boolean isBearishConfirmation(
+    public boolean isBreakdownConfirmed(
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,

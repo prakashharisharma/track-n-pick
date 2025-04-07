@@ -2,7 +2,7 @@ package com.example.web.controller.open;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockFactor;
+import com.example.data.transactional.entities.StockFinancials;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.BreakoutLedgerService;
@@ -50,14 +50,19 @@ public class PublicStockController {
 
             StockPrice stockPrice = stockPriceService.get(stockId, Timeframe.DAILY);
 
-            StockFactor stockFactor = stock.getFactor();
-
+            // StockFinancials stockFinancials = stock.getFactor();
+            StockFinancials stockFinancials = null;
             StockTechnicals stockTechnicals = stockTechnicalsService.get(stockId, Timeframe.DAILY);
 
-            double pe = formulaService.calculatePe(stockPrice.getClose(), stockFactor.getEps());
+            // double pe = formulaService.calculatePe(stockPrice.getClose(),
+            // stockFinancials.getEps());
 
-            double pb =
-                    formulaService.calculatePb(stockPrice.getClose(), stockFactor.getBookValue());
+            // double pb =formulaService.calculatePb(stockPrice.getClose(),
+            // stockFinancials.getBookValue());
+
+            double pe = 0.0;
+
+            double pb = 0.0;
 
             String valuation = "NUETRAL";
 

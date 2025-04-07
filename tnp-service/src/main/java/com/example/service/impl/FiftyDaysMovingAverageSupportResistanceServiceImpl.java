@@ -18,7 +18,7 @@ public class FiftyDaysMovingAverageSupportResistanceServiceImpl
         implements FiftyDaysMovingAverageSupportResistanceService {
 
     @Autowired private SupportResistanceConfirmationService supportResistanceConfirmationService;
-    @Autowired private BreakoutConfirmationService breakoutConfirmationService;
+    @Autowired private BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
 
     @Autowired private SupportResistanceUtilService supportResistanceService;
 
@@ -48,7 +48,7 @@ public class FiftyDaysMovingAverageSupportResistanceServiceImpl
 
         // Breakout EMA100
 
-        if (breakoutConfirmationService.isBullishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakoutConfirmed(
                         timeframe, stockPrice, stockTechnicals, ema50)
                 && breakoutService.isBreakOut(prevClose, prevEma50, close, ema50)) {
             return Boolean.TRUE;
@@ -118,7 +118,7 @@ public class FiftyDaysMovingAverageSupportResistanceServiceImpl
         // if(candleStickService.isLowerLow(stockPrice) && candleStickService.range(stockPrice) >
         // CandleStickService.MIN_RANGE){
         // Breakdown EMA50
-        if (breakoutConfirmationService.isBearishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakdownConfirmed(
                         timeframe, stockPrice, stockTechnicals, ema50)
                 && breakoutService.isBreakDown(prevClose, prevEma50, close, ema50)) {
             return Boolean.TRUE;

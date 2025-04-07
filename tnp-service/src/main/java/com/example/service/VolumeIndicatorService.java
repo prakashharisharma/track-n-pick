@@ -23,6 +23,9 @@ public interface VolumeIndicatorService {
      */
     public boolean isBullish(StockTechnicals stockTechnicals, Timeframe timeframe);
 
+    public boolean isBullish(
+            StockTechnicals stockTechnicals, Timeframe timeframe, double multiplier);
+
     /**
      * Determines if the stock is showing bearish volume characteristics based on historical trends.
      * This method evaluates whether the volume is decreasing or behaving in a way that supports a
@@ -33,6 +36,9 @@ public interface VolumeIndicatorService {
      * @return {@code true} if the volume pattern supports a bearish trend, otherwise {@code false}.
      */
     public boolean isBearish(StockTechnicals stockTechnicals, Timeframe timeframe);
+
+    public boolean isBearish(
+            StockTechnicals stockTechnicals, Timeframe timeframe, double multiplier);
 
     public boolean isBullish(Timeframe timeframe, StockTechnicals stockTechnicals, int days);
 

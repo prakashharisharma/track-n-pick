@@ -184,17 +184,18 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
         if (this.isThreeSessionBullish(timeframe, stockPrice, stockTechnicals)
                 || this.isTwoSessionBullish(timeframe, stockPrice, stockTechnicals)
                 || this.isSingleSessionBullish(timeframe, stockPrice, stockTechnicals)) {
-            if (this.isUpperWickSizeConfirmed(timeframe, stockPrice, stockTechnicals)) {
-                log.info(
-                        "{} bullish candlestick active on {}",
-                        stockPrice.getStock().getNseSymbol(),
-                        stockPrice.getSessionDate());
-                return Boolean.TRUE;
-            }
+            // if (this.isUpperWickSizeConfirmed(timeframe, stockPrice, stockTechnicals)) {
+            log.info(
+                    "{} bullish candlestick active on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
+            return Boolean.TRUE;
+            // }
+            /*
             log.info(
                     "{} bullish candlestick found but upper wick size not confirmed {}",
                     stockPrice.getStock().getNseSymbol(),
-                    stockPrice.getSessionDate());
+                    stockPrice.getSessionDate());*/
         }
         return Boolean.FALSE;
     }
@@ -483,17 +484,19 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
                 || this.isTwoSessionBearish(timeframe, stockPrice, stockTechnicals)
                 || this.isSingleSessionBearish(timeframe, stockPrice, stockTechnicals)) {
 
-            if (this.isLowerWickSizeConfirmed(timeframe, stockPrice, stockTechnicals)) {
-                log.info(
-                        "{} bearish candlestick active on {}",
-                        stockPrice.getStock().getNseSymbol(),
-                        stockPrice.getSessionDate());
-                return Boolean.TRUE;
-            }
+            // if (this.isLowerWickSizeConfirmed(timeframe, stockPrice, stockTechnicals)) {
+            log.info(
+                    "{} bearish candlestick active on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
+            return Boolean.TRUE;
+            // }
+            /*
             log.info(
                     "{} bearish candlestick found but lower wick size not confirmed {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+             */
         }
         return Boolean.FALSE;
     }

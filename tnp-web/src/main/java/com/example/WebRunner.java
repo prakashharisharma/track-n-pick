@@ -14,7 +14,9 @@ import com.example.dto.common.TradeSetup;
 import com.example.dto.io.BseSectorListResponse;
 import com.example.dto.io.SectorIO;
 import com.example.dto.io.StockPriceIO;
+import com.example.external.NSEFinancialsFetcher;
 import com.example.external.NSEIndustryFetcher;
+import com.example.external.NSEXmlService;
 import com.example.external.SectorDownloadService;
 import com.example.external.factor.FactorRediff;
 import com.example.external.ta.service.McService;
@@ -148,6 +150,12 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private SectorDownloadService sectorDownloadService;
 
+    @Autowired private StockFinancialsService stockFinancialsService;
+
+    @Autowired private NSEFinancialsFetcher nseFinancialsFetcher;
+
+    @Autowired private NSEXmlService nseXmlService;
+
     @Override
     public void run(String... arg0) throws InterruptedException, IOException {
 
@@ -176,7 +184,10 @@ public class WebRunner implements CommandLineRunner {
 
         // this.updateRemainigSectorsActivityFromNSE();
 
-        this.scanCandleStickPattern();
+        this.scanBullishCandleStickPattern();
+        // this.scanBearishCandleStickPattern();
+
+        // this.updateFinaicials();
 
         // this.testScore();
         // this.updatePriceHistory();
@@ -341,6 +352,61 @@ public class WebRunner implements CommandLineRunner {
         System.out.println("******* Testing CandleSticks *******");
     }
 
+    private void updateFinaicials() {
+        List<Stock> stockList = stockRepository.findByActivityCompleted(false);
+
+        List<String> results = new ArrayList<>();
+
+        int countTotal = stockList.size();
+
+        for (Stock stock : stockList) {
+            try {
+
+                long startTime = System.currentTimeMillis();
+                System.out.println("Starting activity for " + stock.getNseSymbol());
+
+                String xbrlUrl =
+                        nseFinancialsFetcher.fetchXbrl(
+                                stock.getNseSymbol(), LocalDate.of(2024, 12, 31));
+
+                System.out.println(xbrlUrl);
+
+                String xxbrlContent = nseXmlService.fetchXmlContent(xbrlUrl);
+
+                // System.out.println(xxbrlContent);
+
+                if (stock.getSector().getType() == Sector.Type.CORPORATE) {
+                    StockFinancials stockFinancials =
+                            StockFinancialsParser.parseFromXml(
+                                    xxbrlContent, LocalDate.of(2024, 12, 31));
+                    stockFinancials.setStock(stock);
+                    System.out.println(stockFinancials);
+
+                } else if (stock.getSector().getType() == Sector.Type.BANKING) {
+                    BankingFinancials bankingFinancials =
+                            BankingFinancialsParser.parseFromXml(xxbrlContent);
+                    bankingFinancials.setStock(stock);
+                    System.out.println(bankingFinancials);
+                }
+
+                stockRepository.save(stock);
+                long endTime = System.currentTimeMillis();
+
+                System.out.println(
+                        "Completed activity for "
+                                + stock.getNseSymbol()
+                                + " took "
+                                + (endTime - startTime)
+                                + "ms");
+                System.out.println("Remaining " + countTotal);
+
+                miscUtil.delay();
+            } catch (Exception e) {
+                System.out.println("An Error occurred while updating price");
+            }
+        }
+    }
+
     private void updateRemainigSectorsActivityFromNSE() {
 
         List<Stock> stockList = stockRepository.findByActivityCompleted(false);
@@ -492,7 +558,7 @@ public class WebRunner implements CommandLineRunner {
         return sectors;
     }
 
-    private void scanCandleStickPattern() {
+    private void scanBullishCandleStickPattern() {
 
         System.out.println("******* Scanning Bullish *******");
         List<Stock> stockList = stockService.getActiveStocks();
@@ -532,6 +598,12 @@ public class WebRunner implements CommandLineRunner {
                 }
             }
         }
+    }
+
+    private void scanBearishCandleStickPattern() {
+
+        System.out.println("******* Scanning Bullish *******");
+        List<Stock> stockList = stockService.getActiveStocks();
 
         System.out.println("******* Scanning Bearish From Master *******");
 

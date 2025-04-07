@@ -18,7 +18,7 @@ public class OneHundredDaysMovingAverageSupportResistanceServiceImpl
         implements OneHundredDaysMovingAverageSupportResistanceService {
 
     @Autowired private SupportResistanceConfirmationService supportResistanceConfirmationService;
-    @Autowired private BreakoutConfirmationService breakoutConfirmationService;
+    @Autowired private BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
 
     @Autowired private SupportResistanceUtilService supportResistanceService;
 
@@ -46,7 +46,7 @@ public class OneHundredDaysMovingAverageSupportResistanceServiceImpl
         // if(candleStickService.isHigherHigh(stockPrice) && candleStickService.range(stockPrice) >
         // CandleStickService.MIN_RANGE) {
 
-        if (breakoutConfirmationService.isBullishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakoutConfirmed(
                         timeframe, stockPrice, stockTechnicals, ema100)
                 && breakoutService.isBreakOut(prevClose, prevEma100, close, ema100)) {
             return Boolean.TRUE;
@@ -118,7 +118,7 @@ public class OneHundredDaysMovingAverageSupportResistanceServiceImpl
         // CandleStickService.MIN_RANGE){
 
         // Breakdown EMA200
-        if (breakoutConfirmationService.isBearishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakdownConfirmed(
                         timeframe, stockPrice, stockTechnicals, ema100)
                 && breakoutService.isBreakDown(prevClose, prevEma100, close, ema100)) {
             return Boolean.TRUE;

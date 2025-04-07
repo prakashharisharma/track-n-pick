@@ -33,7 +33,7 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
 
     @Autowired private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
-    @Autowired private BreakoutConfirmationService breakoutConfirmationService;
+    @Autowired private BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
 
     @Autowired private SupportResistanceUtilService supportResistanceService;
 
@@ -66,7 +66,7 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
         }
 
         // Check for Current Day Breakout
-        if (breakoutConfirmationService.isBullishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakoutConfirmed(
                         timeframe, stockPrice, stockTechnicals, resistance)
                 && candleStickService.range(stockPrice) > CandleStickService.MIN_RANGE) {
             // Breakout resistance
@@ -136,7 +136,7 @@ public class YearlySupportResistanceServiceImpl implements YearlySupportResistan
         }
 
         // Check for Current Day Breakout
-        if (breakoutConfirmationService.isBearishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakdownConfirmed(
                         timeframe, stockPrice, stockTechnicals, support)
                 && candleStickService.range(stockPrice) > CandleStickService.MIN_RANGE) {
             // Breakdown

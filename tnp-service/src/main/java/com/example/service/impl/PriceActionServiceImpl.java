@@ -25,6 +25,8 @@ public class PriceActionServiceImpl implements PriceActionService {
     @Autowired private SupportResistanceUtilService supportResistanceService;
     @Autowired private CandleStickConfirmationService candleStickHelperService;
 
+    @Autowired private VolumeIndicatorService volumeIndicatorService;
+
     @Autowired private CandleStickService candleStickService;
 
     @Autowired private BreakoutLedgerService breakoutLedgerService;
@@ -104,14 +106,20 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         boolean isBullishCandleStick =
                 candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
-
+        boolean isBearishCandleStick =
+                candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
+         boolean isVolumeSurge = volumeIndicatorService.isBullish(stockTechnicals, timeframe,
+         2.0);
+        //boolean isVolumeSurge = true;
         if (relevanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBullishCandleStick
-                    || EnumSet.of(
-                                    Trend.Momentum.DIP,
-                                    Trend.Momentum.PULLBACK,
-                                    Trend.Momentum.CORRECTION)
-                            .contains(momentum)) {
+                    || (EnumSet.of(
+                                            Trend.Momentum.DIP,
+                                            Trend.Momentum.PULLBACK,
+                                            Trend.Momentum.CORRECTION)
+                                    .contains(momentum))
+                            && !isBearishCandleStick
+                            && isVolumeSurge) {
                 subStrategyRef.set(
                         isBullishCandleStick
                                 ? ResearchTechnical.SubStrategy.STRONG_SUPPORT
@@ -122,11 +130,13 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         if (relevanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBullishCandleStick
-                    || EnumSet.of(
-                                    Trend.Momentum.RECOVERY,
-                                    Trend.Momentum.ADVANCE,
-                                    Trend.Momentum.TOP)
-                            .contains(momentum)) {
+                    || (EnumSet.of(
+                                            Trend.Momentum.RECOVERY,
+                                            Trend.Momentum.ADVANCE,
+                                            Trend.Momentum.TOP)
+                                    .contains(momentum))
+                            && !isBearishCandleStick
+                            && isVolumeSurge) {
                 subStrategyRef.set(
                         isBullishCandleStick
                                 ? ResearchTechnical.SubStrategy.STRONG_BREAKOUT
@@ -209,13 +219,20 @@ public class PriceActionServiceImpl implements PriceActionService {
         boolean isBearishCandleStick =
                 candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
 
+        boolean isBullishCandleStick =
+                candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
+         boolean isVolumeSurge = volumeIndicatorService.isBullish(stockTechnicals, timeframe,
+         1.5);
+        //boolean isVolumeSurge = true;
         if (relevanceService.isNearResistance(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBearishCandleStick
-                    || EnumSet.of(
-                                    Trend.Momentum.RECOVERY,
-                                    Trend.Momentum.ADVANCE,
-                                    Trend.Momentum.TOP)
-                            .contains(momentum)) {
+                    || (EnumSet.of(
+                                            Trend.Momentum.RECOVERY,
+                                            Trend.Momentum.ADVANCE,
+                                            Trend.Momentum.TOP)
+                                    .contains(momentum))
+                            && !isBullishCandleStick
+                            && isVolumeSurge) {
                 subStrategyRef.set(
                         isBearishCandleStick
                                 ? ResearchTechnical.SubStrategy.STRONG_RESISTANCE
@@ -226,11 +243,13 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         if (relevanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBearishCandleStick
-                    || EnumSet.of(
-                                    Trend.Momentum.DIP,
-                                    Trend.Momentum.PULLBACK,
-                                    Trend.Momentum.CORRECTION)
-                            .contains(momentum)) {
+                    || (EnumSet.of(
+                                            Trend.Momentum.DIP,
+                                            Trend.Momentum.PULLBACK,
+                                            Trend.Momentum.CORRECTION)
+                                    .contains(momentum))
+                            && !isBullishCandleStick
+                            && isVolumeSurge) {
                 subStrategyRef.set(
                         isBearishCandleStick
                                 ? ResearchTechnical.SubStrategy.STRONG_BREAKDOWN

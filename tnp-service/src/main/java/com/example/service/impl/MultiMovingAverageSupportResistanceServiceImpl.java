@@ -40,7 +40,7 @@ public class MultiMovingAverageSupportResistanceServiceImpl
 
     private final SupportResistanceConfirmationService supportResistanceConfirmationService;
 
-    private final BreakoutConfirmationService breakoutConfirmationService;
+    private final BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
 
     private final SupportResistanceUtilService supportResistanceService;
 

@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 public class DailySupportResistanceServiceImpl implements DailySupportResistanceService {
 
     @Autowired private SupportResistanceConfirmationService supportResistanceConfirmationService;
-    @Autowired private BreakoutConfirmationService breakoutConfirmationService;
+    @Autowired private BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
     @Autowired private SupportResistanceUtilService supportResistanceService;
 
     @Autowired private StockPriceService<StockPrice> stockPriceService;
@@ -61,7 +61,7 @@ public class DailySupportResistanceServiceImpl implements DailySupportResistance
         }
 
         // Check for Current Day Breakout
-        if (breakoutConfirmationService.isBullishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakoutConfirmed(
                         timeframe, stockPrice, stockTechnicals, resistance)
                 && candleStickService.range(stockPrice) > CandleStickService.MIN_RANGE) {
             // Breakout resistance
@@ -133,7 +133,7 @@ public class DailySupportResistanceServiceImpl implements DailySupportResistance
         }
 
         // Check for Current Day Breakout
-        if (breakoutConfirmationService.isBearishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakdownConfirmed(
                         timeframe, stockPrice, stockTechnicals, support)
                 && candleStickService.range(stockPrice) > CandleStickService.MIN_RANGE) {
             // Breakdown
