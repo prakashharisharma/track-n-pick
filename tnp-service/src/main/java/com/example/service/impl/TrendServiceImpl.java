@@ -144,7 +144,7 @@ public class TrendServiceImpl implements TrendService {
 
         // Ensure previous EMA is valid
         if (prevAverage == 0.0) {
-            return false; // Not enough data to determine trend
+            return true; // Not enough data to determine trend, will return true by default
         }
 
         // Condition 1: Price Above EMA (Price trading above moving average)
@@ -171,14 +171,14 @@ public class TrendServiceImpl implements TrendService {
                     stockPrice.getPrevClose());
         } else if (timeframe == Timeframe.WEEKLY) {
             return this.isDownTrend(
-                    MovingAverageUtil.getMovingAverage10(timeframe, stockTechnicals),
-                    MovingAverageUtil.getPrevMovingAverage10(timeframe, stockTechnicals),
+                    MovingAverageUtil.getMovingAverage5(timeframe, stockTechnicals),
+                    MovingAverageUtil.getPrevMovingAverage5(timeframe, stockTechnicals),
                     stockPrice.getClose(),
                     stockPrice.getPrevClose());
         } else if (timeframe == Timeframe.MONTHLY) {
             return this.isDownTrend(
-                    MovingAverageUtil.getMovingAverage10(timeframe, stockTechnicals),
-                    MovingAverageUtil.getPrevMovingAverage10(timeframe, stockTechnicals),
+                    MovingAverageUtil.getMovingAverage5(timeframe, stockTechnicals),
+                    MovingAverageUtil.getPrevMovingAverage5(timeframe, stockTechnicals),
                     stockPrice.getClose(),
                     stockPrice.getPrevClose());
         }
@@ -287,7 +287,7 @@ public class TrendServiceImpl implements TrendService {
 
         // Ensure previous EMA is valid
         if (prevAverage == 0.0) {
-            return false; // Not enough data to determine trend
+            return true; // Not enough data to determine trend, will return true by default
         }
 
         // Condition 1: Price Below EMA
@@ -306,14 +306,16 @@ public class TrendServiceImpl implements TrendService {
     @Override
     public Trend detect(Stock stock, Timeframe timeframe) {
 
-        Trend.Momentum momentum = Trend.Momentum.SIDEWAYS;
+        Trend.Phase phase = Trend.Phase.SIDEWAYS;
 
         StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
 
         StockPrice stockPrice = stockPriceService.get(stock, timeframe);
 
         if (stockTechnicals == null || stockPrice == null) {
-            return new Trend(Trend.Direction.INVALID, Trend.Strength.INVALID, momentum);
+            System.out.println("stockTechnicals or stockPrice not found");
+            log.info("stockTechnicals or stockPrice not found");
+            return new Trend(Trend.Direction.INVALID, Trend.Strength.INVALID, phase);
         }
         boolean shortestTermDown =
                 this.isShortestTermDownTrend(timeframe, stockTechnicals, stockPrice);
@@ -328,80 +330,85 @@ public class TrendServiceImpl implements TrendService {
         boolean longTermDown = this.isLongTermDownTrend(timeframe, stockTechnicals, stockPrice);
         boolean longTermUp = this.isLongTermUpTrend(timeframe, stockTechnicals, stockPrice);
 
+        // log.info("timeframe:{}, shortestTermUp: {}, shortTermUp:{}, mediumTermUp:{},
+        // longTermUp:{}",timeframe, shortestTermUp, shortestTermUp, mediumTermUp, longTermUp);
+        // log.info("timeframe:{}, shortestTermDown: {}, shortTermDown:{}, mediumTermDown:{},
+        // longTermDown:{}",timeframe, shortestTermDown, shortestTermDown, mediumTermDown,
+        // longTermDown);
         // 1️⃣ DIP: Shortest-term down, but short-term (20 EMA) is flat or uncertain, while medium &
         // long-term up
         if (shortestTermDown && shortTermUp && mediumTermUp && longTermUp) {
-            momentum = Trend.Momentum.DIP;
+            phase = Trend.Phase.DIP;
         }
 
         // 2️⃣ PULLBACK: Short-term downtrend (5 EMA & 20 EMA falling), but medium & long-term
         // uptrend
         if (shortestTermDown && shortTermDown && mediumTermUp && longTermUp) {
-            momentum = Trend.Momentum.PULLBACK;
+            phase = Trend.Phase.PULLBACK;
         }
 
         // 3️⃣ CORRECTION: Short-term & medium-term downtrend, but long-term uptrend
         if (shortTermDown && shortTermDown && mediumTermDown && longTermUp) {
-            momentum = Trend.Momentum.CORRECTION;
+            phase = Trend.Phase.CORRECTION;
         }
 
         // 4️⃣ BOTTOM: Strong downtrend across all timeframes (5, 20, 50, 200 EMA all bearish)
         if (shortestTermDown && shortTermDown && mediumTermDown && longTermDown) {
-            momentum = Trend.Momentum.BOTTOM;
+            phase = Trend.Phase.BOTTOM;
         }
 
         // 5️⃣ EARLY RECOVERY: 5 EMA is rising, but 20 EMA, 50 EMA & 200 EMA are still bearish
         if (shortestTermUp && shortTermDown && mediumTermDown && longTermDown) {
-            momentum = Trend.Momentum.EARLY_RECOVERY;
+            phase = Trend.Phase.EARLY_RECOVERY;
         }
 
         // 6️⃣ RECOVERY: 5 EMA & 20 EMA rising, but 50 EMA & 200 EMA still bearish
         if (shortestTermUp && shortTermUp && mediumTermDown && longTermDown) {
-            momentum = Trend.Momentum.RECOVERY;
+            phase = Trend.Phase.RECOVERY;
         }
 
         // 7️⃣ ADVANCE (Reversal): Short-term & medium-term uptrend, but long-term still bearish
         if (shortestTermUp && shortTermUp && mediumTermUp && longTermDown) {
-            momentum = Trend.Momentum.ADVANCE;
+            phase = Trend.Phase.ADVANCE;
         }
 
         // 8️⃣ TOP: Short-term weakening while medium & long-term are still bullish
         if (shortestTermUp && shortTermUp && mediumTermUp && longTermUp) {
-            momentum = Trend.Momentum.TOP;
+            phase = Trend.Phase.TOP;
         }
 
-        if (momentum == Trend.Momentum.BOTTOM
-                || momentum == Trend.Momentum.CORRECTION
-                || momentum == Trend.Momentum.PULLBACK
-                || momentum == Trend.Momentum.DIP) {
+        if (phase == Trend.Phase.BOTTOM
+                || phase == Trend.Phase.CORRECTION
+                || phase == Trend.Phase.PULLBACK
+                || phase == Trend.Phase.DIP) {
             if (longTermDown) {
-                return new Trend(Trend.Direction.DOWN, Trend.Strength.LONG, momentum);
+                return new Trend(Trend.Direction.DOWN, Trend.Strength.LONG, phase);
             } else if (mediumTermDown) {
-                return new Trend(Trend.Direction.DOWN, Trend.Strength.MEDIUM, momentum);
+                return new Trend(Trend.Direction.DOWN, Trend.Strength.MEDIUM, phase);
             } else if (shortTermDown) {
-                return new Trend(Trend.Direction.DOWN, Trend.Strength.SHORT, momentum);
+                return new Trend(Trend.Direction.DOWN, Trend.Strength.SHORT, phase);
             } else if (shortestTermDown) {
-                return new Trend(Trend.Direction.DOWN, Trend.Strength.WEAK, momentum);
+                return new Trend(Trend.Direction.DOWN, Trend.Strength.WEAK, phase);
             }
-            return new Trend(Trend.Direction.DOWN, Trend.Strength.WEAK, momentum);
-        } else if (momentum == Trend.Momentum.TOP
-                || momentum == Trend.Momentum.ADVANCE
-                || momentum == Trend.Momentum.RECOVERY
-                || momentum == Trend.Momentum.EARLY_RECOVERY) {
+            return new Trend(Trend.Direction.DOWN, Trend.Strength.WEAK, phase);
+        } else if (phase == Trend.Phase.TOP
+                || phase == Trend.Phase.ADVANCE
+                || phase == Trend.Phase.RECOVERY
+                || phase == Trend.Phase.EARLY_RECOVERY) {
             if (longTermUp) {
-                return new Trend(Trend.Direction.UP, Trend.Strength.LONG, momentum);
+                return new Trend(Trend.Direction.UP, Trend.Strength.LONG, phase);
             } else if (mediumTermUp) {
-                return new Trend(Trend.Direction.UP, Trend.Strength.MEDIUM, momentum);
+                return new Trend(Trend.Direction.UP, Trend.Strength.MEDIUM, phase);
             } else if (shortTermUp) {
-                return new Trend(Trend.Direction.UP, Trend.Strength.SHORT, momentum);
+                return new Trend(Trend.Direction.UP, Trend.Strength.SHORT, phase);
             } else if (shortestTermUp) {
-                return new Trend(Trend.Direction.UP, Trend.Strength.STRONG, momentum);
+                return new Trend(Trend.Direction.UP, Trend.Strength.STRONG, phase);
             }
 
-            return new Trend(Trend.Direction.UP, Trend.Strength.STRONG, momentum);
+            return new Trend(Trend.Direction.UP, Trend.Strength.STRONG, phase);
         }
 
         // 7️⃣ Sideways: No clear trend (EMAs are flat or mixed)
-        return new Trend(Trend.Direction.INVALID, Trend.Strength.INVALID, momentum);
+        return new Trend(Trend.Direction.INVALID, Trend.Strength.INVALID, phase);
     }
 }
