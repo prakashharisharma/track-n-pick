@@ -55,7 +55,7 @@ public class PriceActionServiceImpl implements PriceActionService {
         Trend trend = trendService.detect(stock, timeframe);
 
         log.info(
-                "{} [{}]: Scanning breakout | Direction: {}, Momentum: {}",
+                "{} [{}]: Scanning price action breakout | Direction: {}, Momentum: {}",
                 stock.getNseSymbol(),
                 timeframe,
                 trend.getDirection(),
@@ -108,14 +108,16 @@ public class PriceActionServiceImpl implements PriceActionService {
                 candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
         boolean isBearishCandleStick =
                 candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
-        boolean isVolumeSurge = volumeIndicatorService.isBullish(stockTechnicals, timeframe, 2.0);
+        boolean isVolumeSurge =
+                volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
         // boolean isVolumeSurge = true;
         if (relevanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBullishCandleStick
                     || (EnumSet.of(
                                             Trend.Momentum.DIP,
                                             Trend.Momentum.PULLBACK,
-                                            Trend.Momentum.CORRECTION)
+                                            Trend.Momentum.CORRECTION,
+                                            Trend.Momentum.BOTTOM)
                                     .contains(momentum))
                             && !isBearishCandleStick
                             && isVolumeSurge) {
@@ -130,6 +132,7 @@ public class PriceActionServiceImpl implements PriceActionService {
         if (relevanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBullishCandleStick
                     || (EnumSet.of(
+                                            Trend.Momentum.EARLY_RECOVERY,
                                             Trend.Momentum.RECOVERY,
                                             Trend.Momentum.ADVANCE,
                                             Trend.Momentum.TOP)
@@ -165,7 +168,7 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         Trend trend = trendService.detect(stock, timeframe);
         log.info(
-                "{} [{}]: Scanning breakdown | Direction: {}, Momentum: {}",
+                "{} [{}]: Scanning price action breakdown | Direction: {}, Momentum: {}",
                 stock.getNseSymbol(),
                 timeframe,
                 trend.getDirection(),
@@ -220,11 +223,13 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         boolean isBullishCandleStick =
                 candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
-        boolean isVolumeSurge = volumeIndicatorService.isBullish(stockTechnicals, timeframe, 1.5);
+        boolean isVolumeSurge =
+                volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
         // boolean isVolumeSurge = true;
         if (relevanceService.isNearResistance(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBearishCandleStick
                     || (EnumSet.of(
+                                            Trend.Momentum.EARLY_RECOVERY,
                                             Trend.Momentum.RECOVERY,
                                             Trend.Momentum.ADVANCE,
                                             Trend.Momentum.TOP)
@@ -244,7 +249,8 @@ public class PriceActionServiceImpl implements PriceActionService {
                     || (EnumSet.of(
                                             Trend.Momentum.DIP,
                                             Trend.Momentum.PULLBACK,
-                                            Trend.Momentum.CORRECTION)
+                                            Trend.Momentum.CORRECTION,
+                                            Trend.Momentum.BOTTOM)
                                     .contains(momentum))
                             && !isBullishCandleStick
                             && isVolumeSurge) {

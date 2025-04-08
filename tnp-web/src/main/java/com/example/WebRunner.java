@@ -161,7 +161,7 @@ public class WebRunner implements CommandLineRunner {
 
         log.info("Application started....");
 
-        // bhavProcessor.processAndResearchTechnicals();
+        bhavProcessor.processAndResearchTechnicals();
 
         /*
         Stock stock = stockService.getStockByNseSymbol("360ONE");
@@ -184,7 +184,7 @@ public class WebRunner implements CommandLineRunner {
 
         // this.updateRemainigSectorsActivityFromNSE();
 
-        this.scanBullishCandleStickPattern();
+        // this.scanBullishCandleStickPattern();
         // this.scanBearishCandleStickPattern();
 
         // this.updateFinaicials();

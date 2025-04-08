@@ -117,28 +117,28 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
         log.info("{} Executing technical buy", stock.getNseSymbol());
 
-        if (fundamentalResearchService.isMcapInRange(stock)) {
-            log.info("{} Found  mcap range stock", stock.getNseSymbol());
-            if (stock.getSeries().equalsIgnoreCase("EQ")) {
-                log.info("{} Found EQ stock ", stock.getNseSymbol());
-                TradeSetup tradeSetup = priceActionService.breakOut(stock, timeframe);
+        // if (fundamentalResearchService.isMcapInRange(stock)) {
+        // log.info("{} Found  mcap range stock", stock.getNseSymbol());
+        if (stock.getSeries().equalsIgnoreCase("EQ")) {
+            log.info("{} Found EQ stock ", stock.getNseSymbol());
+            TradeSetup tradeSetup = priceActionService.breakOut(stock, timeframe);
 
-                if (!tradeSetup.isActive()) {
-                    tradeSetup = swingActionService.breakOut(stock, timeframe);
-                }
+            if (!tradeSetup.isActive()) {
+                tradeSetup = swingActionService.breakOut(stock, timeframe);
+            }
 
-                if (tradeSetup.isActive()) {
-                    log.info(
-                            "{} Bullish Trade active timeframe: {}, strategy:{}, subStrategy:{} ",
-                            stock.getNseSymbol(),
-                            timeframe,
-                            tradeSetup.getStrategy(),
-                            tradeSetup.getSubStrategy());
-                    researchTechnicalService.entry(
-                            stock, timeframe, tradeSetup, stockPrice, stockTechnicals, sessionDate);
-                }
+            if (tradeSetup.isActive()) {
+                log.info(
+                        "{} Bullish Trade active timeframe: {}, strategy:{}, subStrategy:{} ",
+                        stock.getNseSymbol(),
+                        timeframe,
+                        tradeSetup.getStrategy(),
+                        tradeSetup.getSubStrategy());
+                researchTechnicalService.entry(
+                        stock, timeframe, tradeSetup, stockPrice, stockTechnicals, sessionDate);
             }
         }
+        // }
 
         log.info("{} Executed technical buy", stock.getNseSymbol());
     }
