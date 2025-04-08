@@ -273,9 +273,9 @@ public class RelevanceServiceImpl implements RelevanceService {
             StockTechnicals stockTechnicals) {
 
         // Check if the trend is in a dip, pullback or correction phase
-        if (trend.getMomentum() != Trend.Momentum.DIP
-                && trend.getMomentum() != Trend.Momentum.PULLBACK
-                && trend.getMomentum() != Trend.Momentum.CORRECTION) {
+        if (trend.getMomentum() != Trend.Phase.DIP
+                && trend.getMomentum() != Trend.Phase.PULLBACK
+                && trend.getMomentum() != Trend.Phase.CORRECTION) {
             return false;
         }
 
@@ -402,9 +402,9 @@ public class RelevanceServiceImpl implements RelevanceService {
             StockTechnicals stockTechnicals) {
 
         // Check if the trend is in a top or advance phase
-        if (trend.getMomentum() != Trend.Momentum.TOP
-                && trend.getMomentum() != Trend.Momentum.ADVANCE
-                && trend.getMomentum() != Trend.Momentum.RECOVERY) {
+        if (trend.getMomentum() != Trend.Phase.TOP
+                && trend.getMomentum() != Trend.Phase.ADVANCE
+                && trend.getMomentum() != Trend.Phase.RECOVERY) {
             return false;
         }
 

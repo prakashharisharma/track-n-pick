@@ -53,6 +53,7 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         boolean isCandleActive = Boolean.FALSE;
         Trend trend = trendService.detect(stock, timeframe);
+        Trend higherTrend = trendService.detect(stock, timeframe.getHigher());
 
         log.info(
                 "{} [{}]: Scanning price action breakout | Direction: {}, Momentum: {}",
@@ -67,7 +68,12 @@ public class PriceActionServiceImpl implements PriceActionService {
 
             isCandleActive =
                     this.isBullishAction(
-                            trend, timeframe, stockPrice, stockTechnicals, subStrategyRef);
+                            trend,
+                            higherTrend,
+                            timeframe,
+                            stockPrice,
+                            stockTechnicals,
+                            subStrategyRef);
         }
 
         if (isCandleActive) {
@@ -89,6 +95,7 @@ public class PriceActionServiceImpl implements PriceActionService {
 
     private boolean isBullishAction(
             Trend trend,
+            Trend higherTrend,
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
@@ -102,7 +109,7 @@ public class PriceActionServiceImpl implements PriceActionService {
             return false;
         }
 
-        Trend.Momentum momentum = trend.getMomentum();
+        Trend.Phase phase = trend.getMomentum();
 
         boolean isBullishCandleStick =
                 candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
@@ -111,16 +118,19 @@ public class PriceActionServiceImpl implements PriceActionService {
         boolean isVolumeSurge =
                 volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
         // boolean isVolumeSurge = true;
+        /* if (relevanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals)) {
+        if (isBullishCandleStick
+                || (higherTrend.getMomentum().isHigherPriorityThan(trend.getMomentum())
+                        && !isBearishCandleStick
+                        && isVolumeSurge)){*/
+
         if (relevanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBullishCandleStick
-                    || (EnumSet.of(
-                                            Trend.Momentum.DIP,
-                                            Trend.Momentum.PULLBACK,
-                                            Trend.Momentum.CORRECTION,
-                                            Trend.Momentum.BOTTOM)
-                                    .contains(momentum))
+                    || ((EnumSet.of(Trend.Phase.DIP, Trend.Phase.PULLBACK, Trend.Phase.CORRECTION)
+                                    .contains(phase))
                             && !isBearishCandleStick
-                            && isVolumeSurge) {
+                            && isVolumeSurge)) {
+
                 subStrategyRef.set(
                         isBullishCandleStick
                                 ? ResearchTechnical.SubStrategy.STRONG_SUPPORT
@@ -129,16 +139,19 @@ public class PriceActionServiceImpl implements PriceActionService {
             }
         }
 
+        /*if (relevanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals)) {
+        if (isBullishCandleStick
+                || (higherTrend.getMomentum().isLowerPriorityThan(trend.getMomentum())
+                && !isBearishCandleStick
+                        && isVolumeSurge)) {*/
+
         if (relevanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBullishCandleStick
-                    || (EnumSet.of(
-                                            Trend.Momentum.EARLY_RECOVERY,
-                                            Trend.Momentum.RECOVERY,
-                                            Trend.Momentum.ADVANCE,
-                                            Trend.Momentum.TOP)
-                                    .contains(momentum))
+                    || ((EnumSet.of(Trend.Phase.RECOVERY, Trend.Phase.ADVANCE, Trend.Phase.TOP)
+                                    .contains(phase))
                             && !isBearishCandleStick
-                            && isVolumeSurge) {
+                            && isVolumeSurge)) {
+
                 subStrategyRef.set(
                         isBullishCandleStick
                                 ? ResearchTechnical.SubStrategy.STRONG_BREAKOUT
@@ -167,6 +180,9 @@ public class PriceActionServiceImpl implements PriceActionService {
         boolean isCandleActive = Boolean.FALSE;
 
         Trend trend = trendService.detect(stock, timeframe);
+
+        Trend higherTrend = trendService.detect(stock, timeframe.getHigher());
+
         log.info(
                 "{} [{}]: Scanning price action breakdown | Direction: {}, Momentum: {}",
                 stock.getNseSymbol(),
@@ -179,7 +195,12 @@ public class PriceActionServiceImpl implements PriceActionService {
         if (trend.getDirection() != Trend.Direction.INVALID) {
             isCandleActive =
                     this.isBearishAction(
-                            trend, timeframe, stockPrice, stockTechnicals, subStrategyRef);
+                            trend,
+                            higherTrend,
+                            timeframe,
+                            stockPrice,
+                            stockTechnicals,
+                            subStrategyRef);
         }
 
         if (isCandleActive) {
@@ -203,6 +224,7 @@ public class PriceActionServiceImpl implements PriceActionService {
 
     private boolean isBearishAction(
             Trend trend,
+            Trend higherTrend,
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
@@ -216,7 +238,7 @@ public class PriceActionServiceImpl implements PriceActionService {
             return false;
         }
 
-        Trend.Momentum momentum = trend.getMomentum();
+        Trend.Phase phase = trend.getMomentum();
 
         boolean isBearishCandleStick =
                 candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
@@ -225,17 +247,21 @@ public class PriceActionServiceImpl implements PriceActionService {
                 candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
         boolean isVolumeSurge =
                 volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
+
         // boolean isVolumeSurge = true;
+        /*
         if (relevanceService.isNearResistance(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBearishCandleStick
-                    || (EnumSet.of(
-                                            Trend.Momentum.EARLY_RECOVERY,
-                                            Trend.Momentum.RECOVERY,
-                                            Trend.Momentum.ADVANCE,
-                                            Trend.Momentum.TOP)
-                                    .contains(momentum))
+                    || (higherTrend.getMomentum().isLowerPriorityThan(trend.getMomentum())
+                    && !isBullishCandleStick
+                            && isVolumeSurge)) {*/
+        if (relevanceService.isNearResistance(trend, timeframe, stockPrice, stockTechnicals)) {
+            if (isBearishCandleStick
+                    || ((EnumSet.of(Trend.Phase.RECOVERY, Trend.Phase.ADVANCE, Trend.Phase.TOP)
+                                    .contains(phase))
                             && !isBullishCandleStick
-                            && isVolumeSurge) {
+                            && isVolumeSurge)) {
+
                 subStrategyRef.set(
                         isBearishCandleStick
                                 ? ResearchTechnical.SubStrategy.STRONG_RESISTANCE
@@ -243,17 +269,20 @@ public class PriceActionServiceImpl implements PriceActionService {
                 return true;
             }
         }
+        /*
+        if (relevanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals)) {
+            if (isBearishCandleStick
+                    || (higherTrend.getMomentum().isHigherPriorityThan(trend.getMomentum())
+                    && !isBullishCandleStick
+                            && isVolumeSurge)) {*/
 
         if (relevanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBearishCandleStick
-                    || (EnumSet.of(
-                                            Trend.Momentum.DIP,
-                                            Trend.Momentum.PULLBACK,
-                                            Trend.Momentum.CORRECTION,
-                                            Trend.Momentum.BOTTOM)
-                                    .contains(momentum))
+                    || ((EnumSet.of(Trend.Phase.DIP, Trend.Phase.PULLBACK, Trend.Phase.CORRECTION)
+                                    .contains(phase))
                             && !isBullishCandleStick
-                            && isVolumeSurge) {
+                            && isVolumeSurge)) {
+
                 subStrategyRef.set(
                         isBearishCandleStick
                                 ? ResearchTechnical.SubStrategy.STRONG_BREAKDOWN

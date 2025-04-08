@@ -160,13 +160,22 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         boolean isRedCandle = CandleStickUtils.isRed(stockPrice);
 
+        double researchPrice = stockPrice.getHigh();
+
         if (isWeakSignal) {
-            return isRedCandle
-                    ? stockPrice.getLow()
-                    : (stockPrice.getOpen() + stockPrice.getLow()) / 2.0;
+            researchPrice =
+                    isRedCandle
+                            ? (stockPrice.getClose() + stockPrice.getLow()) / 2.0
+                            : (stockPrice.getOpen() + stockPrice.getLow()) / 2.0;
+        } else {
+
+            researchPrice =
+                    isRedCandle
+                            ? (stockPrice.getOpen() + stockPrice.getHigh()) / 2.0
+                            : (stockPrice.getClose() + stockPrice.getHigh()) / 2.0;
         }
 
-        return isRedCandle ? stockPrice.getClose() : stockPrice.getHigh();
+        return formulaService.ceilToNearestQuarter(researchPrice);
     }
 
     private boolean isWeakSubStrategy(ResearchTechnical.SubStrategy subStrategy) {

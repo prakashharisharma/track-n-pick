@@ -59,9 +59,9 @@ public class SwingActionServiceImpl implements SwingActionService {
                 stock.getNseSymbol(),
                 trend.getDirection(),
                 trend.getMomentum());
-        if (trend.getMomentum() == Trend.Momentum.DIP
-                || trend.getMomentum() == Trend.Momentum.PULLBACK
-                || trend.getMomentum() == Trend.Momentum.CORRECTION) {
+        if (trend.getMomentum() == Trend.Phase.DIP
+                || trend.getMomentum() == Trend.Phase.PULLBACK
+                || trend.getMomentum() == Trend.Phase.CORRECTION) {
             if (candleStickHelperService.isBullishConfirmed(
                     timeframe, stockPrice, stockTechnicals)) {
                 ResearchTechnical.SubStrategy subStrategy = ResearchTechnical.SubStrategy.RM;
@@ -131,9 +131,9 @@ public class SwingActionServiceImpl implements SwingActionService {
                 stock.getNseSymbol(),
                 trend.getDirection(),
                 trend.getMomentum());
-        if (trend.getMomentum() == Trend.Momentum.TOP
-                || trend.getMomentum() == Trend.Momentum.ADVANCE
-                || trend.getMomentum() == Trend.Momentum.RECOVERY) {
+        if (trend.getMomentum() == Trend.Phase.TOP
+                || trend.getMomentum() == Trend.Phase.ADVANCE
+                || trend.getMomentum() == Trend.Phase.RECOVERY) {
             // if (trend.getMomentum() == Trend.Momentum.RECOVERY || trend.getMomentum() ==
             // Trend.Momentum.ADVANCE) {
             if (candleStickHelperService.isBearishConfirmed(

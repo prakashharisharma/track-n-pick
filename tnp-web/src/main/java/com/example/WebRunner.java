@@ -288,27 +288,31 @@ public class WebRunner implements CommandLineRunner {
 
     private void testTrend() {
 
-        List<Stock> stockList = stockService.getActiveStocks();
-        /*
+        // List<Stock> stockList = stockService.getActiveStocks();
+
         List<Stock> stockList = new ArrayList<>();
-        Stock stock = stockService.getStockByNseSymbol("ACC");
+        Stock stock = stockService.getStockByNseSymbol("AARTIPHARM");
         stockList.add(stock);
-        stock = stockService.getStockByNseSymbol("AUBANK");
+        stock = stockService.getStockByNseSymbol("TRIVENI");
         stockList.add(stock);
-        stock = stockService.getStockByNseSymbol("AWL");
+        stock = stockService.getStockByNseSymbol("TATASTEEL");
         stockList.add(stock);
-        stock = stockService.getStockByNseSymbol("BALRAMCHIN");
+        stock = stockService.getStockByNseSymbol("LT");
         stockList.add(stock);
-        stock = stockService.getStockByNseSymbol("MAXHEALTH");
+        stock = stockService.getStockByNseSymbol("HINDALCO");
         stockList.add(stock);
-        stock = stockService.getStockByNseSymbol("JUBLFOOD");
+        stock = stockService.getStockByNseSymbol("SPLPETRO");
         stockList.add(stock);
-         */
+        stock = stockService.getStockByNseSymbol("FIEMIND");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("MPSLTD");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("GREENLAM");
+        stockList.add(stock);
 
         stockList.forEach(
                 stk -> {
                     Trend trend = trendService.detect(stk, Timeframe.DAILY);
-                    // if (trend.getDirection() != Trend.Direction.INVALID) {
                     System.out.println(
                             "DAILY -> "
                                     + stk.getNseSymbol()
@@ -319,32 +323,31 @@ public class WebRunner implements CommandLineRunner {
                                     + " Momentum: "
                                     + trend.getMomentum());
                     // }
-                    /*
                     trend = trendService.detect(stk, Timeframe.WEEKLY);
-                    if (trend.getDirection() != Trend.Direction.INVALID) {
-                        System.out.println(
-                                "WEEKLY -> "
-                                        + stk.getNseSymbol()
-                                        + " Direction: "
-                                        + trend.getDirection()
-                                        + " Strength: "
-                                        + trend.getStrength()
-                                        + " Momentum: "
-                                        + trend.getMomentum());
-                    }
+                    // if (trend.getDirection() != Trend.Direction.INVALID) {
+                    System.out.println(
+                            "WEEKLY -> "
+                                    + stk.getNseSymbol()
+                                    + " Direction: "
+                                    + trend.getDirection()
+                                    + " Strength: "
+                                    + trend.getStrength()
+                                    + " Momentum: "
+                                    + trend.getMomentum());
+                    // }
 
                     trend = trendService.detect(stk, Timeframe.MONTHLY);
-                    if (trend.getDirection() != Trend.Direction.INVALID) {
-                        System.out.println(
-                                "MONTHLY -> "
-                                        + stk.getNseSymbol()
-                                        + " Direction: "
-                                        + trend.getDirection()
-                                        + " Strength: "
-                                        + trend.getStrength()
-                                        + " Momentum: "
-                                        + trend.getMomentum());
-                    }*/
+                    // if (trend.getDirection() != Trend.Direction.INVALID) {
+                    System.out.println(
+                            "MONTHLY -> "
+                                    + stk.getNseSymbol()
+                                    + " Direction: "
+                                    + trend.getDirection()
+                                    + " Strength: "
+                                    + trend.getStrength()
+                                    + " Momentum: "
+                                    + trend.getMomentum());
+                    // }
                 });
     }
 

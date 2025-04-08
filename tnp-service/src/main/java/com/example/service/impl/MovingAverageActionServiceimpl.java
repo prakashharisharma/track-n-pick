@@ -45,7 +45,7 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
 
         boolean isBreakDown = Boolean.FALSE;
 
-        if (trend.getMomentum() == Trend.Momentum.TOP) {
+        if (trend.getMomentum() == Trend.Phase.TOP) {
             if (this.isBreakDown(
                     stock,
                     timeframe,
@@ -64,7 +64,7 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
                 isBreakDown = Boolean.TRUE;
             }
         }
-        if (trend.getMomentum() == Trend.Momentum.ADVANCE) {
+        if (trend.getMomentum() == Trend.Phase.ADVANCE) {
             if (this.isBreakDown(
                     stock,
                     timeframe,
@@ -75,7 +75,7 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
                 isBreakDown = Boolean.TRUE;
             }
         }
-        if (trend.getMomentum() == Trend.Momentum.RECOVERY) {
+        if (trend.getMomentum() == Trend.Phase.RECOVERY) {
             if (this.isBreakDown(
                     stock,
                     timeframe,
