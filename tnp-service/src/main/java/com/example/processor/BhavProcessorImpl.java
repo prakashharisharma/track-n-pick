@@ -472,7 +472,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                 miscUtil.delay(ThreadsUtil.poolSize() * 128);
             } catch (Exception e) {
                 log.error(
-                        "{} An eoor occurd while processing monthly batch",
+                        "{} An error occurred while processing monthly batch",
                         stock.getNseSymbol(),
                         e);
             }

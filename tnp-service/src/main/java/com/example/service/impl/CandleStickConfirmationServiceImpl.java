@@ -230,7 +230,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
             return false;
         }
 
-        boolean isVolumeConfirmed = volumeIndicatorService.isBullish(timeframe, stockTechnicals, 3);
+        boolean isVolumeConfirmed =
+                volumeIndicatorService.isBullish(timeframe, stockPrice, stockTechnicals, 3);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -275,7 +276,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
             return false;
         }
 
-        boolean isVolumeConfirmed = volumeIndicatorService.isBearish(timeframe, stockTechnicals, 3);
+        boolean isVolumeConfirmed =
+                volumeIndicatorService.isBearish(timeframe, stockPrice, stockTechnicals, 3);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -330,7 +332,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
             return false;
         }
 
-        boolean isVolumeConfirmed = volumeIndicatorService.isBullish(timeframe, stockTechnicals, 2);
+        boolean isVolumeConfirmed =
+                volumeIndicatorService.isBullish(timeframe, stockPrice, stockTechnicals, 2);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -382,7 +385,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
             return false;
         }
 
-        boolean isVolumeConfirmed = volumeIndicatorService.isBearish(timeframe, stockTechnicals, 2);
+        boolean isVolumeConfirmed =
+                volumeIndicatorService.isBearish(timeframe, stockPrice, stockTechnicals, 2);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -421,7 +425,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
             return false;
         }
 
-        boolean isVolumeConfirmed = volumeIndicatorService.isBullish(timeframe, stockTechnicals, 1);
+        boolean isVolumeConfirmed =
+                volumeIndicatorService.isBullish(timeframe, stockPrice, stockTechnicals, 1);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -460,7 +465,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
             return false;
         }
 
-        boolean isVolumeConfirmed = volumeIndicatorService.isBearish(timeframe, stockTechnicals, 1);
+        boolean isVolumeConfirmed =
+                volumeIndicatorService.isBearish(timeframe, stockPrice, stockTechnicals, 1);
 
         if (isVolumeConfirmed) {
             log.info(
