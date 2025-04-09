@@ -115,8 +115,7 @@ public class AdxIndicatorServiceImpl implements AdxIndicatorService {
 
         if (this.isPlusDiIncreasing(stockTechnicals) && this.isMinusDiDecreasing(stockTechnicals)) {
             if (this.isAdxIncreasing(stockTechnicals)
-                    && this.adx(stockTechnicals) > ADX_BULLISH_MIN
-                    && this.adx(stockTechnicals) < ADX_BULLISH_MAX) {
+                    && this.adx(stockTechnicals) > ADX_BULLISH_MIN) {
                 return Boolean.TRUE;
             }
         }

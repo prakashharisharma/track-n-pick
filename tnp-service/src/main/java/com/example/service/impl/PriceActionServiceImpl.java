@@ -31,7 +31,7 @@ public class PriceActionServiceImpl implements PriceActionService {
 
     @Autowired private BreakoutLedgerService breakoutLedgerService;
 
-    @Autowired private StockPriceServiceOld stockPriceServiceOld;
+    @Autowired private StockPriceHelperService stockPriceHelperService;
     @Autowired private RelevanceService relevanceService;
     @Autowired private FormulaService formulaService;
     @Autowired private TrendService trendService;
@@ -53,8 +53,6 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         boolean isCandleActive = Boolean.FALSE;
         Trend trend = trendService.detect(stock, timeframe);
-        Trend higherTrend = trendService.detect(stock, timeframe.getHigher());
-
         log.info(
                 "{} [{}]: Scanning price action breakout | Direction: {}, Momentum: {}",
                 stock.getNseSymbol(),
@@ -68,12 +66,7 @@ public class PriceActionServiceImpl implements PriceActionService {
 
             isCandleActive =
                     this.isBullishAction(
-                            trend,
-                            higherTrend,
-                            timeframe,
-                            stockPrice,
-                            stockTechnicals,
-                            subStrategyRef);
+                            trend, timeframe, stockPrice, stockTechnicals, subStrategyRef);
         }
 
         if (isCandleActive) {
@@ -95,7 +88,6 @@ public class PriceActionServiceImpl implements PriceActionService {
 
     private boolean isBullishAction(
             Trend trend,
-            Trend higherTrend,
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
@@ -181,8 +173,6 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         Trend trend = trendService.detect(stock, timeframe);
 
-        Trend higherTrend = trendService.detect(stock, timeframe.getHigher());
-
         log.info(
                 "{} [{}]: Scanning price action breakdown | Direction: {}, Momentum: {}",
                 stock.getNseSymbol(),
@@ -195,12 +185,7 @@ public class PriceActionServiceImpl implements PriceActionService {
         if (trend.getDirection() != Trend.Direction.INVALID) {
             isCandleActive =
                     this.isBearishAction(
-                            trend,
-                            higherTrend,
-                            timeframe,
-                            stockPrice,
-                            stockTechnicals,
-                            subStrategyRef);
+                            trend, timeframe, stockPrice, stockTechnicals, subStrategyRef);
         }
 
         if (isCandleActive) {
@@ -224,7 +209,6 @@ public class PriceActionServiceImpl implements PriceActionService {
 
     private boolean isBearishAction(
             Trend trend,
-            Trend higherTrend,
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,

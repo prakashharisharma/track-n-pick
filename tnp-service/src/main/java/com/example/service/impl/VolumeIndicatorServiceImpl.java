@@ -376,7 +376,10 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     }
 
     public boolean isHighRVOL(long volume, long volumeMA, double threshold) {
-        return (volume / volumeMA) > threshold;
+        if (volumeMA == 0) {
+            return false; // or handle as appropriate (e.g., return true, throw exception, etc.)
+        }
+        return ((double) volume / volumeMA) > threshold;
     }
 
     private boolean isIncreasing(long volume, long preVolume) {
