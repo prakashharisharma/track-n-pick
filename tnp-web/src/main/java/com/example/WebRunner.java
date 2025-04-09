@@ -120,7 +120,7 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private StockRepository stockRepository;
 
-    @Autowired private StockPriceServiceOld stockPriceServiceOld;
+    @Autowired private StockPriceHelperService stockPriceHelperService;
 
     @Autowired private StockPriceService<StockPrice> stockPriceService;
 
@@ -161,7 +161,7 @@ public class WebRunner implements CommandLineRunner {
 
         log.info("Application started....");
 
-        bhavProcessor.processAndResearchTechnicals();
+       // bhavProcessor.processAndResearchTechnicals();
 
         /*
         Stock stock = stockService.getStockByNseSymbol("360ONE");
@@ -184,7 +184,7 @@ public class WebRunner implements CommandLineRunner {
 
         // this.updateRemainigSectorsActivityFromNSE();
 
-        // this.scanBullishCandleStickPattern();
+         this.scanBullishCandleStickPattern();
         // this.scanBearishCandleStickPattern();
 
         // this.updateFinaicials();
@@ -580,8 +580,7 @@ public class WebRunner implements CommandLineRunner {
                     StockTechnicals stockTechnicals =
                             stockTechnicalsService.get(stock, Timeframe.DAILY);
                     TradeSetup tradeSetup = priceActionService.breakOut(stock, Timeframe.DAILY);
-                    System.out.println(
-                            stock.getNseSymbol() + " : Price Action " + tradeSetup.isActive());
+                    //System.out.println(stock.getNseSymbol() + " : Price Action " + tradeSetup.isActive());
                     tradeSetup = swingActionService.breakOut(stock, Timeframe.DAILY);
                     System.out.println(
                             stock.getNseSymbol() + " : Swing Action " + tradeSetup.isActive());

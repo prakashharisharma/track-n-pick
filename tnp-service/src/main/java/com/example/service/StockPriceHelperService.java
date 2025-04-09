@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 @Transactional
 @Service
-public class StockPriceServiceOld {
+public class StockPriceHelperService {
 
     @Autowired private BreakoutLedgerService breakoutLedgerService;
     @Autowired private FormulaService formulaService;
@@ -224,5 +224,21 @@ public class StockPriceServiceOld {
 
     private double maxTmaRange() {
         return formulaService.applyPercentChange(MAX_WICK_SIZE, FibonacciRatio.RATIO_161_8 * 100);
+    }
+
+    public boolean isAboveEma20(StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        return stockPrice.getClose() > stockTechnicals.getEma20() ? true : false;
+    }
+
+    public boolean isAboveEma50(StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        return stockPrice.getClose() > stockTechnicals.getEma50() ? true : false;
+    }
+
+    public boolean isBelowEma20(StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        return stockPrice.getClose() < stockTechnicals.getEma20() ? true : false;
+    }
+
+    public boolean isBelowEma50(StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        return stockPrice.getClose() < stockTechnicals.getEma50() ? true : false;
     }
 }

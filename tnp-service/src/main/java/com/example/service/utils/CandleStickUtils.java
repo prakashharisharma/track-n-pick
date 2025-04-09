@@ -331,6 +331,14 @@ public class CandleStickUtils {
         return low < prevLow;
     }
 
+    public static boolean isLowerLow(double low, double prevLow) {
+        return low < prevLow;
+    }
+
+    public static boolean isHigherLow(double low, double prevLow) {
+        return low > prevLow;
+    }
+
     public static boolean isHigherHigh(StockPrice stockPrice) {
         if (stockPrice == null) {
             return false;
@@ -340,6 +348,34 @@ public class CandleStickUtils {
         Double prevHigh = stockPrice.getPrevHigh();
 
         return (high != null && prevHigh != null) && high > prevHigh;
+    }
+
+    public static boolean isHigherHighAndHigherLow(StockPrice stockPrice) {
+        return isHigherHigh(stockPrice.getHigh(), stockPrice.getPrevHigh())
+                && isHigherHigh(stockPrice.getPrevHigh(), stockPrice.getPrev2High())
+                && isHigherHigh(stockPrice.getPrev2High(), stockPrice.getPrev3High())
+                && isHigherLow(stockPrice.getLow(), stockPrice.getPrevLow())
+                && isHigherLow(stockPrice.getPrevLow(), stockPrice.getPrev2Low())
+                && isHigherLow(stockPrice.getPrev2Low(), stockPrice.getPrev3Low());
+    }
+
+    public static boolean isLowerHighAndLowerLow(StockPrice stockPrice) {
+        return isLowerHigh(stockPrice.getHigh(), stockPrice.getPrevHigh())
+                && isLowerHigh(stockPrice.getPrevHigh(), stockPrice.getPrev2High())
+                && isLowerHigh(stockPrice.getPrev2High(), stockPrice.getPrev3High())
+                && isLowerLow(stockPrice.getLow(), stockPrice.getPrevLow())
+                && isLowerLow(stockPrice.getPrevLow(), stockPrice.getPrev2Low())
+                && isLowerLow(stockPrice.getPrev2Low(), stockPrice.getPrev3Low());
+    }
+
+    public static boolean isHigherHigh(double high, double prevHigh) {
+
+        return high > prevHigh;
+    }
+
+    public static boolean isLowerHigh(double high, double prevHigh) {
+
+        return high < prevHigh;
     }
 
     public static boolean isGapUp(StockPrice stockPrice) {

@@ -180,7 +180,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
     private boolean isWeakSubStrategy(ResearchTechnical.SubStrategy subStrategy) {
         return subStrategy == ResearchTechnical.SubStrategy.WEAK_BREAKOUT
-                || subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT;
+                || subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT
+                || subStrategy == ResearchTechnical.SubStrategy.WEAK_SWING;
     }
 
     public double calculateScore(
