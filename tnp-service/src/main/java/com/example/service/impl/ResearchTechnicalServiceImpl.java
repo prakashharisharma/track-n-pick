@@ -165,8 +165,10 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         if (isWeakSignal) {
             researchPrice =
                     isRedCandle
-                            ? (stockPrice.getClose() + stockPrice.getLow()) / 2.0
-                            : (stockPrice.getOpen() + stockPrice.getLow()) / 2.0;
+                            ? (stockPrice.getLow()
+                                    + (stockPrice.getClose() - stockPrice.getLow()) * 0.25)
+                            : (stockPrice.getLow()
+                                    + (stockPrice.getOpen() - stockPrice.getLow()) * 0.25);
         } else {
 
             researchPrice =

@@ -119,6 +119,32 @@ public class TrendServiceImpl implements TrendService {
 
         if (timeframe == Timeframe.DAILY) {
             return this.isUpTrend(
+                    MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals),
+                    MovingAverageUtil.getPrevMovingAverage100(timeframe, stockTechnicals),
+                    stockPrice.getClose(),
+                    stockPrice.getPrevClose());
+        } else if (timeframe == Timeframe.WEEKLY) {
+            return this.isUpTrend(
+                    MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals),
+                    MovingAverageUtil.getPrevMovingAverage100(timeframe, stockTechnicals),
+                    stockPrice.getClose(),
+                    stockPrice.getPrevClose());
+        } else if (timeframe == Timeframe.MONTHLY) {
+            return this.isUpTrend(
+                    MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals),
+                    MovingAverageUtil.getPrevMovingAverage100(timeframe, stockTechnicals),
+                    stockPrice.getClose(),
+                    stockPrice.getPrevClose());
+        }
+
+        return Boolean.FALSE;
+    }
+
+    private boolean isLongestTermUpTrend(
+            Timeframe timeframe, StockTechnicals stockTechnicals, StockPrice stockPrice) {
+
+        if (timeframe == Timeframe.DAILY) {
+            return this.isUpTrend(
                     MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals),
                     MovingAverageUtil.getPrevMovingAverage200(timeframe, stockTechnicals),
                     stockPrice.getClose(),
@@ -131,8 +157,8 @@ public class TrendServiceImpl implements TrendService {
                     stockPrice.getPrevClose());
         } else if (timeframe == Timeframe.MONTHLY) {
             return this.isUpTrend(
-                    MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals),
-                    MovingAverageUtil.getPrevMovingAverage100(timeframe, stockTechnicals),
+                    MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals),
+                    MovingAverageUtil.getPrevMovingAverage200(timeframe, stockTechnicals),
                     stockPrice.getClose(),
                     stockPrice.getPrevClose());
         }
@@ -261,6 +287,32 @@ public class TrendServiceImpl implements TrendService {
 
         if (timeframe == Timeframe.DAILY) {
             return this.isDownTrend(
+                    MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals),
+                    MovingAverageUtil.getPrevMovingAverage100(timeframe, stockTechnicals),
+                    stockPrice.getClose(),
+                    stockPrice.getPrevClose());
+        } else if (timeframe == Timeframe.WEEKLY) {
+            return this.isDownTrend(
+                    MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals),
+                    MovingAverageUtil.getPrevMovingAverage100(timeframe, stockTechnicals),
+                    stockPrice.getClose(),
+                    stockPrice.getPrevClose());
+        } else if (timeframe == Timeframe.MONTHLY) {
+            return this.isDownTrend(
+                    MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals),
+                    MovingAverageUtil.getPrevMovingAverage100(timeframe, stockTechnicals),
+                    stockPrice.getClose(),
+                    stockPrice.getPrevClose());
+        }
+
+        return Boolean.FALSE;
+    }
+
+    private boolean isLongestTermDownTrend(
+            Timeframe timeframe, StockTechnicals stockTechnicals, StockPrice stockPrice) {
+
+        if (timeframe == Timeframe.DAILY) {
+            return this.isDownTrend(
                     MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals),
                     MovingAverageUtil.getPrevMovingAverage200(timeframe, stockTechnicals),
                     stockPrice.getClose(),
@@ -273,8 +325,8 @@ public class TrendServiceImpl implements TrendService {
                     stockPrice.getPrevClose());
         } else if (timeframe == Timeframe.MONTHLY) {
             return this.isDownTrend(
-                    MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals),
-                    MovingAverageUtil.getPrevMovingAverage100(timeframe, stockTechnicals),
+                    MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals),
+                    MovingAverageUtil.getPrevMovingAverage200(timeframe, stockTechnicals),
                     stockPrice.getClose(),
                     stockPrice.getPrevClose());
         }
@@ -330,57 +382,74 @@ public class TrendServiceImpl implements TrendService {
         boolean longTermDown = this.isLongTermDownTrend(timeframe, stockTechnicals, stockPrice);
         boolean longTermUp = this.isLongTermUpTrend(timeframe, stockTechnicals, stockPrice);
 
-        // log.info("timeframe:{}, shortestTermUp: {}, shortTermUp:{}, mediumTermUp:{},
-        // longTermUp:{}",timeframe, shortestTermUp, shortestTermUp, mediumTermUp, longTermUp);
-        // log.info("timeframe:{}, shortestTermDown: {}, shortTermDown:{}, mediumTermDown:{},
-        // longTermDown:{}",timeframe, shortestTermDown, shortestTermDown, mediumTermDown,
-        // longTermDown);
+        boolean longestTermDown =
+                this.isLongestTermDownTrend(timeframe, stockTechnicals, stockPrice);
+        boolean longestTermUp = this.isLongestTermUpTrend(timeframe, stockTechnicals, stockPrice);
+
         // 1️⃣ DIP: Shortest-term down, but short-term (20 EMA) is flat or uncertain, while medium &
         // long-term up
-        if (shortestTermDown && shortTermUp && mediumTermUp && longTermUp) {
+        if (shortestTermDown && shortTermUp && mediumTermUp && longTermUp && longestTermUp) {
             phase = Trend.Phase.DIP;
         }
 
         // 2️⃣ PULLBACK: Short-term downtrend (5 EMA & 20 EMA falling), but medium & long-term
         // uptrend
-        if (shortestTermDown && shortTermDown && mediumTermUp && longTermUp) {
+        if (shortestTermDown && shortTermDown && mediumTermUp && longTermUp && longestTermUp) {
             phase = Trend.Phase.PULLBACK;
         }
 
         // 3️⃣ CORRECTION: Short-term & medium-term downtrend, but long-term uptrend
-        if (shortTermDown && shortTermDown && mediumTermDown && longTermUp) {
+        if (shortTermDown && shortTermDown && mediumTermDown && longTermUp && longestTermUp) {
             phase = Trend.Phase.CORRECTION;
         }
 
+        // 4️⃣ MILD_BOTTOM: Strong downtrend across all timeframes (5, 20, 50, 200 EMA all bearish)
+        if (shortestTermDown && shortTermDown && mediumTermDown && longTermDown && longestTermUp) {
+            phase = Trend.Phase.DEEP_CORRECTION;
+        }
+
         // 4️⃣ BOTTOM: Strong downtrend across all timeframes (5, 20, 50, 200 EMA all bearish)
-        if (shortestTermDown && shortTermDown && mediumTermDown && longTermDown) {
+        if (shortestTermDown
+                && shortTermDown
+                && mediumTermDown
+                && longTermDown
+                && longestTermDown) {
             phase = Trend.Phase.BOTTOM;
         }
 
         // 5️⃣ EARLY RECOVERY: 5 EMA is rising, but 20 EMA, 50 EMA & 200 EMA are still bearish
-        if (shortestTermUp && shortTermDown && mediumTermDown && longTermDown) {
+        if (shortestTermUp && shortTermDown && mediumTermDown && longTermDown && longestTermDown) {
             phase = Trend.Phase.EARLY_RECOVERY;
         }
 
         // 6️⃣ RECOVERY: 5 EMA & 20 EMA rising, but 50 EMA & 200 EMA still bearish
-        if (shortestTermUp && shortTermUp && mediumTermDown && longTermDown) {
+        if (shortestTermUp && shortTermUp && mediumTermDown && longTermDown && longestTermDown) {
             phase = Trend.Phase.RECOVERY;
         }
 
         // 7️⃣ ADVANCE (Reversal): Short-term & medium-term uptrend, but long-term still bearish
-        if (shortestTermUp && shortTermUp && mediumTermUp && longTermDown) {
+        if (shortestTermUp && shortTermUp && mediumTermUp && longTermDown && longestTermDown) {
             phase = Trend.Phase.ADVANCE;
         }
 
+        // 7️⃣ ADVANCE (Reversal): Short-term & medium-term uptrend, but long-term still bearish
+        if (shortestTermUp && shortTermUp && mediumTermUp && longTermUp && longestTermDown) {
+            phase = Trend.Phase.STRONG_ADVANCE;
+        }
+
         // 8️⃣ TOP: Short-term weakening while medium & long-term are still bullish
-        if (shortestTermUp && shortTermUp && mediumTermUp && longTermUp) {
+        if (shortestTermUp && shortTermUp && mediumTermUp && longestTermUp) {
             phase = Trend.Phase.TOP;
         }
 
         if (phase == Trend.Phase.BOTTOM
+                || phase == Trend.Phase.DEEP_CORRECTION
                 || phase == Trend.Phase.CORRECTION
                 || phase == Trend.Phase.PULLBACK
                 || phase == Trend.Phase.DIP) {
+            if (longestTermDown) {
+                return new Trend(Trend.Direction.DOWN, Trend.Strength.LONG, phase);
+            }
             if (longTermDown) {
                 return new Trend(Trend.Direction.DOWN, Trend.Strength.LONG, phase);
             } else if (mediumTermDown) {
@@ -392,9 +461,13 @@ public class TrendServiceImpl implements TrendService {
             }
             return new Trend(Trend.Direction.DOWN, Trend.Strength.WEAK, phase);
         } else if (phase == Trend.Phase.TOP
+                || phase == Trend.Phase.STRONG_ADVANCE
                 || phase == Trend.Phase.ADVANCE
                 || phase == Trend.Phase.RECOVERY
                 || phase == Trend.Phase.EARLY_RECOVERY) {
+            if (longestTermUp) {
+                return new Trend(Trend.Direction.UP, Trend.Strength.LONG, phase);
+            }
             if (longTermUp) {
                 return new Trend(Trend.Direction.UP, Trend.Strength.LONG, phase);
             } else if (mediumTermUp) {
