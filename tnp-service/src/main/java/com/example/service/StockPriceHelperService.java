@@ -227,18 +227,34 @@ public class StockPriceHelperService {
     }
 
     public boolean isAboveEma20(StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        return stockPrice.getClose() > stockTechnicals.getEma20() ? true : false;
+        return stockPrice != null
+                && stockTechnicals != null
+                && stockPrice.getClose() != null
+                && stockTechnicals.getEma20() != null
+                && stockPrice.getClose() > stockTechnicals.getEma20();
     }
 
     public boolean isAboveEma50(StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        return stockPrice.getClose() > stockTechnicals.getEma50() ? true : false;
+        return stockPrice != null
+                && stockTechnicals != null
+                && stockPrice.getClose() != null
+                && stockTechnicals.getEma50() != null
+                && stockPrice.getClose() > stockTechnicals.getEma50();
     }
 
     public boolean isBelowEma20(StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        return stockPrice.getClose() < stockTechnicals.getEma20() ? true : false;
+        return stockPrice != null
+                && stockTechnicals != null
+                && stockPrice.getClose() != null
+                && stockTechnicals.getEma20() != null
+                && stockPrice.getClose() < stockTechnicals.getEma20();
     }
 
     public boolean isBelowEma50(StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        return stockPrice.getClose() < stockTechnicals.getEma50() ? true : false;
+        return stockPrice != null
+                && stockTechnicals != null
+                && stockPrice.getClose() != null
+                && stockTechnicals.getEma50() != null
+                && stockPrice.getClose() < stockTechnicals.getEma50();
     }
 }

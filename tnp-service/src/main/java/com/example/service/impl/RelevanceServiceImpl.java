@@ -275,7 +275,7 @@ public class RelevanceServiceImpl implements RelevanceService {
         // Check if the trend is in a dip, pullback or correction phase
         if (trend.getMomentum() != Trend.Phase.DIP
                 && trend.getMomentum() != Trend.Phase.PULLBACK
-                && trend.getMomentum() != Trend.Phase.CORRECTION) {
+                && trend.getMomentum() != Trend.Phase.DEEP_CORRECTION) {
             return false;
         }
 

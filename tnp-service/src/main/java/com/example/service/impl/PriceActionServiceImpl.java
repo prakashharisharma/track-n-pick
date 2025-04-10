@@ -118,7 +118,11 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         if (relevanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBullishCandleStick
-                    || ((EnumSet.of(Trend.Phase.DIP, Trend.Phase.PULLBACK, Trend.Phase.CORRECTION)
+                    || ((EnumSet.of(
+                                            Trend.Phase.DIP,
+                                            Trend.Phase.PULLBACK,
+                                            Trend.Phase.CORRECTION,
+                                            Trend.Phase.DEEP_CORRECTION)
                                     .contains(phase))
                             && !isBearishCandleStick
                             && isVolumeSurge)) {
@@ -139,7 +143,11 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         if (relevanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBullishCandleStick
-                    || ((EnumSet.of(Trend.Phase.RECOVERY, Trend.Phase.ADVANCE, Trend.Phase.TOP)
+                    || ((EnumSet.of(
+                                            Trend.Phase.TOP,
+                                            Trend.Phase.RECOVERY,
+                                            Trend.Phase.ADVANCE,
+                                            Trend.Phase.STRONG_ADVANCE)
                                     .contains(phase))
                             && !isBearishCandleStick
                             && isVolumeSurge)) {
@@ -241,7 +249,11 @@ public class PriceActionServiceImpl implements PriceActionService {
                             && isVolumeSurge)) {*/
         if (relevanceService.isNearResistance(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBearishCandleStick
-                    || ((EnumSet.of(Trend.Phase.RECOVERY, Trend.Phase.ADVANCE, Trend.Phase.TOP)
+                    || ((EnumSet.of(
+                                            Trend.Phase.RECOVERY,
+                                            Trend.Phase.ADVANCE,
+                                            Trend.Phase.STRONG_ADVANCE,
+                                            Trend.Phase.TOP)
                                     .contains(phase))
                             && !isBullishCandleStick
                             && isVolumeSurge)) {
@@ -262,7 +274,11 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         if (relevanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBearishCandleStick
-                    || ((EnumSet.of(Trend.Phase.DIP, Trend.Phase.PULLBACK, Trend.Phase.CORRECTION)
+                    || ((EnumSet.of(
+                                            Trend.Phase.DIP,
+                                            Trend.Phase.PULLBACK,
+                                            Trend.Phase.CORRECTION,
+                                            Trend.Phase.DEEP_CORRECTION)
                                     .contains(phase))
                             && !isBullishCandleStick
                             && isVolumeSurge)) {
