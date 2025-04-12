@@ -156,33 +156,45 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
     private double calculateResearchPrice(TradeSetup tradeSetup, StockPrice stockPrice) {
         ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
-        boolean isWeakSignal = this.isWeakSubStrategy(subStrategy);
-
+        boolean isWeakSupport = this.isWeakSupport(subStrategy);
+        boolean isWeakBreakout = this.isWeakBreakout(subStrategy);
         boolean isRedCandle = CandleStickUtils.isRed(stockPrice);
 
         double researchPrice = stockPrice.getHigh();
 
-        if (isWeakSignal) {
+        if (isWeakSupport) {
             researchPrice =
                     isRedCandle
                             ? (stockPrice.getLow()
                                     + (stockPrice.getClose() - stockPrice.getLow()) * 0.25)
                             : (stockPrice.getLow()
                                     + (stockPrice.getOpen() - stockPrice.getLow()) * 0.25);
+        } else if (isWeakBreakout) {
+            researchPrice =
+                    isRedCandle
+                            ? (stockPrice.getClose()
+                                    + (stockPrice.getOpen() - stockPrice.getClose()) * 0.25)
+                            : (stockPrice.getClose()
+                                    + (stockPrice.getHigh() - stockPrice.getClose()) * 0.25);
         } else {
 
             researchPrice =
                     isRedCandle
-                            ? (stockPrice.getOpen() + stockPrice.getHigh()) / 2.0
-                            : (stockPrice.getClose() + stockPrice.getHigh()) / 2.0;
+                            ? (stockPrice.getOpen()
+                                    + (stockPrice.getHigh() - stockPrice.getOpen()) * 0.50)
+                            : (stockPrice.getClose()
+                                    + (stockPrice.getHigh() - stockPrice.getClose()) * 0.50);
         }
 
         return formulaService.ceilToNearestQuarter(researchPrice);
     }
 
-    private boolean isWeakSubStrategy(ResearchTechnical.SubStrategy subStrategy) {
+    private boolean isWeakSupport(ResearchTechnical.SubStrategy subStrategy) {
+        return subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT;
+    }
+
+    private boolean isWeakBreakout(ResearchTechnical.SubStrategy subStrategy) {
         return subStrategy == ResearchTechnical.SubStrategy.WEAK_BREAKOUT
-                || subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT
                 || subStrategy == ResearchTechnical.SubStrategy.WEAK_SWING;
     }
 

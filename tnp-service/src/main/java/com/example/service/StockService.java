@@ -49,7 +49,12 @@ public class StockService {
     }
 
     public Stock getStockById(long stockId) {
-        return stockRepository.findByStockId(stockId);
+        return stockRepository
+                .findByStockId(stockId)
+                .orElseThrow(
+                        () ->
+                                new IllegalArgumentException(
+                                        "Stock with ID " + stockId + " not found."));
     }
 
     public List<Stock> getActiveStocks() {

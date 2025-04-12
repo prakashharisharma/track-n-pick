@@ -6,6 +6,7 @@ import com.example.data.transactional.entities.Trade;
 import com.example.data.transactional.repo.PortfolioRepository;
 import com.example.data.transactional.repo.TradeRepository;
 import com.example.service.PortfolioService;
+import com.example.service.StockService;
 import com.example.service.TaxMasterService;
 import com.example.service.UserBrokerageService;
 import java.math.BigDecimal;
@@ -27,8 +28,13 @@ public class PortfolioServiceImpl implements PortfolioService {
     private final UserBrokerageService userBrokerageService;
     private final TaxMasterService taxMasterService;
 
+    private final StockService stockService;
+
     @Transactional
-    public void buyStock(Long userId, Stock stock, long quantity, BigDecimal price) {
+    public void buyStock(Long userId, Long stockId, long quantity, BigDecimal price) {
+
+        Stock stock = stockService.getStockById(stockId);
+
         BigDecimal stt =
                 calculateTax(price, quantity, taxMasterService.getTaxMaster().getSecurityTxnTax());
         BigDecimal stampDuty =
@@ -85,7 +91,10 @@ public class PortfolioServiceImpl implements PortfolioService {
     }
 
     @Transactional
-    public void sellStock(Long userId, Stock stock, long quantity, BigDecimal price) {
+    public void sellStock(Long userId, Long stockId, long quantity, BigDecimal price) {
+
+        Stock stock = stockService.getStockById(stockId);
+
         Portfolio portfolio =
                 portfolioRepository
                         .findByUserIdAndStock(userId, stock)

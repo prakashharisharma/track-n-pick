@@ -9,6 +9,7 @@ import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.util.FibonacciRatio;
 import com.example.util.FormulaService;
+import com.example.util.MiscUtil;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,8 @@ public class StockPriceHelperService {
     @Autowired private FormulaService formulaService;
 
     @Autowired private StockPriceService<StockPrice> stockPriceService;
+
+    @Autowired private MiscUtil miscUtil;
 
     @Autowired private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
@@ -256,5 +259,41 @@ public class StockPriceHelperService {
                 && stockPrice.getClose() != null
                 && stockTechnicals.getEma50() != null
                 && stockPrice.getClose() < stockTechnicals.getEma50();
+    }
+
+    public boolean isHigherTimeFrameHighBreakout(Timeframe timeframe, StockPrice stockPrice) {
+        StockPrice higherTimeframePrice =
+                stockPriceService.get(stockPrice.getStock(), timeframe.getHigher());
+        if (higherTimeframePrice.getSessionDate().isBefore(miscUtil.currentDate())) {
+            return stockPrice.getClose() > higherTimeframePrice.getHigh();
+        }
+        return stockPrice.getClose() > higherTimeframePrice.getPrevHigh();
+    }
+
+    public boolean isHigher2TimeFrameHighBreakout(Timeframe timeframe, StockPrice stockPrice) {
+        StockPrice higherTimeframePrice =
+                stockPriceService.get(stockPrice.getStock(), timeframe.getHigher().getHigher());
+        if (higherTimeframePrice.getSessionDate().isBefore(miscUtil.currentDate())) {
+            return stockPrice.getClose() > higherTimeframePrice.getHigh();
+        }
+        return stockPrice.getClose() > higherTimeframePrice.getPrevHigh();
+    }
+
+    public boolean isHigherTimeFrameHighBreakdown(Timeframe timeframe, StockPrice stockPrice) {
+        StockPrice higherTimeframePrice =
+                stockPriceService.get(stockPrice.getStock(), timeframe.getHigher());
+        if (higherTimeframePrice.getSessionDate().isBefore(miscUtil.currentDate())) {
+            return stockPrice.getClose() < higherTimeframePrice.getLow();
+        }
+        return stockPrice.getClose() < higherTimeframePrice.getPrevLow();
+    }
+
+    public boolean isHigher2TimeFrameHighBreakdown(Timeframe timeframe, StockPrice stockPrice) {
+        StockPrice higherTimeframePrice =
+                stockPriceService.get(stockPrice.getStock(), timeframe.getHigher().getHigher());
+        if (higherTimeframePrice.getSessionDate().isBefore(miscUtil.currentDate())) {
+            return stockPrice.getClose() < higherTimeframePrice.getLow();
+        }
+        return stockPrice.getClose() < higherTimeframePrice.getPrevLow();
     }
 }

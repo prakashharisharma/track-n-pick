@@ -160,7 +160,7 @@ public class WebRunner implements CommandLineRunner {
     public void run(String... arg0) throws InterruptedException, IOException {
 
         log.info("Application started....");
-
+        https: // chatgpt.com/c/67f914a7-8470-8011-a7e3-b44092494752
         bhavProcessor.processAndResearchTechnicals();
 
         /*
