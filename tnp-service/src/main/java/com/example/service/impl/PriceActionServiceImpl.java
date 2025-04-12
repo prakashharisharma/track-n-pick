@@ -109,12 +109,6 @@ public class PriceActionServiceImpl implements PriceActionService {
                 candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
         boolean isVolumeSurge =
                 volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
-        // boolean isVolumeSurge = true;
-        /* if (relevanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals)) {
-        if (isBullishCandleStick
-                || (higherTrend.getMomentum().isHigherPriorityThan(trend.getMomentum())
-                        && !isBearishCandleStick
-                        && isVolumeSurge)){*/
 
         if (relevanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBullishCandleStick
@@ -135,12 +129,6 @@ public class PriceActionServiceImpl implements PriceActionService {
             }
         }
 
-        /*if (relevanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals)) {
-        if (isBullishCandleStick
-                || (higherTrend.getMomentum().isLowerPriorityThan(trend.getMomentum())
-                && !isBearishCandleStick
-                        && isVolumeSurge)) {*/
-
         if (relevanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBullishCandleStick
                     || ((EnumSet.of(
@@ -150,7 +138,9 @@ public class PriceActionServiceImpl implements PriceActionService {
                                             Trend.Phase.STRONG_ADVANCE)
                                     .contains(phase))
                             && !isBearishCandleStick
-                            && isVolumeSurge)) {
+                            && isVolumeSurge
+                            && stockPriceHelperService.isHigherTimeFrameHighBreakout(
+                                    timeframe, stockPrice))) {
 
                 subStrategyRef.set(
                         isBullishCandleStick
@@ -240,13 +230,6 @@ public class PriceActionServiceImpl implements PriceActionService {
         boolean isVolumeSurge =
                 volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
 
-        // boolean isVolumeSurge = true;
-        /*
-        if (relevanceService.isNearResistance(trend, timeframe, stockPrice, stockTechnicals)) {
-            if (isBearishCandleStick
-                    || (higherTrend.getMomentum().isLowerPriorityThan(trend.getMomentum())
-                    && !isBullishCandleStick
-                            && isVolumeSurge)) {*/
         if (relevanceService.isNearResistance(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBearishCandleStick
                     || ((EnumSet.of(
@@ -265,12 +248,6 @@ public class PriceActionServiceImpl implements PriceActionService {
                 return true;
             }
         }
-        /*
-        if (relevanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals)) {
-            if (isBearishCandleStick
-                    || (higherTrend.getMomentum().isHigherPriorityThan(trend.getMomentum())
-                    && !isBullishCandleStick
-                            && isVolumeSurge)) {*/
 
         if (relevanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals)) {
             if (isBearishCandleStick
@@ -281,7 +258,9 @@ public class PriceActionServiceImpl implements PriceActionService {
                                             Trend.Phase.DEEP_CORRECTION)
                                     .contains(phase))
                             && !isBullishCandleStick
-                            && isVolumeSurge)) {
+                            && isVolumeSurge
+                            && stockPriceHelperService.isHigherTimeFrameHighBreakdown(
+                                    timeframe, stockPrice))) {
 
                 subStrategyRef.set(
                         isBearishCandleStick

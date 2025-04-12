@@ -63,9 +63,11 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     public boolean isBearish(
             StockPrice stockPrice, StockTechnicals stockTechnicals, Timeframe timeframe) {
 
+        /*
         if (!isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
             return false;
-        }
+        }*/
+
         return this.isCurrentSessionHigh(
                         stockPrice,
                         stockTechnicals,
@@ -85,9 +87,10 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
             Timeframe timeframe,
             double multiplier) {
 
+        /*
         if (!isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
             return false;
-        }
+        }*/
         return this.isCurrentSessionHigh(stockPrice, stockTechnicals, timeframe, multiplier)
                 || this.isPreviousSessionHigh(stockPrice, stockTechnicals, timeframe, multiplier);
     }
@@ -164,9 +167,11 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
 
         long volumeMA, prevVolumeMA, prev2VolumeMA;
 
+        /*
         if (!this.isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
             return false;
-        }
+        }*/
+
         // Select the correct moving average based on the timeframe
         switch (timeframe) {
             case WEEKLY:
