@@ -10,6 +10,8 @@ import com.example.data.transactional.entities.StockTechnicals;
 import com.example.util.FibonacciRatio;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
+import java.util.Arrays;
+import java.util.Objects;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -262,38 +264,130 @@ public class StockPriceHelperService {
     }
 
     public boolean isHigherTimeFrameHighBreakout(Timeframe timeframe, StockPrice stockPrice) {
+        if (stockPrice == null || timeframe == null || stockPrice.getStock() == null) {
+            return false;
+        }
+
         StockPrice higherTimeframePrice =
                 stockPriceService.get(stockPrice.getStock(), timeframe.getHigher());
-        if (higherTimeframePrice.getSessionDate().isBefore(miscUtil.currentDate())) {
+
+        if (higherTimeframePrice == null) {
+            return false; // Ensure the higher timeframe price exists
+        }
+
+        if (higherTimeframePrice.getSessionDate() != null
+                && higherTimeframePrice.getSessionDate().isBefore(miscUtil.currentDate())) {
             return stockPrice.getClose() > higherTimeframePrice.getHigh();
         }
+
         return stockPrice.getClose() > higherTimeframePrice.getPrevHigh();
     }
 
     public boolean isHigher2TimeFrameHighBreakout(Timeframe timeframe, StockPrice stockPrice) {
+        if (stockPrice == null || timeframe == null || stockPrice.getStock() == null) {
+            return false;
+        }
+
         StockPrice higherTimeframePrice =
                 stockPriceService.get(stockPrice.getStock(), timeframe.getHigher().getHigher());
-        if (higherTimeframePrice.getSessionDate().isBefore(miscUtil.currentDate())) {
+
+        if (higherTimeframePrice == null) {
+            return false; // Ensure the higher timeframe price exists
+        }
+
+        if (higherTimeframePrice.getSessionDate() != null
+                && higherTimeframePrice.getSessionDate().isBefore(miscUtil.currentDate())) {
             return stockPrice.getClose() > higherTimeframePrice.getHigh();
         }
+
         return stockPrice.getClose() > higherTimeframePrice.getPrevHigh();
     }
 
     public boolean isHigherTimeFrameHighBreakdown(Timeframe timeframe, StockPrice stockPrice) {
+        if (stockPrice == null || timeframe == null || stockPrice.getStock() == null) {
+            return false;
+        }
+
         StockPrice higherTimeframePrice =
                 stockPriceService.get(stockPrice.getStock(), timeframe.getHigher());
-        if (higherTimeframePrice.getSessionDate().isBefore(miscUtil.currentDate())) {
+
+        if (higherTimeframePrice == null) {
+            return false; // Ensure the higher timeframe price exists
+        }
+
+        if (higherTimeframePrice.getSessionDate() != null
+                && higherTimeframePrice.getSessionDate().isBefore(miscUtil.currentDate())) {
             return stockPrice.getClose() < higherTimeframePrice.getLow();
         }
+
         return stockPrice.getClose() < higherTimeframePrice.getPrevLow();
     }
 
     public boolean isHigher2TimeFrameHighBreakdown(Timeframe timeframe, StockPrice stockPrice) {
+        if (stockPrice == null || timeframe == null || stockPrice.getStock() == null) {
+            return false;
+        }
+
         StockPrice higherTimeframePrice =
                 stockPriceService.get(stockPrice.getStock(), timeframe.getHigher().getHigher());
-        if (higherTimeframePrice.getSessionDate().isBefore(miscUtil.currentDate())) {
+
+        if (higherTimeframePrice == null) {
+            return false; // Ensure the higher timeframe price exists
+        }
+
+        if (higherTimeframePrice.getSessionDate() != null
+                && higherTimeframePrice.getSessionDate().isBefore(miscUtil.currentDate())) {
             return stockPrice.getClose() < higherTimeframePrice.getLow();
         }
+
         return stockPrice.getClose() < higherTimeframePrice.getPrevLow();
+    }
+
+    public Double findLowestLow(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return null;
+        }
+
+        // Get the lows from the current and previous 4 sessions
+        Double[] lows = {
+            stockPrice.getLow(),
+            stockPrice.getPrevLow(),
+            stockPrice.getPrev2Low(),
+            stockPrice.getPrev3Low(),
+            stockPrice.getPrev4Low()
+        };
+
+        // Find the lowest low from the array, defaulting to the current low if no valid lows are
+        // found
+        return Arrays.stream(lows)
+                .filter(Objects::nonNull) // Filter out null values (in case any of the lows are
+                // null)
+                .min(Double::compareTo) // Find the minimum low value
+                .orElse(stockPrice.getLow()); // Default to current low if no valid lows are found
+    }
+
+    public Double findHighestHigh(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return null;
+        }
+
+        // Get the highs from the current and previous 4 sessions
+        Double[] highs = {
+            stockPrice.getHigh(),
+            stockPrice.getPrevHigh(),
+            stockPrice.getPrev2High(),
+            stockPrice.getPrev3High(),
+            stockPrice.getPrev4High()
+        };
+
+        // Find the highest high from the array, defaulting to the current high if no valid highs
+        // are found
+        return Arrays.stream(highs)
+                .filter(Objects::nonNull) // Filter out null values (in case any of the highs are
+                // null)
+                .max(Double::compareTo) // Find the maximum high value
+                .orElse(
+                        stockPrice
+                                .getHigh()); // Default to current high if no valid highs are found
     }
 }

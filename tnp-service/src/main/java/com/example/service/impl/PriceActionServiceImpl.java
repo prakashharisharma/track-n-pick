@@ -129,7 +129,12 @@ public class PriceActionServiceImpl implements PriceActionService {
             }
         }
 
-        if (relevanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals)) {
+        boolean isHigherTimeFrameHighBreakout =
+                stockPriceHelperService.isHigherTimeFrameHighBreakout(timeframe, stockPrice);
+        boolean isHigher2TimeFrameHighBreakout =
+                stockPriceHelperService.isHigher2TimeFrameHighBreakout(timeframe, stockPrice);
+        if (relevanceService.isBreakout(trend, timeframe, stockPrice, stockTechnicals)
+                && isHigherTimeFrameHighBreakout) {
             if (isBullishCandleStick
                     || ((EnumSet.of(
                                             Trend.Phase.TOP,
@@ -139,8 +144,7 @@ public class PriceActionServiceImpl implements PriceActionService {
                                     .contains(phase))
                             && !isBearishCandleStick
                             && isVolumeSurge
-                            && stockPriceHelperService.isHigherTimeFrameHighBreakout(
-                                    timeframe, stockPrice))) {
+                            && isHigher2TimeFrameHighBreakout)) {
 
                 subStrategyRef.set(
                         isBullishCandleStick
@@ -249,7 +253,12 @@ public class PriceActionServiceImpl implements PriceActionService {
             }
         }
 
-        if (relevanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals)) {
+        boolean isHigherTimeFrameHighBreakdown =
+                stockPriceHelperService.isHigherTimeFrameHighBreakdown(timeframe, stockPrice);
+        boolean isHigher2TimeFrameHighBreakdown =
+                stockPriceHelperService.isHigher2TimeFrameHighBreakdown(timeframe, stockPrice);
+        if (relevanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals)
+                && isHigherTimeFrameHighBreakdown) {
             if (isBearishCandleStick
                     || ((EnumSet.of(
                                             Trend.Phase.DIP,
@@ -259,8 +268,7 @@ public class PriceActionServiceImpl implements PriceActionService {
                                     .contains(phase))
                             && !isBullishCandleStick
                             && isVolumeSurge
-                            && stockPriceHelperService.isHigherTimeFrameHighBreakdown(
-                                    timeframe, stockPrice))) {
+                            && isHigher2TimeFrameHighBreakdown)) {
 
                 subStrategyRef.set(
                         isBearishCandleStick

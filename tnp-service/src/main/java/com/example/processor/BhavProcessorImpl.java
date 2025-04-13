@@ -16,10 +16,7 @@ import com.example.util.MiscUtil;
 import com.example.util.ThreadsUtil;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -160,7 +157,6 @@ public class BhavProcessorImpl implements BhavProcessor {
     }
 
     private void importAndProcessDailyPrice(List<StockPriceIO> stockPriceIOList) {
-        // int numThreads = 4; // Number of threads
         int numThreads = ThreadsUtil.poolSize();
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 
@@ -197,6 +193,17 @@ public class BhavProcessorImpl implements BhavProcessor {
 
         // Insert into database if not empty
         if (!allStockPrices.isEmpty()) {
+
+            long count = priceTemplate.delete(Timeframe.DAILY, miscUtil.currentDate());
+
+            try {
+                miscUtil.delay(25);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            log.info("Deleted {} existing entries for {}", count, miscUtil.currentDate());
+
             long insertCount = priceTemplate.create(allStockPrices);
 
             if (insertCount == allStockPrices.size()) {
@@ -242,229 +249,135 @@ public class BhavProcessorImpl implements BhavProcessor {
     @Override
     public void processTimeframePrice() {
         List<Stock> stockList = stockService.getActiveStocks();
+        if (stockList.isEmpty()) {
+            log.warn("No active stocks found to process.");
+            return;
+        }
 
-        // int numThreads = 4; // Use 4 threads
+        LocalDate today = miscUtil.currentDate();
         int numThreads = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 
-        List<Future<List<StockPrice>>> weeklyFutures = new ArrayList<>();
-        List<Future<List<StockPrice>>> monthlyFutures = new ArrayList<>();
-        List<Future<List<StockPrice>>> quarterlyFutures = new ArrayList<>();
-        List<Future<List<StockPrice>>> yearlyFutures = new ArrayList<>();
+        boolean isLastWeek = calendarService.isLastTradingSessionOfWeek(today);
+        boolean isLastMonth = calendarService.isLastTradingSessionOfMonth(today);
+        boolean isLastQuarter = calendarService.isLastTradingSessionOfQuarter(today);
+        boolean isLastYear = calendarService.isLastTradingSessionOfYear(today);
 
-        // Split the stock list into batches for parallel processing
+        Map<Timeframe, List<Future<List<StockPrice>>>> futuresMap = new EnumMap<>(Timeframe.class);
+        for (Timeframe tf : Timeframe.values()) {
+            futuresMap.put(tf, new ArrayList<>());
+        }
+
         int batchSize = (int) Math.ceil((double) stockList.size() / numThreads);
 
         for (int i = 0; i < stockList.size(); i += batchSize) {
-            int start = i;
-            int end = Math.min(i + batchSize, stockList.size());
-            List<Stock> batch = stockList.subList(start, end);
+            List<Stock> batch = stockList.subList(i, Math.min(i + batchSize, stockList.size()));
 
-            // Process Yearly data if it's the last trading session of the year
-            if (calendarService.isLastTradingSessionOfYear(miscUtil.currentDate())) {
+            submitIfRequired(executor, futuresMap, Timeframe.YEARLY, isLastYear, batch);
+            submitIfRequired(executor, futuresMap, Timeframe.QUARTERLY, isLastQuarter, batch);
+            submitIfRequired(executor, futuresMap, Timeframe.MONTHLY, isLastMonth, batch);
+            submitIfRequired(executor, futuresMap, Timeframe.WEEKLY, isLastWeek, batch);
+
+            try {
+                miscUtil.delay(numThreads * 64); // optional single delay per batch
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        for (Map.Entry<Timeframe, List<Future<List<StockPrice>>>> entry : futuresMap.entrySet()) {
+            Timeframe timeframe = entry.getKey();
+            List<Future<List<StockPrice>>> futures = entry.getValue();
+
+            List<StockPrice> allPrices = new ArrayList<>();
+            for (Future<List<StockPrice>> future : futures) {
                 try {
-                    Future<List<StockPrice>> yearlyFuture =
-                            executor.submit(() -> processYearlyBatch(batch));
-                    yearlyFutures.add(yearlyFuture);
-                    miscUtil.delay(numThreads * 256);
-                } catch (Exception e) {
-                    log.error("{} An eoor occurd while processing monthly batch", e);
+                    allPrices.addAll(future.get());
+                } catch (InterruptedException | ExecutionException e) {
+                    log.error("Error while collecting results for " + timeframe + " prices", e);
                 }
             }
 
-            // Process Quarterly data if it's the last trading session of the quarter
-            if (calendarService.isLastTradingSessionOfQuarter(miscUtil.currentDate())) {
+            if (!allPrices.isEmpty()) {
+
+                long count = priceTemplate.delete(timeframe, today);
+
                 try {
-                    Future<List<StockPrice>> quarterlyFuture =
-                            executor.submit(() -> processQuarterlyBatch(batch));
-                    quarterlyFutures.add(quarterlyFuture);
-                    miscUtil.delay(numThreads * 256);
-                } catch (Exception e) {
-                    log.error("{} An eoor occurd while processing monthly batch", e);
+                    miscUtil.delay(25);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
-            }
 
-            // Process Monthly data if it's the last trading session of the month
-            if (calendarService.isLastTradingSessionOfMonth(miscUtil.currentDate())) {
-                try {
-                    Future<List<StockPrice>> monthlyFuture =
-                            executor.submit(() -> processMonthlyBatch(batch));
-                    monthlyFutures.add(monthlyFuture);
-                    miscUtil.delay(numThreads * 256);
-                } catch (Exception e) {
-                    log.error("{} An eoor occurd while processing monthly batch", e);
+                log.info("Deleted {} existing entries for {}", count, today);
+
+                long insertCount = priceTemplate.create(timeframe, allPrices);
+
+                if (insertCount == allPrices.size()) {
+                    log.info("{} Price Updated", timeframe);
+                } else {
+                    log.warn(
+                            "{} Price insert mismatch: expected {}, inserted {}",
+                            timeframe,
+                            allPrices.size(),
+                            insertCount);
                 }
-            }
-
-            // Process Weekly data if it's the last trading session of the week
-            if (calendarService.isLastTradingSessionOfWeek(miscUtil.currentDate())) {
-                try {
-                    Future<List<StockPrice>> weeklyFuture =
-                            executor.submit(() -> processWeeklyBatch(batch));
-                    weeklyFutures.add(weeklyFuture);
-                    miscUtil.delay(numThreads * 256);
-                } catch (Exception e) {
-                    log.error("{} An eoor occurd while processing monthly batch", e);
-                }
-            }
-        }
-
-        List<StockPrice> allYearlyStockPrices = new ArrayList<>();
-        List<StockPrice> allQuarterlyStockPrices = new ArrayList<>();
-        List<StockPrice> allMonthlyStockPrices = new ArrayList<>();
-        List<StockPrice> allWeeklyStockPrices = new ArrayList<>();
-
-        // Collect results from all yearly threads
-        for (Future<List<StockPrice>> future : yearlyFutures) {
-            try {
-                allYearlyStockPrices.addAll(future.get());
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Collect results from all quarterly threads
-        for (Future<List<StockPrice>> future : quarterlyFutures) {
-            try {
-                allQuarterlyStockPrices.addAll(future.get());
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Collect results from all monthly threads
-        for (Future<List<StockPrice>> future : monthlyFutures) {
-            try {
-                allMonthlyStockPrices.addAll(future.get());
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Collect results from all weekly threads
-        for (Future<List<StockPrice>> future : weeklyFutures) {
-            try {
-                allWeeklyStockPrices.addAll(future.get());
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Insert Yearly data
-        if (!allYearlyStockPrices.isEmpty()) {
-            long insertCount = priceTemplate.create(Timeframe.YEARLY, allYearlyStockPrices);
-            if (insertCount == allYearlyStockPrices.size()) {
-                log.info("✅ Yearly Price Updated");
-            }
-        }
-
-        // Insert Quarterly data
-        if (!allQuarterlyStockPrices.isEmpty()) {
-            long insertCount = priceTemplate.create(Timeframe.QUARTERLY, allQuarterlyStockPrices);
-            if (insertCount == allQuarterlyStockPrices.size()) {
-                log.info("✅ Quarterly Price Updated");
-            }
-        }
-        // Insert Monthly data
-        if (!allMonthlyStockPrices.isEmpty()) {
-            long insertCount = priceTemplate.create(Timeframe.MONTHLY, allMonthlyStockPrices);
-            if (insertCount == allMonthlyStockPrices.size()) {
-                log.info("✅ Monthly Price Updated");
-            }
-        }
-
-        // Insert Weekly data
-        if (!allWeeklyStockPrices.isEmpty()) {
-            long insertCount = priceTemplate.create(Timeframe.WEEKLY, allWeeklyStockPrices);
-            if (insertCount == allWeeklyStockPrices.size()) {
-                log.info("✅ Weekly Price Updated");
             }
         }
 
         executor.shutdown();
-    }
 
-    // Function to process a batch for yearly aggregation
-    private List<StockPrice> processYearlyBatch(List<Stock> stockBatch) {
-        List<StockPrice> yearlyStockPriceList = new ArrayList<>();
-        for (Stock stock : stockBatch) {
-            try {
-                StockPrice stockPrice =
-                        updatePriceService.build(Timeframe.YEARLY, stock, miscUtil.currentDate());
-                updatePriceService.updatePrice(Timeframe.YEARLY, stock, stockPrice);
-                yearlyStockPriceList.add(stockPrice);
-                miscUtil.delay(ThreadsUtil.poolSize() * 128);
-            } catch (Exception e) {
-                log.error(
-                        "{} An eoor occurd while processing yearly batch", stock.getNseSymbol(), e);
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.MINUTES)) {
+                executor.shutdownNow();
             }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
         }
-        return yearlyStockPriceList;
     }
 
-    // Function to process a batch for quarterly aggregation
-    private List<StockPrice> processQuarterlyBatch(List<Stock> stockBatch) {
-        List<StockPrice> quarterlyStockPriceList = new ArrayList<>();
+    private void submitIfRequired(
+            ExecutorService executor,
+            Map<Timeframe, List<Future<List<StockPrice>>>> futuresMap,
+            Timeframe timeframe,
+            boolean condition,
+            List<Stock> batch) {
+
+        if (!condition) return;
+
+        try {
+            Future<List<StockPrice>> future = executor.submit(() -> processBatch(timeframe, batch));
+            futuresMap.get(timeframe).add(future);
+        } catch (Exception e) {
+            log.error("Error while submitting {} batch", timeframe, e);
+        }
+    }
+
+    private List<StockPrice> processBatch(Timeframe timeframe, List<Stock> stockBatch) {
+        List<StockPrice> stockPrices = new ArrayList<>();
         for (Stock stock : stockBatch) {
             try {
                 StockPrice stockPrice =
-                        updatePriceService.build(
-                                Timeframe.QUARTERLY, stock, miscUtil.currentDate());
-                updatePriceService.updatePrice(Timeframe.QUARTERLY, stock, stockPrice);
-                quarterlyStockPriceList.add(stockPrice);
-                miscUtil.delay(ThreadsUtil.poolSize() * 128);
+                        updatePriceService.build(timeframe, stock, miscUtil.currentDate());
+                updatePriceService.updatePrice(timeframe, stock, stockPrice);
+                stockPrices.add(stockPrice);
+                miscUtil.delay(ThreadsUtil.poolSize() * 32);
             } catch (Exception e) {
                 log.error(
-                        "{} An eoor occurd while processing quarterly batch",
+                        "Error processing {} batch for stock {}",
+                        timeframe,
                         stock.getNseSymbol(),
                         e);
             }
         }
-        return quarterlyStockPriceList;
-    }
-    // Function to process a batch for monthly aggregation
-    private List<StockPrice> processMonthlyBatch(List<Stock> stockBatch) {
-        List<StockPrice> monthlyStockPriceList = new ArrayList<>();
-        for (Stock stock : stockBatch) {
-            try {
-                StockPrice stockPrice =
-                        updatePriceService.build(Timeframe.MONTHLY, stock, miscUtil.currentDate());
-                updatePriceService.updatePrice(Timeframe.MONTHLY, stock, stockPrice);
-                monthlyStockPriceList.add(stockPrice);
-                miscUtil.delay(ThreadsUtil.poolSize() * 128);
-            } catch (Exception e) {
-                log.error(
-                        "{} An eoor occurd while processing monthly batch",
-                        stock.getNseSymbol(),
-                        e);
-            }
-        }
-        return monthlyStockPriceList;
-    }
-
-    // Function to process a batch for weekly aggregation
-    private List<StockPrice> processWeeklyBatch(List<Stock> stockBatch) {
-        List<StockPrice> weeklyStockPriceList = new ArrayList<>();
-        for (Stock stock : stockBatch) {
-            try {
-                StockPrice stockPrice =
-                        updatePriceService.build(Timeframe.WEEKLY, stock, miscUtil.currentDate());
-                updatePriceService.updatePrice(Timeframe.WEEKLY, stock, stockPrice);
-                weeklyStockPriceList.add(stockPrice);
-                miscUtil.delay(ThreadsUtil.poolSize() * 128);
-            } catch (Exception e) {
-                log.error(
-                        "{} An eoor occurd while processing weekly batch", stock.getNseSymbol(), e);
-            }
-        }
-        return weeklyStockPriceList;
+        return stockPrices;
     }
 
     @Override
     public void processAndResearchTechnicals() {
         List<Stock> stockList = stockService.getActiveStocks();
 
-        int maxConcurrentThreads = 4; // not CPU-bound; safe value
+        int maxConcurrentThreads = ThreadsUtil.poolSize();
         ExecutorService executor = Executors.newFixedThreadPool(maxConcurrentThreads);
 
         for (Stock stock : stockList) {
@@ -477,9 +390,9 @@ public class BhavProcessorImpl implements BhavProcessor {
                         }
                     });
 
-            // 👇 Delay *between* submissions to prevent MongoDB bursts
+            // Delay *between* submissions to prevent MongoDB bursts
             try {
-                miscUtil.delay(200);
+                ThreadsUtil.delay(200);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

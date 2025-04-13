@@ -22,56 +22,62 @@ public class AdxIndicatorServiceImpl implements AdxIndicatorService {
 
     @Override
     public boolean isAdxIncreasing(StockTechnicals stockTechnicals) {
-
-        if (stockTechnicals.getAdx() > stockTechnicals.getPrevAdx()) {
-            return Boolean.TRUE;
+        if (stockTechnicals == null
+                || stockTechnicals.getAdx() == null
+                || stockTechnicals.getPrevAdx() == null) {
+            return false;
         }
-        return Boolean.FALSE;
+        return stockTechnicals.getAdx() > stockTechnicals.getPrevAdx();
     }
 
     @Override
     public boolean isAdxDecreasing(StockTechnicals stockTechnicals) {
-
-        if (stockTechnicals.getAdx() < stockTechnicals.getPrevAdx()) {
-            return Boolean.TRUE;
+        if (stockTechnicals == null
+                || stockTechnicals.getAdx() == null
+                || stockTechnicals.getPrevAdx() == null) {
+            return false;
         }
-        return Boolean.FALSE;
+        return stockTechnicals.getAdx() < stockTechnicals.getPrevAdx();
     }
 
     @Override
     public boolean isPlusDiIncreasing(StockTechnicals stockTechnicals) {
-
-        if (stockTechnicals.getPlusDi() > stockTechnicals.getPrevPlusDi()) {
-            return Boolean.TRUE;
+        if (stockTechnicals == null
+                || stockTechnicals.getPlusDi() == null
+                || stockTechnicals.getPrevPlusDi() == null) {
+            return false;
         }
-        return Boolean.FALSE;
+        return stockTechnicals.getPlusDi() > stockTechnicals.getPrevPlusDi();
     }
 
     @Override
     public boolean isMinusDiIncreasing(StockTechnicals stockTechnicals) {
-
-        if (stockTechnicals.getMinusDi() > stockTechnicals.getPrevMinusDi()) {
-            return Boolean.TRUE;
+        if (stockTechnicals == null
+                || stockTechnicals.getMinusDi() == null
+                || stockTechnicals.getPrevMinusDi() == null) {
+            return false;
         }
-        return Boolean.FALSE;
+        return stockTechnicals.getMinusDi() > stockTechnicals.getPrevMinusDi();
     }
 
     @Override
     public boolean isPlusDiDecreasing(StockTechnicals stockTechnicals) {
-
-        if (stockTechnicals.getPlusDi() < stockTechnicals.getPrevPlusDi()) {
-            return Boolean.TRUE;
+        if (stockTechnicals == null
+                || stockTechnicals.getPlusDi() == null
+                || stockTechnicals.getPrevPlusDi() == null) {
+            return false;
         }
-        return Boolean.FALSE;
+        return stockTechnicals.getPlusDi() < stockTechnicals.getPrevPlusDi();
     }
 
     @Override
     public boolean isMinusDiDecreasing(StockTechnicals stockTechnicals) {
-
-        if (stockTechnicals.getMinusDi() < stockTechnicals.getPrevMinusDi()) {
-            return Boolean.TRUE;
+        if (stockTechnicals == null
+                || stockTechnicals.getMinusDi() == null
+                || stockTechnicals.getPrevMinusDi() == null) {
+            return false;
         }
-        return Boolean.FALSE;
+        return stockTechnicals.getMinusDi() < stockTechnicals.getPrevMinusDi();
     }
 
     @Override
