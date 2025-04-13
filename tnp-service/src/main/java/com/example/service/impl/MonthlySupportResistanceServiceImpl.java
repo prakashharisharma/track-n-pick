@@ -4,7 +4,7 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
-import com.example.dto.OHLCV;
+import com.example.dto.common.OHLCV;
 import com.example.service.*;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
@@ -30,7 +30,7 @@ public class MonthlySupportResistanceServiceImpl implements MonthlySupportResist
     @Autowired private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
     @Autowired private SupportResistanceConfirmationService supportResistanceConfirmationService;
-    @Autowired private BreakoutConfirmationService breakoutConfirmationService;
+    @Autowired private BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
 
     @Autowired private SupportResistanceUtilService supportResistanceService;
 
@@ -61,7 +61,7 @@ public class MonthlySupportResistanceServiceImpl implements MonthlySupportResist
         }
 
         // Check for Current Day Breakout
-        if (breakoutConfirmationService.isBullishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakoutConfirmed(
                         timeframe, stockPrice, stockTechnicals, resistance)
                 && candleStickService.range(stockPrice) > CandleStickService.MIN_RANGE) {
 
@@ -134,7 +134,7 @@ public class MonthlySupportResistanceServiceImpl implements MonthlySupportResist
         }
 
         // Check for Current Day Breakout
-        if (breakoutConfirmationService.isBearishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakdownConfirmed(
                         timeframe, stockPrice, stockTechnicals, support)
                 && candleStickService.range(stockPrice) > CandleStickService.MIN_RANGE) {
             // Breakdown

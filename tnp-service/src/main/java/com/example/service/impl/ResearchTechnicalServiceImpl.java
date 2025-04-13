@@ -3,9 +3,11 @@ package com.example.service.impl;
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.*;
 import com.example.data.transactional.repo.ResearchTechnicalRepository;
-import com.example.dto.TradeSetup;
+import com.example.dto.common.TradeSetup;
 import com.example.service.ResearchTechnicalService;
 import com.example.service.RiskFactor;
+import com.example.service.StockPriceHelperService;
+import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
 import java.time.LocalDate;
 import java.util.List;
@@ -23,6 +25,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     private final ResearchTechnicalRepository<ResearchTechnical> researchTechnicalRepository;
 
     private final FormulaService formulaService;
+
+    private final StockPriceHelperService stockPriceHelperService;
 
     private static final Map<Timeframe, Supplier<ResearchTechnical>> STOCK_PRICE_CREATORS =
             Map.of(
@@ -68,13 +72,15 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         newResearchTechnical.setStrategy(tradeSetup.getStrategy());
         newResearchTechnical.setSubStrategy(tradeSetup.getSubStrategy());
 
-        newResearchTechnical.setResearchPrice(stockPrice.getHigh());
-        newResearchTechnical.setStopLoss(stockPrice.getLow());
+        newResearchTechnical.setResearchPrice(this.calculateResearchPrice(tradeSetup, stockPrice));
+
+        newResearchTechnical.setStopLoss(
+                this.calculateStopLoss(tradeSetup, stockPrice, newResearchTechnical));
         newResearchTechnical.setTarget(
                 formulaService.calculateTarget(
                         stockPrice.getHigh(),
                         stockPrice.getLow(),
-                        this.calculateRiskRewardRatio(timeframe)));
+                        this.calculateRiskRewardRatio(tradeSetup.getSubStrategy())));
         newResearchTechnical.setRisk(
                 Math.abs(
                         formulaService.calculateChangePercentage(
@@ -125,16 +131,88 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         return researchTechnicalRepository.findAllByType(type);
     }
 
-    private double calculateRiskRewardRatio(Timeframe timeframe) {
+    private double calculateRiskRewardRatio(ResearchTechnical.SubStrategy subStrategy) {
 
-        if (timeframe == Timeframe.MONTHLY) {
-            return 5.0;
-        }
-        if (timeframe == Timeframe.WEEKLY) {
-            return 3.5;
+        if (subStrategy == ResearchTechnical.SubStrategy.STRONG_SUPPORT) {
+            return 3.0;
+        } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT) {
+            return 2.0;
+        } else if (subStrategy == ResearchTechnical.SubStrategy.STRONG_BREAKOUT) {
+            return 3.0;
+        } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_BREAKOUT) {
+            return 2.0;
+        } else if (subStrategy == ResearchTechnical.SubStrategy.BULLISH_INDICATORS) {
+            return 2.0;
         }
 
         return 2.0;
+    }
+
+    private double calculateStopLoss(
+            TradeSetup tradeSetup, StockPrice stockPrice, ResearchTechnical researchTechnical) {
+
+        double buffer = 0.005 * stockPrice.getLow(); // 0.5% buffer
+        ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
+
+        double stopLoss =
+                researchTechnical.getResearchPrice() > stockPrice.getLow()
+                        ? stockPrice.getLow()
+                        : stockPrice.getLow() - buffer;
+
+        if (this.isSupport(subStrategy)) {
+            stopLoss = stockPriceHelperService.findLowestLow(stockPrice);
+        }
+
+        return Math.max(stopLoss, 0.01); // prevent negative or 0 SL
+    }
+
+    private double calculateResearchPrice(TradeSetup tradeSetup, StockPrice stockPrice) {
+        ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
+        boolean isWeakSupport = this.isWeakSupport(subStrategy);
+        boolean isWeakBreakout = this.isWeakBreakout(subStrategy);
+        boolean isRedCandle = CandleStickUtils.isRed(stockPrice);
+
+        double researchPrice = stockPrice.getHigh();
+
+        if (isWeakSupport) {
+            researchPrice =
+                    isRedCandle
+                            ? (stockPrice.getLow()
+                                    + (stockPrice.getClose() - stockPrice.getLow()) * 0.25)
+                            : (stockPrice.getLow()
+                                    + (stockPrice.getOpen() - stockPrice.getLow()) * 0.25);
+        } else if (isWeakBreakout) {
+            researchPrice =
+                    isRedCandle
+                            ? (stockPrice.getClose()
+                                    + (stockPrice.getOpen() - stockPrice.getClose()) * 0.25)
+                            : (stockPrice.getClose()
+                                    + (stockPrice.getHigh() - stockPrice.getClose()) * 0.25);
+        } else {
+
+            researchPrice =
+                    isRedCandle
+                            ? (stockPrice.getOpen()
+                                    + (stockPrice.getHigh() - stockPrice.getOpen()) * 0.50)
+                            : (stockPrice.getClose()
+                                    + (stockPrice.getHigh() - stockPrice.getClose()) * 0.50);
+        }
+
+        return Math.min(formulaService.ceilToNearestQuarter(researchPrice), stockPrice.getHigh());
+    }
+
+    private boolean isSupport(ResearchTechnical.SubStrategy subStrategy) {
+        return subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT
+                || subStrategy == ResearchTechnical.SubStrategy.STRONG_SUPPORT;
+    }
+
+    private boolean isWeakSupport(ResearchTechnical.SubStrategy subStrategy) {
+        return subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT;
+    }
+
+    private boolean isWeakBreakout(ResearchTechnical.SubStrategy subStrategy) {
+        return subStrategy == ResearchTechnical.SubStrategy.WEAK_BREAKOUT
+                || subStrategy == ResearchTechnical.SubStrategy.WEAK_SWING;
     }
 
     public double calculateScore(

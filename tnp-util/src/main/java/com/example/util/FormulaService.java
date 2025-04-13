@@ -374,4 +374,12 @@ public class FormulaService {
     public boolean inRange(double min, double max, double num) {
         return Math.max(min, num) == Math.min(num, max);
     }
+
+    public double ceilToNearestHalf(double value) {
+        return Math.ceil(value * 2) / 2.0;
+    }
+
+    public double ceilToNearestQuarter(double value) {
+        return Math.ceil(value * 4) / 4.0;
+    }
 }

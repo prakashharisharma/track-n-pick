@@ -1,9 +1,7 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
-import com.example.data.transactional.entities.Sector;
 import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockFactor;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.service.StockPriceService;
 import com.example.service.StockService;
@@ -43,16 +41,21 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
     @Override
     public boolean isMcapInRange(Stock stock) {
 
-        if (stock.getCompanyName().contains("AMC") || stock.getCompanyName().contains("ETF")) {
+        return true;
+        /*
+        if (stock.getSector()!=null && stock.getSector().getSectorName().equalsIgnoreCase("Mutual Fund Scheme")) {
             return true;
         }
 
         StockFactor stockFactor = stock.getFactor();
 
         if (stockFactor != null && stockFactor.getMarketCap() >= rules.getMcap()) {
-            return Boolean.TRUE;
+            return true;
         }
-        return Boolean.FALSE;
+
+        return false;
+         */
+
     }
 
     @Override
@@ -60,10 +63,10 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 
         double score = 0.0;
 
-        double pe = stockService.getPe(stock);
-
-        double pb = stockService.getPb(stock);
-
+        // double pe = stockService.getPe(stock);
+        double pe = 0.0;
+        // double pb = stockService.getPb(stock);
+        double pb = 0.0;
         double sectorPb = stock.getSector().getSectorPb();
 
         double sectorPe = stock.getSector().getSectorPe();
@@ -118,11 +121,12 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
     }
 
     private boolean isFinancialsStable(Stock stock) {
+        /*
 
         boolean isUndervalued = false;
 
-        //Sector sector = stock.getSector();
-        Sector sector = null;
+        Sector sector = stock.getSector();
+
 
         if (stock != null) {
 
@@ -131,8 +135,8 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
                 String sectorName = stock.getSector().getSectorName();
 
                 if (sectorName != null && !sectorName.isEmpty()) {
-                    StockFactor stockFactor = stock.getFactor();
-                    if (stockFactor != null) {
+                    StockFinancials stockFinancials = stock.getFactor();
+                    if (stockFinancials != null) {
 
                         if (sectorName.equalsIgnoreCase("Financial Institution")
                                 || sectorName.equalsIgnoreCase("Non Banking Financial Company NBFC")
@@ -169,5 +173,7 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
             }
         }
         return isUndervalued;
+         */
+        return false;
     }
 }

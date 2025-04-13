@@ -1,6 +1,6 @@
 package com.example.external.ta.service;
 
-import com.example.dto.OHLCV;
+import com.example.dto.common.OHLCV;
 import com.example.dto.io.MCResult;
 import java.net.URI;
 import java.time.Instant;

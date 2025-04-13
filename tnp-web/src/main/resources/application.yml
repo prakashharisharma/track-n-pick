@@ -23,7 +23,7 @@ spring:
   data:
     mongodb:
       database: tnpDB
-      uri: mongodb://localhost:27017/?connectTimeoutMS=300000&minPoolSize=32&maxPoolSize=512&maxIdleTimeMS=900000
+      uri: mongodb://localhost:27017/?connectTimeoutMS=300000&minPoolSize=8&maxPoolSize=32&maxIdleTimeMS=900000
   mail:
     host: smtp.gmail.com
     username: tracknpick@gmail.com

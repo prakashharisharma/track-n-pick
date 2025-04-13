@@ -8,7 +8,7 @@ import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.data.transactional.entities.Trade;
 import com.example.data.transactional.entities.ValuationLedger;
-import com.example.dto.TradeSetup;
+import com.example.dto.common.TradeSetup;
 import com.example.service.*;
 import com.example.service.ResearchTechnicalService;
 import com.example.service.StockPriceService;
@@ -117,28 +117,28 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
         log.info("{} Executing technical buy", stock.getNseSymbol());
 
-        if (fundamentalResearchService.isMcapInRange(stock)) {
-            log.info("{} Found  mcap range stock", stock.getNseSymbol());
-            if (stock.getSeries().equalsIgnoreCase("EQ")) {
-                log.info("{} Found EQ stock ", stock.getNseSymbol());
-                TradeSetup tradeSetup = swingActionService.breakOut(stock, timeframe);
-                log.info(" {} swing {} ", stock.getNseSymbol(), tradeSetup.isActive());
-                if (!tradeSetup.isActive()) {
-                    tradeSetup = priceActionService.breakOut(stock, timeframe);
-                    log.info(" {} price {} ", stock.getNseSymbol(), tradeSetup.isActive());
-                }
+        // if (fundamentalResearchService.isMcapInRange(stock)) {
+        // log.info("{} Found  mcap range stock", stock.getNseSymbol());
+        if (stock.getSeries().equalsIgnoreCase("EQ")) {
+            log.info("{} Found EQ stock ", stock.getNseSymbol());
+            TradeSetup tradeSetup = priceActionService.breakOut(stock, timeframe);
 
-                if (tradeSetup.isActive()) {
-                    log.info(
-                            "{} Trade setup active, creating entry {} ",
-                            stock.getNseSymbol(),
-                            timeframe);
-                    researchTechnicalService.entry(
-                            stock, timeframe, tradeSetup, stockPrice, stockTechnicals, sessionDate);
-                    log.info("{} created entry {} ", stock.getNseSymbol(), timeframe);
-                }
+            if (!tradeSetup.isActive()) {
+                tradeSetup = swingActionService.breakOut(stock, timeframe);
+            }
+
+            if (tradeSetup.isActive()) {
+                log.info(
+                        "{} Bullish Trade active timeframe: {}, strategy:{}, subStrategy:{} ",
+                        stock.getNseSymbol(),
+                        timeframe,
+                        tradeSetup.getStrategy(),
+                        tradeSetup.getSubStrategy());
+                researchTechnicalService.entry(
+                        stock, timeframe, tradeSetup, stockPrice, stockTechnicals, sessionDate);
             }
         }
+        // }
 
         log.info("{} Executed technical buy", stock.getNseSymbol());
     }

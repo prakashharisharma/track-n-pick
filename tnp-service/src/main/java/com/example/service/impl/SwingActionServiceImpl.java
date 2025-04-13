@@ -6,11 +6,14 @@ import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
-import com.example.dto.TradeSetup;
+import com.example.dto.common.TradeSetup;
 import com.example.service.*;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
+import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
+import java.util.EnumSet;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,7 +27,7 @@ public class SwingActionServiceImpl implements SwingActionService {
     @Autowired private MacdIndicatorService macdIndicatorService;
     @Autowired private CandleStickService candleStickService;
     @Autowired private RsiIndicatorService rsiTrendService;
-    @Autowired private StockPriceServiceOld stockPriceServiceOld;
+    @Autowired private StockPriceHelperService stockPriceHelperService;
 
     @Autowired private BreakoutService breakoutService;
 
@@ -53,59 +56,67 @@ public class SwingActionServiceImpl implements SwingActionService {
     public TradeSetup breakOut(Stock stock, Timeframe timeframe) {
         StockPrice stockPrice = stockPriceService.get(stock, timeframe);
         StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
+
+        StockPrice stockPriceHigherTF = stockPriceService.get(stock, timeframe.getHigher());
+        StockTechnicals stockTechnicalsHigherTF =
+                stockTechnicalsService.get(stock, timeframe.getHigher());
+
         Trend trend = trendService.detect(stock, timeframe);
-        if (trend.getMomentum() == Trend.Momentum.PULLBACK
-                || trend.getMomentum() == Trend.Momentum.CORRECTION) {
-            if (candleStickHelperService.isBullishConfirmed(
-                    timeframe, stockPrice, stockTechnicals)) {
-                ResearchTechnical.SubStrategy subStrategy = ResearchTechnical.SubStrategy.RM;
 
-                boolean isTmaConvergenceAndDivergence =
-                        this.isTmaDivergence(stock, timeframe, trend);
-                boolean isRsiMacdBreakout = this.isRsiMacdBreakout(stock, timeframe, trend);
+        log.info(
+                "{} : Scanning swing action breakout Direction: {}, Momentum:{}",
+                stock.getNseSymbol(),
+                trend.getDirection(),
+                trend.getMomentum());
 
-                boolean isSwingAction = Boolean.FALSE;
+        AtomicReference<ResearchTechnical.SubStrategy> subStrategyRef = new AtomicReference<>();
 
-                if (isTmaConvergenceAndDivergence) {
-                    subStrategy = ResearchTechnical.SubStrategy.TEMA;
-
-                    isSwingAction = Boolean.TRUE;
-                } else if (isRsiMacdBreakout) {
-                    subStrategy = ResearchTechnical.SubStrategy.RM;
-                    isSwingAction = Boolean.TRUE;
-                }
-
-                if (isSwingAction) {
-                    // StockTechnicals stockTechnicals = stockTechnicalsService.get(stock,
-                    // timeframe);
-
-                    if (Math.abs(
-                                    formulaService.calculateChangePercentage(
-                                            stockTechnicals.getEma20(), stockPrice.getClose()))
-                            < 10.0) {
-
-                        log.info(
-                                "{} bullish swing action confirmed using {}:{}",
-                                stock.getNseSymbol(),
-                                ResearchTechnical.Strategy.PRICE,
-                                subStrategy);
-
-                        return TradeSetup.builder()
-                                .active(Boolean.TRUE)
-                                .strategy(ResearchTechnical.Strategy.SWING)
-                                .subStrategy(subStrategy)
-                                .build();
-                    }
-                    log.info(
-                            "{} bullish swing action rejected as price is away from ema 20 using"
-                                    + " {}:{}",
-                            stock.getNseSymbol(),
-                            ResearchTechnical.Strategy.PRICE,
-                            subStrategy);
-                }
+        if (isHigherTimeframeBullish(
+                timeframe.getHigher(), stockPriceHigherTF, stockTechnicalsHigherTF)) {
+            if (isCurrentTimeframeBullish(
+                    trend, timeframe, stockPrice, stockTechnicals, subStrategyRef)) {
+                return TradeSetup.builder()
+                        .active(true)
+                        .strategy(ResearchTechnical.Strategy.SWING)
+                        .subStrategy(subStrategyRef.get())
+                        .build();
             }
         }
-        return TradeSetup.builder().active(Boolean.FALSE).build();
+
+        return TradeSetup.builder().active(false).build();
+    }
+
+    private boolean isHigherTimeframeBullish(
+            Timeframe timeframe, StockPrice price, StockTechnicals techs) {
+        boolean aboveEma =
+                stockPriceHelperService.isAboveEma20(price, techs)
+                        && stockPriceHelperService.isAboveEma50(price, techs);
+
+        boolean trendStructure = CandleStickUtils.isHigherHighAndHigherLow(price);
+        boolean adxBullish = adxIndicatorService.isBullish(techs);
+        boolean rsiBullish = rsiTrendService.isBullish(techs);
+        boolean isBearishCandleStick =
+                candleStickHelperService.isBearishConfirmed(timeframe, price, techs);
+
+        if (!aboveEma) log.debug("Failed EMA alignment");
+        if (!trendStructure) log.debug("Failed HH-HL structure");
+        if (!adxBullish) log.debug("Failed ADX bullish condition");
+        if (!rsiBullish) log.debug("Failed RSI bullish condition");
+
+        return aboveEma && trendStructure && adxBullish && rsiBullish && !isBearishCandleStick;
+    }
+
+    private boolean isCurrentTimeframeBullish(
+            Trend trend,
+            Timeframe tf,
+            StockPrice price,
+            StockTechnicals techs,
+            AtomicReference<ResearchTechnical.SubStrategy> subRef) {
+        boolean action = isBullishAction(trend, tf, price, techs, subRef);
+
+        if (!action) log.debug("No bullish action detected");
+
+        return action;
     }
 
     /**
@@ -118,87 +129,162 @@ public class SwingActionServiceImpl implements SwingActionService {
     public TradeSetup breakDown(Stock stock, Timeframe timeframe) {
         StockPrice stockPrice = stockPriceService.get(stock, timeframe);
         StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
+
+        StockPrice stockPriceHigherTF = stockPriceService.get(stock, timeframe.getHigher());
+        StockTechnicals stockTechnicalsHigherTF =
+                stockTechnicalsService.get(stock, timeframe.getHigher());
+
         Trend trend = trendService.detect(stock, timeframe);
-        if (trend.getMomentum() == Trend.Momentum.TOP
-                || trend.getMomentum() == Trend.Momentum.ADVANCE) {
-            // if (trend.getMomentum() == Trend.Momentum.RECOVERY || trend.getMomentum() ==
-            // Trend.Momentum.ADVANCE) {
-            if (candleStickHelperService.isBearishConfirmed(
-                    timeframe, stockPrice, stockTechnicals)) {
-                ResearchTechnical.SubStrategy subStrategy = ResearchTechnical.SubStrategy.RM;
 
-                boolean isTmaConvergence = this.isTmaConvergence(stock, timeframe, trend);
-                boolean isRsiMacdBreakdown = this.isRsiMacdBreakdown(stock, timeframe, trend);
+        log.info(
+                "{} : Scanning swing action breakdown Direction: {}, Momentum:{}",
+                stock.getNseSymbol(),
+                trend.getDirection(),
+                trend.getMomentum());
 
-                double entryPrice = stockPrice.getLow();
-                double stopLossPrice = stockPrice.getHigh();
+        AtomicReference<ResearchTechnical.SubStrategy> subStrategyRef = new AtomicReference<>();
 
-                double targetPrice = 0.0;
-                double risk =
-                        Math.abs(
-                                formulaService.calculateChangePercentage(
-                                        entryPrice, stopLossPrice));
-
-                boolean isSwingAction = Boolean.FALSE;
-
-                if (isTmaConvergence) {
-                    subStrategy = ResearchTechnical.SubStrategy.TEMA;
-                    targetPrice =
-                            formulaService.calculateTarget(
-                                    entryPrice, stopLossPrice, RiskReward.SWING_TEMA);
-                    isSwingAction = Boolean.TRUE;
-                } else if (isRsiMacdBreakdown) {
-                    subStrategy = ResearchTechnical.SubStrategy.RM;
-                    targetPrice =
-                            formulaService.calculateTarget(
-                                    entryPrice, stopLossPrice, RiskReward.SWING_RM);
-                    isSwingAction = Boolean.TRUE;
-                }
-
-                if (isSwingAction) {
-                    // StockTechnicals stockTechnicals = stockTechnicalsService.get(stock,
-                    // timeframe);
-
-                    if (Math.abs(
-                                    formulaService.calculateChangePercentage(
-                                            stockTechnicals.getEma20(), stockPrice.getClose()))
-                            > 10.0) {
-
-                        log.info(
-                                "{} bearish swing action confirmed using {}:{}",
-                                stock.getNseSymbol(),
-                                ResearchTechnical.Strategy.PRICE,
-                                subStrategy);
-                        log.info(
-                                "{} bearish swing action active for trend:{}, momentum:{},"
-                                    + " entryPrice:{}, targetPrice:{}, stopLossPrice:{}, risk {}",
-                                stock.getNseSymbol(),
-                                trend.getStrength(),
-                                trend.getMomentum(),
-                                entryPrice,
-                                targetPrice,
-                                stopLossPrice,
-                                risk);
-
-                        return TradeSetup.builder()
-                                .active(Boolean.TRUE)
-                                .strategy(ResearchTechnical.Strategy.SWING)
-                                .subStrategy(subStrategy)
-                                .build();
-                    }
-                    log.info(
-                            "{} bearish swing action rejected as price is away from ema 20 using"
-                                    + " {}:{}",
-                            stock.getNseSymbol(),
-                            ResearchTechnical.Strategy.PRICE,
-                            subStrategy);
-                }
+        if (isHigherTimeframeBearish(
+                timeframe.getHigher(), stockPriceHigherTF, stockTechnicalsHigherTF)) {
+            if (isCurrentTimeframeBearish(
+                    trend, timeframe, stockPrice, stockTechnicals, subStrategyRef)) {
+                return TradeSetup.builder()
+                        .active(true)
+                        .strategy(ResearchTechnical.Strategy.SWING)
+                        .subStrategy(subStrategyRef.get())
+                        .build();
             }
-            // }
-            // }
         }
 
-        return TradeSetup.builder().active(Boolean.FALSE).build();
+        return TradeSetup.builder().active(false).build();
+    }
+
+    private boolean isHigherTimeframeBearish(
+            Timeframe timeframe, StockPrice price, StockTechnicals techs) {
+        boolean belowEma =
+                stockPriceHelperService.isBelowEma20(price, techs)
+                        && stockPriceHelperService.isBelowEma50(price, techs);
+
+        boolean trendStructure = CandleStickUtils.isLowerHighAndLowerLow(price);
+        boolean adxBearish = adxIndicatorService.isBearish(techs);
+        boolean rsiBearish = rsiTrendService.isBearish(techs);
+        boolean isBullishCandleStick =
+                candleStickHelperService.isBullishConfirmed(timeframe, price, techs);
+
+        if (!belowEma) log.debug("Failed EMA alignment (bearish)");
+        if (!trendStructure) log.debug("Failed LH-LL structure");
+        if (!adxBearish) log.debug("Failed ADX bearish condition");
+        if (!rsiBearish) log.debug("Failed RSI bearish condition");
+
+        return belowEma && trendStructure && adxBearish && rsiBearish && !isBullishCandleStick;
+    }
+
+    private boolean isCurrentTimeframeBearish(
+            Trend trend,
+            Timeframe tf,
+            StockPrice price,
+            StockTechnicals techs,
+            AtomicReference<ResearchTechnical.SubStrategy> subRef) {
+        boolean action = isBearishAction(trend, tf, price, techs, subRef);
+
+        if (!action) log.debug("No bearish action detected");
+
+        return action;
+    }
+
+    private boolean isBullishAction(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            AtomicReference<ResearchTechnical.SubStrategy> subStrategyRef) {
+
+        boolean isUpperWickSizeConfirmed =
+                candleStickHelperService.isUpperWickSizeConfirmed(
+                        timeframe, stockPrice, stockTechnicals);
+
+        if (!isUpperWickSizeConfirmed) {
+            return false;
+        }
+
+        Trend.Phase phase = trend.getMomentum();
+
+        boolean isBullishCandleStick =
+                candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
+        boolean isBearishCandleStick =
+                candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
+        boolean isVolumeSurge =
+                volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
+
+        if (isBullishCandleStick
+                || ((EnumSet.of(
+                                        Trend.Phase.DIP,
+                                        Trend.Phase.PULLBACK,
+                                        Trend.Phase.CORRECTION,
+                                        Trend.Phase.DEEP_CORRECTION)
+                                .contains(phase))
+                        && !isBearishCandleStick
+                        && isVolumeSurge)) {
+
+            subStrategyRef.set(
+                    isBullishCandleStick
+                            ? ResearchTechnical.SubStrategy.STRONG_SWING
+                            : ResearchTechnical.SubStrategy.WEAK_SWING);
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isBearishAction(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            AtomicReference<ResearchTechnical.SubStrategy> subStrategyRef) {
+
+        boolean isLowerWickSizeConfirmed =
+                candleStickHelperService.isLowerWickSizeConfirmed(
+                        timeframe, stockPrice, stockTechnicals);
+
+        if (!isLowerWickSizeConfirmed) {
+            return false;
+        }
+
+        Trend.Phase phase = trend.getMomentum();
+
+        boolean isBearishCandleStick =
+                candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
+
+        boolean isBullishCandleStick =
+                candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
+        boolean isVolumeSurge =
+                volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
+
+        if (isBearishCandleStick
+                || ((EnumSet.of(
+                                        Trend.Phase.RECOVERY,
+                                        Trend.Phase.ADVANCE,
+                                        Trend.Phase.STRONG_ADVANCE,
+                                        Trend.Phase.TOP)
+                                .contains(phase))
+                        && !isBullishCandleStick
+                        && isVolumeSurge)) {
+
+            subStrategyRef.set(
+                    isBearishCandleStick
+                            ? ResearchTechnical.SubStrategy.STRONG_SWING
+                            : ResearchTechnical.SubStrategy.WEAK_SWING);
+            return true;
+        }
+        /*
+        if (relevanceService.isBreakdown(trend, timeframe, stockPrice, stockTechnicals)) {
+            if (isBearishCandleStick
+                    || (higherTrend.getMomentum().isHigherPriorityThan(trend.getMomentum())
+                    && !isBullishCandleStick
+                            && isVolumeSurge)) {*/
+
+        return false;
     }
 
     /**
@@ -215,7 +301,7 @@ public class SwingActionServiceImpl implements SwingActionService {
                 if (macdIndicatorService.isHistogramGreen(stockTechnicals)
                         && macdIndicatorService.isHistogramIncreased(stockTechnicals)) {
                     if (macdIndicatorService.isSignalNearHistogram(stockTechnicals)) {
-                        if (stockPriceServiceOld.isCloseAboveEma(stock, timeframe)) {
+                        if (stockPriceHelperService.isCloseAboveEma(stock, timeframe)) {
                             return Boolean.TRUE;
                         }
                     }
@@ -235,7 +321,7 @@ public class SwingActionServiceImpl implements SwingActionService {
         StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
         if (obvIndicatorService.isBullish(stockTechnicals)) {
             if (adxIndicatorService.isBullish(stockTechnicals)) {
-                if (stockPriceServiceOld.isTmaDivergence(stock, timeframe, trend)) {
+                if (stockPriceHelperService.isTmaDivergence(stock, timeframe, trend)) {
                     return Boolean.TRUE;
                 }
             }
@@ -251,7 +337,7 @@ public class SwingActionServiceImpl implements SwingActionService {
             if (rsiTrendService.isBearish(stockTechnicals)) {
                 if (macdIndicatorService.isHistogramDecreased(stockTechnicals)) {
                     // if (macdIndicatorService.isSignalNearHistogram(stockTechnicals)) {
-                    if (stockPriceServiceOld.isCloseBelowEma(stock, timeframe)) {
+                    if (stockPriceHelperService.isCloseBelowEma(stock, timeframe)) {
                         return Boolean.TRUE;
                     }
                     // }
@@ -265,7 +351,7 @@ public class SwingActionServiceImpl implements SwingActionService {
         StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
         if (obvIndicatorService.isBearish(stockTechnicals)) {
             if (adxIndicatorService.isBearish(stockTechnicals)) {
-                if (stockPriceServiceOld.isTmaConvergence(stock, timeframe, trend)) {
+                if (stockPriceHelperService.isTmaConvergence(stock, timeframe, trend)) {
                     return Boolean.TRUE;
                 }
             }

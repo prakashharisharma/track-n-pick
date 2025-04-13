@@ -4,7 +4,7 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
-import com.example.dto.OHLCV;
+import com.example.dto.common.OHLCV;
 import java.time.LocalDate;
 
 public interface DailySupportResistanceService {

@@ -20,7 +20,7 @@ public class FiveDaysMovingAverageSupportResistanceServiceImpl
 
     private final SupportResistanceConfirmationService supportResistanceConfirmationService;
 
-    private final BreakoutConfirmationService breakoutConfirmationService;
+    private final BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
 
     private final SupportResistanceUtilService supportResistanceService;
 
@@ -47,7 +47,7 @@ public class FiveDaysMovingAverageSupportResistanceServiceImpl
         // if(candleStickService.isHigherHigh(stockPrice) && candleStickService.range(stockPrice) >
         // CandleStickService.MIN_RANGE) {
         // Breakout EMA20
-        if (breakoutConfirmationService.isBullishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakoutConfirmed(
                         timeframe, stockPrice, stockTechnicals, ema5)
                 && breakoutService.isBreakOut(prevClose, prevEma5, close, ema5)) {
             return Boolean.TRUE;
@@ -111,7 +111,7 @@ public class FiveDaysMovingAverageSupportResistanceServiceImpl
         // if(candleStickService.isLowerLow(stockPrice) && candleStickService.range(stockPrice) >
         // CandleStickService.MIN_RANGE){
         // Breakdown EMA20
-        if (breakoutConfirmationService.isBearishConfirmation(
+        if (breakoutBreakdownConfirmationService.isBreakdownConfirmed(
                         timeframe, stockPrice, stockTechnicals, ema5)
                 && breakoutService.isBreakDown(prevClose, prevEma5, close, ema5)) {
             return Boolean.TRUE;

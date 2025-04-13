@@ -19,22 +19,27 @@ public class PositionServiceImpl implements PositionService {
 
     @Override
     public long calculate(User user, ResearchTechnical researchTechnical) {
-
         double investmentValue = fundsLedgerService.allTimeInvestment(user);
-
-        double netProfit = 0.0;
+        double netProfit = 0.0; // Can be extended in future
 
         double capital = investmentValue + netProfit;
 
-        double riskFactor = this.getRiskFactor(researchTechnical);
+        double riskFactor = this.getRiskFactor(researchTechnical); // Typically a % like 1 or 2
+        double risk =
+                formulaService.calculateFraction(
+                        capital, riskFactor); // risk = capital * (riskFactor / 100)
 
-        double risk = formulaService.calculateFraction(capital, riskFactor);
+        double stopLoss = researchTechnical.getResearchPrice() - researchTechnical.getStopLoss();
 
-        double stopLoss = (researchTechnical.getResearchPrice() - researchTechnical.getStopLoss());
+        // Safety check to avoid division by zero or negative stop loss
+        if (stopLoss <= 0) {
+            throw new IllegalArgumentException(
+                    "Invalid stop loss value: must be less than research price");
+        }
 
         long positionSize = (long) (risk / stopLoss);
 
-        return positionSize;
+        return Math.max(positionSize, 0); // Avoid negative sizing just in case
     }
 
     private double getRiskFactor(ResearchTechnical researchTechnical) {

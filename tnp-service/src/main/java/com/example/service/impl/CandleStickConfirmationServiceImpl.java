@@ -19,7 +19,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
     private final ThreeSessionCandleStickService threeSessionCandleStickService;
     private final VolumeIndicatorService volumeIndicatorService;
 
-    private boolean isUpperWickSizeConfirmed(
+    @Override
+    public boolean isUpperWickSizeConfirmed(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         double bodySize = CandleStickUtils.bodySize(stockPrice);
         double upperWick = CandleStickUtils.upperWickSize(stockPrice);
@@ -96,7 +97,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
         }
     }
 
-    private boolean isLowerWickSizeConfirmed(
+    @Override
+    public boolean isLowerWickSizeConfirmed(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         double bodySize = CandleStickUtils.bodySize(stockPrice);
         double lowerWick = CandleStickUtils.lowerWickSize(stockPrice);
@@ -182,17 +184,18 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
         if (this.isThreeSessionBullish(timeframe, stockPrice, stockTechnicals)
                 || this.isTwoSessionBullish(timeframe, stockPrice, stockTechnicals)
                 || this.isSingleSessionBullish(timeframe, stockPrice, stockTechnicals)) {
-            if (this.isUpperWickSizeConfirmed(timeframe, stockPrice, stockTechnicals)) {
-                log.info(
-                        "{} bullish candlestick active on {}",
-                        stockPrice.getStock().getNseSymbol(),
-                        stockPrice.getSessionDate());
-                return Boolean.TRUE;
-            }
+            // if (this.isUpperWickSizeConfirmed(timeframe, stockPrice, stockTechnicals)) {
+            log.info(
+                    "{} bullish candlestick active on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
+            return Boolean.TRUE;
+            // }
+            /*
             log.info(
                     "{} bullish candlestick found but upper wick size not confirmed {}",
                     stockPrice.getStock().getNseSymbol(),
-                    stockPrice.getSessionDate());
+                    stockPrice.getSessionDate());*/
         }
         return Boolean.FALSE;
     }
@@ -227,7 +230,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
             return false;
         }
 
-        boolean isVolumeConfirmed = volumeIndicatorService.isBullish(timeframe, stockTechnicals, 3);
+        boolean isVolumeConfirmed =
+                volumeIndicatorService.isBullish(timeframe, stockPrice, stockTechnicals, 3);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -272,7 +276,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
             return false;
         }
 
-        boolean isVolumeConfirmed = volumeIndicatorService.isBearish(timeframe, stockTechnicals, 3);
+        boolean isVolumeConfirmed =
+                volumeIndicatorService.isBearish(timeframe, stockPrice, stockTechnicals, 3);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -327,7 +332,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
             return false;
         }
 
-        boolean isVolumeConfirmed = volumeIndicatorService.isBullish(timeframe, stockTechnicals, 2);
+        boolean isVolumeConfirmed =
+                volumeIndicatorService.isBullish(timeframe, stockPrice, stockTechnicals, 2);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -379,7 +385,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
             return false;
         }
 
-        boolean isVolumeConfirmed = volumeIndicatorService.isBearish(timeframe, stockTechnicals, 2);
+        boolean isVolumeConfirmed =
+                volumeIndicatorService.isBearish(timeframe, stockPrice, stockTechnicals, 2);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -418,7 +425,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
             return false;
         }
 
-        boolean isVolumeConfirmed = volumeIndicatorService.isBullish(timeframe, stockTechnicals, 1);
+        boolean isVolumeConfirmed =
+                volumeIndicatorService.isBullish(timeframe, stockPrice, stockTechnicals, 1);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -457,7 +465,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
             return false;
         }
 
-        boolean isVolumeConfirmed = volumeIndicatorService.isBearish(timeframe, stockTechnicals, 1);
+        boolean isVolumeConfirmed =
+                volumeIndicatorService.isBearish(timeframe, stockPrice, stockTechnicals, 1);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -481,17 +490,19 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
                 || this.isTwoSessionBearish(timeframe, stockPrice, stockTechnicals)
                 || this.isSingleSessionBearish(timeframe, stockPrice, stockTechnicals)) {
 
-            if (this.isLowerWickSizeConfirmed(timeframe, stockPrice, stockTechnicals)) {
-                log.info(
-                        "{} bearish candlestick active on {}",
-                        stockPrice.getStock().getNseSymbol(),
-                        stockPrice.getSessionDate());
-                return Boolean.TRUE;
-            }
+            // if (this.isLowerWickSizeConfirmed(timeframe, stockPrice, stockTechnicals)) {
+            log.info(
+                    "{} bearish candlestick active on {}",
+                    stockPrice.getStock().getNseSymbol(),
+                    stockPrice.getSessionDate());
+            return Boolean.TRUE;
+            // }
+            /*
             log.info(
                     "{} bearish candlestick found but lower wick size not confirmed {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+             */
         }
         return Boolean.FALSE;
     }

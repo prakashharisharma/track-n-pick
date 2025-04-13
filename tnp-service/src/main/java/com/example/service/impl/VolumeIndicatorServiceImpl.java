@@ -1,6 +1,7 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
+import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.VolumeIndicatorService;
 import lombok.extern.slf4j.Slf4j;
@@ -14,50 +15,99 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     private static double BEARISH_MULTIPLIER_DAILY = 1.5;
     private static double THRESHOLD_DAILY = 0.5;
 
-    private static double BULLISH_MULTIPLIER_WEEKLY = 1.8;
-    private static double BEARISH_MULTIPLIER_WEEKLY = 1.3;
+    private static double BULLISH_MULTIPLIER_WEEKLY = 2.0;
+    private static double BEARISH_MULTIPLIER_WEEKLY = 1.5;
     private static double THRESHOLD_WEEKLY = 0.5;
 
-    private static double BULLISH_MULTIPLIER_MONTHLY = 1.5;
-    private static double BEARISH_MULTIPLIER_MONTHLY = 1.0;
+    private static double BULLISH_MULTIPLIER_MONTHLY = 2.0;
+    private static double BEARISH_MULTIPLIER_MONTHLY = 1.5;
     private static double THRESHOLD_MONTHLY = 0.5;
 
-    @Override
-    public boolean isBullish(StockTechnicals stockTechnicals, Timeframe timeframe) {
-        return this.isCurrentSessionHigh(
-                        stockTechnicals, timeframe, this.getBullishMultiplier(timeframe))
-                || this.isPreviousSessionHigh(
-                        stockTechnicals, timeframe, this.getBullishMultiplier(timeframe));
-    }
+    private static double MIN_TRADING_VALUE = 2_50_00_000.0;
 
+    @Override
     public boolean isBullish(
-            StockTechnicals stockTechnicals, Timeframe timeframe, double multiplier) {
-        return this.isCurrentSessionHigh(stockTechnicals, timeframe, multiplier)
-                || this.isPreviousSessionHigh(stockTechnicals, timeframe, multiplier);
-    }
+            StockPrice stockPrice, StockTechnicals stockTechnicals, Timeframe timeframe) {
 
-    @Override
-    public boolean isBearish(StockTechnicals stockTechnicals, Timeframe timeframe) {
+        if (!isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
+            return false;
+        }
+
         return this.isCurrentSessionHigh(
-                        stockTechnicals, timeframe, this.getBearishMultiplier(timeframe))
+                        stockPrice,
+                        stockTechnicals,
+                        timeframe,
+                        this.getBullishMultiplier(timeframe))
                 || this.isPreviousSessionHigh(
-                        stockTechnicals, timeframe, this.getBearishMultiplier(timeframe));
+                        stockPrice,
+                        stockTechnicals,
+                        timeframe,
+                        this.getBullishMultiplier(timeframe));
     }
 
+    @Override
+    public boolean isBullish(
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            Timeframe timeframe,
+            double multiplier) {
+
+        if (!isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
+            return false;
+        }
+        return this.isCurrentSessionHigh(stockPrice, stockTechnicals, timeframe, multiplier)
+                || this.isPreviousSessionHigh(stockPrice, stockTechnicals, timeframe, multiplier);
+    }
+
+    @Override
     public boolean isBearish(
-            StockTechnicals stockTechnicals, Timeframe timeframe, double multiplier) {
-        return this.isCurrentSessionHigh(stockTechnicals, timeframe, multiplier)
-                || this.isPreviousSessionHigh(stockTechnicals, timeframe, multiplier);
+            StockPrice stockPrice, StockTechnicals stockTechnicals, Timeframe timeframe) {
+
+        /*
+        if (!isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
+            return false;
+        }*/
+
+        return this.isCurrentSessionHigh(
+                        stockPrice,
+                        stockTechnicals,
+                        timeframe,
+                        this.getBearishMultiplier(timeframe))
+                || this.isPreviousSessionHigh(
+                        stockPrice,
+                        stockTechnicals,
+                        timeframe,
+                        this.getBearishMultiplier(timeframe));
     }
 
     @Override
-    public boolean isBullish(Timeframe timeframe, StockTechnicals stockTechnicals, int days) {
+    public boolean isBearish(
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            Timeframe timeframe,
+            double multiplier) {
+
+        /*
+        if (!isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
+            return false;
+        }*/
+        return this.isCurrentSessionHigh(stockPrice, stockTechnicals, timeframe, multiplier)
+                || this.isPreviousSessionHigh(stockPrice, stockTechnicals, timeframe, multiplier);
+    }
+
+    @Override
+    public boolean isBullish(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals, int days) {
 
         long volume = stockTechnicals.getVolume();
         long preVolume = stockTechnicals.getPrevVolume();
         long prev2Volume = stockTechnicals.getPrev2Volume();
 
         long volumeMA, prevVolumeMA, prev2VolumeMA;
+
+        if (!this.isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
+            return false;
+        }
 
         // Select the correct moving average based on the timeframe
         switch (timeframe) {
@@ -79,6 +129,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
 
         if (days == 3) {
             return this.checkThreeSession(
+                    stockPrice.getClose(),
                     volume,
                     volumeMA,
                     preVolume,
@@ -89,6 +140,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         }
         if (days == 2) {
             return this.checkTwoSession(
+                    stockPrice.getClose(),
                     volume,
                     volumeMA,
                     preVolume,
@@ -97,17 +149,28 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         }
 
         return this.checkSingleSession(
-                volume, volumeMA, preVolume, prevVolumeMA, this.getBullishMultiplier(timeframe));
+                stockPrice.getClose(),
+                volume,
+                volumeMA,
+                preVolume,
+                prevVolumeMA,
+                this.getBullishMultiplier(timeframe));
     }
 
     @Override
-    public boolean isBearish(Timeframe timeframe, StockTechnicals stockTechnicals, int days) {
+    public boolean isBearish(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals, int days) {
 
         long volume = stockTechnicals.getVolume();
         long preVolume = stockTechnicals.getPrevVolume();
         long prev2Volume = stockTechnicals.getPrev2Volume();
 
         long volumeMA, prevVolumeMA, prev2VolumeMA;
+
+        /*
+        if (!this.isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
+            return false;
+        }*/
 
         // Select the correct moving average based on the timeframe
         switch (timeframe) {
@@ -129,6 +192,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
 
         if (days == 3) {
             return this.checkThreeSession(
+                    stockPrice.getClose(),
                     volume,
                     volumeMA,
                     preVolume,
@@ -139,6 +203,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         }
         if (days == 2) {
             return this.checkTwoSession(
+                    stockPrice.getClose(),
                     volume,
                     volumeMA,
                     preVolume,
@@ -147,22 +212,19 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         }
 
         return this.checkSingleSession(
-                volume, volumeMA, preVolume, prevVolumeMA, this.getBearishMultiplier(timeframe));
+                stockPrice.getClose(),
+                volume,
+                volumeMA,
+                preVolume,
+                prevVolumeMA,
+                this.getBearishMultiplier(timeframe));
     }
 
-    /**
-     * Determines if the current session has a significantly high volume compared to its historical
-     * averages. The function selects the appropriate volume average based on the timeframe and
-     * applies a multiplier to assess if the current volume is unusually high.
-     *
-     * @param stockTechnicals The stock's technical data, including volume and moving averages.
-     * @param timeframe The timeframe (Daily, Weekly, Monthly) used to determine volume trends.
-     * @param multiplier A factor to compare current volume against historical averages.
-     * @return {@code true} if the current session's volume is high and increasing, otherwise {@code
-     *     false}.
-     */
     private boolean isCurrentSessionHigh(
-            StockTechnicals stockTechnicals, Timeframe timeframe, double multiplier) {
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            Timeframe timeframe,
+            double multiplier) {
 
         long avg = stockTechnicals.getVolumeAvg20();
         long prevAvg = stockTechnicals.getPrevVolumeAvg20();
@@ -199,20 +261,11 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         return Boolean.FALSE;
     }
 
-    /**
-     * Determines if the previous session had significantly high volume compared to historical
-     * averages. The method checks if the previous session's volume was higher than a selected
-     * moving average, and whether it was increasing over multiple periods.
-     *
-     * @param stockTechnicals The stock's technical indicators, including volume and moving
-     *     averages.
-     * @param timeframe The timeframe (Daily, Weekly, Monthly) to assess volume trends.
-     * @param multiplier A factor to compare previous session volume against historical averages.
-     * @return {@code true} if the previous session had a high and increasing volume trend,
-     *     otherwise {@code false}.
-     */
     private boolean isPreviousSessionHigh(
-            StockTechnicals stockTechnicals, Timeframe timeframe, double multiplier) {
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            Timeframe timeframe,
+            double multiplier) {
 
         long avg = stockTechnicals.getPrevVolumeAvg20();
         long prevAvg = stockTechnicals.getPrev2VolumeAvg20();
@@ -255,18 +308,14 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         return Boolean.FALSE;
     }
 
-    /**
-     * // Check 1-session candlestick high volume
-     *
-     * @param volume
-     * @param volumeMA
-     * @param prevVolume
-     * @param prevVolumeMA
-     * @param threshold
-     * @return
-     */
     public boolean checkSingleSession(
-            long volume, long volumeMA, long prevVolume, long prevVolumeMA, double threshold) {
+            double close,
+            long volume,
+            long volumeMA,
+            long prevVolume,
+            long prevVolumeMA,
+            double threshold) {
+
         return this.isHighVolume(volume, volumeMA, threshold)
                 || this.isHighVolume(prevVolume, prevVolumeMA, threshold)
                 || this.isHighRVOL(volume, volumeMA, threshold)
@@ -274,7 +323,13 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     }
 
     public boolean checkTwoSession(
-            long volume, long volumeMA, long prevVolume, long prevVolumeMA, double threshold) {
+            double close,
+            long volume,
+            long volumeMA,
+            long prevVolume,
+            long prevVolumeMA,
+            double threshold) {
+
         double avgVolume = (volume + prevVolume) / 2.0;
         double avgVolumeMA = (volumeMA + prevVolumeMA) / 2.0;
 
@@ -292,6 +347,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     }
 
     public boolean checkThreeSession(
+            double close,
             long volume,
             long volumeMA,
             long prevVolume,
@@ -299,6 +355,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
             long prev2Volume,
             long prev2VolumeMA,
             double threshold) {
+
         double avgVolume = (volume + prevVolume + prev2Volume) / 3.0;
         double avgVolumeMA = (volumeMA + prevVolumeMA + prev2VolumeMA) / 3.0;
 
@@ -324,7 +381,10 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     }
 
     public boolean isHighRVOL(long volume, long volumeMA, double threshold) {
-        return (volume / volumeMA) > threshold;
+        if (volumeMA == 0) {
+            return false; // or handle as appropriate (e.g., return true, throw exception, etc.)
+        }
+        return ((double) volume / volumeMA) > threshold;
     }
 
     private boolean isIncreasing(long volume, long preVolume) {
@@ -360,5 +420,21 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
             return THRESHOLD_WEEKLY;
         }
         return THRESHOLD_DAILY;
+    }
+
+    private boolean isTradingValueSufficient(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        double avgClose = stockTechnicals.getVolumeAvg20();
+        long avgVolume = stockTechnicals.getVolumeAvg20();
+
+        if (timeframe == Timeframe.WEEKLY) {
+            avgClose = stockTechnicals.getVolumeAvg10();
+            avgVolume = stockTechnicals.getVolumeAvg10();
+        } else if (timeframe == Timeframe.MONTHLY) {
+            avgClose = stockTechnicals.getVolumeAvg5();
+            avgVolume = stockTechnicals.getVolumeAvg5();
+        }
+
+        return avgClose * avgVolume > MIN_TRADING_VALUE ? true : false;
     }
 }

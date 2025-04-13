@@ -1,8 +1,8 @@
 package com.example.web.security.controller;
 
-import com.example.dto.security.JwtResponse;
-import com.example.dto.security.LoginRequest;
-import com.example.dto.security.LogoutRequest;
+import com.example.dto.request.LoginRequest;
+import com.example.dto.request.LogoutRequest;
+import com.example.dto.response.JwtResponse;
 import com.example.exception.InvalidTokenException;
 import com.example.security.AuthService;
 import com.example.web.utils.JsonApiSuccessUtil;

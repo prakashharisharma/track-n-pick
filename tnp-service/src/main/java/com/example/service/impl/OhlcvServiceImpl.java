@@ -2,9 +2,9 @@ package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.storage.documents.StockPrice;
-import com.example.data.storage.documents.assembler.StockPriceOHLCVAssembler;
 import com.example.data.storage.repo.PriceTemplate;
-import com.example.dto.OHLCV;
+import com.example.dto.assembler.StockPriceOHLCVAssembler;
+import com.example.dto.common.OHLCV;
 import com.example.service.OhlcvService;
 import java.time.LocalDate;
 import java.util.ArrayList;
