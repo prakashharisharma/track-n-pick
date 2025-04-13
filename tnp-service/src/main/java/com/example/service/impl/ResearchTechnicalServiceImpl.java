@@ -6,6 +6,7 @@ import com.example.data.transactional.repo.ResearchTechnicalRepository;
 import com.example.dto.common.TradeSetup;
 import com.example.service.ResearchTechnicalService;
 import com.example.service.RiskFactor;
+import com.example.service.StockPriceHelperService;
 import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
 import java.time.LocalDate;
@@ -24,6 +25,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     private final ResearchTechnicalRepository<ResearchTechnical> researchTechnicalRepository;
 
     private final FormulaService formulaService;
+
+    private final StockPriceHelperService stockPriceHelperService;
 
     private static final Map<Timeframe, Supplier<ResearchTechnical>> STOCK_PRICE_CREATORS =
             Map.of(
@@ -71,7 +74,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         newResearchTechnical.setResearchPrice(this.calculateResearchPrice(tradeSetup, stockPrice));
 
-        newResearchTechnical.setStopLoss(this.calculateStopLoss(stockPrice, newResearchTechnical));
+        newResearchTechnical.setStopLoss(
+                this.calculateStopLoss(tradeSetup, stockPrice, newResearchTechnical));
         newResearchTechnical.setTarget(
                 formulaService.calculateTarget(
                         stockPrice.getHigh(),
@@ -144,12 +148,20 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         return 2.0;
     }
 
-    private double calculateStopLoss(StockPrice stockPrice, ResearchTechnical researchTechnical) {
+    private double calculateStopLoss(
+            TradeSetup tradeSetup, StockPrice stockPrice, ResearchTechnical researchTechnical) {
+
         double buffer = 0.005 * stockPrice.getLow(); // 0.5% buffer
+        ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
+
         double stopLoss =
                 researchTechnical.getResearchPrice() > stockPrice.getLow()
                         ? stockPrice.getLow()
                         : stockPrice.getLow() - buffer;
+
+        if (this.isSupport(subStrategy)) {
+            stopLoss = stockPriceHelperService.findLowestLow(stockPrice);
+        }
 
         return Math.max(stopLoss, 0.01); // prevent negative or 0 SL
     }
@@ -186,7 +198,12 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                                     + (stockPrice.getHigh() - stockPrice.getClose()) * 0.50);
         }
 
-        return formulaService.ceilToNearestQuarter(researchPrice);
+        return Math.min(formulaService.ceilToNearestQuarter(researchPrice), stockPrice.getHigh());
+    }
+
+    private boolean isSupport(ResearchTechnical.SubStrategy subStrategy) {
+        return subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT
+                || subStrategy == ResearchTechnical.SubStrategy.STRONG_SUPPORT;
     }
 
     private boolean isWeakSupport(ResearchTechnical.SubStrategy subStrategy) {
