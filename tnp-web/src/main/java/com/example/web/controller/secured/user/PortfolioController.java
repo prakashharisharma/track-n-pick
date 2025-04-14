@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/portfolio")
+@RequestMapping("v1/user/portfolio")
 @RequiredArgsConstructor
 @Tag(
         name = "Portfolio",
