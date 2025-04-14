@@ -83,7 +83,7 @@ public class PortfolioServiceImpl implements PortfolioService {
                         .sessionDate(LocalDate.now())
                         .timestamp(LocalDateTime.now())
                         .build();
-
+        tradeRepository.save(trade);
         Portfolio portfolio =
                 portfolioRepository.findByUserIdAndStock(userId, stock).orElse(new Portfolio());
         updatePortfolio(portfolio, userId, stock, quantity, effectivePrice);
@@ -139,7 +139,7 @@ public class PortfolioServiceImpl implements PortfolioService {
                         .subtract(dpCharge)
                         .subtract(brokerage)
                         .subtract(gst);
-
+System.out.println("Here");
         for (Trade buyTrade : buyTrades) {
             if (remainingQuantity <= 0) break;
 
@@ -158,7 +158,7 @@ public class PortfolioServiceImpl implements PortfolioService {
 
         if (remainingQuantity > 0)
             throw new RuntimeException("Not enough FIFO buy trades to match sell");
-
+        System.out.println("Here2");
         Trade trade =
                 Trade.builder()
                         .userId(userId)
@@ -180,10 +180,12 @@ public class PortfolioServiceImpl implements PortfolioService {
                         .build();
 
         tradeRepository.save(trade);
-
+        System.out.println("Here3");
         portfolio.setQuantity(portfolio.getQuantity() - quantity);
-        if (portfolio.getQuantity() == 0) portfolioRepository.delete(portfolio);
-        else portfolioRepository.save(portfolio);
+        if(portfolio.getQuantity() == 0) {portfolioRepository.delete(portfolio);}
+
+        else {portfolioRepository.save(portfolio);}
+        System.out.println("Here4");
     }
 
     private void updatePortfolio(

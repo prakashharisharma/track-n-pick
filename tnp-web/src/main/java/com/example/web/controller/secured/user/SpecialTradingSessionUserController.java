@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/v1/special-trading-sessions")
+@RequestMapping("v1/user/special-trading-sessions")
 @RequiredArgsConstructor
 public class SpecialTradingSessionUserController {
 

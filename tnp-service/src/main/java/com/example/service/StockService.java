@@ -6,6 +6,7 @@ import com.example.data.transactional.entities.StockFinancials;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.repo.StockFinancialsRepository;
 import com.example.data.transactional.repo.StockRepository;
+import com.example.data.transactional.view.StockSearchResult;
 import com.example.external.factor.FactorRediff;
 import com.example.model.type.Exchange;
 import com.example.model.type.IndiceType;
@@ -13,6 +14,7 @@ import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.util.rules.RulesNotification;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
@@ -213,5 +215,12 @@ public class StockService {
         return stockFinancials;
         */
         return null;
+    }
+
+    public List<StockSearchResult> searchStocks(String query) {
+        if (query == null || query.trim().length() < 2) {
+            return Collections.emptyList(); // or maybe fetch top gainers/most active instead?
+        }
+        return stockRepository.searchStocks(query);
     }
 }
