@@ -33,14 +33,11 @@ public class AuthService {
     private final RedisTemplate<String, String> redisTemplate;
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
-// 🔐 Properly authenticate the user
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
-
+        // 🔐 Properly authenticate the user
+        Authentication authentication =
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                loginRequest.getUsername(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 

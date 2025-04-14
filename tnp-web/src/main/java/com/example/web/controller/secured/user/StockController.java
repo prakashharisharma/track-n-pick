@@ -2,9 +2,7 @@ package com.example.web.controller.secured.user;
 
 import com.example.service.StockService;
 import com.example.web.utils.JsonApiSuccessUtil;
-
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,8 +21,7 @@ public class StockController {
     private final StockService stockService;
 
     @GetMapping("/search")
-    public ResponseEntity<Map<String, Object>> searchStocks(
-            @RequestParam("q") String query) {
+    public ResponseEntity<Map<String, Object>> searchStocks(@RequestParam("q") String query) {
 
         return JsonApiSuccessUtil.createSuccessResponse(
                 HttpStatus.OK, "Results", stockService.searchStocks(query));

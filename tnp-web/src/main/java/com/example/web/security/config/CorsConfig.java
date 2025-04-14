@@ -14,7 +14,11 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000","http://localhost:8081","https://preview--trade-insight-galaxy.lovable.app/","https://lovable.dev/projects/64a1076c-3e58-4e97-8445-94ad29354cf4") // Change this to your frontend URL
+                        .allowedOrigins(
+                                "http://localhost:3000",
+                                "http://localhost:8081",
+                                "https://preview--trade-insight-galaxy.lovable.app/",
+                                "https://lovable.dev/projects/64a1076c-3e58-4e97-8445-94ad29354cf4") // Change this to your frontend URL
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);

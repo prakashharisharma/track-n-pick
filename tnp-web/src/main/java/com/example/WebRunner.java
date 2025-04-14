@@ -161,7 +161,7 @@ public class WebRunner implements CommandLineRunner {
 
         log.info("Application started....");
         https: // chatgpt.com/c/67f914a7-8470-8011-a7e3-b44092494752
-        //bhavProcessor.processAndResearchTechnicals();
+        // bhavProcessor.processAndResearchTechnicals();
 
         /*
         Stock stock = stockService.getStockByNseSymbol("360ONE");
@@ -184,7 +184,7 @@ public class WebRunner implements CommandLineRunner {
 
         // this.updateRemainigSectorsActivityFromNSE();
 
-         //this.scanBullishCandleStickPattern();
+        // this.scanBullishCandleStickPattern();
         // this.scanBearishCandleStickPattern();
 
         // this.updateFinaicials();

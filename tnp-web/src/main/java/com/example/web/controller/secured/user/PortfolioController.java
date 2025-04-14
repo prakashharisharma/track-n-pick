@@ -1,5 +1,6 @@
 package com.example.web.controller.secured.user;
 
+import com.example.data.transactional.view.PortfolioResult;
 import com.example.dto.request.TradeRequest;
 import com.example.security.JwtUtils;
 import com.example.service.PortfolioService;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Map;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -69,5 +71,24 @@ public class PortfolioController {
                 request.getPrice());
         return JsonApiSuccessUtil.createSuccessResponse(
                 HttpStatus.OK, "Stock sold successfully", request);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getUserPortfolio(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "symbol") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            @RequestHeader("Authorization") String authHeader) {
+
+        Page<PortfolioResult> portfolio =
+                portfolioService.get(
+                        jwtUtils.extractUserId(jwtUtils.extractToken(authHeader)),
+                        page,
+                        size,
+                        sortBy,
+                        direction);
+        return JsonApiSuccessUtil.createSuccessResponse(
+                HttpStatus.OK, "User portfolio fetched successfully", portfolio);
     }
 }
