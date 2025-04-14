@@ -12,4 +12,6 @@ public interface PortfolioService {
 
     public Page<PortfolioResult> get(
             Long userId, int page, int size, String sortBy, String direction);
+
+    public PortfolioResult stats(Long userId);
 }

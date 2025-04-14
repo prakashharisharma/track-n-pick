@@ -148,7 +148,7 @@ public class PortfolioServiceImpl implements PortfolioService {
                         .subtract(dpCharge)
                         .subtract(brokerage)
                         .subtract(gst);
-        System.out.println("Here");
+
         for (Trade buyTrade : buyTrades) {
             if (remainingQuantity <= 0) break;
 
@@ -167,7 +167,7 @@ public class PortfolioServiceImpl implements PortfolioService {
 
         if (remainingQuantity > 0)
             throw new RuntimeException("Not enough FIFO buy trades to match sell");
-        System.out.println("Here2");
+
         Trade trade =
                 Trade.builder()
                         .userId(userId)
@@ -189,14 +189,13 @@ public class PortfolioServiceImpl implements PortfolioService {
                         .build();
 
         tradeRepository.save(trade);
-        System.out.println("Here3");
+
         portfolio.setQuantity(portfolio.getQuantity() - quantity);
         if (portfolio.getQuantity() == 0) {
             portfolioRepository.delete(portfolio);
         } else {
             portfolioRepository.save(portfolio);
         }
-        System.out.println("Here4");
     }
 
     private void updatePortfolio(
@@ -326,5 +325,40 @@ public class PortfolioServiceImpl implements PortfolioService {
         }
 
         return "desc".equalsIgnoreCase(direction) ? comparator.reversed() : comparator;
+    }
+
+    @Override
+    public PortfolioResult stats(Long userId) {
+
+        List<Portfolio> portfolios = portfolioRepository.findByUserId(userId);
+
+        double totalInvestment = 0.0;
+        double totalCurrentValue = 0.0;
+
+        for (Portfolio portfolio : portfolios) {
+            Stock stock = portfolio.getStock();
+            StockPrice price = stockPriceService.get(stock, Timeframe.DAILY);
+
+            double avgPrice = portfolio.getAvgPrice().doubleValue();
+            long quantity = portfolio.getQuantity();
+            double investment = avgPrice * quantity;
+            double currentValue = price.getClose() * quantity;
+
+            totalInvestment += investment;
+            totalCurrentValue += currentValue;
+        }
+
+        double pnlPercent =
+                totalInvestment == 0
+                        ? 0
+                        : ((totalCurrentValue - totalInvestment) / totalInvestment) * 100;
+        double pnl = totalInvestment - totalCurrentValue;
+
+        return PortfolioResult.builder()
+                .investment(miscUtil.roundToTwoDecimals(totalInvestment))
+                .currentValue(miscUtil.roundToTwoDecimals(totalCurrentValue))
+                .pnlPercent(miscUtil.roundToTwoDecimals(pnlPercent))
+                .pnl(miscUtil.roundToTwoDecimals(pnl))
+                .build();
     }
 }
