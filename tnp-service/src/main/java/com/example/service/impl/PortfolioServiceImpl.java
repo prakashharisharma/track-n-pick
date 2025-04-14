@@ -1,21 +1,25 @@
 package com.example.service.impl;
 
+import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Portfolio;
 import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.Trade;
 import com.example.data.transactional.repo.PortfolioRepository;
 import com.example.data.transactional.repo.TradeRepository;
-import com.example.service.PortfolioService;
-import com.example.service.StockService;
-import com.example.service.TaxMasterService;
-import com.example.service.UserBrokerageService;
+import com.example.data.transactional.view.PortfolioResult;
+import com.example.service.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +33,8 @@ public class PortfolioServiceImpl implements PortfolioService {
     private final TaxMasterService taxMasterService;
 
     private final StockService stockService;
+
+    private final StockPriceService<StockPrice> stockPriceService;
 
     @Transactional
     public void buyStock(Long userId, Long stockId, long quantity, BigDecimal price) {
@@ -152,8 +158,11 @@ public class PortfolioServiceImpl implements PortfolioService {
             realizedPnL = realizedPnL.add(profit);
 
             buyTrade.setQuantity(buyTrade.getQuantity() - sellQuantity);
-            if (buyTrade.getQuantity() == 0) tradeRepository.delete(buyTrade);
-            else tradeRepository.save(buyTrade);
+            if (buyTrade.getQuantity() == 0) {
+                tradeRepository.delete(buyTrade);
+            } else {
+                tradeRepository.save(buyTrade);
+            }
         }
 
         if (remainingQuantity > 0)
@@ -182,8 +191,11 @@ public class PortfolioServiceImpl implements PortfolioService {
         tradeRepository.save(trade);
 
         portfolio.setQuantity(portfolio.getQuantity() - quantity);
-        if (portfolio.getQuantity() == 0) portfolioRepository.delete(portfolio);
-        else portfolioRepository.save(portfolio);
+        if (portfolio.getQuantity() == 0) {
+            portfolioRepository.delete(portfolio);
+        } else {
+            portfolioRepository.save(portfolio);
+        }
     }
 
     private void updatePortfolio(
@@ -232,5 +244,86 @@ public class PortfolioServiceImpl implements PortfolioService {
                 .add(dpCharge)
                 .multiply(BigDecimal.valueOf(gstRate))
                 .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
+    }
+
+    @Override
+    public Page<PortfolioResult> get(
+            Long userId, int page, int size, String sortBy, String direction) {
+        List<Portfolio> portfolios = portfolioRepository.findByUserId(userId);
+
+        List<PortfolioResult> resultList =
+                portfolios.stream()
+                        .map(
+                                portfolio -> {
+                                    Stock stock = portfolio.getStock();
+                                    StockPrice stockPrice =
+                                            stockPriceService.get(stock, Timeframe.DAILY);
+                                    double currentPrice = stockPrice.getClose();
+                                    double prevClose = stockPrice.getPrevClose();
+                                    double changePercent =
+                                            prevClose != 0
+                                                    ? ((currentPrice - prevClose) / prevClose) * 100
+                                                    : 0;
+
+                                    return mapToPortfolioResult(
+                                            portfolio, currentPrice, changePercent);
+                                })
+                        .sorted(getComparator(sortBy, direction))
+                        .collect(Collectors.toList());
+
+        int start = page * size;
+        int end = Math.min(start + size, resultList.size());
+
+        List<PortfolioResult> pageContent =
+                start < end ? resultList.subList(start, end) : Collections.emptyList();
+
+        return new PageImpl<>(pageContent, PageRequest.of(page, size), resultList.size());
+    }
+
+    public PortfolioResult mapToPortfolioResult(
+            Portfolio portfolio, double currentPrice, double changePercent) {
+        BigDecimal avgPrice = portfolio.getAvgPrice();
+        long quantity = portfolio.getQuantity();
+        double investment = avgPrice.doubleValue() * quantity;
+        double currentValue = currentPrice * quantity;
+        double pnlPercent = investment == 0 ? 0 : ((currentValue - investment) / investment) * 100;
+
+        Stock stock = portfolio.getStock();
+
+        return PortfolioResult.builder()
+                .id(stock.getStockId())
+                .symbol(stock.getNseSymbol())
+                .name(stock.getCompanyName())
+                .price(currentPrice)
+                .changePercent(changePercent)
+                .sector(stock.getSectorName())
+                .quantity(quantity)
+                .averagePrice(avgPrice.doubleValue())
+                .investment(investment)
+                .currentValue(currentValue)
+                .pnlPercent(pnlPercent)
+                .build();
+    }
+
+    private Comparator<PortfolioResult> getComparator(String sortBy, String direction) {
+        Comparator<PortfolioResult> comparator;
+
+        switch (sortBy) {
+            case "name" -> comparator =
+                    Comparator.comparing(PortfolioResult::getName, String.CASE_INSENSITIVE_ORDER);
+            case "changePercent" -> comparator =
+                    Comparator.comparingDouble(PortfolioResult::getChangePercent);
+            case "quantity" -> comparator = Comparator.comparingLong(PortfolioResult::getQuantity);
+            case "investment" -> comparator =
+                    Comparator.comparingDouble(PortfolioResult::getInvestment);
+            case "currentValue" -> comparator =
+                    Comparator.comparingDouble(PortfolioResult::getCurrentValue);
+            case "pnlPercent" -> comparator =
+                    Comparator.comparingDouble(PortfolioResult::getPnlPercent);
+            default -> comparator =
+                    Comparator.comparing(PortfolioResult::getSymbol, String.CASE_INSENSITIVE_ORDER);
+        }
+
+        return "desc".equalsIgnoreCase(direction) ? comparator.reversed() : comparator;
     }
 }
