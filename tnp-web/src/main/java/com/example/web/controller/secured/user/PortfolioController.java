@@ -6,6 +6,9 @@ import com.example.security.JwtUtils;
 import com.example.service.PortfolioService;
 import com.example.web.utils.JsonApiSuccessUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -73,6 +76,51 @@ public class PortfolioController {
                 HttpStatus.OK, "Stock sold successfully", request);
     }
 
+    @Operation(
+            summary = "Get user portfolio",
+            description =
+                    "Fetches a paginated and sorted list of stocks in the user's portfolio with"
+                            + " calculated P&L and other stock metrics",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            parameters = {
+                @Parameter(
+                        name = "page",
+                        description = "Page number for pagination (0-based index)",
+                        in = ParameterIn.QUERY,
+                        schema = @Schema(type = "integer", defaultValue = "0")),
+                @Parameter(
+                        name = "size",
+                        description = "Number of records per page",
+                        in = ParameterIn.QUERY,
+                        schema = @Schema(type = "integer", defaultValue = "10")),
+                @Parameter(
+                        name = "sortBy",
+                        description =
+                                "Field to sort by (symbol, name, changePercent, quantity,"
+                                        + " investment, currentValue, pnlPercent)",
+                        in = ParameterIn.QUERY,
+                        schema = @Schema(type = "string", defaultValue = "symbol")),
+                @Parameter(
+                        name = "direction",
+                        description = "Sort direction (asc or desc)",
+                        in = ParameterIn.QUERY,
+                        schema = @Schema(type = "string", defaultValue = "asc")),
+                @Parameter(
+                        name = "Authorization",
+                        description = "Bearer token for authenticated user",
+                        in = ParameterIn.HEADER,
+                        required = true,
+                        schema = @Schema(type = "string"))
+            },
+            responses = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "User portfolio fetched successfully"),
+                @ApiResponse(
+                        responseCode = "401",
+                        description = "Unauthorized – invalid or missing token"),
+                @ApiResponse(responseCode = "500", description = "Internal server error")
+            })
     @GetMapping
     public ResponseEntity<?> getUserPortfolio(
             @RequestParam(defaultValue = "0") int page,
@@ -90,5 +138,26 @@ public class PortfolioController {
                         direction);
         return JsonApiSuccessUtil.createSuccessResponse(
                 HttpStatus.OK, "User portfolio fetched successfully", portfolio);
+    }
+
+    @GetMapping("/stats")
+    @Operation(
+            summary = "Get user portfolio stats",
+            description =
+                    "Returns total investment, current value, and profit/loss percentage for the"
+                            + " user's portfolio",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                @ApiResponse(responseCode = "200", description = "Stats fetched successfully"),
+                @ApiResponse(responseCode = "401", description = "Unauthorized")
+            })
+    public ResponseEntity<Map<String, Object>> getUserPortfolioStats(
+            @RequestHeader("Authorization") String authHeader) {
+
+        PortfolioResult stats =
+                portfolioService.stats(jwtUtils.extractUserId(jwtUtils.extractToken(authHeader)));
+
+        return JsonApiSuccessUtil.createSuccessResponse(
+                HttpStatus.OK, "User portfolio stats fetched successfully", stats);
     }
 }
