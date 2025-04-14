@@ -9,6 +9,7 @@ import com.example.data.transactional.repo.PortfolioRepository;
 import com.example.data.transactional.repo.TradeRepository;
 import com.example.data.transactional.view.PortfolioResult;
 import com.example.service.*;
+import com.example.util.MiscUtil;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -35,6 +36,8 @@ public class PortfolioServiceImpl implements PortfolioService {
     private final StockService stockService;
 
     private final StockPriceService<StockPrice> stockPriceService;
+
+    private final MiscUtil miscUtil;
 
     @Transactional
     public void buyStock(Long userId, Long stockId, long quantity, BigDecimal price) {
@@ -89,7 +92,7 @@ public class PortfolioServiceImpl implements PortfolioService {
                         .sessionDate(LocalDate.now())
                         .timestamp(LocalDateTime.now())
                         .build();
-
+        tradeRepository.save(trade);
         Portfolio portfolio =
                 portfolioRepository.findByUserIdAndStock(userId, stock).orElse(new Portfolio());
         updatePortfolio(portfolio, userId, stock, quantity, effectivePrice);
@@ -145,7 +148,7 @@ public class PortfolioServiceImpl implements PortfolioService {
                         .subtract(dpCharge)
                         .subtract(brokerage)
                         .subtract(gst);
-
+        System.out.println("Here");
         for (Trade buyTrade : buyTrades) {
             if (remainingQuantity <= 0) break;
 
@@ -158,16 +161,13 @@ public class PortfolioServiceImpl implements PortfolioService {
             realizedPnL = realizedPnL.add(profit);
 
             buyTrade.setQuantity(buyTrade.getQuantity() - sellQuantity);
-            if (buyTrade.getQuantity() == 0) {
-                tradeRepository.delete(buyTrade);
-            } else {
-                tradeRepository.save(buyTrade);
-            }
+            if (buyTrade.getQuantity() == 0) tradeRepository.delete(buyTrade);
+            else tradeRepository.save(buyTrade);
         }
 
         if (remainingQuantity > 0)
             throw new RuntimeException("Not enough FIFO buy trades to match sell");
-
+        System.out.println("Here2");
         Trade trade =
                 Trade.builder()
                         .userId(userId)
@@ -189,13 +189,14 @@ public class PortfolioServiceImpl implements PortfolioService {
                         .build();
 
         tradeRepository.save(trade);
-
+        System.out.println("Here3");
         portfolio.setQuantity(portfolio.getQuantity() - quantity);
         if (portfolio.getQuantity() == 0) {
             portfolioRepository.delete(portfolio);
         } else {
             portfolioRepository.save(portfolio);
         }
+        System.out.println("Here4");
     }
 
     private void updatePortfolio(
@@ -295,13 +296,13 @@ public class PortfolioServiceImpl implements PortfolioService {
                 .symbol(stock.getNseSymbol())
                 .name(stock.getCompanyName())
                 .price(currentPrice)
-                .changePercent(changePercent)
+                .changePercent(miscUtil.roundToTwoDecimals(changePercent))
                 .sector(stock.getSectorName())
                 .quantity(quantity)
-                .averagePrice(avgPrice.doubleValue())
-                .investment(investment)
-                .currentValue(currentValue)
-                .pnlPercent(pnlPercent)
+                .averagePrice(miscUtil.roundToTwoDecimals(avgPrice.doubleValue()))
+                .investment(miscUtil.roundToTwoDecimals(investment))
+                .currentValue(miscUtil.roundToTwoDecimals(currentValue))
+                .pnlPercent(miscUtil.roundToTwoDecimals(pnlPercent))
                 .build();
     }
 

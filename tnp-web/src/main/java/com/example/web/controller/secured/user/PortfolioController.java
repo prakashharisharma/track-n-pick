@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/portfolio")
+@RequestMapping("v1/user/portfolio")
 @RequiredArgsConstructor
 @Tag(
         name = "Portfolio",
@@ -88,6 +88,7 @@ public class PortfolioController {
                         size,
                         sortBy,
                         direction);
-        return JsonApiSuccessUtil.ok("User portfolio fetched successfully", portfolio);
+        return JsonApiSuccessUtil.createSuccessResponse(
+                HttpStatus.OK, "User portfolio fetched successfully", portfolio);
     }
 }
