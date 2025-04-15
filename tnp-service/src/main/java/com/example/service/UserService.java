@@ -1,5 +1,6 @@
 package com.example.service;
 
+import com.example.data.transactional.entities.User;
 import com.example.data.transactional.repo.UserRepository;
 import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -12,4 +13,8 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     @Autowired private UserRepository userRepository;
+
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username).orElseThrow();
+    }
 }

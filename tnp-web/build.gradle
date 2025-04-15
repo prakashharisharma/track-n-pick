@@ -17,6 +17,8 @@ dependencies {
 
 bootJar {
     enabled = true
+    mainClass = 'com.example.WebApplication'
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
     archiveFileName = 'tnp-web.jar'
 }
 

@@ -230,29 +230,33 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
 
         if (strategy == ResearchTechnical.Strategy.SWING) {
-            if (subStrategy == ResearchTechnical.SubStrategy.TEMA) {
+            if (subStrategy == ResearchTechnical.SubStrategy.STRONG_SWING) {
                 if (bullishScore > 0.0) {
-                    return RiskFactor.SWING_TEMA + bullishScore;
+                    return RiskFactor.SWING_STRONG_SWING + bullishScore;
                 }
-            } else if (subStrategy == ResearchTechnical.SubStrategy.RM) {
+            } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_SWING) {
                 if (bullishScore > 0.0) {
-                    return RiskFactor.SWING_RM + bullishScore;
+                    return RiskFactor.SWING_WEAK_SWING + bullishScore;
                 }
             }
         }
 
         if (strategy == ResearchTechnical.Strategy.PRICE) {
-            if (subStrategy == ResearchTechnical.SubStrategy.RMAO) {
+            if (subStrategy == ResearchTechnical.SubStrategy.STRONG_SUPPORT) {
                 if (bullishScore > 0.0) {
-                    return RiskFactor.PRICE_RMAO + bullishScore;
+                    return RiskFactor.PRICE_STRONG_SUPPORT + bullishScore;
                 }
-            } else if (subStrategy == ResearchTechnical.SubStrategy.SRTF) {
+            } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT) {
                 if (bullishScore > 0.0) {
-                    return RiskFactor.PRICE_SRTF + bullishScore;
+                    return RiskFactor.PRICE_WEAK_SUPPORT + bullishScore;
                 }
-            } else if (subStrategy == ResearchTechnical.SubStrategy.SRMA) {
+            } else if (subStrategy == ResearchTechnical.SubStrategy.STRONG_BREAKOUT) {
                 if (bullishScore > 0.0) {
-                    return RiskFactor.PRICE_SRMA + bullishScore;
+                    return RiskFactor.PRICE_STRONG_BREAKOUT + bullishScore;
+                }
+            } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_BREAKOUT) {
+                if (bullishScore > 0.0) {
+                    return RiskFactor.PRICE_WEAK_BREAKOUT + bullishScore;
                 }
             }
         }
