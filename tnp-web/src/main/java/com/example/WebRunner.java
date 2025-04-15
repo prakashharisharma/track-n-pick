@@ -179,7 +179,7 @@ public class WebRunner implements CommandLineRunner {
         // this.testTimeFrameSR();
         // this.testTrend();
 
-        // this.allocatePositions();
+        this.allocatePositions();
         // this.updateSectorsActivity();
 
         // this.updateRemainigSectorsActivityFromNSE();
@@ -257,13 +257,11 @@ public class WebRunner implements CommandLineRunner {
     /** Position Size = (Total trading fund * Risk%)/SL% */
     private void allocatePositions() {
 
-        double capital = 750000.0;
+        double capital = 78000.0;
         double riskFactor = 1.0;
 
-        List<User> portfolioList = new ArrayList<>();
-
-        User user = new User();
-        // User user = userService.getUserByUsername("phsdhan");
+        // User user = new User();
+        User user = userService.getUserByUsername("phsdhan");
 
         List<ResearchTechnical> researchTechnicalList =
                 researchTechnicalService.getAll(Trade.Type.BUY);
@@ -282,7 +280,9 @@ public class WebRunner implements CommandLineRunner {
             double stopLoss =
                     (researchTechnical.getResearchPrice() - researchTechnical.getStopLoss());
             positionSize = (long) (risk / stopLoss);
-            positionService.calculate(user, researchTechnical);
+            positionSize = positionService.calculate(user, researchTechnical);
+
+            System.out.println(researchTechnical.getStock().getNseSymbol() + " " + positionSize);
         }
     }
 

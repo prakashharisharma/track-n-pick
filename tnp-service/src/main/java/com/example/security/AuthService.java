@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,7 +30,8 @@ public class AuthService {
     private final UserRepository userRepository;
 
     private final JwtUtils jwtUtils;
-    private final AuthenticationManager authenticationManager;
+    @Autowired(required = false)
+    private AuthenticationManager authenticationManager;
     private final RedisTemplate<String, String> redisTemplate;
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {

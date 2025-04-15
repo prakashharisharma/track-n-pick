@@ -19,7 +19,8 @@ public class PositionServiceImpl implements PositionService {
 
     @Override
     public long calculate(User user, ResearchTechnical researchTechnical) {
-        double investmentValue = fundsLedgerService.allTimeInvestment(user);
+        // double investmentValue = fundsLedgerService.allTimeInvestment(user);
+        double investmentValue = 78000.0;
         double netProfit = 0.0; // Can be extended in future
 
         double capital = investmentValue + netProfit;
@@ -46,18 +47,28 @@ public class PositionServiceImpl implements PositionService {
         if (researchTechnical.getStrategy() == ResearchTechnical.Strategy.VOLUME) {
             return RiskFactor.VOLUME_HV;
         } else if (researchTechnical.getStrategy() == ResearchTechnical.Strategy.PRICE) {
-            if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.SRMA) {
-                return RiskFactor.PRICE_SRMA;
-            } else if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.SRTF) {
-                return RiskFactor.PRICE_SRTF;
-            } else if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.RMAO) {
-                return RiskFactor.PRICE_RMAO;
+            if (researchTechnical.getSubStrategy()
+                    == ResearchTechnical.SubStrategy.STRONG_BREAKOUT) {
+                return RiskFactor.PRICE_STRONG_BREAKOUT;
+            } else if (researchTechnical.getSubStrategy()
+                    == ResearchTechnical.SubStrategy.WEAK_BREAKOUT) {
+                return RiskFactor.PRICE_WEAK_BREAKOUT;
+            } else if (researchTechnical.getSubStrategy()
+                    == ResearchTechnical.SubStrategy.STRONG_SUPPORT) {
+                return RiskFactor.PRICE_STRONG_SUPPORT;
+            } else if (researchTechnical.getSubStrategy()
+                    == ResearchTechnical.SubStrategy.WEAK_SUPPORT) {
+                return RiskFactor.PRICE_WEAK_SUPPORT;
+            } else if (researchTechnical.getSubStrategy()
+                    == ResearchTechnical.SubStrategy.BULLISH_INDICATORS) {
+                return RiskFactor.PRICE_BULLISH_INDICATORS;
             }
         } else if (researchTechnical.getStrategy() == ResearchTechnical.Strategy.SWING) {
-            if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.RM) {
-                return RiskFactor.SWING_RM;
-            } else if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.TEMA) {
-                return RiskFactor.SWING_TEMA;
+            if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.STRONG_SWING) {
+                return RiskFactor.SWING_STRONG_SWING;
+            } else if (researchTechnical.getSubStrategy()
+                    == ResearchTechnical.SubStrategy.WEAK_SWING) {
+                return RiskFactor.SWING_WEAK_SWING;
             }
         }
 
