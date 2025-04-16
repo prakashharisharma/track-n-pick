@@ -64,11 +64,11 @@ logging:
   level:
     root: INFO
     com.example: debug
-    org.springframework: INFO
-    com.mongodb: WARN
-    org.hibernate: WARN
-    org.hibernate.SQL: INFO
-    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+    org.springframework: debug
+    com.mongodb: debug
+    org.hibernate: debug
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: debug
 
 jwt:
   secret: ${JWT_SECRET}
