@@ -30,8 +30,10 @@ public class AuthService {
     private final UserRepository userRepository;
 
     private final JwtUtils jwtUtils;
+
     @Autowired(required = false)
     private AuthenticationManager authenticationManager;
+
     private final RedisTemplate<String, String> redisTemplate;
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
