@@ -1,6 +1,7 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
+import com.example.data.transactional.entities.FinancialsSummary;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.service.StockPriceService;
@@ -41,21 +42,31 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
     @Override
     public boolean isMcapInRange(Stock stock) {
 
-        return true;
-        /*
-        if (stock.getSector()!=null && stock.getSector().getSectorName().equalsIgnoreCase("Mutual Fund Scheme")) {
-            return true;
-        }
+        double marketCapInCr = this.marketCap(stock);
 
-        StockFactor stockFactor = stock.getFactor();
-
-        if (stockFactor != null && stockFactor.getMarketCap() >= rules.getMcap()) {
+        if (marketCapInCr >= rules.getMcap()) {
             return true;
         }
 
         return false;
-         */
+    }
 
+    @Override
+    public double marketCap(Stock stock) {
+
+        StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+        FinancialsSummary financialsSummary = stock.getFinancialsSummary();
+        if (financialsSummary != null && stockPrice != null) {
+            if (financialsSummary.getIssuedSize() >= 0) {
+                double marketCap = financialsSummary.getIssuedSize() * stockPrice.getClose();
+                double marketCapInCr = marketCap / 1_00_00_000.0;
+
+                log.info("{} MarketCap: {} Cr.", stock.getNseSymbol(), marketCapInCr);
+                return marketCapInCr;
+            }
+        }
+
+        return 0;
     }
 
     @Override

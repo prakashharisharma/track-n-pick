@@ -7,6 +7,8 @@ public interface FundamentalResearchService {
 
     public boolean isMcapInRange(Stock stock);
 
+    public double marketCap(Stock stock);
+
     public double calculateValuation(Stock stock);
 
     public boolean isGoodValuation(Stock stock);

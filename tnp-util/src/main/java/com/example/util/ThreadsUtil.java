@@ -4,8 +4,8 @@ import java.util.Random;
 
 public class ThreadsUtil {
 
-    private static int min = 2837;
-    private static int max = 8897;
+    private static int min = 837;
+    private static int max = 1897;
 
     public static int poolSize() {
         return Runtime.getRuntime().availableProcessors();

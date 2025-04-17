@@ -12,12 +12,10 @@ import com.example.dto.assembler.StockPriceOHLCVAssembler;
 import com.example.dto.common.OHLCV;
 import com.example.dto.common.TradeSetup;
 import com.example.dto.io.BseSectorListResponse;
+import com.example.dto.io.FinancialsSummaryDto;
 import com.example.dto.io.SectorIO;
 import com.example.dto.io.StockPriceIO;
-import com.example.external.NSEFinancialsFetcher;
-import com.example.external.NSEIndustryFetcher;
-import com.example.external.NSEXmlService;
-import com.example.external.SectorDownloadService;
+import com.example.external.*;
 import com.example.external.factor.FactorRediff;
 import com.example.external.ta.service.McService;
 import com.example.processor.BhavProcessor;
@@ -26,6 +24,7 @@ import com.example.service.calc.*;
 import com.example.service.impl.FundamentalResearchService;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
+import com.example.util.ThreadsUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -156,12 +155,17 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private NSEXmlService nseXmlService;
 
+    @Autowired private FinancialsSummaryService financialsSummaryService;
+
+    @Autowired
+    private NSETotalIssuedSharesAndFaceValueFetcher nseTotalIssuedSharesAndFaceValueFetcher;
+
     @Override
     public void run(String... arg0) throws InterruptedException, IOException {
 
         log.info("Application started....");
         https: // chatgpt.com/c/67f914a7-8470-8011-a7e3-b44092494752
-        // bhavProcessor.processAndResearchTechnicals();
+        bhavProcessor.processAndResearchTechnicals();
 
         /*
         Stock stock = stockService.getStockByNseSymbol("360ONE");
@@ -179,7 +183,8 @@ public class WebRunner implements CommandLineRunner {
         // this.testTimeFrameSR();
         // this.testTrend();
 
-        this.allocatePositions();
+        // this.allocatePositions();
+        // this.updateFinancialsForStocks();
         // this.updateSectorsActivity();
 
         // this.updateRemainigSectorsActivityFromNSE();
@@ -839,6 +844,62 @@ public class WebRunner implements CommandLineRunner {
                 System.out.println("An Error occurred while updating price");
             }
         }
+    }
+
+    public void updateFinancialsForStocks() {
+        // Fetch the list of stocks where activity is not completed
+        List<Stock> stockList = stockRepository.findByActivityCompleted(false);
+        int countTotal = stockList.size();
+        for (Stock stock : stockList) {
+
+            long startTime = System.currentTimeMillis();
+            System.out.println("Starting activity for " + stock.getNseSymbol());
+            try {
+                // Fetch financial details (issuedSize and faceValue) using the fetcher
+                FinancialsSummaryDto financialsSummaryDto =
+                        nseTotalIssuedSharesAndFaceValueFetcher.getIssuedSharesAndFaceValue(
+                                stock.getNseSymbol());
+
+                // Check if the DTO was received
+                if (financialsSummaryDto != null) {
+                    // Map DTO to entity
+                    FinancialsSummary financialsSummary =
+                            mapDtoToEntity(financialsSummaryDto, stock);
+
+                    // Create or update the FinancialsSummary
+                    financialsSummaryService.createOrUpdate(stock, financialsSummary);
+                } else {
+                    System.out.println(
+                            "No financial details available for stock: " + stock.getNseSymbol());
+                }
+                stock.setActivityCompleted(true);
+
+                stockRepository.save(stock);
+                --countTotal;
+                long endTime = System.currentTimeMillis();
+
+                System.out.println(
+                        "Completed activity for "
+                                + stock.getNseSymbol()
+                                + " took "
+                                + (endTime - startTime)
+                                + "ms");
+                System.out.println("Remaining " + countTotal);
+
+                ThreadsUtil.delay();
+            } catch (Exception e) {
+                System.out.println("An Error occurred while updating price");
+            }
+        }
+    }
+
+    // Method to map DTO to Entity
+    private FinancialsSummary mapDtoToEntity(FinancialsSummaryDto dto, Stock stock) {
+        return FinancialsSummary.builder()
+                .stock(stock)
+                .issuedSize(dto.getIssuedSize())
+                .faceValue(dto.getFaceValue())
+                .build();
     }
 
     private void updateTechnicals() {
