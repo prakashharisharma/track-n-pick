@@ -62,13 +62,13 @@ logging:
   file:
     path: /Users/phs/mydrive/repo/tnp/logs
   level:
-    root: INFO
+    root: info
     com.example: debug
-    org.springframework: debug
-    com.mongodb: debug
-    org.hibernate: debug
-    org.hibernate.SQL: debug
-    org.hibernate.type.descriptor.sql.BasicBinder: debug
+    org.springframework: info
+    com.mongodb: info
+    org.hibernate: info
+    org.hibernate.SQL: info
+    org.hibernate.type.descriptor.sql.BasicBinder: info
 
 jwt:
   secret: ${JWT_SECRET}

@@ -23,7 +23,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     private static double BEARISH_MULTIPLIER_MONTHLY = 1.5;
     private static double THRESHOLD_MONTHLY = 0.5;
 
-    private static double MIN_TRADING_VALUE = 3_00_00_000.0;
+    private static double MIN_TRADING_VALUE = 2_50_00_000.0;
 
     @Override
     public boolean isBullish(

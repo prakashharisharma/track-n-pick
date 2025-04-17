@@ -73,7 +73,7 @@ public class BhavProcessorImpl implements BhavProcessor {
             String series = record.getSeries();
 
             // Ignore Rights Issue (-RI) stocks
-            if (symbol.endsWith("-RI")) {
+            if (symbol.endsWith("-RI") || symbol.endsWith("-RE") || symbol.endsWith("-RE1")) {
                 continue;
             }
 
@@ -279,7 +279,7 @@ public class BhavProcessorImpl implements BhavProcessor {
             submitIfRequired(executor, futuresMap, Timeframe.WEEKLY, isLastWeek, batch);
 
             try {
-                miscUtil.delay(numThreads * 64); // optional single delay per batch
+                ThreadsUtil.delay(numThreads * 128); // optional single delay per batch
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -303,7 +303,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                 long count = priceTemplate.delete(timeframe, today);
 
                 try {
-                    miscUtil.delay(25);
+                    miscUtil.delay(100);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -361,7 +361,6 @@ public class BhavProcessorImpl implements BhavProcessor {
                         updatePriceService.build(timeframe, stock, miscUtil.currentDate());
                 updatePriceService.updatePrice(timeframe, stock, stockPrice);
                 stockPrices.add(stockPrice);
-                miscUtil.delay(ThreadsUtil.poolSize() * 32);
             } catch (Exception e) {
                 log.error(
                         "Error processing {} batch for stock {}",
