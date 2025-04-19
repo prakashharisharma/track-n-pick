@@ -1,9 +1,12 @@
 package com.example.web.controller.secured.user;
 
+import com.example.data.transactional.entities.SpecialTradingSession;
+import com.example.dto.common.OHLCV;
 import com.example.service.SpecialTradingSessionService;
 import com.example.web.utils.JsonApiErrorUtil;
 import com.example.web.utils.JsonApiSuccessUtil;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,17 +22,11 @@ public class SpecialTradingSessionUserController {
 
     private final SpecialTradingSessionService specialTradingSessionService;
 
-    @GetMapping("/today")
+    @GetMapping
     public ResponseEntity<Map<String, Object>> getSessionForToday() {
-        LocalDate sessionDate = LocalDate.now();
 
-        return specialTradingSessionService
-                .getSessionByDate(sessionDate)
-                .map(session -> JsonApiSuccessUtil.ok("Session retrieved successfully", session))
-                .orElse(
-                        JsonApiErrorUtil.createErrorResponse(
-                                HttpStatus.NOT_FOUND,
-                                "Session Not Found",
-                                "No special trading session exists for today."));
+        List<SpecialTradingSession> data = specialTradingSessionService.getUpcomingSpecialSessions();
+
+        return JsonApiSuccessUtil.ok("Session retrieved successfully", data);
     }
 }

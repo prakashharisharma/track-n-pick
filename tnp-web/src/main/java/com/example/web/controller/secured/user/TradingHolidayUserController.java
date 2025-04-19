@@ -1,9 +1,11 @@
 package com.example.web.controller.secured.user;
 
+import com.example.data.transactional.entities.TradingHoliday;
 import com.example.service.TradingHolidayService;
 import com.example.web.utils.JsonApiErrorUtil;
 import com.example.web.utils.JsonApiSuccessUtil;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,16 +21,11 @@ public class TradingHolidayUserController {
 
     private final TradingHolidayService tradingHolidayService;
 
-    @GetMapping("/today")
+    @GetMapping
     public ResponseEntity<Map<String, Object>> getTodayHoliday() {
-        LocalDate today = LocalDate.now();
-        return tradingHolidayService
-                .getHolidayByDate(today)
-                .map(holiday -> JsonApiSuccessUtil.ok("Today's trading holiday", holiday))
-                .orElse(
-                        JsonApiErrorUtil.createErrorResponse(
-                                HttpStatus.NOT_FOUND,
-                                "No Holiday",
-                                "Today is not a trading holiday."));
+
+        List<TradingHoliday> data = tradingHolidayService.getUpcomingHolidays();
+
+        return JsonApiSuccessUtil.ok("Holidays retrieved successfully", data);
     }
 }

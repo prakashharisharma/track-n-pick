@@ -4,6 +4,7 @@ import com.example.data.transactional.entities.SpecialTradingSession;
 import com.example.data.transactional.repo.SpecialTradingSessionRepository;
 import com.example.service.SpecialTradingSessionService;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,5 +67,12 @@ public class SpecialTradingSessionServiceImpl implements SpecialTradingSessionSe
             return true;
         }
         return false;
+    }
+
+    @Override
+    public List<SpecialTradingSession> getUpcomingSpecialSessions() {
+        LocalDate today = LocalDate.now();
+        LocalDate threeDaysLater = today.plusDays(3);
+        return specialTradingSessionRepository.findUpcomingSessions(today, threeDaysLater);
     }
 }
