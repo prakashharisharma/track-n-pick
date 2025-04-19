@@ -26,16 +26,5 @@ public class PerformanceLedgerService {
         performanceLedgerRepository.save(pl);
     }
 
-    public void updateMonthlyPerformance(User user) {
 
-        double investmentValue = fundsLedgerService.allTimeInvestment(user);
-
-        // double portfolioValue = portfolioServiceOld.currentValue(user);
-        double portfolioValue = 0.0;
-
-        PerformanceLedger pl =
-                new PerformanceLedger(
-                        user, investmentValue, portfolioValue, miscUtil.currentMonthFirstDay());
-        performanceLedgerRepository.save(pl);
-    }
 }
