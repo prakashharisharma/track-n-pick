@@ -8,6 +8,8 @@ import com.example.data.transactional.entities.StockTechnicals;
 import com.example.data.transactional.entities.Trade;
 import com.example.data.transactional.view.ResearchTechnicalResult;
 import com.example.dto.common.TradeSetup;
+import com.example.dto.response.ResearchTechnicalDetailsCurrentResponse;
+import com.example.dto.response.ResearchTechnicalDetailsHistoryResponse;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -39,7 +41,6 @@ public interface ResearchTechnicalService<T extends ResearchTechnical> {
             int size,
             Trade.Type type,
             Timeframe timeframe,
-            LocalDate date,
             String sortBy,
             String direction);
 
@@ -50,4 +51,9 @@ public interface ResearchTechnicalService<T extends ResearchTechnical> {
             Timeframe timeframe,
             String sortBy,
             String direction);
+
+    ResearchTechnicalDetailsCurrentResponse getCurrentDetails(
+            Long userId, Long reserachTechnicalId);
+
+    ResearchTechnicalDetailsHistoryResponse getHistoryDetails(Long reserachTechnicalId);
 }

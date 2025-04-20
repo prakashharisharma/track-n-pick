@@ -21,11 +21,8 @@ public class PositionServiceImpl implements PositionService {
 
     @Override
     public long calculate(Long userId, ResearchTechnical researchTechnical) {
-        BigDecimal investmentValue = fundsLedgerService.getTotalFundsValue(userId);
 
-        BigDecimal netProfit = tradeService.getTotalRealizedPnl(userId);
-
-        double totalCapital = investmentValue.doubleValue() + netProfit.doubleValue();
+        double totalCapital = this.totalCapital(userId);
 
         double riskFactor = this.getRiskFactor(researchTechnical); // Typically a % like 1 or 2
 
@@ -44,6 +41,40 @@ public class PositionServiceImpl implements PositionService {
         long positionSize = (long) (risk / stopLoss);
 
         return Math.max(positionSize, 0); // Avoid negative sizing just in case
+    }
+
+    @Override
+    public long calculateAdjustedPositionSize(
+            Long userId, ResearchTechnical researchTechnical, long positionSize) {
+        double totalCapital = this.totalCapital(userId);
+        // Get the available funds in the user's portfolio
+        BigDecimal totalInvestmentValue = portfolioService.getTotalInvestmentValue(userId);
+        double availableFunds = totalCapital - totalInvestmentValue.doubleValue();
+
+        // Check if there's enough available funds to allocate to the position size
+        double positionValue = positionSize * researchTechnical.getResearchPrice();
+
+        // If the available funds are less than the required position value, adjust the position
+        // size
+        if (availableFunds < positionValue) {
+            // Calculate the maximum position size that can be accommodated within the available
+            // funds
+            long adjustedPositionSize =
+                    (long) (availableFunds / researchTechnical.getResearchPrice());
+            return Math.max(adjustedPositionSize, 0); // Ensure position size is not negative
+        }
+
+        // If available funds are greater than or equal to the required position value, return the
+        // original position size
+        return positionSize;
+    }
+
+    private double totalCapital(Long userId) {
+        BigDecimal investmentValue = fundsLedgerService.getTotalFundsValue(userId);
+
+        BigDecimal netProfit = tradeService.getTotalRealizedPnl(userId);
+
+        return investmentValue.doubleValue() + netProfit.doubleValue();
     }
 
     private double getRiskFactor(ResearchTechnical researchTechnical) {

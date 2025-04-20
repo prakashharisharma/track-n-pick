@@ -5,6 +5,9 @@ import com.example.data.transactional.entities.*;
 import com.example.data.transactional.repo.ResearchTechnicalRepository;
 import com.example.data.transactional.view.ResearchTechnicalResult;
 import com.example.dto.common.TradeSetup;
+import com.example.dto.mapper.StockTechnicalsMapper;
+import com.example.dto.response.ResearchTechnicalDetailsCurrentResponse;
+import com.example.dto.response.ResearchTechnicalDetailsHistoryResponse;
 import com.example.service.*;
 import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
@@ -14,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -37,6 +41,12 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     private final CalendarService calendarService;
 
     private final StockPriceService<StockPrice> stockPriceService;
+
+    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
+
+    private final FundamentalResearchService fundamentalResearchService;
+
+    private final PositionService positionService;
 
     private static final Map<Timeframe, Supplier<ResearchTechnical>> STOCK_PRICE_CREATORS =
             Map.of(
@@ -382,7 +392,6 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
             int size,
             Trade.Type type,
             Timeframe timeframe,
-            LocalDate date,
             String sortBy,
             String direction) {
 
@@ -394,8 +403,10 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                                 ? Sort.by(sortBy).descending()
                                 : Sort.by(sortBy).ascending());
 
+        List<LocalDate> currentDates = this.getCurrentDates();
+
         Page<ResearchTechnical> researchPage =
-                researchTechnicalRepository.searchHistory(type, timeframe, date, pageable);
+                researchTechnicalRepository.searchHistory(type, timeframe, currentDates, pageable);
 
         return researchPage.map(this::mapToResult);
     }
@@ -408,6 +419,12 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
             Timeframe timeframe,
             String sortBy,
             String direction) {
+
+        List<LocalDate> currentDates = this.getCurrentDates();
+        return this.search(page, size, type, timeframe, currentDates, sortBy, direction);
+    }
+
+    private List<LocalDate> getCurrentDates() {
         List<LocalDate> dates = new ArrayList<>();
 
         LocalDate current = miscUtil.currentDate();
@@ -428,8 +445,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         if (!calendarService.isLastTradingSessionOfMonth(prevSession)) {
             dates.add(prevMonthSession);
         }
-
-        return this.search(page, size, type, timeframe, dates, sortBy, direction);
+        return dates;
     }
 
     public Page<ResearchTechnicalResult> search(
@@ -473,10 +489,12 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         double prevClose = stockPrice.getPrevClose();
         double changePercent = prevClose != 0 ? ((currentPrice - prevClose) / prevClose) * 100 : 0;
 
+        Stock stock = researchTechnical.getStock();
+
         return ResearchTechnicalResult.builder()
                 .id(researchTechnical.getResearchTechnicalsId())
-                .symbol(researchTechnical.getStock().getNseSymbol())
-                .name(researchTechnical.getStock().getCompanyName())
+                .symbol(stock.getNseSymbol())
+                .name(stock.getCompanyName())
                 .timeframe(researchTechnical.getTimeframe())
                 .type(researchTechnical.getType())
                 .score(researchTechnical.getSubStrategy().getPriority())
@@ -484,6 +502,125 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 .researchPrice(price)
                 .changePercent(miscUtil.roundToTwoDecimals(changePercent))
                 .researchDate(date) // Mapping based on type
+                .build();
+    }
+
+    @Override
+    public ResearchTechnicalDetailsCurrentResponse getCurrentDetails(
+            Long userId, Long researchTechnicalId) {
+
+        ResearchTechnical researchTechnical =
+                researchTechnicalRepository
+                        .findById(researchTechnicalId)
+                        .orElseThrow(
+                                () ->
+                                        new EntityNotFoundException(
+                                                "ResearchTechnical not found for"
+                                                        + " researchTechnicalId: "
+                                                        + researchTechnicalId));
+
+        return this.mapToCurrentDetails(userId, researchTechnical);
+    }
+
+    private ResearchTechnicalDetailsCurrentResponse mapToCurrentDetails(
+            Long userId, ResearchTechnical researchTechnical) {
+        Double price = null;
+        LocalDate date = null;
+
+        if (researchTechnical.getType() == Trade.Type.BUY) {
+            price = researchTechnical.getResearchPrice();
+            date = researchTechnical.getResearchDate();
+        } else if (researchTechnical.getType() == Trade.Type.SELL) {
+            price = researchTechnical.getExitPrice();
+            date = researchTechnical.getExitDate();
+        }
+
+        StockPrice stockPrice =
+                stockPriceService.get(researchTechnical.getStock(), Timeframe.DAILY);
+        double currentPrice = stockPrice.getClose();
+        double prevClose = stockPrice.getPrevClose();
+        double changePercent = prevClose != 0 ? ((currentPrice - prevClose) / prevClose) * 100 : 0;
+
+        Stock stock = researchTechnical.getStock();
+
+        StockTechnicals stockTechnicals =
+                stockTechnicalsService.get(stock, researchTechnical.getTimeframe());
+        long positionSize = positionService.calculate(userId, researchTechnical);
+
+        long adjustedPositionSize =
+                positionService.calculateAdjustedPositionSize(
+                        userId, researchTechnical, positionSize);
+
+        return ResearchTechnicalDetailsCurrentResponse.builder()
+                .id(researchTechnical.getResearchTechnicalsId())
+                .symbol(stock.getNseSymbol())
+                .name(stock.getCompanyName())
+                .timeframe(researchTechnical.getTimeframe())
+                .type(researchTechnical.getType())
+                .score(researchTechnical.getSubStrategy().getPriority())
+                .price(currentPrice)
+                .researchPrice(price)
+                .changePercent(miscUtil.roundToTwoDecimals(changePercent))
+                .researchDate(date)
+                .sector(stock.getSector().getSectorName())
+                .marketCap(fundamentalResearchService.marketCap(stock))
+                .positionSize(positionSize)
+                .adjustedPositionSize(adjustedPositionSize)
+                .technicals(StockTechnicalsMapper.toDTO(stockTechnicals))
+                .build();
+    }
+
+    @Override
+    public ResearchTechnicalDetailsHistoryResponse getHistoryDetails(Long researchTechnicalId) {
+
+        ResearchTechnical researchTechnical =
+                researchTechnicalRepository
+                        .findById(researchTechnicalId)
+                        .orElseThrow(
+                                () ->
+                                        new EntityNotFoundException(
+                                                "ResearchTechnical not found for"
+                                                        + " researchTechnicalId: "
+                                                        + researchTechnicalId));
+
+        return this.mapToHistoryDetails(researchTechnical);
+    }
+
+    private ResearchTechnicalDetailsHistoryResponse mapToHistoryDetails(
+            ResearchTechnical researchTechnical) {
+
+        StockPrice stockPrice =
+                stockPriceService.get(researchTechnical.getStock(), Timeframe.DAILY);
+
+
+        double currentPrice = stockPrice.getClose();
+        double prevClose = researchTechnical.getResearchPrice();
+        double changePercent = prevClose != 0 ? ((currentPrice - prevClose) / prevClose) * 100 : 0;
+
+        if (researchTechnical.getExitDate() != null) {
+
+            currentPrice = researchTechnical.getExitPrice();
+            prevClose = researchTechnical.getResearchPrice();
+            changePercent = prevClose != 0 ? ((currentPrice - prevClose) / prevClose) * 100 : 0;
+        }
+
+        Stock stock = researchTechnical.getStock();
+
+        return ResearchTechnicalDetailsHistoryResponse.builder()
+                .id(researchTechnical.getResearchTechnicalsId())
+                .symbol(stock.getNseSymbol())
+                .name(stock.getCompanyName())
+                .timeframe(researchTechnical.getTimeframe())
+                .type(researchTechnical.getType())
+                .score(researchTechnical.getSubStrategy().getPriority())
+                .price(stockPrice.getClose())
+                .researchDate(researchTechnical.getResearchDate())
+                .researchPrice(researchTechnical.getResearchPrice())
+                .exitDate(researchTechnical.getExitDate())
+                .exitPrice(researchTechnical.getExitPrice())
+                .changePercent(miscUtil.roundToTwoDecimals(changePercent))
+                .sector(stock.getSector().getSectorName())
+                .marketCap(fundamentalResearchService.marketCap(stock))
                 .build();
     }
 }
