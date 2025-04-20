@@ -4,6 +4,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'com.opencsv:opencsv:5.7.1'
     implementation 'commons-beanutils:commons-beanutils:1.9.4'
+    implementation 'org.modelmapper:modelmapper:2.4.4'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
