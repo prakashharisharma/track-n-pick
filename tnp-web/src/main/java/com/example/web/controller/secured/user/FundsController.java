@@ -7,14 +7,13 @@ import com.example.service.FundsLedgerService;
 import com.example.web.utils.JsonApiSuccessUtil;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,19 +27,23 @@ public class FundsController {
     private final JwtUtils jwtUtils;
 
     @PostMapping("/add")
-    public ResponseEntity<?> addFunds(@RequestBody @Valid FundsLedgerRequest request,
-                                      @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> addFunds(
+            @RequestBody @Valid FundsLedgerRequest request,
+            @RequestHeader("Authorization") String authHeader) {
         Long userId = jwtUtils.extractUserId(jwtUtils.extractToken(authHeader));
         fundsLedgerService.addFund(userId, request);
-        return JsonApiSuccessUtil.createSuccessResponse(HttpStatus.OK, "Funds added successfully", request);
+        return JsonApiSuccessUtil.createSuccessResponse(
+                HttpStatus.OK, "Funds added successfully", request);
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<?> withdrawFunds(@RequestBody @Valid FundsLedgerRequest request,
-                                           @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> withdrawFunds(
+            @RequestBody @Valid FundsLedgerRequest request,
+            @RequestHeader("Authorization") String authHeader) {
         Long userId = jwtUtils.extractUserId(jwtUtils.extractToken(authHeader));
         fundsLedgerService.withdrawFund(userId, request);
-        return JsonApiSuccessUtil.createSuccessResponse(HttpStatus.OK, "Funds withdrawn successfully", request);
+        return JsonApiSuccessUtil.createSuccessResponse(
+                HttpStatus.OK, "Funds withdrawn successfully", request);
     }
 
     @GetMapping

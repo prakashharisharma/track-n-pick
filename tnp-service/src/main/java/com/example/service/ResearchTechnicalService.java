@@ -8,11 +8,9 @@ import com.example.data.transactional.entities.StockTechnicals;
 import com.example.data.transactional.entities.Trade;
 import com.example.data.transactional.view.ResearchTechnicalResult;
 import com.example.dto.common.TradeSetup;
-import org.springframework.data.domain.Page;
-
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
+import org.springframework.data.domain.Page;
 
 public interface ResearchTechnicalService<T extends ResearchTechnical> {
 
@@ -43,8 +41,7 @@ public interface ResearchTechnicalService<T extends ResearchTechnical> {
             Timeframe timeframe,
             LocalDate date,
             String sortBy,
-            String direction
-    );
+            String direction);
 
     Page<ResearchTechnicalResult> searchCurrent(
             int page,
@@ -52,6 +49,5 @@ public interface ResearchTechnicalService<T extends ResearchTechnical> {
             Trade.Type type,
             Timeframe timeframe,
             String sortBy,
-            String direction
-    );
+            String direction);
 }

@@ -8,14 +8,12 @@ import com.example.dto.common.TradeSetup;
 import com.example.service.*;
 import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
+import com.example.util.MiscUtil;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
-
-import com.example.util.MiscUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -378,34 +376,38 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         return score;
     }
 
-
     @Override
     public Page<ResearchTechnicalResult> searchHistory(
             int page,
             int size,
-            Trade.Type type, Timeframe timeframe,
+            Trade.Type type,
+            Timeframe timeframe,
             LocalDate date,
             String sortBy,
-            String direction
-    ) {
+            String direction) {
 
-        Pageable pageable = PageRequest.of(
-                page,
-                size,
-                direction.equalsIgnoreCase("desc") ?
-                        Sort.by(sortBy).descending() :
-                        Sort.by(sortBy).ascending()
-        );
+        Pageable pageable =
+                PageRequest.of(
+                        page,
+                        size,
+                        direction.equalsIgnoreCase("desc")
+                                ? Sort.by(sortBy).descending()
+                                : Sort.by(sortBy).ascending());
 
-        Page<ResearchTechnical> researchPage = researchTechnicalRepository.searchHistory(
-                type, timeframe, date, pageable
-        );
+        Page<ResearchTechnical> researchPage =
+                researchTechnicalRepository.searchHistory(type, timeframe, date, pageable);
 
         return researchPage.map(this::mapToResult);
     }
 
     @Override
-    public Page<ResearchTechnicalResult> searchCurrent(int page, int size, Trade.Type type, Timeframe timeframe, String sortBy, String direction) {
+    public Page<ResearchTechnicalResult> searchCurrent(
+            int page,
+            int size,
+            Trade.Type type,
+            Timeframe timeframe,
+            String sortBy,
+            String direction) {
         List<LocalDate> dates = new ArrayList<>();
 
         LocalDate current = miscUtil.currentDate();
@@ -430,25 +432,28 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         return this.search(page, size, type, timeframe, dates, sortBy, direction);
     }
 
+    public Page<ResearchTechnicalResult> search(
+            int page,
+            int size,
+            Trade.Type type,
+            Timeframe timeframe,
+            List<LocalDate> dates,
+            String sortBy,
+            String direction) {
 
-    public Page<ResearchTechnicalResult> search(int page, int size, Trade.Type type, Timeframe timeframe,  List<LocalDate> dates, String sortBy, String direction) {
+        Pageable pageable =
+                PageRequest.of(
+                        page,
+                        size,
+                        direction.equalsIgnoreCase("desc")
+                                ? Sort.by(sortBy).descending()
+                                : Sort.by(sortBy).ascending());
 
-        Pageable pageable = PageRequest.of(
-                page,
-                size,
-                direction.equalsIgnoreCase("desc") ?
-                        Sort.by(sortBy).descending() :
-                        Sort.by(sortBy).ascending()
-        );
-
-
-        Page<ResearchTechnical> researchPage = researchTechnicalRepository.search(
-                type, timeframe, dates, pageable
-        );
+        Page<ResearchTechnical> researchPage =
+                researchTechnicalRepository.search(type, timeframe, dates, pageable);
 
         return researchPage.map(this::mapToResult);
     }
-
 
     private ResearchTechnicalResult mapToResult(ResearchTechnical researchTechnical) {
         Double price = null;
@@ -466,10 +471,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 stockPriceService.get(researchTechnical.getStock(), Timeframe.DAILY);
         double currentPrice = stockPrice.getClose();
         double prevClose = stockPrice.getPrevClose();
-        double changePercent =
-                prevClose != 0
-                        ? ((currentPrice - prevClose) / prevClose) * 100
-                        : 0;
+        double changePercent = prevClose != 0 ? ((currentPrice - prevClose) / prevClose) * 100 : 0;
 
         return ResearchTechnicalResult.builder()
                 .id(researchTechnical.getResearchTechnicalsId())
@@ -481,7 +483,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 .price(currentPrice)
                 .researchPrice(price)
                 .changePercent(miscUtil.roundToTwoDecimals(changePercent))
-                .researchDate(date)     // Mapping based on type
+                .researchDate(date) // Mapping based on type
                 .build();
     }
 }

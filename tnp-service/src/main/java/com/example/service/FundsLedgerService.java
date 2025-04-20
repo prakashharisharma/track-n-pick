@@ -4,8 +4,6 @@ import com.example.data.transactional.entities.FundsLedger;
 import com.example.data.transactional.entities.type.FundTransactionType;
 import com.example.data.transactional.repo.FundsLedgerRepository;
 import com.example.data.transactional.view.FundsLedgerResult;
-
-
 import com.example.dto.request.FundsLedgerRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +31,6 @@ public class FundsLedgerService {
 
         ledger.setTransactionDate(request.getTransactionDate());
         fundsLedgerRepository.save(ledger);
-
     }
 
     public void withdrawFund(Long userId, FundsLedgerRequest request) {

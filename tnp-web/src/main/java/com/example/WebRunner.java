@@ -165,7 +165,7 @@ public class WebRunner implements CommandLineRunner {
 
         log.info("Application started....");
 
-        //bhavProcessor.processAndResearchTechnicals();
+        // bhavProcessor.processAndResearchTechnicals();
 
         /*
         Stock stock = stockService.getStockByNseSymbol("360ONE");
@@ -242,7 +242,7 @@ public class WebRunner implements CommandLineRunner {
 
         System.out.println("*************");
          */
-
+        // this.testmcap();
         System.out.println("STARTED");
     }
 
@@ -257,6 +257,16 @@ public class WebRunner implements CommandLineRunner {
         	System.out.println(" SYMBOL " + researchTechnical.getStock().getNseSymbol() + " SCORE " + score);
         }
          */
+    }
+
+    private void testmcap() {
+        List<Stock> stockList = stockService.getActiveStocks();
+
+        for (Stock stock : stockList) {
+            double mcap = fundamentalResearchService.marketCap(stock);
+
+            System.out.println(stock.getNseSymbol() + " : " + mcap);
+        }
     }
 
     /** Position Size = (Total trading fund * Risk%)/SL% */
