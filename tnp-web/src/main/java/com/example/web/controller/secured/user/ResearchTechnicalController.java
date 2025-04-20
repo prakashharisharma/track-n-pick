@@ -4,6 +4,7 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Trade;
 import com.example.data.transactional.view.ResearchTechnicalResult;
 import com.example.service.ResearchTechnicalService;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -11,8 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDate;
 
 @RestController
 @RequestMapping("v1/user/research-technicals")
@@ -27,11 +26,12 @@ public class ResearchTechnicalController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Trade.Type type,
             @RequestParam(required = false) Timeframe timeframe,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate date,
             @RequestParam(defaultValue = "researchDate") String sortBy,
-            @RequestParam(defaultValue = "desc") String direction
-    ) {
-        return researchTechnicalService.searchHistory(page, size, type, timeframe, date, sortBy, direction);
+            @RequestParam(defaultValue = "desc") String direction) {
+        return researchTechnicalService.searchHistory(
+                page, size, type, timeframe, date, sortBy, direction);
     }
 
     @GetMapping("/current")
@@ -41,9 +41,8 @@ public class ResearchTechnicalController {
             @RequestParam(required = false) Trade.Type type,
             @RequestParam(required = false) Timeframe timeframe,
             @RequestParam(defaultValue = "researchDate") String sortBy,
-            @RequestParam(defaultValue = "desc") String direction
-    ) {
-        return researchTechnicalService.searchCurrent(page, size, type, timeframe, sortBy, direction);
+            @RequestParam(defaultValue = "desc") String direction) {
+        return researchTechnicalService.searchCurrent(
+                page, size, type, timeframe, sortBy, direction);
     }
 }
-

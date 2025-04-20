@@ -5,6 +5,9 @@ import com.example.dto.common.OHLCV;
 import com.example.service.OhlcvService;
 import com.example.util.MiscUtil;
 import com.example.web.utils.JsonApiSuccessUtil;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,9 +27,7 @@ public class OhlcvController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> fetchOHLCV(
-            @RequestParam Timeframe timeframe,
-            @RequestParam String symbol
-    ) {
+            @RequestParam Timeframe timeframe, @RequestParam String symbol) {
         LocalDate to = miscUtil.currentDate();
         LocalDate from;
 
@@ -45,4 +42,3 @@ public class OhlcvController {
         return JsonApiSuccessUtil.ok("OHLCV data retrieved successfully", data);
     }
 }
-

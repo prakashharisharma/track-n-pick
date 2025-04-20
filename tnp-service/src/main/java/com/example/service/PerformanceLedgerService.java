@@ -25,6 +25,4 @@ public class PerformanceLedgerService {
                         user, investmentValue, portfolioValue, miscUtil.currentMonthFirstDay());
         performanceLedgerRepository.save(pl);
     }
-
-
 }

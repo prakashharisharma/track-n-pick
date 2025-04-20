@@ -6,6 +6,7 @@ import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.service.StockPriceService;
 import com.example.service.StockService;
+import com.example.util.MiscUtil;
 import com.example.util.rules.RulesFundamental;
 import com.example.util.rules.RulesResearch;
 import javax.transaction.Transactional;
@@ -25,6 +26,8 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
     @Autowired private StockService stockService;
 
     @Autowired private StockPriceService<StockPrice> stockPriceService;
+
+    @Autowired private MiscUtil miscUtil;
 
     @Override
     public boolean isPriceInRange(Stock stock) {
@@ -62,7 +65,7 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
                 double marketCapInCr = marketCap / 1_00_00_000.0;
 
                 log.info("{} MarketCap: {} Cr.", stock.getNseSymbol(), marketCapInCr);
-                return marketCapInCr;
+                return miscUtil.roundToTwoDecimals(marketCapInCr);
             }
         }
 
