@@ -5,6 +5,7 @@ import com.example.data.transactional.entities.type.FundTransactionType;
 import com.example.data.transactional.repo.FundsLedgerRepository;
 import com.example.data.transactional.view.FundsLedgerResult;
 import com.example.dto.request.FundsLedgerRequest;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,10 @@ import org.springframework.stereotype.Service;
 public class FundsLedgerService {
 
     private final FundsLedgerRepository fundsLedgerRepository;
+
+    public BigDecimal getTotalFundsValue(Long userId) {
+        return fundsLedgerRepository.findTotalValueByUserId(userId);
+    }
 
     public void addFund(Long userId, FundsLedgerRequest request) {
 

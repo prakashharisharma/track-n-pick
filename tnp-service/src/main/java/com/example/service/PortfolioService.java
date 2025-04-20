@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 
 public interface PortfolioService {
 
+    public BigDecimal getTotalInvestmentValue(Long userId);
+
     public void buyStock(Long userId, Long stockId, long quantity, BigDecimal price);
 
     public void sellStock(Long userId, Long stockId, long quantity, BigDecimal price);

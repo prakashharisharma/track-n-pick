@@ -39,6 +39,26 @@ public class PortfolioServiceImpl implements PortfolioService {
 
     private final MiscUtil miscUtil;
 
+    @Override
+    public BigDecimal getTotalInvestmentValue(Long userId) {
+        // Get all portfolios for the user
+        List<Portfolio> portfolios = portfolioRepository.findByUserId(userId);
+
+        // Calculate the total investment value
+        BigDecimal totalInvestmentValue =
+                portfolios.stream()
+                        .map(
+                                portfolio ->
+                                        portfolio
+                                                .getAvgPrice()
+                                                .multiply(
+                                                        BigDecimal.valueOf(
+                                                                portfolio.getQuantity())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return totalInvestmentValue;
+    }
+
     @Transactional
     public void buyStock(Long userId, Long stockId, long quantity, BigDecimal price) {
 
@@ -140,14 +160,17 @@ public class PortfolioServiceImpl implements PortfolioService {
                         dpCharge,
                         taxMasterService.getTaxMaster().getGst());
 
-        BigDecimal sellEffectivePrice =
-                price.subtract(stt)
-                        .subtract(stampDuty)
-                        .subtract(exchangeTxnCharge)
-                        .subtract(sebiTurnoverFee)
-                        .subtract(dpCharge)
-                        .subtract(brokerage)
-                        .subtract(gst);
+        BigDecimal totalCost =
+                stt.add(stampDuty)
+                        .add(exchangeTxnCharge)
+                        .add(sebiTurnoverFee)
+                        .add(dpCharge)
+                        .add(brokerage)
+                        .add(gst);
+
+        BigDecimal perUnitCost =
+                totalCost.divide(BigDecimal.valueOf(quantity), 6, RoundingMode.HALF_UP);
+        BigDecimal sellEffectivePrice = price.subtract(perUnitCost);
 
         for (Trade buyTrade : buyTrades) {
             if (remainingQuantity <= 0) break;

@@ -26,6 +26,11 @@ public class TradeServiceImpl implements TradeService {
     private final MiscUtil miscUtil;
 
     @Override
+    public BigDecimal getTotalRealizedPnl(Long userId) {
+        return tradeRepository.findTotalRealizedPnlByUserId(userId);
+    }
+
+    @Override
     public Page<TradeResult> getUserTrades(
             Long userId,
             int page,

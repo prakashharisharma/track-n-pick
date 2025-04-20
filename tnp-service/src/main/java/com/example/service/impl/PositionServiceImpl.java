@@ -1,34 +1,37 @@
 package com.example.service.impl;
 
 import com.example.data.transactional.entities.ResearchTechnical;
-import com.example.data.transactional.entities.User;
-import com.example.service.FundsLedgerService;
-import com.example.service.PositionService;
-import com.example.service.RiskFactor;
+import com.example.service.*;
 import com.example.util.FormulaService;
+import java.math.BigDecimal;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class PositionServiceImpl implements PositionService {
 
-    @Autowired private FormulaService formulaService;
-    @Autowired private FundsLedgerService fundsLedgerService;
+    private final FormulaService formulaService;
+    private final FundsLedgerService fundsLedgerService;
+
+    private final PortfolioService portfolioService;
+    private final TradeService tradeService;
 
     @Override
-    public long calculate(User user, ResearchTechnical researchTechnical) {
-        // double investmentValue = fundsLedgerService.allTimeInvestment(user);
-        double investmentValue = 78000.0;
-        double netProfit = 0.0; // Can be extended in future
+    public long calculate(Long userId, ResearchTechnical researchTechnical) {
+        BigDecimal investmentValue = fundsLedgerService.getTotalFundsValue(userId);
 
-        double capital = investmentValue + netProfit;
+        BigDecimal netProfit = tradeService.getTotalRealizedPnl(userId);
+
+        double totalCapital = investmentValue.doubleValue() + netProfit.doubleValue();
 
         double riskFactor = this.getRiskFactor(researchTechnical); // Typically a % like 1 or 2
+
         double risk =
                 formulaService.calculateFraction(
-                        capital, riskFactor); // risk = capital * (riskFactor / 100)
+                        totalCapital, riskFactor); // risk = capital * (riskFactor / 100)
 
         double stopLoss = researchTechnical.getResearchPrice() - researchTechnical.getStopLoss();
 

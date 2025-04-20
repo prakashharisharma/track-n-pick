@@ -295,7 +295,7 @@ public class WebRunner implements CommandLineRunner {
             double stopLoss =
                     (researchTechnical.getResearchPrice() - researchTechnical.getStopLoss());
             positionSize = (long) (risk / stopLoss);
-            positionSize = positionService.calculate(user, researchTechnical);
+            positionSize = positionService.calculate(user.getId(), researchTechnical);
 
             System.out.println(researchTechnical.getStock().getNseSymbol() + " " + positionSize);
         }
