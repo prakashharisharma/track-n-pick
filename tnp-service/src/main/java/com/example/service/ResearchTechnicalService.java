@@ -56,4 +56,6 @@ public interface ResearchTechnicalService<T extends ResearchTechnical> {
             Long userId, Long reserachTechnicalId);
 
     ResearchTechnicalDetailsHistoryResponse getHistoryDetails(Long reserachTechnicalId);
+
+    public void updateScore(ResearchTechnical researchTechnical);
 }

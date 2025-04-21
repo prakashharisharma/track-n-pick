@@ -9,8 +9,8 @@ import com.example.dto.mapper.StockTechnicalsMapper;
 import com.example.dto.response.ResearchTechnicalDetailsCurrentResponse;
 import com.example.dto.response.ResearchTechnicalDetailsHistoryResponse;
 import com.example.service.*;
+import com.example.service.ConfidenceScoreCalculator;
 import com.example.service.utils.CandleStickUtils;
-import com.example.util.ConfidenceScoreCalculator;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import java.time.LocalDate;
@@ -108,11 +108,16 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         formulaService.calculateChangePercentage(
                                 newResearchTechnical.getResearchPrice(),
                                 newResearchTechnical.getStopLoss())));
-        newResearchTechnical.setScore(
+
+        double confidenceScore =
                 ConfidenceScoreCalculator.calculateConfidenceScore(
                         newResearchTechnical.getSubStrategy().getPriority(),
                         newResearchTechnical.getRisk(),
-                        this.calculateMacdScore(newResearchTechnical)));
+                        fundamentalResearchService.marketCap(newResearchTechnical.getStock()),
+                        newResearchTechnical.getResearchPrice());
+
+        newResearchTechnical.setScore(miscUtil.roundToTwoDecimals(confidenceScore));
+
         newResearchTechnical.setResearchDate(sessionDate);
         newResearchTechnical.setLastModified(LocalDate.now());
 
@@ -538,7 +543,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 .name(stock.getCompanyName())
                 .timeframe(researchTechnical.getTimeframe())
                 .type(researchTechnical.getType())
-                .score(researchTechnical.getSubStrategy().getPriority())
+                .score(researchTechnical.getScore())
                 .price(currentPrice)
                 .researchPrice(price)
                 .changePercent(miscUtil.roundToTwoDecimals(changePercent))
@@ -598,7 +603,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 .name(stock.getCompanyName())
                 .timeframe(researchTechnical.getTimeframe())
                 .type(researchTechnical.getType())
-                .score(researchTechnical.getSubStrategy().getPriority())
+                .score(researchTechnical.getScore())
                 .price(currentPrice)
                 .researchPrice(price)
                 .changePercent(miscUtil.roundToTwoDecimals(changePercent))
@@ -652,7 +657,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 .name(stock.getCompanyName())
                 .timeframe(researchTechnical.getTimeframe())
                 .type(researchTechnical.getType())
-                .score(researchTechnical.getSubStrategy().getPriority())
+                .score(researchTechnical.getScore())
                 .price(stockPrice.getClose())
                 .researchDate(researchTechnical.getResearchDate())
                 .researchPrice(researchTechnical.getResearchPrice())
@@ -662,5 +667,34 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 .sector(stock.getSector().getSectorName())
                 .marketCap(fundamentalResearchService.marketCap(stock))
                 .build();
+    }
+
+    @Override
+    public void updateScore(ResearchTechnical researchTechnical) {
+        double risk =
+                formulaService.calculateChangePercentage(
+                        researchTechnical.getResearchPrice(), researchTechnical.getStopLoss());
+
+        double mcapInCr = fundamentalResearchService.marketCap(researchTechnical.getStock());
+        double confidenceScore =
+                ConfidenceScoreCalculator.calculateConfidenceScore(
+                        researchTechnical.getSubStrategy().getPriority(),
+                        risk,
+                        mcapInCr,
+                        researchTechnical.getResearchPrice());
+        System.out.println(
+                researchTechnical.getStock().getNseSymbol()
+                        + " : "
+                        + researchTechnical.getSubStrategy()
+                        + " : "
+                        + risk
+                        + " : "
+                        + mcapInCr
+                        + " : "
+                        + researchTechnical.getResearchPrice()
+                        + " :"
+                        + miscUtil.roundToTwoDecimals(confidenceScore));
+        researchTechnical.setScore(confidenceScore);
+        researchTechnicalRepository.save(researchTechnical);
     }
 }

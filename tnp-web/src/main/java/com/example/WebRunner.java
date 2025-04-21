@@ -243,7 +243,17 @@ public class WebRunner implements CommandLineRunner {
         System.out.println("*************");
          */
         // this.testmcap();
+        this.updateScore();
         System.out.println("STARTED");
+    }
+
+    private void updateScore() {
+        List<ResearchTechnical> researchTechnicalList =
+                researchTechnicalService.getAll(Trade.Type.BUY);
+
+        for (ResearchTechnical researchTechnical : researchTechnicalList) {
+            researchTechnicalService.updateScore(researchTechnical);
+        }
     }
 
     private void testScore() {
