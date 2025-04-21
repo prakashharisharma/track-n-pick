@@ -10,6 +10,7 @@ import com.example.dto.response.ResearchTechnicalDetailsCurrentResponse;
 import com.example.dto.response.ResearchTechnicalDetailsHistoryResponse;
 import com.example.service.*;
 import com.example.service.utils.CandleStickUtils;
+import com.example.util.ConfidenceScoreCalculator;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import java.time.LocalDate;
@@ -96,6 +97,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         newResearchTechnical.setStopLoss(
                 this.calculateStopLoss(tradeSetup, stockPrice, newResearchTechnical));
+
         newResearchTechnical.setTarget(
                 formulaService.calculateTarget(
                         stockPrice.getHigh(),
@@ -104,9 +106,13 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         newResearchTechnical.setRisk(
                 Math.abs(
                         formulaService.calculateChangePercentage(
-                                stockPrice.getHigh(), stockPrice.getLow())));
+                                newResearchTechnical.getResearchPrice(),
+                                newResearchTechnical.getStopLoss())));
         newResearchTechnical.setScore(
-                this.calculateScore(stock, timeframe, tradeSetup, stockTechnicals, stockPrice));
+                ConfidenceScoreCalculator.calculateConfidenceScore(
+                        newResearchTechnical.getSubStrategy().getPriority(),
+                        newResearchTechnical.getRisk(),
+                        this.calculateMacdScore(newResearchTechnical)));
         newResearchTechnical.setResearchDate(sessionDate);
         newResearchTechnical.setLastModified(LocalDate.now());
 
@@ -150,6 +156,41 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     @Override
     public List<ResearchTechnical> getAll(Trade.Type type) {
         return researchTechnicalRepository.findAllByType(type);
+    }
+
+    private double calculateMacdScore(ResearchTechnical researchTechnical) {
+
+        StockTechnicals stockTechnicals =
+                stockTechnicalsService.get(
+                        researchTechnical.getStock(), researchTechnical.getTimeframe());
+
+        if (stockTechnicals == null) return 5.0; // neutral score if data missing
+
+        Double macd = stockTechnicals.getMacd();
+        Double signal = stockTechnicals.getSignal();
+        Double prevMacd = stockTechnicals.getPrevMacd();
+        Double prevSignal = stockTechnicals.getPrevSignal();
+
+        // Handle null MACD or signal values
+        if (macd == null || signal == null || prevMacd == null || prevSignal == null) {
+            return 5.0; // neutral score if any MACD-related data is missing
+        }
+
+        double currHistogram = formulaService.calculateHistogram(macd, signal);
+        double prevHistogram = formulaService.calculateHistogram(prevMacd, prevSignal);
+
+        boolean bullish = macd > signal;
+        boolean rising = currHistogram > prevHistogram;
+
+        if (bullish && rising) {
+            return 9.0 + Math.min(1.0, (currHistogram - prevHistogram) * 5); // up to 10
+        } else if (bullish) {
+            return 7.0;
+        } else if (macd.equals(signal)) {
+            return 5.0;
+        } else {
+            return Math.max(0.0, 4.0 - (signal - macd)); // inverse decay
+        }
     }
 
     private double calculateRiskRewardRatio(ResearchTechnical.SubStrategy subStrategy) {
@@ -591,7 +632,6 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         StockPrice stockPrice =
                 stockPriceService.get(researchTechnical.getStock(), Timeframe.DAILY);
-
 
         double currentPrice = stockPrice.getClose();
         double prevClose = researchTechnical.getResearchPrice();
