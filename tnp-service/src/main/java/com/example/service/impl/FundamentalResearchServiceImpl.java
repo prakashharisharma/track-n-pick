@@ -64,7 +64,7 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
                 double marketCap = financialsSummary.getIssuedSize() * stockPrice.getClose();
                 double marketCapInCr = marketCap / 1_00_00_000.0;
 
-                log.info("{} MarketCap: {} Cr.", stock.getNseSymbol(), marketCapInCr);
+                // log.info("{} MarketCap: {} Cr.", stock.getNseSymbol(), marketCapInCr);
                 return miscUtil.roundToTwoDecimals(marketCapInCr);
             }
         }
