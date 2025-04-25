@@ -36,4 +36,7 @@ public interface VolumeIndicatorService {
 
     public boolean isBearish(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals, int days);
+
+    public boolean isTradingValueSufficient(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 }

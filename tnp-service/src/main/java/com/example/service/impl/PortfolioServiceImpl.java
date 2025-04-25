@@ -80,18 +80,20 @@ public class PortfolioServiceImpl implements PortfolioService {
                 calculateGst(
                         brokerage,
                         exchangeTxnCharge,
-                        sebiTurnoverFee,
                         dpCharge,
                         taxMasterService.getTaxMaster().getGst());
 
-        BigDecimal effectivePrice =
-                price.add(stt)
-                        .add(stampDuty)
+        BigDecimal totalCharges =
+                stt.add(stampDuty)
                         .add(exchangeTxnCharge)
                         .add(sebiTurnoverFee)
                         .add(dpCharge)
                         .add(brokerage)
                         .add(gst);
+
+        BigDecimal effectivePrice =
+                price.add(
+                        totalCharges.divide(BigDecimal.valueOf(quantity), 4, RoundingMode.HALF_UP));
 
         Trade trade =
                 Trade.builder()
@@ -156,7 +158,6 @@ public class PortfolioServiceImpl implements PortfolioService {
                 calculateGst(
                         brokerage,
                         exchangeTxnCharge,
-                        sebiTurnoverFee,
                         dpCharge,
                         taxMasterService.getTaxMaster().getGst());
 
@@ -258,12 +259,10 @@ public class PortfolioServiceImpl implements PortfolioService {
     private BigDecimal calculateGst(
             BigDecimal brokerage,
             BigDecimal exchangeTxnCharge,
-            BigDecimal sebiTurnoverFee,
             BigDecimal dpCharge,
             double gstRate) {
         return brokerage
                 .add(exchangeTxnCharge)
-                .add(sebiTurnoverFee)
                 .add(dpCharge)
                 .multiply(BigDecimal.valueOf(gstRate))
                 .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);

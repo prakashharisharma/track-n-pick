@@ -19,10 +19,10 @@ public class ConfidenceScoreCalculator {
     public static double calculateConfidenceScore(
             double strategyScore, double rawRisk, double marketCapInCrores, double researchPrice) {
 
+        double strategyWeight = 0.40;
         double riskWeight = 0.30;
-        double mcapWeight = 0.30;
-        double strategyWeight = 0.20;
-        double priceWeight = 0.20;
+        double mcapWeight = 0.20;
+        double priceWeight = 0.10;
 
         // Clamp strategy score
         strategyScore = clamp(strategyScore);
