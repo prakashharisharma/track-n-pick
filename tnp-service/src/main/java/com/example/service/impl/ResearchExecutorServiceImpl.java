@@ -48,6 +48,8 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
     @Autowired private FormulaService formulaService;
 
+    @Autowired private VolumeIndicatorService volumeIndicatorService;
+
     @Override
     public void executeFundamental(Stock stock) {
 
@@ -117,7 +119,9 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
         log.info("{} Executing technical buy", stock.getNseSymbol());
 
-        if (fundamentalResearchService.isMcapInRange(stock)) {
+        if (fundamentalResearchService.isMcapInRange(stock)
+                && volumeIndicatorService.isTradingValueSufficient(
+                        timeframe, stockPrice, stockTechnicals)) {
             if (stock.getSeries().equalsIgnoreCase("EQ")) {
                 log.info("{} Found EQ stock ", stock.getNseSymbol());
                 TradeSetup tradeSetup = priceActionService.breakOut(stock, timeframe);
@@ -154,6 +158,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
         boolean isUpdation = Boolean.FALSE;
         TradeSetup tradeSetup = TradeSetup.builder().build();
+        // if (candleStickService.isRed(stockPrice)) {
         if (candleStickService.isRed(stockPrice)
                 && this.isTargetAchieved(researchTechnical, timeframe, stock, stockPrice)) {
 
@@ -175,6 +180,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                 isUpdation = Boolean.TRUE;
             }
         }
+        // }
 
         if (isUpdation) {
             researchTechnicalService.exit(

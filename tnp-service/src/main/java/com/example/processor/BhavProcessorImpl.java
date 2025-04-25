@@ -55,13 +55,22 @@ public class BhavProcessorImpl implements BhavProcessor {
 
         List<StockPriceIO> stockPriceIOList = this.transform(regularEquityList);
 
-        this.importAndProcessDailyPrice(stockPriceIOList);
+        try {
+            this.importAndProcessDailyPrice(stockPriceIOList);
 
-        this.processTimeframePrice();
+            ThreadsUtil.delay();
 
-        this.processAndResearchTechnicals();
+            this.processTimeframePrice();
 
-        log.info("Completed Bhav Processor");
+            ThreadsUtil.delay();
+
+            this.processAndResearchTechnicals();
+
+            log.info("Completed Bhav Processor");
+
+        } catch (Exception e) {
+            log.error("An error occurred while processing bhav");
+        }
     }
 
     public List<StockPriceIN> filterRegularEquityShares(List<StockPriceIN> records) {

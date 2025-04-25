@@ -42,28 +42,38 @@ public class MovingAverageUtil {
     }
 
     public static double getMovingAverage100(Timeframe timeframe, StockTechnicals stockTechnicals) {
+        /*
         return (timeframe == Timeframe.MONTHLY)
                 ? stockTechnicals.getSma100()
-                : stockTechnicals.getEma100();
+                : stockTechnicals.getEma100();*/
+        return stockTechnicals.getSma100();
     }
 
     public static double getPrevMovingAverage100(
             Timeframe timeframe, StockTechnicals stockTechnicals) {
+        /*
         return (timeframe == Timeframe.MONTHLY)
                 ? stockTechnicals.getPrevSma100()
-                : stockTechnicals.getPrevEma100();
+                : stockTechnicals.getPrevEma100();*/
+        return stockTechnicals.getPrevSma100();
     }
 
     public static double getMovingAverage200(Timeframe timeframe, StockTechnicals stockTechnicals) {
+        /*
         return (timeframe == Timeframe.MONTHLY || timeframe == Timeframe.WEEKLY)
                 ? stockTechnicals.getSma200()
                 : stockTechnicals.getEma200();
+        */
+        return stockTechnicals.getSma200();
     }
 
     public static double getPrevMovingAverage200(
             Timeframe timeframe, StockTechnicals stockTechnicals) {
+        /*
         return (timeframe == Timeframe.MONTHLY || timeframe == Timeframe.WEEKLY)
                 ? stockTechnicals.getPrevSma200()
                 : stockTechnicals.getPrevEma200();
+         */
+        return stockTechnicals.getPrevSma200();
     }
 }

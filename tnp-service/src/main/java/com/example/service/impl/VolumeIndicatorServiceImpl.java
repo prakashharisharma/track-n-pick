@@ -29,10 +29,6 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     public boolean isBullish(
             StockPrice stockPrice, StockTechnicals stockTechnicals, Timeframe timeframe) {
 
-        if (!isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
-            return false;
-        }
-
         return this.isCurrentSessionHigh(
                         stockPrice,
                         stockTechnicals,
@@ -52,9 +48,6 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
             Timeframe timeframe,
             double multiplier) {
 
-        if (!isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
-            return false;
-        }
         return this.isCurrentSessionHigh(stockPrice, stockTechnicals, timeframe, multiplier)
                 || this.isPreviousSessionHigh(stockPrice, stockTechnicals, timeframe, multiplier);
     }
@@ -62,11 +55,6 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     @Override
     public boolean isBearish(
             StockPrice stockPrice, StockTechnicals stockTechnicals, Timeframe timeframe) {
-
-        /*
-        if (!isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
-            return false;
-        }*/
 
         return this.isCurrentSessionHigh(
                         stockPrice,
@@ -87,10 +75,6 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
             Timeframe timeframe,
             double multiplier) {
 
-        /*
-        if (!isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
-            return false;
-        }*/
         return this.isCurrentSessionHigh(stockPrice, stockTechnicals, timeframe, multiplier)
                 || this.isPreviousSessionHigh(stockPrice, stockTechnicals, timeframe, multiplier);
     }
@@ -104,10 +88,6 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         long prev2Volume = stockTechnicals.getPrev2Volume();
 
         long volumeMA, prevVolumeMA, prev2VolumeMA;
-
-        if (!this.isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
-            return false;
-        }
 
         // Select the correct moving average based on the timeframe
         switch (timeframe) {
@@ -166,11 +146,6 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         long prev2Volume = stockTechnicals.getPrev2Volume();
 
         long volumeMA, prevVolumeMA, prev2VolumeMA;
-
-        /*
-        if (!this.isTradingValueSufficient(timeframe, stockPrice, stockTechnicals)) {
-            return false;
-        }*/
 
         // Select the correct moving average based on the timeframe
         switch (timeframe) {
@@ -422,19 +397,35 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         return THRESHOLD_DAILY;
     }
 
-    private boolean isTradingValueSufficient(
+    @Override
+    public boolean isTradingValueSufficient(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        double avgClose = stockTechnicals.getVolumeAvg20();
-        long avgVolume = stockTechnicals.getVolumeAvg20();
 
-        if (timeframe == Timeframe.WEEKLY) {
-            avgClose = stockTechnicals.getVolumeAvg10();
-            avgVolume = stockTechnicals.getVolumeAvg10();
-        } else if (timeframe == Timeframe.MONTHLY) {
-            avgClose = stockTechnicals.getVolumeAvg5();
-            avgVolume = stockTechnicals.getVolumeAvg5();
+        double avgClose;
+        long avgVolume;
+
+        switch (timeframe) {
+            case WEEKLY:
+                avgClose = stockTechnicals.getSma10();
+                avgVolume = stockTechnicals.getVolumeAvg10();
+                break;
+            case MONTHLY:
+                avgClose = stockTechnicals.getSma5();
+                avgVolume = stockTechnicals.getVolumeAvg5();
+                break;
+            default: // DAILY or other
+                avgClose = stockTechnicals.getSma20();
+                avgVolume = stockTechnicals.getVolumeAvg20();
+                break;
         }
 
-        return avgClose * avgVolume > MIN_TRADING_VALUE ? true : false;
+        double avgTradingValue = avgClose * avgVolume;
+
+        log.info(
+                "{} average trading value {}",
+                stockPrice.getStock().getNseSymbol(),
+                avgTradingValue);
+
+        return avgTradingValue >= MIN_TRADING_VALUE;
     }
 }
