@@ -47,7 +47,6 @@ public class MiscUtil {
 
     public void delay() throws InterruptedException {
         long interval = this.getInterval();
-        System.out.println("sleeping " + interval);
         Thread.sleep(interval);
     }
 
@@ -96,7 +95,7 @@ public class MiscUtil {
     }
 
     public LocalDate currentDate() {
-        // return LocalDate.of(2025, 04, 24);
+        // return LocalDate.of(2025, 05, 12);
         return LocalDate.now();
     }
 

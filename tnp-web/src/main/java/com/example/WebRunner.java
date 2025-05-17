@@ -143,6 +143,8 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private TrendService trendService;
 
+    @Autowired private DynamicTrendService dynamicTrendService;
+
     @Autowired private YearlySupportResistanceService yearlySupportResistanceService;
 
     @Autowired private TimeframeSupportResistanceService timeframeSupportResistanceService;
@@ -160,12 +162,14 @@ public class WebRunner implements CommandLineRunner {
     @Autowired
     private NSETotalIssuedSharesAndFaceValueFetcher nseTotalIssuedSharesAndFaceValueFetcher;
 
+    @Autowired private VolumeIndicatorService volumeIndicatorService;
+
     @Override
     public void run(String... arg0) throws InterruptedException, IOException {
 
         log.info("Application started....");
 
-        bhavProcessor.processAndResearchTechnicals();
+        // bhavProcessor.processAndResearchTechnicals();
 
         /*
         Stock stock = stockService.getStockByNseSymbol("360ONE");
@@ -181,25 +185,26 @@ public class WebRunner implements CommandLineRunner {
         // this.updateYearHighLow();
         // this.testObv();
         // this.testTimeFrameSR();
-        // this.testTrend();
 
         // this.allocatePositions();
-        // this.updateFinancialsForStocks();
-        // this.updateSectorsActivity();
 
         // this.updateRemainigSectorsActivityFromNSE();
 
         // this.scanBullishCandleStickPattern();
         // this.scanBearishCandleStickPattern();
+        // this.testTrend();
 
         // this.updateFinaicials();
-
         // this.testScore();
         // this.updatePriceHistory();
         // this.updateTechnicals();
         // this.processBhavFromApi();
+
+        // this.updateSectorsActivity();
+        // this.updateFinancialsForStocks();
         // this.processPriceUpdate();
         // this.processTechnicalsUpdate();
+
         // this.updateSupportAndResistance();
         // updateTechnicalsService.updateTechnicals();
         // this.syncTechnicals();
@@ -243,7 +248,7 @@ public class WebRunner implements CommandLineRunner {
         System.out.println("*************");
          */
         // this.testmcap();
-        // this.updateScore();
+        this.updateScore();
         System.out.println("STARTED");
     }
 
@@ -252,7 +257,9 @@ public class WebRunner implements CommandLineRunner {
                 researchTechnicalService.getAll(Trade.Type.BUY);
 
         for (ResearchTechnical researchTechnical : researchTechnicalList) {
-            researchTechnicalService.updateScore(researchTechnical);
+            if (researchTechnical.getResearchDate().isAfter(LocalDate.of(2025, 5, 14))) {
+                researchTechnicalService.updateScore(researchTechnical);
+            }
         }
     }
 
@@ -313,8 +320,8 @@ public class WebRunner implements CommandLineRunner {
 
     private void testTrend() {
 
-        // List<Stock> stockList = stockService.getActiveStocks();
-
+        List<Stock> stockList = stockService.getActiveStocks();
+        /*
         List<Stock> stockList = new ArrayList<>();
         Stock stock = stockService.getStockByNseSymbol("AARTIPHARM");
         stockList.add(stock);
@@ -334,45 +341,58 @@ public class WebRunner implements CommandLineRunner {
         stockList.add(stock);
         stock = stockService.getStockByNseSymbol("GREENLAM");
         stockList.add(stock);
-
+        stock = stockService.getStockByNseSymbol("SBIN");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("JIOFIN");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("ONGC");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("ASIANPAINT");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("POWERGRID");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("RALLIS");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("HAVELLS");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("PHOENIXLTD");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("GLENMARK");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("BBOX");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("KEI");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("SHRIRAMFIN");
+        stockList.add(stock);*/
         stockList.forEach(
                 stk -> {
                     Trend trend = trendService.detect(stk, Timeframe.DAILY);
-                    System.out.println(
-                            "DAILY -> "
-                                    + stk.getNseSymbol()
-                                    + " Direction: "
-                                    + trend.getDirection()
-                                    + " Strength: "
-                                    + trend.getStrength()
-                                    + " Momentum: "
-                                    + trend.getMomentum());
-                    // }
-                    trend = trendService.detect(stk, Timeframe.WEEKLY);
-                    // if (trend.getDirection() != Trend.Direction.INVALID) {
-                    System.out.println(
-                            "WEEKLY -> "
-                                    + stk.getNseSymbol()
-                                    + " Direction: "
-                                    + trend.getDirection()
-                                    + " Strength: "
-                                    + trend.getStrength()
-                                    + " Momentum: "
-                                    + trend.getMomentum());
-                    // }
+                    Trend dynamicTrend = dynamicTrendService.detect(stk, Timeframe.DAILY);
 
-                    trend = trendService.detect(stk, Timeframe.MONTHLY);
-                    // if (trend.getDirection() != Trend.Direction.INVALID) {
-                    System.out.println(
-                            "MONTHLY -> "
-                                    + stk.getNseSymbol()
-                                    + " Direction: "
-                                    + trend.getDirection()
-                                    + " Strength: "
-                                    + trend.getStrength()
-                                    + " Momentum: "
-                                    + trend.getMomentum());
-                    // }
+                    boolean sameMomentum = trend.getMomentum() == dynamicTrend.getMomentum();
+
+                    boolean isDown = dynamicTrend.getDirection() == Trend.Direction.DOWN;
+
+                    if (!sameMomentum && isDown) {
+                        System.out.println(
+                                "STATIC -> "
+                                        + stk.getNseSymbol()
+                                        + " Direction: "
+                                        + trend.getDirection()
+                                        + " Momentum: "
+                                        + trend.getMomentum());
+                    }
+
+                    if (!sameMomentum && isDown) {
+                        System.out.println(
+                                "DYNAMIC -> "
+                                        + stk.getNseSymbol()
+                                        + " Direction: "
+                                        + dynamicTrend.getDirection()
+                                        + " Momentum: "
+                                        + dynamicTrend.getMomentum());
+                    }
                 });
     }
 
@@ -1162,7 +1182,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = miscUtil.yearLastDay(from);
 
-            } while (to.isBefore(LocalDate.of(2025, 03, 29)));
+            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
 
             // priceTemplate.create(Timeframe.YEARLY, stockPriceList);
 
@@ -1248,7 +1268,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = miscUtil.quarterLastDay(from);
 
-            } while (to.isBefore(LocalDate.of(2025, 04, 01)));
+            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
 
             // priceTemplate.create(Timeframe.QUARTERLY, stockPriceList);
 
@@ -1333,7 +1353,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = from.with(TemporalAdjusters.lastDayOfMonth());
 
-            } while (to.isBefore(LocalDate.of(2025, 04, 01)));
+            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
 
             // priceTemplate.create(Timeframe.MONTHLY,stockPriceList);
 
@@ -1419,7 +1439,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = from.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-            } while (to.isBefore(LocalDate.of(2025, 03, 31)));
+            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
 
             // priceTemplate.create(Timeframe.WEEKLY, stockPriceList);
 
@@ -1505,7 +1525,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = from;
 
-            } while (to.isBefore(LocalDate.of(2025, 03, 29)));
+            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
 
             long endTime = System.currentTimeMillis();
 

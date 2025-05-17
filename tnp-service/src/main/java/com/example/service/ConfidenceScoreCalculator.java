@@ -17,26 +17,36 @@ public class ConfidenceScoreCalculator {
      * @return confidence score between 0 and 10
      */
     public static double calculateConfidenceScore(
-            double strategyScore, double rawRisk, double marketCapInCrores, double researchPrice) {
+            double strategyScore,
+            double rawRisk,
+            double marketCapInCrores,
+            double researchPrice,
+            double volumeScore,
+            double macdScore) {
 
-        double strategyWeight = 0.40;
-        double riskWeight = 0.30;
-        double mcapWeight = 0.20;
-        double priceWeight = 0.10;
+        double riskWeight = 0.40;
+        double volumeWeight = 0.22;
+        double strategyWeight = 0.18;
+        double macdWeight = 0.10;
+        double mcapWeight = 0.05;
+        double priceWeight = 0.05;
 
-        // Clamp strategy score
+        // Clamp scores to [0–10]
         strategyScore = clamp(strategyScore);
+        volumeScore = clamp(volumeScore);
+        macdScore = clamp(macdScore);
 
-        // Convert raw risk (2–20) into score (0–10), higher risk → lower score
+        // Convert and calculate sub-scores
         double riskScore = calculateRiskScore(rawRisk);
-
         double marketCapScore = getMarketCapScore(marketCapInCrores);
         double researchPriceScore = getResearchPriceScore(researchPrice);
 
         return (strategyScore * strategyWeight)
                 + (riskScore * riskWeight)
                 + (marketCapScore * mcapWeight)
-                + (researchPriceScore * priceWeight);
+                + (researchPriceScore * priceWeight)
+                + (volumeScore * volumeWeight)
+                + (macdScore * macdWeight);
     }
 
     /**
@@ -87,5 +97,76 @@ public class ConfidenceScoreCalculator {
         if (researchPrice < 7500) return 5;
         if (researchPrice < 10000) return 4;
         return 1;
+    }
+
+    public static double calculateVolumeScore(
+            long currentVolume, long previousVolume, long averageVolume, long prevAverageVolume) {
+        if (currentVolume <= 0
+                || previousVolume <= 0
+                || averageVolume <= 0
+                || prevAverageVolume <= 0) {
+            return 2;
+        }
+
+        boolean volumeIncreasing = currentVolume > previousVolume;
+        boolean avgIncreasing = averageVolume > prevAverageVolume;
+        boolean volAboveAvg = currentVolume > averageVolume;
+        boolean prevVolAbovePrevAvg = previousVolume > prevAverageVolume;
+        boolean vol2xPrevVol = currentVolume > 2 * previousVolume;
+
+        // Rule 1: 10 - avg increasing && vol increasing && vol > avg && prevVol > prevAvg
+        if (avgIncreasing && volumeIncreasing && volAboveAvg && prevVolAbovePrevAvg) {
+            return 10;
+        }
+
+        // Rule 2: 8 - avg increasing && vol > 2X prevVol && vol > avg
+        if (avgIncreasing && vol2xPrevVol && volAboveAvg) {
+            return 8;
+        }
+
+        // Rule 3: 6 - avg increasing && vol increasing
+        if (avgIncreasing && volumeIncreasing) {
+            return 6;
+        }
+
+        // Rule 4: 4 - avg increasing
+        if (avgIncreasing) {
+            return 4;
+        }
+
+        // Rule 5: else 2
+        return 2;
+    }
+
+    public static double calculateMacdScore(double macd, double signal, double previousHistogram) {
+        double histogram = macd - signal;
+
+        // Case: Strong bullish crossover (MACD crossed above signal, rising histogram)
+        if (macd > signal && histogram > previousHistogram && macd > 0) {
+            return 10;
+        }
+
+        // Case: Mild bullish (MACD > signal and MACD rising but not strong)
+        if (macd > signal && histogram > 0) {
+            return 8;
+        }
+
+        // Case: MACD near signal (neutral)
+        if (Math.abs(macd - signal) < 0.1) {
+            return 5;
+        }
+
+        // Case: Bearish crossover (MACD < signal, falling histogram)
+        if (macd < signal && histogram < previousHistogram) {
+            return 2;
+        }
+
+        // Case: Strongly negative MACD
+        if (macd < 0 && macd < signal) {
+            return 1;
+        }
+
+        // Default mild bearish
+        return 3;
     }
 }

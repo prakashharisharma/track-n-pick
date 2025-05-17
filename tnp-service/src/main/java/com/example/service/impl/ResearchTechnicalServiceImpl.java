@@ -11,6 +11,7 @@ import com.example.dto.response.ResearchTechnicalDetailsHistoryResponse;
 import com.example.service.*;
 import com.example.service.ConfidenceScoreCalculator;
 import com.example.service.utils.CandleStickUtils;
+import com.example.service.utils.VolumeAverageUtil;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import java.time.LocalDate;
@@ -93,6 +94,13 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         newResearchTechnical.setStrategy(tradeSetup.getStrategy());
         newResearchTechnical.setSubStrategy(tradeSetup.getSubStrategy());
 
+        newResearchTechnical.setVolume(stockTechnicals.getVolume());
+        newResearchTechnical.setPrevVolume(stockTechnicals.getPrevVolume());
+        newResearchTechnical.setVolumeAvg(
+                VolumeAverageUtil.getAverageVolume(timeframe, stockTechnicals));
+        newResearchTechnical.setPrevVolumeAvg(
+                VolumeAverageUtil.getPrevAverageVolume(timeframe, stockTechnicals));
+
         newResearchTechnical.setResearchPrice(this.calculateResearchPrice(tradeSetup, stockPrice));
 
         newResearchTechnical.setStopLoss(
@@ -114,7 +122,16 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         newResearchTechnical.getSubStrategy().getPriority(),
                         newResearchTechnical.getRisk(),
                         fundamentalResearchService.marketCap(newResearchTechnical.getStock()),
-                        newResearchTechnical.getResearchPrice());
+                        newResearchTechnical.getResearchPrice(),
+                        ConfidenceScoreCalculator.calculateVolumeScore(
+                                stockTechnicals.getVolume(),
+                                stockTechnicals.getPrevVolume(),
+                                VolumeAverageUtil.getAverageVolume(timeframe, stockTechnicals),
+                                VolumeAverageUtil.getPrevAverageVolume(timeframe, stockTechnicals)),
+                        ConfidenceScoreCalculator.calculateMacdScore(
+                                stockTechnicals.getMacd(),
+                                stockTechnicals.getSignal(),
+                                (stockTechnicals.getPrevMacd() - stockTechnicals.getPrevSignal())));
 
         newResearchTechnical.setScore(miscUtil.roundToTwoDecimals(confidenceScore));
 
@@ -671,17 +688,33 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
     @Override
     public void updateScore(ResearchTechnical researchTechnical) {
+
         double risk =
                 formulaService.calculateChangePercentage(
                         researchTechnical.getResearchPrice(), researchTechnical.getStopLoss());
 
         double mcapInCr = fundamentalResearchService.marketCap(researchTechnical.getStock());
+
+        StockTechnicals stockTechnicals =
+                stockTechnicalsService.get(
+                        researchTechnical.getStock(), researchTechnical.getTimeframe());
+
         double confidenceScore =
                 ConfidenceScoreCalculator.calculateConfidenceScore(
                         researchTechnical.getSubStrategy().getPriority(),
                         risk,
                         mcapInCr,
-                        researchTechnical.getResearchPrice());
+                        researchTechnical.getResearchPrice(),
+                        ConfidenceScoreCalculator.calculateVolumeScore(
+                                researchTechnical.getVolume(),
+                                researchTechnical.getPrevVolume(),
+                                researchTechnical.getVolumeAvg(),
+                                researchTechnical.getPrevVolumeAvg()),
+                        ConfidenceScoreCalculator.calculateMacdScore(
+                                stockTechnicals.getMacd(),
+                                stockTechnicals.getSignal(),
+                                (stockTechnicals.getPrevMacd() - stockTechnicals.getPrevSignal())));
+
         System.out.println(
                 researchTechnical.getStock().getNseSymbol()
                         + " : "
