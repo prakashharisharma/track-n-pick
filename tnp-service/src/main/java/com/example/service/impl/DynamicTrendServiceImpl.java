@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class TrendServiceImpl implements TrendService {
+public class DynamicTrendServiceImpl implements DynamicTrendService {
 
     private final StockPriceService<StockPrice> stockPriceService;
 
@@ -262,13 +262,12 @@ public class TrendServiceImpl implements TrendService {
         StockPrice stockPrice = stockPriceService.get(stock, timeframe);
 
         if (stockTechnicals == null || stockPrice == null) {
-            System.out.println("stockTechnicals or stockPrice not found");
             log.info("stockTechnicals or stockPrice not found");
             return new Trend(Trend.Direction.INVALID, phase);
         }
         MovingAverageResult shortestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.SHORTEST, timeframe, stockTechnicals, false);
+                        MovingAverageLength.SHORTEST, timeframe, stockTechnicals, true);
 
         boolean shortestTermDown =
                 this.isShortestTermDownTrend(
@@ -278,7 +277,7 @@ public class TrendServiceImpl implements TrendService {
                         timeframe, stockTechnicals, stockPrice, shortestMovingAverageResult);
         MovingAverageResult shortMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.SHORT, timeframe, stockTechnicals, false);
+                        MovingAverageLength.SHORT, timeframe, stockTechnicals, true);
 
         boolean shortTermDown =
                 this.isShortTermDownTrend(
@@ -289,7 +288,7 @@ public class TrendServiceImpl implements TrendService {
 
         MovingAverageResult mediumMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.MEDIUM, timeframe, stockTechnicals, false);
+                        MovingAverageLength.MEDIUM, timeframe, stockTechnicals, true);
 
         boolean mediumTermDown =
                 this.isMediumTermDownTrend(
@@ -299,7 +298,7 @@ public class TrendServiceImpl implements TrendService {
                         timeframe, stockTechnicals, stockPrice, mediumMovingAverageResult);
         MovingAverageResult longMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.LONG, timeframe, stockTechnicals, false);
+                        MovingAverageLength.LONG, timeframe, stockTechnicals, true);
 
         boolean longTermDown =
                 this.isLongTermDownTrend(
@@ -309,7 +308,7 @@ public class TrendServiceImpl implements TrendService {
                         timeframe, stockTechnicals, stockPrice, longMovingAverageResult);
         MovingAverageResult longestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.LONGEST, timeframe, stockTechnicals, false);
+                        MovingAverageLength.LONGEST, timeframe, stockTechnicals, true);
 
         boolean longestTermDown =
                 this.isLongestTermDownTrend(
@@ -357,40 +356,11 @@ public class TrendServiceImpl implements TrendService {
             phase = Trend.Phase.BOTTOM;
         }
 
-        // 5️⃣ EARLY RECOVERY: 5 EMA is rising, but 20 EMA, 50 EMA & 200 EMA are still bearish
-        if (shortestTermUp && shortTermDown && mediumTermDown && longTermDown && longestTermDown) {
-            if (MovingAverageUtil.isDecreasing(shortMovingAverageResult)) {
-                phase = Trend.Phase.EARLY_RECOVERY;
-            }
-        }
-
-        // 6️⃣ RECOVERY: 5 EMA & 20 EMA rising, but 50 EMA & 200 EMA still bearish
-        if (shortestTermUp && shortTermUp && mediumTermDown && longTermDown && longestTermDown) {
-            if (MovingAverageUtil.isDecreasing(mediumMovingAverageResult)) {
-                phase = Trend.Phase.RECOVERY;
-            }
-        }
-
-        // 7️⃣ ADVANCE (Reversal): Short-term & medium-term uptrend, but long-term still bearish
-        if (shortestTermUp && shortTermUp && mediumTermUp && longTermDown && longestTermDown) {
-            if (MovingAverageUtil.isDecreasing(longMovingAverageResult)) {
-                phase = Trend.Phase.ADVANCE;
-            }
-        }
-
-        // 7️⃣ ADVANCE (Reversal): Short-term & medium-term uptrend, but long-term still bearish
-        if (shortestTermUp && shortTermUp && mediumTermUp && longTermUp && longestTermDown) {
-            if (MovingAverageUtil.isDecreasing(longestMovingAverageResult)) {
-                phase = Trend.Phase.STRONG_ADVANCE;
-            }
-        }
-
         // 8️⃣ TOP: Short-term weakening while medium & long-term are still bullish
         if (shortestTermUp && shortTermUp && mediumTermUp && longTermUp && longestTermUp) {
             phase = Trend.Phase.TOP;
         }
 
-        // 7️⃣ Sideways: No clear trend (EMAs are flat or mixed)
         return new Trend(TrendDirectionUtil.findDirection(stockPrice), phase);
     }
 }
