@@ -3,17 +3,21 @@ package com.example.service;
 import static com.example.data.common.type.MarketCapCategory.*;
 
 import com.example.data.common.type.MarketCapCategory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ConfidenceScoreCalculator {
 
     /**
-     * Calculates the confidence score out of 10 based on strategy score, raw risk (2–20), research
-     * price, and market cap.
+     * Calculates the confidence score (0 to 10) based on strategy score, raw risk, market cap,
+     * research price, volume, and MACD.
      *
-     * @param strategyScore value between 0 and 10 (higher is better)
-     * @param rawRisk value between 2 and 20 (higher is worse)
-     * @param marketCapInCrores market cap in crores
-     * @param researchPrice current research price of the stock
+     * @param strategyScore     value between 0 and 10 (higher is better)
+     * @param rawRisk           value between 2 and 20 (higher is worse)
+     * @param marketCapInCrores market capitalization in crores
+     * @param researchPrice     current research price of the stock
+     * @param volumeScore       volume score (0 to 10)
+     * @param macdScore         MACD score (0 to 10)
      * @return confidence score between 0 and 10
      */
     public static double calculateConfidenceScore(
@@ -24,22 +28,34 @@ public class ConfidenceScoreCalculator {
             double volumeScore,
             double macdScore) {
 
-        double riskWeight = 0.40;
-        double volumeWeight = 0.22;
-        double strategyWeight = 0.18;
-        double macdWeight = 0.10;
-        double mcapWeight = 0.05;
+        double riskWeight = 0.50;
+        double strategyWeight = 0.10;
+        double macdWeight = 0.15;
+        double volumeWeight = 0.10;
+        double mcapWeight = 0.10;
         double priceWeight = 0.05;
+
+        if (strategyScore >= 9) {
+            macdWeight = 0.10;
+            volumeWeight = 0.15;
+        }
 
         // Clamp scores to [0–10]
         strategyScore = clamp(strategyScore);
         volumeScore = clamp(volumeScore);
         macdScore = clamp(macdScore);
 
-        // Convert and calculate sub-scores
-        double riskScore = calculateRiskScore(rawRisk);
-        double marketCapScore = getMarketCapScore(marketCapInCrores);
-        double researchPriceScore = getResearchPriceScore(researchPrice);
+        double riskScore = calculateRiskScore(Math.abs(rawRisk)); // Convert raw risk (2–20) to score (0–10)
+        double marketCapScore = getMarketCapScore(marketCapInCrores); // Score based on market cap
+        double researchPriceScore = getResearchPriceScore(researchPrice); // Score based on price deviation
+
+        // Logging each component
+        log.info("Strategy Score: {} (Weight: {}) => {}", strategyScore, strategyWeight, strategyScore * strategyWeight);
+        log.info("Risk Score: {} (Weight: {}) => {}", riskScore, riskWeight, riskScore * riskWeight);
+        log.info("Market Cap Score: {} (Weight: {}) => {}", marketCapScore, mcapWeight, marketCapScore * mcapWeight);
+        log.info("Research Price Score: {} (Weight: {}) => {}", researchPriceScore, priceWeight, researchPriceScore * priceWeight);
+        log.info("Volume Score: {} (Weight: {}) => {}", volumeScore, volumeWeight, volumeScore * volumeWeight);
+        log.info("MACD Score: {} (Weight: {}) => {}", macdScore, macdWeight, macdScore * macdWeight);
 
         return (strategyScore * strategyWeight)
                 + (riskScore * riskWeight)
@@ -53,6 +69,7 @@ public class ConfidenceScoreCalculator {
      * Converts raw risk value in range [2, 20] to a score between 0 (high risk) to 10 (low risk).
      */
     public static double calculateRiskScore(double rawRisk) {
+        //System.out.println("Risk : "+ rawRisk);
         // Clamp rawRisk to the range [2, 20]
         rawRisk = Math.max(2, Math.min(20, rawRisk));
 
@@ -121,37 +138,52 @@ public class ConfidenceScoreCalculator {
 
         // Rule 2: 8 - avg increasing && vol > 2X prevVol && vol > avg
         if (avgIncreasing && vol2xPrevVol && volAboveAvg) {
-            return 8;
+            return 9;
         }
 
         // Rule 3: 6 - avg increasing && vol increasing
         if (avgIncreasing && volumeIncreasing) {
-            return 6;
+            return 8;
         }
 
         // Rule 4: 4 - avg increasing
         if (avgIncreasing) {
-            return 4;
+            return 7;
         }
 
         // Rule 5: else 2
-        return 2;
+        return 5;
     }
 
-    public static double calculateMacdScore(double macd, double signal, double previousHistogram) {
+    public static double calculateMacdScore(
+            double macd,
+            double signal,
+            double previousHistogram,
+            double previousMacd,
+            double previousSignal
+    ) {
         double histogram = macd - signal;
 
-        // Case: Strong bullish crossover (MACD crossed above signal, rising histogram)
-        if (macd > signal && histogram > previousHistogram && macd > 0) {
+        boolean macdIncreasing = macd > previousMacd;
+        boolean signalDecreasing = signal < previousSignal;
+        boolean histogramRising = histogram > previousHistogram;
+
+        // Case: Strong bullish crossover (MACD crossed above signal, rising histogram, MACD > 0)
+        if (macd > signal && histogramRising && macd > 0) {
             return 10;
         }
 
-        // Case: Mild bullish (MACD > signal and MACD rising but not strong)
+        // Case: Moderately strong bullish (histogram rising and MACD increasing or signal decreasing)
+        if (macd > signal && histogramRising && (macdIncreasing || signalDecreasing)) {
+            return 9;
+        }
+
+        // Case: Mild bullish (MACD > signal and histogram positive)
         if (macd > signal && histogram > 0) {
             return 8;
         }
 
-        // Case: MACD near signal (neutral)
+        // Case: Neutral (MACD near signal)
         if (Math.abs(macd - signal) < 0.1) {
             return 5;
         }
@@ -169,4 +201,5 @@ public class ConfidenceScoreCalculator {
         // Default mild bearish
         return 3;
     }
+
 }
