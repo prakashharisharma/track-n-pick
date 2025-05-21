@@ -6,6 +6,7 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.MovingAverageLength;
 import com.example.service.MovingAverageResult;
+import com.example.service.enhanced.MovingAverageType;
 import java.util.Comparator;
 import java.util.List;
 
@@ -175,5 +176,27 @@ public class MovingAverageUtil {
             return false;
         }
         return result.getValue() < result.getPrevValue();
+    }
+
+    public static double getMovingAverage(
+            MovingAverageType type, Timeframe tf, StockTechnicals st) {
+        return switch (type) {
+            case MA5 -> getMovingAverage5(tf, st);
+            case MA20 -> getMovingAverage20(tf, st);
+            case MA50 -> getMovingAverage50(tf, st);
+            case MA100 -> getMovingAverage100(tf, st);
+            case MA200 -> getMovingAverage200(tf, st);
+        };
+    }
+
+    public static double getPrevMovingAverage(
+            MovingAverageType type, Timeframe tf, StockTechnicals st) {
+        return switch (type) {
+            case MA5 -> getPrevMovingAverage5(tf, st);
+            case MA20 -> getPrevMovingAverage20(tf, st);
+            case MA50 -> getPrevMovingAverage50(tf, st);
+            case MA100 -> getPrevMovingAverage100(tf, st);
+            case MA200 -> getPrevMovingAverage200(tf, st);
+        };
     }
 }

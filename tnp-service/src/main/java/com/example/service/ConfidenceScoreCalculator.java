@@ -12,12 +12,12 @@ public class ConfidenceScoreCalculator {
      * Calculates the confidence score (0 to 10) based on strategy score, raw risk, market cap,
      * research price, volume, and MACD.
      *
-     * @param strategyScore     value between 0 and 10 (higher is better)
-     * @param rawRisk           value between 2 and 20 (higher is worse)
+     * @param strategyScore value between 0 and 10 (higher is better)
+     * @param rawRisk value between 2 and 20 (higher is worse)
      * @param marketCapInCrores market capitalization in crores
-     * @param researchPrice     current research price of the stock
-     * @param volumeScore       volume score (0 to 10)
-     * @param macdScore         MACD score (0 to 10)
+     * @param researchPrice current research price of the stock
+     * @param volumeScore volume score (0 to 10)
+     * @param macdScore MACD score (0 to 10)
      * @return confidence score between 0 and 10
      */
     public static double calculateConfidenceScore(
@@ -45,17 +45,37 @@ public class ConfidenceScoreCalculator {
         volumeScore = clamp(volumeScore);
         macdScore = clamp(macdScore);
 
-        double riskScore = calculateRiskScore(Math.abs(rawRisk)); // Convert raw risk (2–20) to score (0–10)
+        double riskScore =
+                calculateRiskScore(Math.abs(rawRisk)); // Convert raw risk (2–20) to score (0–10)
         double marketCapScore = getMarketCapScore(marketCapInCrores); // Score based on market cap
-        double researchPriceScore = getResearchPriceScore(researchPrice); // Score based on price deviation
+        double researchPriceScore =
+                getResearchPriceScore(researchPrice); // Score based on price deviation
 
         // Logging each component
-        log.info("Strategy Score: {} (Weight: {}) => {}", strategyScore, strategyWeight, strategyScore * strategyWeight);
-        log.info("Risk Score: {} (Weight: {}) => {}", riskScore, riskWeight, riskScore * riskWeight);
-        log.info("Market Cap Score: {} (Weight: {}) => {}", marketCapScore, mcapWeight, marketCapScore * mcapWeight);
-        log.info("Research Price Score: {} (Weight: {}) => {}", researchPriceScore, priceWeight, researchPriceScore * priceWeight);
-        log.info("Volume Score: {} (Weight: {}) => {}", volumeScore, volumeWeight, volumeScore * volumeWeight);
-        log.info("MACD Score: {} (Weight: {}) => {}", macdScore, macdWeight, macdScore * macdWeight);
+        log.info(
+                "Strategy Score: {} (Weight: {}) => {}",
+                strategyScore,
+                strategyWeight,
+                strategyScore * strategyWeight);
+        log.info(
+                "Risk Score: {} (Weight: {}) => {}", riskScore, riskWeight, riskScore * riskWeight);
+        log.info(
+                "Market Cap Score: {} (Weight: {}) => {}",
+                marketCapScore,
+                mcapWeight,
+                marketCapScore * mcapWeight);
+        log.info(
+                "Research Price Score: {} (Weight: {}) => {}",
+                researchPriceScore,
+                priceWeight,
+                researchPriceScore * priceWeight);
+        log.info(
+                "Volume Score: {} (Weight: {}) => {}",
+                volumeScore,
+                volumeWeight,
+                volumeScore * volumeWeight);
+        log.info(
+                "MACD Score: {} (Weight: {}) => {}", macdScore, macdWeight, macdScore * macdWeight);
 
         return (strategyScore * strategyWeight)
                 + (riskScore * riskWeight)
@@ -69,7 +89,7 @@ public class ConfidenceScoreCalculator {
      * Converts raw risk value in range [2, 20] to a score between 0 (high risk) to 10 (low risk).
      */
     public static double calculateRiskScore(double rawRisk) {
-        //System.out.println("Risk : "+ rawRisk);
+        // System.out.println("Risk : "+ rawRisk);
         // Clamp rawRisk to the range [2, 20]
         rawRisk = Math.max(2, Math.min(20, rawRisk));
 
@@ -160,8 +180,7 @@ public class ConfidenceScoreCalculator {
             double signal,
             double previousHistogram,
             double previousMacd,
-            double previousSignal
-    ) {
+            double previousSignal) {
         double histogram = macd - signal;
 
         boolean macdIncreasing = macd > previousMacd;
@@ -173,7 +192,8 @@ public class ConfidenceScoreCalculator {
             return 10;
         }
 
-        // Case: Moderately strong bullish (histogram rising and MACD increasing or signal decreasing)
+        // Case: Moderately strong bullish (histogram rising and MACD increasing or signal
+        // decreasing)
         if (macd > signal && histogramRising && (macdIncreasing || signalDecreasing)) {
             return 9;
         }
@@ -201,5 +221,4 @@ public class ConfidenceScoreCalculator {
         // Default mild bearish
         return 3;
     }
-
 }
