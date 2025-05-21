@@ -131,7 +131,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         ConfidenceScoreCalculator.calculateMacdScore(
                                 stockTechnicals.getMacd(),
                                 stockTechnicals.getSignal(),
-                                (stockTechnicals.getPrevMacd() - stockTechnicals.getPrevSignal())));
+                                (stockTechnicals.getPrevMacd() - stockTechnicals.getPrevSignal()), stockTechnicals.getPrevMacd(), stockTechnicals.getPrevSignal() ));
 
         newResearchTechnical.setScore(miscUtil.roundToTwoDecimals(confidenceScore));
 
@@ -713,7 +713,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         ConfidenceScoreCalculator.calculateMacdScore(
                                 stockTechnicals.getMacd(),
                                 stockTechnicals.getSignal(),
-                                (stockTechnicals.getPrevMacd() - stockTechnicals.getPrevSignal())));
+                                (stockTechnicals.getPrevMacd() - stockTechnicals.getPrevSignal()),stockTechnicals.getPrevMacd(), stockTechnicals.getPrevSignal()));
 
         System.out.println(
                 researchTechnical.getStock().getNseSymbol()

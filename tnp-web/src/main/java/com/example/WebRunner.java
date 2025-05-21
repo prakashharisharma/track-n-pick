@@ -257,7 +257,7 @@ public class WebRunner implements CommandLineRunner {
                 researchTechnicalService.getAll(Trade.Type.BUY);
 
         for (ResearchTechnical researchTechnical : researchTechnicalList) {
-            if (researchTechnical.getResearchDate().isAfter(LocalDate.of(2025, 5, 14))) {
+            if (researchTechnical.getResearchDate().isAfter(LocalDate.of(2025, 5, 18))) {
                 researchTechnicalService.updateScore(researchTechnical);
             }
         }
