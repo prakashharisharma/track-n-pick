@@ -6,29 +6,84 @@ import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
 import com.example.service.utils.MovingAverageUtil;
+import com.example.util.FormulaService;
 import java.util.Comparator;
 import java.util.List;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@AllArgsConstructor
 @Service
 public class DynamicMovingAverageSupportResolverServiceImpl
         implements DynamicMovingAverageSupportResolverService {
 
-    // Inject or initialize your services as needed
-    private final FiveDaysMovingAverageSupportResistanceService
+    private final MovingAverageSupportResistanceService
             fiveDaysMovingAverageSupportResistanceService;
-    private final TwentyDaysMovingAverageSupportResistanceService
+
+    private final MovingAverageSupportResistanceService
             twentyDaysMovingAverageSupportResistanceService;
-    private final FiftyDaysMovingAverageSupportResistanceService
+
+    private final MovingAverageSupportResistanceService
             fiftyDaysMovingAverageSupportResistanceService;
-    private final OneHundredDaysMovingAverageSupportResistanceService
+
+    private final MovingAverageSupportResistanceService
             oneHundredDaysMovingAverageSupportResistanceService;
-    private final TwoHundredDaysMovingAverageSupportResistanceService
+
+    private final MovingAverageSupportResistanceService
             twoHundredDaysMovingAverageSupportResistanceService;
+
+    private final SupportResistanceConfirmationService supportResistanceConfirmationService;
+
+    private final BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
+
+    private final SupportResistanceUtilService supportResistanceService;
+
+    private final CandleStickService candleStickService;
+
+    private final BreakoutService breakoutService;
+
+    private final FormulaService formulaService;
+
+    public DynamicMovingAverageSupportResolverServiceImpl(
+            @Qualifier("fiveDayMovingAverageService")
+                    MovingAverageSupportResistanceService
+                            fiveDaysMovingAverageSupportResistanceService,
+            @Qualifier("twentyDayMovingAverageService")
+                    MovingAverageSupportResistanceService
+                            twentyDaysMovingAverageSupportResistanceService,
+            @Qualifier("fiftyDayMovingAverageService")
+                    MovingAverageSupportResistanceService
+                            fiftyDaysMovingAverageSupportResistanceService,
+            @Qualifier("hundredDayMovingAverageService")
+                    MovingAverageSupportResistanceService
+                            oneHundredDaysMovingAverageSupportResistanceService,
+            @Qualifier("twoHundredDayMovingAverageService")
+                    MovingAverageSupportResistanceService
+                            twoHundredDaysMovingAverageSupportResistanceService,
+            SupportResistanceConfirmationService supportResistanceConfirmationService,
+            BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService,
+            SupportResistanceUtilService supportResistanceService,
+            CandleStickService candleStickService,
+            BreakoutService breakoutService,
+            FormulaService formulaService) {
+        this.fiveDaysMovingAverageSupportResistanceService =
+                fiveDaysMovingAverageSupportResistanceService;
+        this.twentyDaysMovingAverageSupportResistanceService =
+                twentyDaysMovingAverageSupportResistanceService;
+        this.fiftyDaysMovingAverageSupportResistanceService =
+                fiftyDaysMovingAverageSupportResistanceService;
+        this.oneHundredDaysMovingAverageSupportResistanceService =
+                oneHundredDaysMovingAverageSupportResistanceService;
+        this.twoHundredDaysMovingAverageSupportResistanceService =
+                twoHundredDaysMovingAverageSupportResistanceService;
+        this.supportResistanceConfirmationService = supportResistanceConfirmationService;
+        this.breakoutBreakdownConfirmationService = breakoutBreakdownConfirmationService;
+        this.supportResistanceService = supportResistanceService;
+        this.candleStickService = candleStickService;
+        this.breakoutService = breakoutService;
+        this.formulaService = formulaService;
+    }
 
     @Override
     public boolean isNearSupport(

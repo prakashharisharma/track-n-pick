@@ -10,32 +10,33 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@RequiredArgsConstructor
 @Service
 public class MultiMovingAverageSupportResistanceServiceImpl
         implements MultiMovingAverageSupportResistanceService {
 
-    private final FiveDaysMovingAverageSupportResistanceService
+    @Qualifier("fiveDayMovingAverageService")
+    private final MovingAverageSupportResistanceService
             fiveDaysMovingAverageSupportResistanceService;
 
-    private final TenDaysMovingAverageSupportResistanceService
-            tenDaysMovingAverageSupportResistanceService;
-
-    private final TwentyDaysMovingAverageSupportResistanceService
+    @Qualifier("twentyDayMovingAverageService")
+    private final MovingAverageSupportResistanceService
             twentyDaysMovingAverageSupportResistanceService;
 
-    private final FiftyDaysMovingAverageSupportResistanceService
+    @Qualifier("fiftyDayMovingAverageService")
+    private final MovingAverageSupportResistanceService
             fiftyDaysMovingAverageSupportResistanceService;
 
-    private final OneHundredDaysMovingAverageSupportResistanceService
+    @Qualifier("hundredDayMovingAverageService")
+    private final MovingAverageSupportResistanceService
             oneHundredDaysMovingAverageSupportResistanceService;
 
-    private final TwoHundredDaysMovingAverageSupportResistanceService
+    @Qualifier("twoHundredDayMovingAverageService")
+    private final MovingAverageSupportResistanceService
             twoHundredDaysMovingAverageSupportResistanceService;
 
     private final SupportResistanceConfirmationService supportResistanceConfirmationService;
@@ -49,6 +50,46 @@ public class MultiMovingAverageSupportResistanceServiceImpl
     private final BreakoutService breakoutService;
 
     private final FormulaService formulaService;
+
+    public MultiMovingAverageSupportResistanceServiceImpl(
+            @Qualifier("fiveDayMovingAverageService")
+                    MovingAverageSupportResistanceService
+                            fiveDaysMovingAverageSupportResistanceService,
+            @Qualifier("twentyDayMovingAverageService")
+                    MovingAverageSupportResistanceService
+                            twentyDaysMovingAverageSupportResistanceService,
+            @Qualifier("fiftyDayMovingAverageService")
+                    MovingAverageSupportResistanceService
+                            fiftyDaysMovingAverageSupportResistanceService,
+            @Qualifier("hundredDayMovingAverageService")
+                    MovingAverageSupportResistanceService
+                            oneHundredDaysMovingAverageSupportResistanceService,
+            @Qualifier("twoHundredDayMovingAverageService")
+                    MovingAverageSupportResistanceService
+                            twoHundredDaysMovingAverageSupportResistanceService,
+            SupportResistanceConfirmationService supportResistanceConfirmationService,
+            BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService,
+            SupportResistanceUtilService supportResistanceService,
+            CandleStickService candleStickService,
+            BreakoutService breakoutService,
+            FormulaService formulaService) {
+        this.fiveDaysMovingAverageSupportResistanceService =
+                fiveDaysMovingAverageSupportResistanceService;
+        this.twentyDaysMovingAverageSupportResistanceService =
+                twentyDaysMovingAverageSupportResistanceService;
+        this.fiftyDaysMovingAverageSupportResistanceService =
+                fiftyDaysMovingAverageSupportResistanceService;
+        this.oneHundredDaysMovingAverageSupportResistanceService =
+                oneHundredDaysMovingAverageSupportResistanceService;
+        this.twoHundredDaysMovingAverageSupportResistanceService =
+                twoHundredDaysMovingAverageSupportResistanceService;
+        this.supportResistanceConfirmationService = supportResistanceConfirmationService;
+        this.breakoutBreakdownConfirmationService = breakoutBreakdownConfirmationService;
+        this.supportResistanceService = supportResistanceService;
+        this.candleStickService = candleStickService;
+        this.breakoutService = breakoutService;
+        this.formulaService = formulaService;
+    }
 
     @Override
     public boolean isBreakout(

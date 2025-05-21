@@ -58,7 +58,7 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private BhavcopyService bhavcopyService;
 
-    @Autowired private DailySupportResistanceService dailySupportResistanceService;
+    // @Autowired private DailySupportResistanceService dailySupportResistanceService;
 
     @Autowired private OHLCVAggregatorService ohlcvAggregatorService;
 
@@ -169,7 +169,7 @@ public class WebRunner implements CommandLineRunner {
 
         log.info("Application started....");
 
-        // bhavProcessor.processAndResearchTechnicals();
+        bhavProcessor.processAndResearchTechnicals();
 
         /*
         Stock stock = stockService.getStockByNseSymbol("360ONE");
@@ -248,7 +248,7 @@ public class WebRunner implements CommandLineRunner {
         System.out.println("*************");
          */
         // this.testmcap();
-        this.updateScore();
+        // this.updateScore();
         System.out.println("STARTED");
     }
 
@@ -1459,6 +1459,7 @@ public class WebRunner implements CommandLineRunner {
     }
 
     private void processDailyPriceUpdate(Stock stock) {
+        /*
 
         long startTime = System.currentTimeMillis();
         System.out.println("Starting daily activity for " + stock.getNseSymbol());
@@ -1539,7 +1540,7 @@ public class WebRunner implements CommandLineRunner {
             miscUtil.delay(500);
         } catch (Exception e) {
             System.out.println("An error occured while getting data " + stock.getNseSymbol());
-        }
+        }*/
     }
 
     public void processTechnicalsUpdate() {
