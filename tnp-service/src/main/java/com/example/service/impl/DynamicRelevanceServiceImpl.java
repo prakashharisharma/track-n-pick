@@ -155,10 +155,6 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
 
-        if (CandleStickUtils.isRed(stockPrice)) {
-            return false;
-        }
-
         // Check if OBV or Volume indicators are bullish
         boolean isVolumeBullish = obvIndicatorService.isBullish(stockTechnicals);
 
@@ -188,9 +184,6 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
 
-        if (CandleStickUtils.isGreen(stockPrice)) {
-            return false;
-        }
 
         // Check if OBV or Volume indicators are bearish
         boolean isVolumeBearish = obvIndicatorService.isBearish(stockTechnicals);
