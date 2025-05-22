@@ -6,6 +6,7 @@ import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
+import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -263,6 +264,10 @@ public class RelevanceServiceImpl implements RelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
 
+        if (CandleStickUtils.isRed(stockPrice)) {
+            return false;
+        }
+
         // Check if the trend is in a dip, pullback or correction phase
         if (trend.getMomentum() != Trend.Phase.DIP
                 && trend.getMomentum() != Trend.Phase.PULLBACK
@@ -393,6 +398,9 @@ public class RelevanceServiceImpl implements RelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
 
+        if (CandleStickUtils.isGreen(stockPrice)) {
+            return false;
+        }
         // Check if the trend is in a top or advance phase
         if (trend.getMomentum() != Trend.Phase.TOP
                 && trend.getMomentum() != Trend.Phase.ADVANCE

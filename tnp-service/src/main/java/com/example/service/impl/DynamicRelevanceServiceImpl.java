@@ -6,6 +6,7 @@ import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
+import com.example.service.utils.CandleStickUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -154,6 +155,10 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
 
+        if (CandleStickUtils.isRed(stockPrice)) {
+            return false;
+        }
+
         // Check if OBV or Volume indicators are bullish
         boolean isVolumeBullish = obvIndicatorService.isBullish(stockTechnicals);
 
@@ -182,6 +187,10 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
+
+        if (CandleStickUtils.isGreen(stockPrice)) {
+            return false;
+        }
 
         // Check if OBV or Volume indicators are bearish
         boolean isVolumeBearish = obvIndicatorService.isBearish(stockTechnicals);
