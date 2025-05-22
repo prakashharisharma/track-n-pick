@@ -264,9 +264,6 @@ public class RelevanceServiceImpl implements RelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
 
-        if (CandleStickUtils.isRed(stockPrice)) {
-            return false;
-        }
 
         // Check if the trend is in a dip, pullback or correction phase
         if (trend.getMomentum() != Trend.Phase.DIP
@@ -398,9 +395,6 @@ public class RelevanceServiceImpl implements RelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
 
-        if (CandleStickUtils.isGreen(stockPrice)) {
-            return false;
-        }
         // Check if the trend is in a top or advance phase
         if (trend.getMomentum() != Trend.Phase.TOP
                 && trend.getMomentum() != Trend.Phase.ADVANCE
