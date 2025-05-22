@@ -11,6 +11,7 @@ import com.example.dto.common.TradeSetup;
 import com.example.service.*;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
+import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
 import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicReference;
@@ -132,7 +133,9 @@ public class PriceActionServiceImpl implements PriceActionService {
                                             Trend.Phase.DEEP_CORRECTION)
                                     .contains(phase))
                             && !isBearishCandleStick
-                            && isVolumeSurge)) {
+                            && isVolumeSurge
+                            && (CandleStickUtils.isStrongLowerWick(stockPrice)
+                                    || CandleStickUtils.isGreen(stockPrice)))) {
 
                 subStrategyRef.set(
                         isBullishCandleStick
@@ -167,8 +170,10 @@ public class PriceActionServiceImpl implements PriceActionService {
                 return true;
             }
         }
-
-        if (relevanceService.isBullishIndicator(trend, timeframe, stockPrice, stockTechnicals)) {
+        boolean isHigherHighHigherLow = CandleStickUtils.isHigherHighAndHigherLow(stockPrice);
+        if (isHigherHighHigherLow
+                && relevanceService.isBullishIndicator(
+                        trend, timeframe, stockPrice, stockTechnicals)) {
             subStrategyRef.set(ResearchTechnical.SubStrategy.BULLISH_INDICATORS);
             return true;
         }
@@ -199,7 +204,12 @@ public class PriceActionServiceImpl implements PriceActionService {
                 volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
 
         if (dynamicRelevanceService.isNearSupport(trend, timeframe, stockPrice, stockTechnicals)) {
-            if (isBullishCandleStick || (!isBearishCandleStick && isVolumeSurge)) {
+            if (isBullishCandleStick
+                    || (!isBearishCandleStick
+                            && isVolumeSurge
+                            && isVolumeSurge
+                            && (CandleStickUtils.isStrongLowerWick(stockPrice)
+                                    || CandleStickUtils.isGreen(stockPrice)))) {
 
                 subStrategyRef.set(
                         isBullishCandleStick
@@ -227,8 +237,11 @@ public class PriceActionServiceImpl implements PriceActionService {
             }
         }
 
-        if (dynamicRelevanceService.isBullishIndicator(
-                trend, timeframe, stockPrice, stockTechnicals)) {
+        boolean isHigherHighHigherLow = CandleStickUtils.isHigherHighAndHigherLow(stockPrice);
+
+        if (isHigherHighHigherLow
+                && dynamicRelevanceService.isBullishIndicator(
+                        trend, timeframe, stockPrice, stockTechnicals)) {
             subStrategyRef.set(ResearchTechnical.SubStrategy.DYNAMIC_BULLISH_INDICATORS);
             return true;
         }
@@ -327,7 +340,9 @@ public class PriceActionServiceImpl implements PriceActionService {
                                             Trend.Phase.TOP)
                                     .contains(phase))
                             && !isBullishCandleStick
-                            && isVolumeSurge)) {
+                            && isVolumeSurge
+                            && (CandleStickUtils.isStrongUpperWick(stockPrice)
+                                    || CandleStickUtils.isRed(stockPrice)))) {
 
                 subStrategyRef.set(
                         isBearishCandleStick
@@ -361,8 +376,11 @@ public class PriceActionServiceImpl implements PriceActionService {
                 return true;
             }
         }
+        boolean isLowerHighAndLowerLow = CandleStickUtils.isLowerHighAndLowerLow(stockPrice);
 
-        if (relevanceService.isBearishIndicator(trend, timeframe, stockPrice, stockTechnicals)) {
+        if (isLowerHighAndLowerLow
+                && relevanceService.isBearishIndicator(
+                        trend, timeframe, stockPrice, stockTechnicals)) {
             subStrategyRef.set(ResearchTechnical.SubStrategy.BEARISH_INDICATORS);
             return true;
         }
@@ -395,7 +413,11 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         if (dynamicRelevanceService.isNearResistance(
                 trend, timeframe, stockPrice, stockTechnicals)) {
-            if (isBearishCandleStick || (!isBullishCandleStick && isVolumeSurge)) {
+            if (isBearishCandleStick
+                    || (!isBullishCandleStick
+                            && isVolumeSurge
+                            && (CandleStickUtils.isStrongUpperWick(stockPrice)
+                                    || CandleStickUtils.isRed(stockPrice)))) {
 
                 subStrategyRef.set(
                         isBearishCandleStick
@@ -423,9 +445,11 @@ public class PriceActionServiceImpl implements PriceActionService {
                 return true;
             }
         }
+        boolean isLowerHighAndLowerLow = CandleStickUtils.isLowerHighAndLowerLow(stockPrice);
 
-        if (dynamicRelevanceService.isBearishIndicator(
-                trend, timeframe, stockPrice, stockTechnicals)) {
+        if (isLowerHighAndLowerLow
+                && dynamicRelevanceService.isBearishIndicator(
+                        trend, timeframe, stockPrice, stockTechnicals)) {
             subStrategyRef.set(ResearchTechnical.SubStrategy.DYNAMIC_BEARISH_INDICATORS);
             return true;
         }
