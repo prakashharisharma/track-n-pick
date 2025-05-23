@@ -37,7 +37,7 @@ public class MovingAverageSupportResistanceServiceImpl
 
         return breakoutBreakdownConfirmationService.isBreakoutConfirmed(
                         timeframe, stockPrice, stockTechnicals, ma)
-                && breakoutService.isBreakOut(prevClose, prevMa, close, ma);
+                && breakoutService.isBreakOut(stockPrice, ma, prevMa);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class MovingAverageSupportResistanceServiceImpl
 
         return breakoutBreakdownConfirmationService.isBreakdownConfirmed(
                         timeframe, stockPrice, stockTechnicals, ma)
-                && breakoutService.isBreakDown(prevClose, prevMa, close, ma);
+                && breakoutService.isBreakDown(stockPrice, ma, prevMa);
     }
 
     @Override

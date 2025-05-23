@@ -13,8 +13,14 @@ public interface CandleStickConfirmationService {
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
     public boolean isBullishConfirmed(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean skipVolumeCheck);
 
     public boolean isBearishConfirmed(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean skipVolumeCheck);
 }

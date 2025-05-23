@@ -29,4 +29,16 @@ public interface DynamicMovingAverageSupportResolverService {
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals);
+
+    public boolean isBottomBreakout(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals);
+
+    public boolean isTopBreakdown(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals);
 }

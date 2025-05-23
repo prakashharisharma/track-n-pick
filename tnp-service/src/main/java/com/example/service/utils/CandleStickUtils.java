@@ -660,10 +660,13 @@ public class CandleStickUtils {
         double close = price.getClose();
 
         double bodySize = Math.abs(close - open);
-        double lowerWick = Math.min(open, close) - low;
-        double upperWick = high - Math.max(open, close);
+        double lowerWickSize = Math.min(open, close) - low;
+        double upperWickSize = high - Math.max(open, close);
 
-        return lowerWick > upperWick && lowerWick > bodySize;
+        boolean isLowerWickSignificant =
+                lowerWickSize > (0.50 * bodySize) && lowerWickSize > upperWickSize;
+
+        return isLowerWickSignificant;
     }
 
     public static boolean isStrongUpperWick(StockPrice price) {
@@ -673,9 +676,12 @@ public class CandleStickUtils {
         double close = price.getClose();
 
         double bodySize = Math.abs(close - open);
-        double upperWick = high - Math.max(open, close);
-        double lowerWick = Math.min(open, close) - low;
+        double upperWickSize = high - Math.max(open, close);
+        double lowerWickSize = Math.min(open, close) - low;
 
-        return upperWick > lowerWick && upperWick > bodySize;
+        boolean isUpperWickSignificant =
+                upperWickSize > (0.50 * bodySize) && upperWickSize > lowerWickSize;
+
+        return isUpperWickSignificant;
     }
 }

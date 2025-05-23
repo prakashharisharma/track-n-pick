@@ -25,6 +25,7 @@ public class SwingActionServiceImpl implements SwingActionService {
     @Autowired private SupportResistanceUtilService supportResistanceService;
     @Autowired private CandleStickConfirmationService candleStickHelperService;
     @Autowired private MacdIndicatorService macdIndicatorService;
+
     @Autowired private CandleStickService candleStickService;
     @Autowired private RsiIndicatorService rsiTrendService;
     @Autowired private StockPriceHelperService stockPriceHelperService;
@@ -32,7 +33,6 @@ public class SwingActionServiceImpl implements SwingActionService {
     @Autowired private BreakoutService breakoutService;
 
     @Autowired private FormulaService formulaService;
-
     @Autowired private VolumeIndicatorService volumeIndicatorService;
     @Autowired private TrendService trendService;
 
@@ -54,10 +54,13 @@ public class SwingActionServiceImpl implements SwingActionService {
      */
     @Override
     public TradeSetup breakOut(Stock stock, Timeframe timeframe) {
+
         StockPrice stockPrice = stockPriceService.get(stock, timeframe);
+
         StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
 
         StockPrice stockPriceHigherTF = stockPriceService.get(stock, timeframe.getHigher());
+
         StockTechnicals stockTechnicalsHigherTF =
                 stockTechnicalsService.get(stock, timeframe.getHigher());
 
@@ -96,7 +99,7 @@ public class SwingActionServiceImpl implements SwingActionService {
         boolean adxBullish = adxIndicatorService.isBullish(techs);
         boolean rsiBullish = rsiTrendService.isBullish(techs);
         boolean isBearishCandleStick =
-                candleStickHelperService.isBearishConfirmed(timeframe, price, techs);
+                candleStickHelperService.isBearishConfirmed(timeframe, price, techs, true);
 
         if (!aboveEma) log.debug("Failed EMA alignment");
         if (!trendStructure) log.debug("Failed HH-HL structure");
@@ -169,7 +172,7 @@ public class SwingActionServiceImpl implements SwingActionService {
         boolean adxBearish = adxIndicatorService.isBearish(techs);
         boolean rsiBearish = rsiTrendService.isBearish(techs);
         boolean isBullishCandleStick =
-                candleStickHelperService.isBullishConfirmed(timeframe, price, techs);
+                candleStickHelperService.isBullishConfirmed(timeframe, price, techs, true);
 
         if (!belowEma) log.debug("Failed EMA alignment (bearish)");
         if (!trendStructure) log.debug("Failed LH-LL structure");
@@ -210,9 +213,11 @@ public class SwingActionServiceImpl implements SwingActionService {
         Trend.Phase phase = trend.getMomentum();
 
         boolean isBullishCandleStick =
-                candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
+                candleStickHelperService.isBullishConfirmed(
+                        timeframe, stockPrice, stockTechnicals, true);
         boolean isBearishCandleStick =
-                candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
+                candleStickHelperService.isBearishConfirmed(
+                        timeframe, stockPrice, stockTechnicals, true);
         boolean isVolumeSurge =
                 volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
 
@@ -254,10 +259,12 @@ public class SwingActionServiceImpl implements SwingActionService {
         Trend.Phase phase = trend.getMomentum();
 
         boolean isBearishCandleStick =
-                candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
+                candleStickHelperService.isBearishConfirmed(
+                        timeframe, stockPrice, stockTechnicals, true);
 
         boolean isBullishCandleStick =
-                candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
+                candleStickHelperService.isBullishConfirmed(
+                        timeframe, stockPrice, stockTechnicals, true);
         boolean isVolumeSurge =
                 volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
 

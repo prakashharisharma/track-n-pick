@@ -1,14 +1,8 @@
 package com.example.service.impl;
 
-import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockPrice;
-import com.example.data.transactional.entities.StockTechnicals;
 import com.example.dto.common.OHLCV;
 import com.example.service.*;
-import com.example.service.StockPriceService;
-import com.example.service.StockTechnicalsService;
-import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -17,175 +11,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class QuarterlySupportResistanceServiceImpl implements QuarterlySupportResistanceService {
 
-    @Autowired private SupportResistanceConfirmationService supportResistanceConfirmationService;
-    @Autowired private BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
+    private final OhlcvService ohlcvService;
 
-    @Autowired private SupportResistanceUtilService supportResistanceService;
-
-    @Autowired private CandleStickService candleStickService;
-
-    @Autowired private BreakoutService breakoutService;
-
-    @Autowired private CalendarService calendarService;
-
-    @Autowired private FormulaService formulaService;
-
-    @Autowired private OhlcvService ohlcvService;
-
-    @Autowired private MiscUtil miscUtil;
-
-    @Autowired private StockPriceService<StockPrice> stockPriceService;
-
-    @Autowired private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
-
-    @Override
-    public boolean isBreakout(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-
-        double open = stockPrice.getOpen();
-
-        double close = stockPrice.getClose();
-        double prevClose = stockPrice.getPrevClose();
-        double support = stockPrice.getLow();
-        double resistance = stockPrice.getHigh();
-
-        if (open < support) {
-            resistance = support;
-        }
-
-        // Check for Current Day Breakout
-        if (breakoutBreakdownConfirmationService.isBreakoutConfirmed(
-                        timeframe, stockPrice, stockTechnicals, resistance)
-                && candleStickService.range(stockPrice) > CandleStickService.MIN_RANGE) {
-            // Breakout resistance
-            if (breakoutService.isBreakOut(prevClose, resistance, close, resistance)) {
-                return Boolean.TRUE;
-            }
-        }
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isNearSupport(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-
-        double open = stockPrice.getOpen();
-        double prevOpen = stockPrice.getPrevOpen();
-        double low = stockPrice.getLow();
-        double prevLow = stockPrice.getPrevLow();
-        double high = stockPrice.getHigh();
-        double prevHigh = stockPrice.getPrevHigh();
-        double close = stockPrice.getClose();
-        double prevClose = stockPrice.getPrevClose();
-        double support = stockPrice.getLow();
-        double resistance = stockPrice.getHigh();
-
-        if (open > resistance) {
-            support = resistance;
-        }
-
-        // Check for Current Day
-        // if(candleStickService.isLowerHigh(stockPrice) &&
-        // candleStickService.isLowerLow(stockPrice)) {
-        // Near Support
-        if (supportResistanceService.isNearSupport(open, high, low, close, support)) {
-            return Boolean.TRUE;
-        }
-        // }
-
-        // Check for Previous Session Near Support
-        // else if(candleStickService.isPrevLowerHigh(stockPrice) &&
-        // candleStickService.isPrevLowerLow(stockPrice)){
-        // Near Support EMA 20
-        if (supportResistanceConfirmationService.isSupportConfirmed(
-                        timeframe, stockPrice, stockTechnicals, support)
-                && supportResistanceService.isNearSupport(
-                        prevOpen, prevHigh, prevLow, prevClose, support)) {
-            return Boolean.TRUE;
-        }
-        // }
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isBreakdown(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-
-        double open = stockPrice.getOpen();
-        double close = stockPrice.getClose();
-        double prevClose = stockPrice.getPrevClose();
-        double support = stockPrice.getLow();
-        double resistance = stockPrice.getHigh();
-
-        if (open > resistance) {
-            support = resistance;
-        }
-
-        // Check for Current Day Breakout
-        if (breakoutBreakdownConfirmationService.isBreakdownConfirmed(
-                        timeframe, stockPrice, stockTechnicals, support)
-                && candleStickService.range(stockPrice) > CandleStickService.MIN_RANGE) {
-            // Breakdown
-            if (breakoutService.isBreakDown(prevClose, support, close, support)) {
-                return Boolean.TRUE;
-            }
-        }
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public boolean isNearResistance(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-
-        double open = stockPrice.getOpen();
-        double prevOpen = stockPrice.getPrevOpen();
-        double low = stockPrice.getLow();
-        double prevLow = stockPrice.getPrevLow();
-        double high = stockPrice.getHigh();
-        double prevHigh = stockPrice.getPrevHigh();
-        double close = stockPrice.getClose();
-        double prevClose = stockPrice.getPrevClose();
-        double support = stockPrice.getLow();
-        double resistance = stockPrice.getHigh();
-
-        if (open < support) {
-            resistance = support;
-        }
-
-        // Check for Current Day
-        // if(candleStickService.isHigherHigh(stockPrice) &&
-        // candleStickService.isHigherLow(stockPrice)) {
-        // Near Resistance EMA 20
-        if (supportResistanceService.isNearResistance(open, high, low, close, resistance)) {
-            return Boolean.TRUE;
-        }
-
-        // }
-        // Check for Previous Session Near Resistance
-        // else if(candleStickService.isPrevHigherHigh(stockPrice) &&
-        // candleStickService.isPrevHigherLow(stockPrice)){
-        // Near Support EMA 20
-        if (supportResistanceConfirmationService.isResistanceConfirmed(
-                        timeframe, stockPrice, stockTechnicals, resistance)
-                && supportResistanceService.isNearResistance(
-                        prevOpen, prevHigh, prevLow, prevClose, resistance)) {
-            return Boolean.TRUE;
-        }
-        // }
-
-        return Boolean.FALSE;
-    }
+    private final MiscUtil miscUtil;
 
     @Override
     public OHLCV supportAndResistance(Stock stock) {

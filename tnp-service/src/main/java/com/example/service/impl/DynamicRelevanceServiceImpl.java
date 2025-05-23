@@ -6,7 +6,6 @@ import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
-import com.example.service.utils.CandleStickUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,7 +40,8 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
                         trend.getDirection(),
                         trend.getMomentum());
                 return true;
-            } else if (timeframeSupportResistanceService.isNearSupport(
+            } else if (trend.getMomentum() == Trend.Phase.BOTTOM
+                    && timeframeSupportResistanceService.isNearSupport(
                             trend, timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverSold(stockTechnicals)) {
                 log.info(
@@ -62,7 +62,8 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
         if (trend.getDirection() == Trend.Direction.UP) {
-            if (timeframeSupportResistanceService.isNearResistance(
+            if (trend.getMomentum() == Trend.Phase.TOP
+                    && timeframeSupportResistanceService.isNearResistance(
                             trend, timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverBought(stockTechnicals)) {
                 log.info(
@@ -92,7 +93,8 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
         if (trend.getDirection() == Trend.Direction.UP) {
-            if (timeframeSupportResistanceService.isBreakout(
+            if (trend.getMomentum() == Trend.Phase.TOP
+                    && timeframeSupportResistanceService.isBreakout(
                             trend, timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isBullish(stockTechnicals)) {
                 log.info(
@@ -123,21 +125,22 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
         if (trend.getDirection() == Trend.Direction.DOWN) {
-            if (timeframeSupportResistanceService.isBreakdown(
-                            trend, timeframe, stockPrice, stockTechnicals)
-                    && rsiIndicatorService.isBearish(stockTechnicals)) {
-                log.info(
-                        "{} timeframe breakdown {} momentum {}",
-                        stockPrice.getStock().getNseSymbol(),
-                        trend.getDirection(),
-                        trend.getMomentum());
-                return true;
 
-            } else if (dynamicMovingAverageSupportResolverService.isBreakdown(
+            if (dynamicMovingAverageSupportResolverService.isBreakdown(
                             trend, timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isBearish(stockTechnicals)) {
                 log.info(
                         "{} moving average breakdown {} momentum {}",
+                        stockPrice.getStock().getNseSymbol(),
+                        trend.getDirection(),
+                        trend.getMomentum());
+                return true;
+            } else if (trend.getMomentum() == Trend.Phase.BOTTOM
+                    && timeframeSupportResistanceService.isBreakdown(
+                            trend, timeframe, stockPrice, stockTechnicals)
+                    && rsiIndicatorService.isBearish(stockTechnicals)) {
+                log.info(
+                        "{} timeframe breakdown {} momentum {}",
                         stockPrice.getStock().getNseSymbol(),
                         trend.getDirection(),
                         trend.getMomentum());
@@ -184,7 +187,6 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
 
-
         // Check if OBV or Volume indicators are bearish
         boolean isVolumeBearish = obvIndicatorService.isBearish(stockTechnicals);
 
@@ -205,5 +207,26 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
                 ResearchTechnical.SubStrategy.RMAO);
 
         return true;
+    }
+
+    @Override
+    public boolean isBottomBreakout(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals) {
+
+        return dynamicMovingAverageSupportResolverService.isBottomBreakout(
+                trend, timeframe, stockPrice, stockTechnicals);
+    }
+
+    @Override
+    public boolean isTopBreakdown(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals) {
+        return dynamicMovingAverageSupportResolverService.isTopBreakdown(
+                trend, timeframe, stockPrice, stockTechnicals);
     }
 }

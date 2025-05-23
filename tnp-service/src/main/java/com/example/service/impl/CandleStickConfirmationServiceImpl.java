@@ -179,11 +179,15 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
 
     @Override
     public boolean isBullishConfirmed(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean skipVolumeCheck) {
 
-        if (this.isThreeSessionBullish(timeframe, stockPrice, stockTechnicals)
-                || this.isTwoSessionBullish(timeframe, stockPrice, stockTechnicals)
-                || this.isSingleSessionBullish(timeframe, stockPrice, stockTechnicals)) {
+        if (this.isThreeSessionBullish(timeframe, stockPrice, stockTechnicals, skipVolumeCheck)
+                || this.isTwoSessionBullish(timeframe, stockPrice, stockTechnicals, skipVolumeCheck)
+                || this.isSingleSessionBullish(
+                        timeframe, stockPrice, stockTechnicals, skipVolumeCheck)) {
             // if (this.isUpperWickSizeConfirmed(timeframe, stockPrice, stockTechnicals)) {
             log.info(
                     "{} bullish candlestick active on {}",
@@ -201,7 +205,10 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
     }
 
     private boolean isThreeSessionBullish(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean skipVolumeCheck) {
 
         boolean isBullishPattern =
                 // 1️⃣ Strongest Bullish Reversal Pattern
@@ -224,14 +231,16 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
                         (threeSessionCandleStickService.isThreeInsideUp(
                                         timeframe, stockPrice, stockTechnicals)
                                 && this.isSingleSessionBullish(
-                                        timeframe, stockPrice, stockTechnicals));
+                                        timeframe, stockPrice, stockTechnicals, skipVolumeCheck));
 
         if (!isBullishPattern) {
             return false;
         }
 
         boolean isVolumeConfirmed =
-                volumeIndicatorService.isBullish(timeframe, stockPrice, stockTechnicals, 3);
+                skipVolumeCheck
+                        || volumeIndicatorService.isBullish(
+                                timeframe, stockPrice, stockTechnicals, 3);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -247,7 +256,10 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
     }
 
     private boolean isThreeSessionBearish(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean skipVolumeCheck) {
 
         boolean isBearishPattern =
                 // 1️⃣ Strongest Bearish Reversal Patterns
@@ -270,14 +282,16 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
                         (threeSessionCandleStickService.isThreeInsideDown(
                                         timeframe, stockPrice, stockTechnicals)
                                 && this.isSingleSessionBearish(
-                                        timeframe, stockPrice, stockTechnicals));
+                                        timeframe, stockPrice, stockTechnicals, skipVolumeCheck));
 
         if (!isBearishPattern) {
             return false;
         }
 
         boolean isVolumeConfirmed =
-                volumeIndicatorService.isBearish(timeframe, stockPrice, stockTechnicals, 3);
+                skipVolumeCheck
+                        || volumeIndicatorService.isBearish(
+                                timeframe, stockPrice, stockTechnicals, 3);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -293,7 +307,10 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
     }
 
     private boolean isTwoSessionBullish(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean skipVolumeCheck) {
 
         boolean isBullishPattern =
                 // 1Strongest Reversal Patterns
@@ -322,18 +339,20 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
                         (twoSessionCandleStickService.isBullishHarami(
                                         timeframe, stockPrice, stockTechnicals)
                                 && this.isSingleSessionBullish(
-                                        timeframe, stockPrice, stockTechnicals))
+                                        timeframe, stockPrice, stockTechnicals, skipVolumeCheck))
                         || (twoSessionCandleStickService.isBullishInsideBar(
                                         timeframe, stockPrice, stockTechnicals)
                                 && this.isSingleSessionBullish(
-                                        timeframe, stockPrice, stockTechnicals));
+                                        timeframe, stockPrice, stockTechnicals, skipVolumeCheck));
 
         if (!isBullishPattern) {
             return false;
         }
 
         boolean isVolumeConfirmed =
-                volumeIndicatorService.isBullish(timeframe, stockPrice, stockTechnicals, 2);
+                skipVolumeCheck
+                        || volumeIndicatorService.isBullish(
+                                timeframe, stockPrice, stockTechnicals, 2);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -349,7 +368,10 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
     }
 
     private boolean isTwoSessionBearish(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean skipVolumeCheck) {
 
         boolean isBearishPattern =
                 // Strongest Reversal Patterns
@@ -375,18 +397,20 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
                         || (twoSessionCandleStickService.isBearishHarami(
                                         timeframe, stockPrice, stockTechnicals)
                                 && this.isSingleSessionBearish(
-                                        timeframe, stockPrice, stockTechnicals))
+                                        timeframe, stockPrice, stockTechnicals, skipVolumeCheck))
                         || (twoSessionCandleStickService.isBearishInsideBar(
                                         timeframe, stockPrice, stockTechnicals)
                                 && this.isSingleSessionBearish(
-                                        timeframe, stockPrice, stockTechnicals));
+                                        timeframe, stockPrice, stockTechnicals, skipVolumeCheck));
 
         if (!isBearishPattern) {
             return false;
         }
 
         boolean isVolumeConfirmed =
-                volumeIndicatorService.isBearish(timeframe, stockPrice, stockTechnicals, 2);
+                skipVolumeCheck
+                        || volumeIndicatorService.isBearish(
+                                timeframe, stockPrice, stockTechnicals, 2);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -402,7 +426,10 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
     }
 
     private boolean isSingleSessionBullish(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean skipVolumeCheck) {
 
         boolean isBullishPattern =
                 // 1️⃣ Strongest Bullish Reversal Patterns
@@ -426,7 +453,9 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
         }
 
         boolean isVolumeConfirmed =
-                volumeIndicatorService.isBullish(timeframe, stockPrice, stockTechnicals, 1);
+                skipVolumeCheck
+                        || volumeIndicatorService.isBullish(
+                                timeframe, stockPrice, stockTechnicals, 1);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -442,7 +471,10 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
     }
 
     private boolean isSingleSessionBearish(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean skipVolumeCheck) {
 
         boolean isBearishPattern =
                 // 1️⃣ Strongest Bearish Reversal Patterns
@@ -466,7 +498,9 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
         }
 
         boolean isVolumeConfirmed =
-                volumeIndicatorService.isBearish(timeframe, stockPrice, stockTechnicals, 1);
+                skipVolumeCheck
+                        || volumeIndicatorService.isBearish(
+                                timeframe, stockPrice, stockTechnicals, 1);
 
         if (isVolumeConfirmed) {
             log.info(
@@ -483,12 +517,16 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
 
     @Override
     public boolean isBearishConfirmed(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean skipVolumeCheck) {
         // isWickCheck = timeframe == Timeframe.DAILY ? true : false;
 
-        if (this.isThreeSessionBearish(timeframe, stockPrice, stockTechnicals)
-                || this.isTwoSessionBearish(timeframe, stockPrice, stockTechnicals)
-                || this.isSingleSessionBearish(timeframe, stockPrice, stockTechnicals)) {
+        if (this.isThreeSessionBearish(timeframe, stockPrice, stockTechnicals, skipVolumeCheck)
+                || this.isTwoSessionBearish(timeframe, stockPrice, stockTechnicals, skipVolumeCheck)
+                || this.isSingleSessionBearish(
+                        timeframe, stockPrice, stockTechnicals, skipVolumeCheck)) {
 
             // if (this.isLowerWickSizeConfirmed(timeframe, stockPrice, stockTechnicals)) {
             log.info(

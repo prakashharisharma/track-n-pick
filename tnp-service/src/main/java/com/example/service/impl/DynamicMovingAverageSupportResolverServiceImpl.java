@@ -194,4 +194,38 @@ public class DynamicMovingAverageSupportResolverServiceImpl
             this.service = service;
         }
     }
+
+    @Override
+    public boolean isBottomBreakout(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals) {
+
+        MovingAverageLength length = resolveLength(trend.getMomentum());
+
+        if (length.getPeriod() >= 2) {
+            MovingAverageSupportResistanceService service =
+                    resolve(length, timeframe, stockTechnicals);
+            return service.isBreakout(timeframe, stockPrice, stockTechnicals);
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean isTopBreakdown(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals) {
+
+        MovingAverageLength length = resolveLength(trend.getMomentum());
+        if (length == MovingAverageLength.SHORTEST) {
+            MovingAverageSupportResistanceService service =
+                    resolve(length, timeframe, stockTechnicals);
+            service.isBreakdown(timeframe, stockPrice, stockTechnicals);
+        }
+        return false;
+    }
 }
