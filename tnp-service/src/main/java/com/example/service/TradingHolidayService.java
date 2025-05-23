@@ -2,6 +2,7 @@ package com.example.service;
 
 import com.example.data.transactional.entities.TradingHoliday;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 
@@ -15,4 +16,6 @@ public interface TradingHolidayService {
     boolean deleteHoliday(Long id);
 
     Optional<TradingHoliday> getHolidayByDate(LocalDate date);
+
+    public List<TradingHoliday> getUpcomingHolidays();
 }

@@ -5,8 +5,8 @@ import static com.example.data.common.type.Timeframe.*;
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
-import com.example.service.ResistanceLevelDetector;
-import com.example.service.StockPriceService;
+import com.example.data.transactional.entities.StockTechnicals;
+import com.example.service.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,23 +20,32 @@ import org.springframework.stereotype.Service;
 public class ResistanceLevelDetectorImpl implements ResistanceLevelDetector {
     private static final double THRESHOLD = 0.0168; // 1.68% tolerance
     private final StockPriceService<StockPrice> stockPriceService;
+    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
+    private final SupportResistanceConfirmationService supportResistanceConfirmationService;
+    private final BreakoutBreakdownConfirmationService breakoutBreakdownConfirmationService;
 
     @Override
     public boolean isBreakout(Stock stock, Timeframe timeframe) {
         StockPrice currentStockPrice = stockPriceService.get(stock, timeframe);
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
         if (currentStockPrice == null) return false;
 
         boolean isResistanceBreak = this.isNearResistance(stock, timeframe);
         boolean isMultiTimeFrameBreakout = this.isMultiTimeFrameBreakout(stock, timeframe);
+        boolean potentialBreakout = isResistanceBreak || isMultiTimeFrameBreakout;
 
-        boolean breakoutConfirmed = isResistanceBreak || isMultiTimeFrameBreakout;
+        if (!potentialBreakout) return false;
 
-        if (breakoutConfirmed) {
+        boolean isConfirmed =
+                breakoutBreakdownConfirmationService.isBreakoutConfirmed(
+                        timeframe, currentStockPrice, stockTechnicals, currentStockPrice.getHigh());
+
+        if (isConfirmed) {
             System.out.println(
-                    "Breakout detected for " + stock.getNseSymbol() + " at " + timeframe);
+                    "Breakout confirmed for " + stock.getNseSymbol() + " at " + timeframe);
         }
 
-        return breakoutConfirmed;
+        return isConfirmed;
     }
 
     private boolean isMultiTimeFrameBreakout(Stock stock, Timeframe timeframe) {
@@ -55,13 +64,20 @@ public class ResistanceLevelDetectorImpl implements ResistanceLevelDetector {
     @Override
     public boolean isNearResistance(Stock stock, Timeframe timeframe) {
         StockPrice currentStockPrice = stockPriceService.get(stock, timeframe);
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
         if (currentStockPrice == null) return false;
 
         List<Double> resistanceLevels = getRelevantResistanceLevels(stock, timeframe);
         if (resistanceLevels.isEmpty()) return false;
 
         double resistanceLevel = findConfluenceResistance(resistanceLevels);
-        return checkResistance(currentStockPrice, resistanceLevel);
+
+        boolean isNear = checkResistance(currentStockPrice, resistanceLevel);
+        boolean isConfirmed =
+                supportResistanceConfirmationService.isResistanceConfirmed(
+                        timeframe, currentStockPrice, stockTechnicals, resistanceLevel);
+
+        return isNear && isConfirmed;
     }
 
     private List<Double> getRelevantResistanceLevels(Stock stock, Timeframe timeframe) {

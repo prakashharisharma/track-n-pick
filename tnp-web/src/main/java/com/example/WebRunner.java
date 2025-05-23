@@ -2,16 +2,20 @@ package com.example;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
-import com.example.data.storage.documents.assembler.StockPriceOHLCVAssembler;
 import com.example.data.storage.repo.PriceTemplate;
 import com.example.data.storage.repo.TechnicalsTemplate;
 import com.example.data.transactional.entities.*;
 import com.example.data.transactional.entities.User;
 import com.example.data.transactional.repo.*;
 import com.example.data.transactional.repo.TradingHolidayRepository;
-import com.example.dto.OHLCV;
-import com.example.dto.TradeSetup;
+import com.example.dto.assembler.StockPriceOHLCVAssembler;
+import com.example.dto.common.OHLCV;
+import com.example.dto.common.TradeSetup;
+import com.example.dto.io.BseSectorListResponse;
+import com.example.dto.io.FinancialsSummaryDto;
+import com.example.dto.io.SectorIO;
 import com.example.dto.io.StockPriceIO;
+import com.example.external.*;
 import com.example.external.factor.FactorRediff;
 import com.example.external.ta.service.McService;
 import com.example.processor.BhavProcessor;
@@ -20,10 +24,16 @@ import com.example.service.calc.*;
 import com.example.service.impl.FundamentalResearchService;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
+import com.example.util.ThreadsUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
@@ -38,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Slf4j
@@ -47,7 +58,7 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private BhavcopyService bhavcopyService;
 
-    @Autowired private DailySupportResistanceService dailySupportResistanceService;
+    // @Autowired private DailySupportResistanceService dailySupportResistanceService;
 
     @Autowired private OHLCVAggregatorService ohlcvAggregatorService;
 
@@ -67,6 +78,7 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private MiscUtil miscUtil;
     @Autowired private BhavProcessor bhavProcessor;
 
+    @Autowired private NSEIndustryFetcher sectorScrappingService;
     @Autowired private UpdatePriceService updatePriceService;
 
     @Autowired private TechnicalsTemplate technicalsTemplate;
@@ -107,7 +119,7 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private StockRepository stockRepository;
 
-    @Autowired private StockPriceServiceOld stockPriceServiceOld;
+    @Autowired private StockPriceHelperService stockPriceHelperService;
 
     @Autowired private StockPriceService<StockPrice> stockPriceService;
 
@@ -131,16 +143,33 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private TrendService trendService;
 
+    @Autowired private DynamicTrendService dynamicTrendService;
+
     @Autowired private YearlySupportResistanceService yearlySupportResistanceService;
 
     @Autowired private TimeframeSupportResistanceService timeframeSupportResistanceService;
+
+    @Autowired private SectorDownloadService sectorDownloadService;
+
+    @Autowired private StockFinancialsService stockFinancialsService;
+
+    @Autowired private NSEFinancialsFetcher nseFinancialsFetcher;
+
+    @Autowired private NSEXmlService nseXmlService;
+
+    @Autowired private FinancialsSummaryService financialsSummaryService;
+
+    @Autowired
+    private NSETotalIssuedSharesAndFaceValueFetcher nseTotalIssuedSharesAndFaceValueFetcher;
+
+    @Autowired private VolumeIndicatorService volumeIndicatorService;
 
     @Override
     public void run(String... arg0) throws InterruptedException, IOException {
 
         log.info("Application started....");
 
-        // bhavProcessor.processAndResearchTechnicals();
+        bhavProcessor.processAndResearchTechnicals();
 
         /*
         Stock stock = stockService.getStockByNseSymbol("360ONE");
@@ -156,17 +185,26 @@ public class WebRunner implements CommandLineRunner {
         // this.updateYearHighLow();
         // this.testObv();
         // this.testTimeFrameSR();
-        // this.testTrend();
-        this.scanCandleStickPattern();
+
         // this.allocatePositions();
 
-        // this.testScore();
+        // this.updateRemainigSectorsActivityFromNSE();
 
+        // this.scanBullishCandleStickPattern();
+        // this.scanBearishCandleStickPattern();
+        // this.testTrend();
+
+        // this.updateFinaicials();
+        // this.testScore();
         // this.updatePriceHistory();
         // this.updateTechnicals();
         // this.processBhavFromApi();
+
+        // this.updateSectorsActivity();
+        // this.updateFinancialsForStocks();
         // this.processPriceUpdate();
         // this.processTechnicalsUpdate();
+
         // this.updateSupportAndResistance();
         // updateTechnicalsService.updateTechnicals();
         // this.syncTechnicals();
@@ -209,8 +247,20 @@ public class WebRunner implements CommandLineRunner {
 
         System.out.println("*************");
          */
-
+        // this.testmcap();
+        // this.updateScore();
         System.out.println("STARTED");
+    }
+
+    private void updateScore() {
+        List<ResearchTechnical> researchTechnicalList =
+                researchTechnicalService.getAll(Trade.Type.BUY);
+
+        for (ResearchTechnical researchTechnical : researchTechnicalList) {
+            if (researchTechnical.getResearchDate().isAfter(LocalDate.of(2025, 5, 18))) {
+                researchTechnicalService.updateScore(researchTechnical);
+            }
+        }
     }
 
     private void testScore() {
@@ -226,16 +276,24 @@ public class WebRunner implements CommandLineRunner {
          */
     }
 
+    private void testmcap() {
+        List<Stock> stockList = stockService.getActiveStocks();
+
+        for (Stock stock : stockList) {
+            double mcap = fundamentalResearchService.marketCap(stock);
+
+            System.out.println(stock.getNseSymbol() + " : " + mcap);
+        }
+    }
+
     /** Position Size = (Total trading fund * Risk%)/SL% */
     private void allocatePositions() {
 
-        double capital = 750000.0;
+        double capital = 78000.0;
         double riskFactor = 1.0;
 
-        List<User> portfolioList = new ArrayList<>();
-
-        User user = new User();
-        // User user = userService.getUserByUsername("phsdhan");
+        // User user = new User();
+        User user = userService.getUserByUsername("phsdhan");
 
         List<ResearchTechnical> researchTechnicalList =
                 researchTechnicalService.getAll(Trade.Type.BUY);
@@ -254,7 +312,9 @@ public class WebRunner implements CommandLineRunner {
             double stopLoss =
                     (researchTechnical.getResearchPrice() - researchTechnical.getStopLoss());
             positionSize = (long) (risk / stopLoss);
-            positionService.calculate(user, researchTechnical);
+            positionSize = positionService.calculate(user.getId(), researchTechnical);
+
+            System.out.println(researchTechnical.getStock().getNseSymbol() + " " + positionSize);
         }
     }
 
@@ -263,59 +323,75 @@ public class WebRunner implements CommandLineRunner {
         List<Stock> stockList = stockService.getActiveStocks();
         /*
         List<Stock> stockList = new ArrayList<>();
-        Stock stock = stockService.getStockByNseSymbol("ACC");
+        Stock stock = stockService.getStockByNseSymbol("AARTIPHARM");
         stockList.add(stock);
-        stock = stockService.getStockByNseSymbol("AUBANK");
+        stock = stockService.getStockByNseSymbol("TRIVENI");
         stockList.add(stock);
-        stock = stockService.getStockByNseSymbol("AWL");
+        stock = stockService.getStockByNseSymbol("TATASTEEL");
         stockList.add(stock);
-        stock = stockService.getStockByNseSymbol("BALRAMCHIN");
+        stock = stockService.getStockByNseSymbol("LT");
         stockList.add(stock);
-        stock = stockService.getStockByNseSymbol("MAXHEALTH");
+        stock = stockService.getStockByNseSymbol("HINDALCO");
         stockList.add(stock);
-        stock = stockService.getStockByNseSymbol("JUBLFOOD");
+        stock = stockService.getStockByNseSymbol("SPLPETRO");
         stockList.add(stock);
-         */
-
+        stock = stockService.getStockByNseSymbol("FIEMIND");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("MPSLTD");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("GREENLAM");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("SBIN");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("JIOFIN");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("ONGC");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("ASIANPAINT");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("POWERGRID");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("RALLIS");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("HAVELLS");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("PHOENIXLTD");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("GLENMARK");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("BBOX");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("KEI");
+        stockList.add(stock);
+        stock = stockService.getStockByNseSymbol("SHRIRAMFIN");
+        stockList.add(stock);*/
         stockList.forEach(
                 stk -> {
                     Trend trend = trendService.detect(stk, Timeframe.DAILY);
-                    if (trend.getDirection() != Trend.Direction.INVALID) {
+                    Trend dynamicTrend = dynamicTrendService.detect(stk, Timeframe.DAILY);
+
+                    boolean sameMomentum = trend.getMomentum() == dynamicTrend.getMomentum();
+
+                    boolean isDown = dynamicTrend.getDirection() == Trend.Direction.DOWN;
+
+                    if (!sameMomentum && isDown) {
                         System.out.println(
-                                "DAILY -> "
+                                "STATIC -> "
                                         + stk.getNseSymbol()
                                         + " Direction: "
                                         + trend.getDirection()
-                                        + " Strength: "
-                                        + trend.getStrength()
                                         + " Momentum: "
                                         + trend.getMomentum());
                     }
 
-                    trend = trendService.detect(stk, Timeframe.WEEKLY);
-                    if (trend.getDirection() != Trend.Direction.INVALID) {
+                    if (!sameMomentum && isDown) {
                         System.out.println(
-                                "WEEKLY -> "
+                                "DYNAMIC -> "
                                         + stk.getNseSymbol()
                                         + " Direction: "
-                                        + trend.getDirection()
-                                        + " Strength: "
-                                        + trend.getStrength()
+                                        + dynamicTrend.getDirection()
                                         + " Momentum: "
-                                        + trend.getMomentum());
-                    }
-
-                    trend = trendService.detect(stk, Timeframe.MONTHLY);
-                    if (trend.getDirection() != Trend.Direction.INVALID) {
-                        System.out.println(
-                                "MONTHLY -> "
-                                        + stk.getNseSymbol()
-                                        + " Direction: "
-                                        + trend.getDirection()
-                                        + " Strength: "
-                                        + trend.getStrength()
-                                        + " Momentum: "
-                                        + trend.getMomentum());
+                                        + dynamicTrend.getMomentum());
                     }
                 });
     }
@@ -324,7 +400,213 @@ public class WebRunner implements CommandLineRunner {
         System.out.println("******* Testing CandleSticks *******");
     }
 
-    private void scanCandleStickPattern() {
+    private void updateFinaicials() {
+        List<Stock> stockList = stockRepository.findByActivityCompleted(false);
+
+        List<String> results = new ArrayList<>();
+
+        int countTotal = stockList.size();
+
+        for (Stock stock : stockList) {
+            try {
+
+                long startTime = System.currentTimeMillis();
+                System.out.println("Starting activity for " + stock.getNseSymbol());
+
+                String xbrlUrl =
+                        nseFinancialsFetcher.fetchXbrl(
+                                stock.getNseSymbol(), LocalDate.of(2024, 12, 31));
+
+                System.out.println(xbrlUrl);
+
+                String xxbrlContent = nseXmlService.fetchXmlContent(xbrlUrl);
+
+                // System.out.println(xxbrlContent);
+
+                if (stock.getSector().getType() == Sector.Type.CORPORATE) {
+                    StockFinancials stockFinancials =
+                            StockFinancialsParser.parseFromXml(
+                                    xxbrlContent, LocalDate.of(2024, 12, 31));
+                    stockFinancials.setStock(stock);
+                    System.out.println(stockFinancials);
+
+                } else if (stock.getSector().getType() == Sector.Type.BANKING) {
+                    BankingFinancials bankingFinancials =
+                            BankingFinancialsParser.parseFromXml(xxbrlContent);
+                    bankingFinancials.setStock(stock);
+                    System.out.println(bankingFinancials);
+                }
+
+                stockRepository.save(stock);
+                long endTime = System.currentTimeMillis();
+
+                System.out.println(
+                        "Completed activity for "
+                                + stock.getNseSymbol()
+                                + " took "
+                                + (endTime - startTime)
+                                + "ms");
+                System.out.println("Remaining " + countTotal);
+
+                miscUtil.delay();
+            } catch (Exception e) {
+                System.out.println("An Error occurred while updating price");
+            }
+        }
+    }
+
+    private void updateRemainigSectorsActivityFromNSE() {
+
+        List<Stock> stockList = stockRepository.findByActivityCompleted(false);
+
+        List<String> results = new ArrayList<>();
+
+        int countTotal = stockList.size();
+
+        for (Stock stock : stockList) {
+            try {
+                miscUtil.delay();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            try {
+                long startTime = System.currentTimeMillis();
+                System.out.println("Starting activity for " + stock.getNseSymbol());
+
+                String industry = sectorScrappingService.getIndustry(stock.getNseSymbol());
+                // String industry = null;
+                if (!industry.equalsIgnoreCase("NSE")) {
+                    log.info("Industry found: {}", industry);
+                    Sector sector = sectorService.getSectorByName(industry);
+                    if (sector != null) {
+                        log.info("Sector found code: {}, name: {}", sector.getCode(), industry);
+                        stock.setSector(sector);
+                        stock.setSectorName(sector.getSectorName());
+                        stock.setActivityCompleted(true);
+                        stockRepository.save(stock);
+                        --countTotal;
+                    } else {
+                        log.info("Sector Not found name: {}", industry);
+                        results.add(stock.getNseSymbol());
+                    }
+                }
+
+                long endTime = System.currentTimeMillis();
+
+                System.out.println(
+                        "Completed activity for "
+                                + stock.getNseSymbol()
+                                + " took "
+                                + (endTime - startTime)
+                                + "ms");
+                System.out.println("Remaining " + countTotal);
+
+                // miscUtil.delay(25);
+            } catch (Exception e) {
+                System.out.println("An Error occurred while updating price");
+            }
+        }
+        System.out.println("Not in master.............");
+        results.forEach(
+                result -> {
+                    System.out.println(result);
+                });
+    }
+
+    private void updateSectorsActivity() {
+
+        log.info("Starting update sector activity");
+
+        List<SectorIO> sectorIOList = null;
+        try {
+            sectorIOList = this.loadSectors();
+
+            for (SectorIO sectorIO : sectorIOList) {
+                log.info(
+                        "Starting updating code:{}, name:{}",
+                        sectorIO.getCode(),
+                        sectorIO.getSectorName());
+                Sector sector = sectorService.getOrCreate(sectorIO);
+                this.downloadAndUpdateSectorStocksList(sector);
+                miscUtil.delay();
+            }
+
+        } catch (IOException | InterruptedException e) {
+            log.error("An error occured", e);
+        }
+
+        log.info("Completed update sector activity");
+    }
+
+    @Transactional
+    private void downloadAndUpdateSectorStocksList(Sector sector) {
+        log.info("Updating stocks for code:{}, name:{}", sector.getCode(), sector.getSectorName());
+        List<BseSectorListResponse> bseSectorListResponseList = null;
+
+        try {
+            bseSectorListResponseList =
+                    sectorDownloadService.downloadAndProcessSectors(sector.getCode());
+
+            if (bseSectorListResponseList != null && !bseSectorListResponseList.isEmpty()) {
+                bseSectorListResponseList.forEach(
+                        bseSectorResponse -> {
+                            Stock stock =
+                                    stockService.getStockByNseSymbol(
+                                            bseSectorResponse.getSecurityName().trim());
+                            if (stock != null) {
+                                log.info(
+                                        "Found stocks in master :{}",
+                                        bseSectorResponse.getSecurityName().trim());
+                                stock.setSector(sector);
+                                stock.setSectorName(sector.getSectorName());
+                                stock.setActivityCompleted(true);
+                                stockRepository.save(stock);
+                                log.info("Sector updated in master :{}", stock.getNseSymbol());
+                            } else {
+                                log.info(
+                                        "Not Found stocks in master :{}",
+                                        bseSectorResponse.getSecurityName().trim());
+                            }
+                        });
+            }
+
+        } catch (IOException e) {
+            log.error("An error occured while updating sectors {}", sector.getCode(), e);
+        }
+
+        log.info("Updated stocks for code:{}, name:{}", sector.getCode(), sector.getSectorName());
+    }
+
+    public List<SectorIO> loadSectors() throws IOException {
+
+        String CSV_FILE_PATH =
+                System.getProperty("user.home") + "/mydrive/repo/tnp/sector_master.csv";
+
+        List<SectorIO> sectors = new ArrayList<>();
+        Path filePath = Paths.get(CSV_FILE_PATH);
+
+        if (!Files.exists(filePath)) {
+            throw new FileNotFoundException("CSV file not found: " + CSV_FILE_PATH);
+        }
+
+        try (BufferedReader br = Files.newBufferedReader(filePath)) {
+            String line;
+            boolean firstLine = true;
+            while ((line = br.readLine()) != null) {
+                if (firstLine) { // Skip header
+                    firstLine = false;
+                    continue;
+                }
+                String[] values = line.split(",");
+                if (values.length >= 2) {
+                    sectors.add(new SectorIO(values[0].trim(), values[1].trim()));
+                }
+            }
+        }
+        return sectors;
+    }
+
+    private void scanBullishCandleStickPattern() {
 
         System.out.println("******* Scanning Bullish *******");
         List<Stock> stockList = stockService.getActiveStocks();
@@ -338,13 +620,16 @@ public class WebRunner implements CommandLineRunner {
                         System.out.println("FUNDAMENTAL " + stock.getNseSymbol());
                     }
                     System.out.println("******* DAILY :" + stock.getNseSymbol() + " *******");
-                    TradeSetup tradeSetup = priceActionService.breakOut(stock, Timeframe.DAILY);
+
                     StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
                     StockTechnicals stockTechnicals =
                             stockTechnicalsService.get(stock, Timeframe.DAILY);
-
+                    TradeSetup tradeSetup = priceActionService.breakOut(stock, Timeframe.DAILY);
+                    // System.out.println(stock.getNseSymbol() + " : Price Action " +
+                    // tradeSetup.isActive());
                     tradeSetup = swingActionService.breakOut(stock, Timeframe.DAILY);
-
+                    System.out.println(
+                            stock.getNseSymbol() + " : Swing Action " + tradeSetup.isActive());
                     if (calendarService.isLastTradingSessionOfWeek(miscUtil.currentDate())) {
                         System.out.println("******* WEEKLY :" + stock.getNseSymbol() + " *******");
                         stockPrice = stockPriceService.get(stock, Timeframe.WEEKLY);
@@ -361,6 +646,12 @@ public class WebRunner implements CommandLineRunner {
                 }
             }
         }
+    }
+
+    private void scanBearishCandleStickPattern() {
+
+        System.out.println("******* Scanning Bullish *******");
+        List<Stock> stockList = stockService.getActiveStocks();
 
         System.out.println("******* Scanning Bearish From Master *******");
 
@@ -593,6 +884,62 @@ public class WebRunner implements CommandLineRunner {
                 System.out.println("An Error occurred while updating price");
             }
         }
+    }
+
+    public void updateFinancialsForStocks() {
+        // Fetch the list of stocks where activity is not completed
+        List<Stock> stockList = stockRepository.findByActivityCompleted(false);
+        int countTotal = stockList.size();
+        for (Stock stock : stockList) {
+
+            long startTime = System.currentTimeMillis();
+            System.out.println("Starting activity for " + stock.getNseSymbol());
+            try {
+                // Fetch financial details (issuedSize and faceValue) using the fetcher
+                FinancialsSummaryDto financialsSummaryDto =
+                        nseTotalIssuedSharesAndFaceValueFetcher.getIssuedSharesAndFaceValue(
+                                stock.getNseSymbol());
+
+                // Check if the DTO was received
+                if (financialsSummaryDto != null) {
+                    // Map DTO to entity
+                    FinancialsSummary financialsSummary =
+                            mapDtoToEntity(financialsSummaryDto, stock);
+
+                    // Create or update the FinancialsSummary
+                    financialsSummaryService.createOrUpdate(stock, financialsSummary);
+                } else {
+                    System.out.println(
+                            "No financial details available for stock: " + stock.getNseSymbol());
+                }
+                stock.setActivityCompleted(true);
+
+                stockRepository.save(stock);
+                --countTotal;
+                long endTime = System.currentTimeMillis();
+
+                System.out.println(
+                        "Completed activity for "
+                                + stock.getNseSymbol()
+                                + " took "
+                                + (endTime - startTime)
+                                + "ms");
+                System.out.println("Remaining " + countTotal);
+
+                ThreadsUtil.delay();
+            } catch (Exception e) {
+                System.out.println("An Error occurred while updating price");
+            }
+        }
+    }
+
+    // Method to map DTO to Entity
+    private FinancialsSummary mapDtoToEntity(FinancialsSummaryDto dto, Stock stock) {
+        return FinancialsSummary.builder()
+                .stock(stock)
+                .issuedSize(dto.getIssuedSize())
+                .faceValue(dto.getFaceValue())
+                .build();
     }
 
     private void updateTechnicals() {
@@ -835,7 +1182,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = miscUtil.yearLastDay(from);
 
-            } while (to.isBefore(LocalDate.of(2025, 03, 29)));
+            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
 
             // priceTemplate.create(Timeframe.YEARLY, stockPriceList);
 
@@ -921,7 +1268,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = miscUtil.quarterLastDay(from);
 
-            } while (to.isBefore(LocalDate.of(2025, 04, 01)));
+            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
 
             // priceTemplate.create(Timeframe.QUARTERLY, stockPriceList);
 
@@ -1006,7 +1353,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = from.with(TemporalAdjusters.lastDayOfMonth());
 
-            } while (to.isBefore(LocalDate.of(2025, 04, 01)));
+            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
 
             // priceTemplate.create(Timeframe.MONTHLY,stockPriceList);
 
@@ -1092,7 +1439,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = from.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-            } while (to.isBefore(LocalDate.of(2025, 03, 31)));
+            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
 
             // priceTemplate.create(Timeframe.WEEKLY, stockPriceList);
 
@@ -1112,6 +1459,7 @@ public class WebRunner implements CommandLineRunner {
     }
 
     private void processDailyPriceUpdate(Stock stock) {
+        /*
 
         long startTime = System.currentTimeMillis();
         System.out.println("Starting daily activity for " + stock.getNseSymbol());
@@ -1178,7 +1526,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = from;
 
-            } while (to.isBefore(LocalDate.of(2025, 03, 29)));
+            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
 
             long endTime = System.currentTimeMillis();
 
@@ -1192,7 +1540,7 @@ public class WebRunner implements CommandLineRunner {
             miscUtil.delay(500);
         } catch (Exception e) {
             System.out.println("An error occured while getting data " + stock.getNseSymbol());
-        }
+        }*/
     }
 
     public void processTechnicalsUpdate() {

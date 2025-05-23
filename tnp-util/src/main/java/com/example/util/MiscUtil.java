@@ -19,8 +19,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class MiscUtil {
 
-    private static int min = 750;
-    private static int max = 8763;
+    private static int min = 2837;
+    private static int max = 8897;
+
+    public double roundToTwoDecimals(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
 
     public String formatDouble(double value) {
 
@@ -43,7 +47,6 @@ public class MiscUtil {
 
     public void delay() throws InterruptedException {
         long interval = this.getInterval();
-        System.out.println("sleeping " + interval);
         Thread.sleep(interval);
     }
 
@@ -92,7 +95,7 @@ public class MiscUtil {
     }
 
     public LocalDate currentDate() {
-        // return LocalDate.of(2025,03,21);
+        // return LocalDate.of(2025, 05, 22);
         return LocalDate.now();
     }
 

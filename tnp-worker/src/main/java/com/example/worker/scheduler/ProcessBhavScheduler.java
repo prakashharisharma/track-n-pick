@@ -33,6 +33,7 @@ public class ProcessBhavScheduler {
         LocalDate sessionDate = miscUtil.currentDate(); // Adjust if needed
 
         try {
+
             log.info("Starting scheduled bhav copy download for session date: {}", sessionDate);
 
             if (calendarService.isWorkingDay(sessionDate)) {
@@ -48,5 +49,4 @@ public class ProcessBhavScheduler {
             log.error("bhav copy download failed for {}: {}", sessionDate, e.getMessage());
         }
     }
-
 }

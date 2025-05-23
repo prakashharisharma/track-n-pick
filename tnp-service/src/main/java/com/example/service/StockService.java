@@ -1,23 +1,20 @@
 package com.example.service;
 
-import static java.time.temporal.ChronoUnit.DAYS;
-
-import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Sector;
 import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockFactor;
+import com.example.data.transactional.entities.StockFinancials;
 import com.example.data.transactional.entities.StockPrice;
-import com.example.data.transactional.repo.StockFactorRepository;
+import com.example.data.transactional.repo.StockFinancialsRepository;
 import com.example.data.transactional.repo.StockRepository;
+import com.example.data.transactional.view.StockSearchResult;
 import com.example.external.factor.FactorRediff;
 import com.example.model.type.Exchange;
 import com.example.model.type.IndiceType;
-import com.example.util.DownloadCounterUtil;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.util.rules.RulesNotification;
-import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
@@ -33,7 +30,7 @@ public class StockService {
 
     @Autowired private StockRepository stockRepository;
 
-    @Autowired private StockFactorRepository stockFactorRepository;
+    @Autowired private StockFinancialsRepository stockFinancialsRepository;
 
     @Autowired private StockPriceService<StockPrice> stockPriceService;
 
@@ -54,7 +51,12 @@ public class StockService {
     }
 
     public Stock getStockById(long stockId) {
-        return stockRepository.findByStockId(stockId);
+        return stockRepository
+                .findByStockId(stockId)
+                .orElseThrow(
+                        () ->
+                                new IllegalArgumentException(
+                                        "Stock with ID " + stockId + " not found."));
     }
 
     public List<Stock> getActiveStocks() {
@@ -132,27 +134,6 @@ public class StockService {
         }
     }
 
-    public void resetFactors() {
-
-        List<Stock> stocksList = stockRepository.findByActive(true);
-
-        int i = 0;
-
-        for (Stock stock : stocksList) {
-            i++;
-
-            StockFactor stockFactor = stock.getFactor();
-
-            stockFactor.setLastModified(LocalDate.now().minusDays(20 + i));
-
-            stockFactorRepository.save(stockFactor);
-
-            if (i == 20) {
-                i = 0;
-            }
-        }
-    }
-
     public Stock add(
             Exchange exchange,
             String series,
@@ -195,11 +176,12 @@ public class StockService {
         return isActive;
     }
 
-    public StockFactor updateFactor(Stock stock) {
+    public StockFinancials updateFactor(Stock stock) {
+        /*
 
         LOGGER.info("Updating Factor for : " + stock.getNseSymbol());
 
-        StockFactor stockFactor = stock.getFactor();
+        StockFinancials stockFinancials = stock.getFactor();
 
         if (stock.getFactor() != null) {
 
@@ -208,9 +190,9 @@ public class StockService {
 
                 if (DownloadCounterUtil.get() < notificationRules.getApiCallCounter()) {
 
-                    stockFactor = factorRediff.getFactor(stock);
+                    stockFinancials = factorRediff.getFactor(stock);
 
-                    stockFactorRepository.save(stockFactor);
+                    stockFinancialsRepository.save(stockFinancials);
 
                     DownloadCounterUtil.increment();
                 } else {
@@ -225,37 +207,20 @@ public class StockService {
             }
         } else {
 
-            stockFactor = factorRediff.getFactor(stock);
+            stockFinancials = factorRediff.getFactor(stock);
 
-            stockFactorRepository.save(stockFactor);
+            stockFinancialsRepository.save(stockFinancials);
         }
 
-        return stockFactor;
+        return stockFinancials;
+        */
+        return null;
     }
 
-    public double getPe(Stock stock) {
-
-        StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
-
-        double currentPrice = stockPrice.getClose();
-
-        double eps = stock.getFactor().getEps();
-
-        double pe = formulaService.calculatePe(currentPrice, eps);
-
-        return pe;
-    }
-
-    public double getPb(Stock stock) {
-
-        StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
-
-        double currentPrice = stockPrice.getClose();
-
-        double bookValue = stock.getFactor().getBookValue();
-
-        double pb = formulaService.calculatePb(currentPrice, bookValue);
-
-        return pb;
+    public List<StockSearchResult> searchStocks(String query) {
+        if (query == null || query.trim().length() < 2) {
+            return Collections.emptyList(); // or maybe fetch top gainers/most active instead?
+        }
+        return stockRepository.searchStocks(query);
     }
 }

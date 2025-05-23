@@ -8,7 +8,7 @@ import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.data.transactional.entities.Trade;
 import com.example.data.transactional.entities.ValuationLedger;
-import com.example.dto.TradeSetup;
+import com.example.dto.common.TradeSetup;
 import com.example.service.*;
 import com.example.service.ResearchTechnicalService;
 import com.example.service.StockPriceService;
@@ -47,6 +47,8 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     @Autowired private CalendarService calendarService;
 
     @Autowired private FormulaService formulaService;
+
+    @Autowired private VolumeIndicatorService volumeIndicatorService;
 
     @Override
     public void executeFundamental(Stock stock) {
@@ -117,25 +119,26 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
         log.info("{} Executing technical buy", stock.getNseSymbol());
 
-        if (fundamentalResearchService.isMcapInRange(stock)) {
-            log.info("{} Found  mcap range stock", stock.getNseSymbol());
+        if (fundamentalResearchService.isMcapInRange(stock)
+                && volumeIndicatorService.isTradingValueSufficient(
+                        timeframe, stockPrice, stockTechnicals)) {
             if (stock.getSeries().equalsIgnoreCase("EQ")) {
                 log.info("{} Found EQ stock ", stock.getNseSymbol());
-                TradeSetup tradeSetup = swingActionService.breakOut(stock, timeframe);
-                log.info(" {} swing {} ", stock.getNseSymbol(), tradeSetup.isActive());
+                TradeSetup tradeSetup = priceActionService.breakOut(stock, timeframe);
+
                 if (!tradeSetup.isActive()) {
-                    tradeSetup = priceActionService.breakOut(stock, timeframe);
-                    log.info(" {} price {} ", stock.getNseSymbol(), tradeSetup.isActive());
+                    tradeSetup = swingActionService.breakOut(stock, timeframe);
                 }
 
                 if (tradeSetup.isActive()) {
                     log.info(
-                            "{} Trade setup active, creating entry {} ",
+                            "{} Bullish Trade active timeframe: {}, strategy:{}, subStrategy:{} ",
                             stock.getNseSymbol(),
-                            timeframe);
+                            timeframe,
+                            tradeSetup.getStrategy(),
+                            tradeSetup.getSubStrategy());
                     researchTechnicalService.entry(
                             stock, timeframe, tradeSetup, stockPrice, stockTechnicals, sessionDate);
-                    log.info("{} created entry {} ", stock.getNseSymbol(), timeframe);
                 }
             }
         }
@@ -155,6 +158,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
         boolean isUpdation = Boolean.FALSE;
         TradeSetup tradeSetup = TradeSetup.builder().build();
+        // if (candleStickService.isRed(stockPrice)) {
         if (candleStickService.isRed(stockPrice)
                 && this.isTargetAchieved(researchTechnical, timeframe, stock, stockPrice)) {
 
@@ -176,6 +180,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                 isUpdation = Boolean.TRUE;
             }
         }
+        // }
 
         if (isUpdation) {
             researchTechnicalService.exit(

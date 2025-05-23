@@ -1,7 +1,7 @@
 package com.example.service.calc.impl;
 
 import com.example.data.storage.documents.MovingAverageConvergenceDivergence;
-import com.example.dto.OHLCV;
+import com.example.dto.common.OHLCV;
 import com.example.service.calc.ExponentialMovingAverageCalculatorService;
 import com.example.service.calc.MovingAverageConvergenceDivergenceService;
 import com.example.util.FormulaService;

@@ -4,7 +4,7 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.storage.repo.PriceTemplate;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
-import com.example.dto.OHLCV;
+import com.example.dto.common.OHLCV;
 import com.example.dto.io.StockPriceIO;
 import com.example.service.*;
 import com.example.service.StockPriceService;

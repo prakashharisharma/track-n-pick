@@ -3,15 +3,17 @@ package com.example.security;
 import com.example.data.transactional.entities.User;
 import com.example.data.transactional.repo.UserRepository;
 import com.example.data.transactional.types.SubscriptionType;
-import com.example.dto.security.JwtResponse;
-import com.example.dto.security.LoginRequest;
+import com.example.dto.request.LoginRequest;
+import com.example.dto.response.JwtResponse;
 import com.example.exception.InvalidTokenException;
 import com.example.service.subscription.SubscriptionService;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,12 +31,17 @@ public class AuthService {
 
     private final JwtUtils jwtUtils;
 
+    @Autowired(required = false)
+    private AuthenticationManager authenticationManager;
+
     private final RedisTemplate<String, String> redisTemplate;
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
+        // 🔐 Properly authenticate the user
         Authentication authentication =
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(), loginRequest.getPassword());
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                loginRequest.getUsername(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 

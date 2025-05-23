@@ -48,9 +48,11 @@ public class ValuationLedgerService {
         if (valuationLedger == null) {
             valuationLedger = new ValuationLedger();
 
-            double pe = stockService.getPe(stock);
+            // double pe = stockService.getPe(stock);
+            double pe = 0.0;
 
-            double pb = stockService.getPb(stock);
+            // double pb = stockService.getPb(stock);
+            double pb = 0.0;
 
             valuationLedger.setStockId(stock);
             valuationLedger.setPb(pb);
@@ -62,12 +64,6 @@ public class ValuationLedgerService {
             valuationLedger.setStatus(Status.OPEN);
 
             valuationLedger.setPrice(stockPrice.getHigh());
-
-            valuationLedger.setCurrentRatio(stock.getFactor().getCurrentRatio());
-
-            valuationLedger.setDebtEquity(stock.getFactor().getDebtEquity());
-
-            valuationLedger.setDividend(stock.getFactor().getDividend());
 
             valuationLedger.setSectorPb(stock.getSector().getSectorPb());
 
@@ -99,10 +95,10 @@ public class ValuationLedgerService {
         if (valuationLedger == null) {
             valuationLedger = new ValuationLedger();
 
-            double pe = stockService.getPe(stock);
-
-            double pb = stockService.getPb(stock);
-
+            // double pe = stockService.getPe(stock);
+            double pe = 0.0;
+            // double pb = stockService.getPb(stock);
+            double pb = 0.0;
             valuationLedger.setStockId(stock);
             valuationLedger.setPb(pb);
             valuationLedger.setPe(pe);
@@ -115,12 +111,6 @@ public class ValuationLedgerService {
             valuationLedger.setStatus(Status.OPEN);
 
             valuationLedger.setPrice(stockPrice.getClose());
-
-            valuationLedger.setCurrentRatio(stock.getFactor().getCurrentRatio());
-
-            valuationLedger.setDebtEquity(stock.getFactor().getDebtEquity());
-
-            valuationLedger.setDividend(stock.getFactor().getDividend());
 
             valuationLedger.setSectorPb(stock.getSector().getSectorPb());
 

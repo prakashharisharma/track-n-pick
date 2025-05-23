@@ -32,6 +32,7 @@ public class JwtUtils {
             User user, List<SubscriptionType> subscriptions, long expirationTime) {
         return Jwts.builder()
                 .setSubject(user.getUsername())
+                .claim("userId", user.getId()) // ✅ Add this line
                 .claim("firstName", user.getFirstName()) // ✅ Added First Name
                 .claim("lastName", user.getLastName()) // ✅ Added Last Name
                 .claim("email", user.getEmail()) // ✅ Added Email
@@ -45,6 +46,13 @@ public class JwtUtils {
                 .compact();
     }
 
+    public String extractToken(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header format");
+        }
+        return authHeader.substring(7); // Removes "Bearer "
+    }
+
     public String extractUsername(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
@@ -52,6 +60,11 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    public Long extractUserId(String token) {
+        Claims claims = extractClaims(token);
+        return claims.get("userId", Long.class);
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {

@@ -1,65 +1,72 @@
 package com.example.service;
 
-import com.example.data.transactional.entities.Broker;
 import com.example.data.transactional.entities.FundsLedger;
-import com.example.data.transactional.entities.User;
+import com.example.data.transactional.entities.type.FundTransactionType;
 import com.example.data.transactional.repo.FundsLedgerRepository;
-import com.example.data.transactional.repo.UserBrokerageRepository;
-import com.example.model.type.FundTransactionType;
-import com.example.util.MiscUtil;
-import java.time.LocalDate;
-import java.util.List;
-import javax.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.data.transactional.view.FundsLedgerResult;
+import com.example.dto.request.FundsLedgerRequest;
+import java.math.BigDecimal;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-@Transactional
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class FundsLedgerService {
 
-    @Autowired private FundsLedgerRepository fundsLedgerRepository;
+    private final FundsLedgerRepository fundsLedgerRepository;
 
-    @Autowired private UserBrokerageRepository userBrokerageRepository;
-
-    @Autowired private MiscUtil miscUtil;
-
-    public void addFund(User user, double amount, LocalDate transactionDate) {
-
-        Broker broker =
-                userBrokerageRepository
-                        .findByIdUserAndActive(user, true)
-                        .getBrokerageId()
-                        .getBroker();
-
-        FundsLedger fundLedger =
-                new FundsLedger(user, broker, amount, transactionDate, FundTransactionType.ADD);
-        fundsLedgerRepository.save(fundLedger);
+    public BigDecimal getTotalFundsValue(Long userId) {
+        return fundsLedgerRepository.findTotalValueByUserId(userId);
     }
 
-    public void withdrawFund(User user, double amount, LocalDate transactionDate) {
-        Broker broker =
-                userBrokerageRepository
-                        .findByIdUserAndActive(user, true)
-                        .getBrokerageId()
-                        .getBroker();
+    public void addFund(Long userId, FundsLedgerRequest request) {
 
-        FundsLedger fundLedger =
-                new FundsLedger(
-                        user, broker, -1 * amount, transactionDate, FundTransactionType.WITHDRAW);
-        fundsLedgerRepository.save(fundLedger);
+        FundsLedger ledger = new FundsLedger();
+        ledger.setUserId(userId);
+
+        ledger.setAmount(request.getAmount());
+        ledger.setPaymentMode(request.getPaymentMode());
+        ledger.setType(FundTransactionType.ADD);
+
+        ledger.setTransactionDate(request.getTransactionDate());
+        fundsLedgerRepository.save(ledger);
     }
 
-    public List<FundsLedger> recentHistory(User user) {
-        return fundsLedgerRepository.findByUserId(user);
+    public void withdrawFund(Long userId, FundsLedgerRequest request) {
+        FundsLedger ledger = new FundsLedger();
+        ledger.setUserId(userId);
+        ledger.setAmount(request.getAmount().negate());
+        ledger.setPaymentMode(request.getPaymentMode());
+        ledger.setType(FundTransactionType.WITHDRAW);
+        ledger.setTransactionDate(request.getTransactionDate());
+        fundsLedgerRepository.save(ledger);
     }
 
-    public double allTimeInvestment(User user) {
-        Double totalInvestment = fundsLedgerRepository.getTotalFund(user);
+    public Page<FundsLedgerResult> listFunds(
+            Long userId, int page, int size, String sortBy, String direction) {
+        Sort sort =
+                direction.equalsIgnoreCase("asc")
+                        ? Sort.by(sortBy).ascending()
+                        : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        if (totalInvestment == null) {
-            totalInvestment = 0.00;
-        }
+        Page<FundsLedger> rawPage = fundsLedgerRepository.findByUserId(userId, pageable);
+        return rawPage.map(this::mapToResult);
+    }
 
-        return totalInvestment;
+    private FundsLedgerResult mapToResult(FundsLedger ledger) {
+        return FundsLedgerResult.builder()
+                .amount(ledger.getAmount().abs()) // ✅ make it always positive
+                .paymentMode(ledger.getPaymentMode())
+                .transactionDate(ledger.getTransactionDate())
+                .transactionType(ledger.getType())
+                .createdAt(ledger.getTimestamp())
+                .build();
     }
 }

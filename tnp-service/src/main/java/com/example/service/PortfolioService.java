@@ -1,11 +1,19 @@
 package com.example.service;
 
-import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.view.PortfolioResult;
 import java.math.BigDecimal;
+import org.springframework.data.domain.Page;
 
 public interface PortfolioService {
 
-    public void buyStock(Long userId, Stock stock, long quantity, BigDecimal price);
+    public BigDecimal getTotalInvestmentValue(Long userId);
 
-    public void sellStock(Long userId, Stock stock, long quantity, BigDecimal price);
+    public void buyStock(Long userId, Long stockId, long quantity, BigDecimal price);
+
+    public void sellStock(Long userId, Long stockId, long quantity, BigDecimal price);
+
+    public Page<PortfolioResult> get(
+            Long userId, int page, int size, String sortBy, String direction);
+
+    public PortfolioResult stats(Long userId);
 }

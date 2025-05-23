@@ -7,7 +7,7 @@ import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
-import com.example.dto.TradeSetup;
+import com.example.dto.common.TradeSetup;
 import com.example.service.*;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
@@ -45,7 +45,7 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
 
         boolean isBreakDown = Boolean.FALSE;
 
-        if (trend.getMomentum() == Trend.Momentum.TOP) {
+        if (trend.getMomentum() == Trend.Phase.TOP) {
             if (this.isBreakDown(
                     stock,
                     timeframe,
@@ -64,7 +64,7 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
                 isBreakDown = Boolean.TRUE;
             }
         }
-        if (trend.getMomentum() == Trend.Momentum.ADVANCE) {
+        if (trend.getMomentum() == Trend.Phase.ADVANCE) {
             if (this.isBreakDown(
                     stock,
                     timeframe,
@@ -75,7 +75,7 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
                 isBreakDown = Boolean.TRUE;
             }
         }
-        if (trend.getMomentum() == Trend.Momentum.RECOVERY) {
+        if (trend.getMomentum() == Trend.Phase.RECOVERY) {
             if (this.isBreakDown(
                     stock,
                     timeframe,
