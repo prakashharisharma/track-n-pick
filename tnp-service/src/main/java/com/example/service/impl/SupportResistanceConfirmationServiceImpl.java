@@ -45,6 +45,7 @@ public class SupportResistanceConfirmationServiceImpl
         boolean priceRejection =
                 priceRejectionWithLowerWick
                         || (isWithin1Percent && (isLowerWickSignificant || strongClose));
+
         boolean adxStrong = stockTechnicals.getAdx() > 25;
         boolean dmiPositive = stockTechnicals.getPlusDi() > stockTechnicals.getMinusDi();
 

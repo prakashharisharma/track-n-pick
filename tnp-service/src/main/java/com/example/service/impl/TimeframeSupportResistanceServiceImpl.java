@@ -5,8 +5,6 @@ import com.example.data.common.type.Trend;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
-import com.example.service.StockPriceService;
-import com.example.service.StockTechnicalsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,12 +16,8 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
 
     private final SupportLevelDetector supportLevelDetector;
     private final ResistanceLevelDetector resistanceLevelDetector;
-    private final StockPriceService<StockPrice> stockPriceService;
-    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
-    private final YearlySupportResistanceService yearlySupportResistanceService;
-    private final QuarterlySupportResistanceService quarterlySupportResistanceService;
-    private final MonthlySupportResistanceService monthlySupportResistanceService;
-    private final WeeklySupportResistanceService weeklySupportResistanceService;
+
+    private final SupportResistanceService supportResistanceService;
 
     @Override
     public boolean isBreakout(
@@ -56,17 +50,17 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
         return switch (timeframe) {
-            case DAILY -> weeklySupportResistanceService.isBreakout(
+            case DAILY -> supportResistanceService.isBreakout(
                             Timeframe.WEEKLY, stockPrice, stockTechnicals)
-                    && monthlySupportResistanceService.isBreakout(
+                    && supportResistanceService.isBreakout(
                             Timeframe.MONTHLY, stockPrice, stockTechnicals);
-            case WEEKLY -> monthlySupportResistanceService.isBreakout(
+            case WEEKLY -> supportResistanceService.isBreakout(
                             Timeframe.MONTHLY, stockPrice, stockTechnicals)
-                    && quarterlySupportResistanceService.isBreakout(
+                    && supportResistanceService.isBreakout(
                             Timeframe.QUARTERLY, stockPrice, stockTechnicals);
-            case MONTHLY -> quarterlySupportResistanceService.isBreakout(
+            case MONTHLY -> supportResistanceService.isBreakout(
                             Timeframe.QUARTERLY, stockPrice, stockTechnicals)
-                    && yearlySupportResistanceService.isBreakout(
+                    && supportResistanceService.isBreakout(
                             Timeframe.YEARLY, stockPrice, stockTechnicals);
             default -> false;
         };
@@ -103,17 +97,17 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
         return switch (timeframe) {
-            case DAILY -> weeklySupportResistanceService.isNearSupport(
+            case DAILY -> supportResistanceService.isNearSupport(
                             Timeframe.WEEKLY, stockPrice, stockTechnicals)
-                    || monthlySupportResistanceService.isNearSupport(
+                    || supportResistanceService.isNearSupport(
                             Timeframe.MONTHLY, stockPrice, stockTechnicals);
-            case WEEKLY -> monthlySupportResistanceService.isNearSupport(
+            case WEEKLY -> supportResistanceService.isNearSupport(
                             Timeframe.MONTHLY, stockPrice, stockTechnicals)
-                    || quarterlySupportResistanceService.isNearSupport(
+                    || supportResistanceService.isNearSupport(
                             Timeframe.QUARTERLY, stockPrice, stockTechnicals);
-            case MONTHLY -> quarterlySupportResistanceService.isNearSupport(
+            case MONTHLY -> supportResistanceService.isNearSupport(
                             Timeframe.QUARTERLY, stockPrice, stockTechnicals)
-                    || yearlySupportResistanceService.isNearSupport(
+                    || supportResistanceService.isNearSupport(
                             Timeframe.YEARLY, stockPrice, stockTechnicals);
             default -> false;
         };
@@ -150,17 +144,17 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
         return switch (timeframe) {
-            case DAILY -> weeklySupportResistanceService.isBreakdown(
+            case DAILY -> supportResistanceService.isBreakdown(
                             Timeframe.WEEKLY, stockPrice, stockTechnicals)
-                    && monthlySupportResistanceService.isBreakdown(
+                    && supportResistanceService.isBreakdown(
                             Timeframe.MONTHLY, stockPrice, stockTechnicals);
-            case WEEKLY -> monthlySupportResistanceService.isBreakdown(
+            case WEEKLY -> supportResistanceService.isBreakdown(
                             Timeframe.MONTHLY, stockPrice, stockTechnicals)
-                    && quarterlySupportResistanceService.isBreakdown(
+                    && supportResistanceService.isBreakdown(
                             Timeframe.QUARTERLY, stockPrice, stockTechnicals);
-            case MONTHLY -> quarterlySupportResistanceService.isBreakdown(
+            case MONTHLY -> supportResistanceService.isBreakdown(
                             Timeframe.QUARTERLY, stockPrice, stockTechnicals)
-                    && yearlySupportResistanceService.isBreakdown(
+                    && supportResistanceService.isBreakdown(
                             Timeframe.YEARLY, stockPrice, stockTechnicals);
             default -> false;
         };
@@ -198,17 +192,17 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
         return switch (timeframe) {
-            case DAILY -> weeklySupportResistanceService.isNearResistance(
+            case DAILY -> supportResistanceService.isNearResistance(
                             Timeframe.WEEKLY, stockPrice, stockTechnicals)
-                    && monthlySupportResistanceService.isNearResistance(
+                    && supportResistanceService.isNearResistance(
                             Timeframe.MONTHLY, stockPrice, stockTechnicals);
-            case WEEKLY -> quarterlySupportResistanceService.isNearResistance(
+            case WEEKLY -> supportResistanceService.isNearResistance(
                             Timeframe.QUARTERLY, stockPrice, stockTechnicals)
-                    && monthlySupportResistanceService.isNearResistance(
+                    && supportResistanceService.isNearResistance(
                             Timeframe.MONTHLY, stockPrice, stockTechnicals);
-            case MONTHLY -> yearlySupportResistanceService.isNearResistance(
+            case MONTHLY -> supportResistanceService.isNearResistance(
                             Timeframe.YEARLY, stockPrice, stockTechnicals)
-                    && quarterlySupportResistanceService.isNearResistance(
+                    && supportResistanceService.isNearResistance(
                             Timeframe.QUARTERLY, stockPrice, stockTechnicals);
             default -> false;
         };

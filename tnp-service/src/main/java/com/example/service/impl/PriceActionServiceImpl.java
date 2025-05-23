@@ -118,9 +118,11 @@ public class PriceActionServiceImpl implements PriceActionService {
         Trend.Phase phase = trend.getMomentum();
 
         boolean isBullishCandleStick =
-                candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
+                candleStickHelperService.isBullishConfirmed(
+                        timeframe, stockPrice, stockTechnicals, true);
         boolean isBearishCandleStick =
-                candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
+                candleStickHelperService.isBearishConfirmed(
+                        timeframe, stockPrice, stockTechnicals, true);
         boolean isVolumeSurge =
                 volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
 
@@ -130,7 +132,8 @@ public class PriceActionServiceImpl implements PriceActionService {
                                             Trend.Phase.DIP,
                                             Trend.Phase.PULLBACK,
                                             Trend.Phase.CORRECTION,
-                                            Trend.Phase.DEEP_CORRECTION)
+                                            Trend.Phase.DEEP_CORRECTION,
+                                            Trend.Phase.BOTTOM)
                                     .contains(phase))
                             && !isBearishCandleStick
                             && isVolumeSurge
@@ -145,6 +148,12 @@ public class PriceActionServiceImpl implements PriceActionService {
             }
         }
 
+        if (trend.getMomentum() != Trend.Phase.TOP) {
+            subStrategyRef.set(ResearchTechnical.SubStrategy.BOTTOM_BREAKOUT);
+            return dynamicRelevanceService.isBottomBreakout(
+                    trend, timeframe, stockPrice, stockTechnicals);
+        }
+
         boolean isHigherTimeFrameHighBreakout =
                 stockPriceHelperService.isHigherTimeFrameHighBreakout(timeframe, stockPrice);
         boolean isHigher2TimeFrameHighBreakout =
@@ -157,7 +166,8 @@ public class PriceActionServiceImpl implements PriceActionService {
                                             Trend.Phase.TOP,
                                             Trend.Phase.RECOVERY,
                                             Trend.Phase.ADVANCE,
-                                            Trend.Phase.STRONG_ADVANCE)
+                                            Trend.Phase.STRONG_ADVANCE,
+                                            Trend.Phase.EARLY_RECOVERY)
                                     .contains(phase))
                             && !isBearishCandleStick
                             && isVolumeSurge
@@ -197,9 +207,11 @@ public class PriceActionServiceImpl implements PriceActionService {
         }
 
         boolean isBullishCandleStick =
-                candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
+                candleStickHelperService.isBullishConfirmed(
+                        timeframe, stockPrice, stockTechnicals, true);
         boolean isBearishCandleStick =
-                candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
+                candleStickHelperService.isBearishConfirmed(
+                        timeframe, stockPrice, stockTechnicals, true);
         boolean isVolumeSurge =
                 volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
 
@@ -217,6 +229,12 @@ public class PriceActionServiceImpl implements PriceActionService {
                                 : ResearchTechnical.SubStrategy.DYNAMIC_WEAK_SUPPORT);
                 return true;
             }
+        }
+
+        if (trend.getMomentum() != Trend.Phase.TOP) {
+            subStrategyRef.set(ResearchTechnical.SubStrategy.BOTTOM_BREAKOUT);
+            return dynamicRelevanceService.isBottomBreakout(
+                    trend, timeframe, stockPrice, stockTechnicals);
         }
 
         boolean isHigherTimeFrameHighBreakout =
@@ -324,10 +342,12 @@ public class PriceActionServiceImpl implements PriceActionService {
         Trend.Phase phase = trend.getMomentum();
 
         boolean isBearishCandleStick =
-                candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
+                candleStickHelperService.isBearishConfirmed(
+                        timeframe, stockPrice, stockTechnicals, true);
 
         boolean isBullishCandleStick =
-                candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
+                candleStickHelperService.isBullishConfirmed(
+                        timeframe, stockPrice, stockTechnicals, true);
         boolean isVolumeSurge =
                 volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
 
@@ -337,7 +357,8 @@ public class PriceActionServiceImpl implements PriceActionService {
                                             Trend.Phase.RECOVERY,
                                             Trend.Phase.ADVANCE,
                                             Trend.Phase.STRONG_ADVANCE,
-                                            Trend.Phase.TOP)
+                                            Trend.Phase.TOP,
+                                            Trend.Phase.EARLY_RECOVERY)
                                     .contains(phase))
                             && !isBullishCandleStick
                             && isVolumeSurge
@@ -351,7 +372,11 @@ public class PriceActionServiceImpl implements PriceActionService {
                 return true;
             }
         }
-
+        if (trend.getMomentum() == Trend.Phase.TOP) {
+            subStrategyRef.set(ResearchTechnical.SubStrategy.TOP_BREAKDOWN);
+            return dynamicRelevanceService.isTopBreakdown(
+                    trend, timeframe, stockPrice, stockTechnicals);
+        }
         boolean isHigherTimeFrameHighBreakdown =
                 stockPriceHelperService.isHigherTimeFrameHighBreakdown(timeframe, stockPrice);
         boolean isHigher2TimeFrameHighBreakdown =
@@ -363,7 +388,8 @@ public class PriceActionServiceImpl implements PriceActionService {
                                             Trend.Phase.DIP,
                                             Trend.Phase.PULLBACK,
                                             Trend.Phase.CORRECTION,
-                                            Trend.Phase.DEEP_CORRECTION)
+                                            Trend.Phase.DEEP_CORRECTION,
+                                            Trend.Phase.TOP)
                                     .contains(phase))
                             && !isBullishCandleStick
                             && isVolumeSurge
@@ -404,10 +430,12 @@ public class PriceActionServiceImpl implements PriceActionService {
         }
 
         boolean isBearishCandleStick =
-                candleStickHelperService.isBearishConfirmed(timeframe, stockPrice, stockTechnicals);
+                candleStickHelperService.isBearishConfirmed(
+                        timeframe, stockPrice, stockTechnicals, true);
 
         boolean isBullishCandleStick =
-                candleStickHelperService.isBullishConfirmed(timeframe, stockPrice, stockTechnicals);
+                candleStickHelperService.isBullishConfirmed(
+                        timeframe, stockPrice, stockTechnicals, true);
         boolean isVolumeSurge =
                 volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
 
@@ -426,7 +454,11 @@ public class PriceActionServiceImpl implements PriceActionService {
                 return true;
             }
         }
-
+        if (trend.getMomentum() == Trend.Phase.TOP) {
+            subStrategyRef.set(ResearchTechnical.SubStrategy.TOP_BREAKDOWN);
+            return dynamicRelevanceService.isTopBreakdown(
+                    trend, timeframe, stockPrice, stockTechnicals);
+        }
         boolean isHigherTimeFrameHighBreakdown =
                 stockPriceHelperService.isHigherTimeFrameHighBreakdown(timeframe, stockPrice);
         boolean isHigher2TimeFrameHighBreakdown =
