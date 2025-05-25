@@ -28,18 +28,18 @@ public class CandleStickUtils {
                 atrMultiplier = 1.1;
                 break;
             case WEEKLY:
-                minBodyPercentage = 0.70;
+                minBodyPercentage = 0.65;
                 atrMultiplier = 1.3;
                 break;
             case MONTHLY:
-                minBodyPercentage = 0.75;
+                minBodyPercentage = 0.65;
                 atrMultiplier = 1.5;
                 break;
             default:
                 return false;
         }
 
-        return (bodySize >= minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
+        return (bodySize > minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
     }
 
     public static boolean isPrevSessionStrongBody(
@@ -60,18 +60,18 @@ public class CandleStickUtils {
                 atrMultiplier = 1.1;
                 break;
             case WEEKLY:
-                minBodyPercentage = 0.70;
+                minBodyPercentage = 0.65;
                 atrMultiplier = 1.3;
                 break;
             case MONTHLY:
-                minBodyPercentage = 0.75;
+                minBodyPercentage = 0.65;
                 atrMultiplier = 1.5;
                 break;
             default:
                 return false;
         }
 
-        return (bodySize >= minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
+        return (bodySize > minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
     }
 
     public static boolean isPrev2SessionStrongBody(
@@ -92,18 +92,18 @@ public class CandleStickUtils {
                 atrMultiplier = 1.1;
                 break;
             case WEEKLY:
-                minBodyPercentage = 0.70;
+                minBodyPercentage = 0.65;
                 atrMultiplier = 1.3;
                 break;
             case MONTHLY:
-                minBodyPercentage = 0.75;
+                minBodyPercentage = 0.65;
                 atrMultiplier = 1.5;
                 break;
             default:
                 return false;
         }
 
-        return (bodySize >= minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
+        return (bodySize > minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
     }
 
     public static boolean isStrongRange(
@@ -263,7 +263,11 @@ public class CandleStickUtils {
         return Math.abs(value1 - value2) < tolerance;
     }
 
-    public static boolean isWickDominantCandle(StockPrice stockPrice, boolean checkUpperWick) {
+    public static boolean isWickDominantCandle(
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean checkUpperWick,
+            boolean checkVerySmallBody) {
         if (stockPrice == null) return false;
 
         double bodySize = bodySize(stockPrice);
@@ -273,7 +277,11 @@ public class CandleStickUtils {
 
         if (totalRange == 0) return false; // Avoid division errors
 
-        boolean smallBody = bodySize <= 0.35 * totalRange;
+        boolean smallBody =
+                checkVerySmallBody
+                        ? isVerySmallBody(stockPrice)
+                        : isSmallBody(stockPrice, stockTechnicals);
+
         boolean longWick =
                 checkUpperWick ? (upperWick >= 2 * bodySize) : (lowerWick >= 2 * bodySize);
         boolean smallOppositeWick =
@@ -623,22 +631,31 @@ public class CandleStickUtils {
         return lowerWick >= (bodySize * 1.5);
     }
 
-    public static boolean isSmallBody(StockPrice stockPrice) {
+    public static boolean isSmallBody(StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
         if (stockPrice == null
+                || stockTechnicals == null
                 || stockPrice.getOpen() == null
                 || stockPrice.getClose() == null
                 || stockPrice.getHigh() == null
-                || stockPrice.getLow() == null) {
+                || stockPrice.getLow() == null
+                || stockTechnicals.getAtr() == null) {
             return false;
         }
 
         double bodySize = Math.abs(stockPrice.getClose() - stockPrice.getOpen());
         double candleRange = stockPrice.getHigh() - stockPrice.getLow();
+        double atr = stockTechnicals.getAtr();
 
-        return candleRange > 0 && bodySize <= (0.3 * candleRange);
+        if (candleRange == 0 || atr == 0) return false;
+
+        boolean smallByRange = bodySize <= (0.35 * candleRange) && bodySize > (0.1 * candleRange);
+        boolean smallByAtr = bodySize <= (0.4 * atr); // You can tweak this threshold
+
+        return smallByRange || smallByAtr;
     }
 
-    public static boolean isPrevSmallBody(StockPrice stockPrice) {
+    public static boolean isPrevSmallBody(StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null
                 || stockPrice.getPrevOpen() == null
                 || stockPrice.getPrevClose() == null
@@ -647,10 +664,29 @@ public class CandleStickUtils {
             return false;
         }
 
-        double bodySize = Math.abs(stockPrice.getPrevClose() - stockPrice.getPrevOpen());
-        double candleRange = stockPrice.getPrevHigh() - stockPrice.getPrevLow();
+        double bodySize = prevSessionBodySize(stockPrice);
+        double candleRange = prevSessionRange(stockPrice);
+        double atr = stockTechnicals.getPrevAtr();
 
-        return candleRange > 0 && bodySize <= (0.3 * candleRange);
+        boolean smallByRange = bodySize <= (0.35 * candleRange) && bodySize > (0.1 * candleRange);
+        ;
+        boolean smallByAtr = bodySize <= (0.35 * atr); // You can tweak this threshold
+
+        return smallByRange || smallByAtr;
+    }
+
+    public static boolean isVerySmallBody(StockPrice stockPrice) {
+        if (stockPrice == null) return false;
+        double bodySize = bodySize(stockPrice);
+        double range = range(stockPrice);
+        return range > 0 && bodySize <= 0.1 * range;
+    }
+
+    public static boolean isPrevVerySmallBody(StockPrice stockPrice) {
+        if (stockPrice == null) return false;
+        double bodySize = prevSessionBodySize(stockPrice);
+        double range = prevSessionRange(stockPrice);
+        return range > 0 && bodySize <= 0.1 * range;
     }
 
     public static boolean isStrongLowerWick(StockPrice price) {

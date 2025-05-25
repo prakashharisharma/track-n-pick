@@ -51,15 +51,27 @@ public class TrendDirectionUtil {
         } else if (upScore >= 6 && upScore > downScore) {
             return Trend.Direction.UP;
         } else {
-            // Tie-breaker using last 2 highs/lows
-            boolean lowerHigh = highs[4] < highs[3];
-            boolean lowerLow = lows[4] < lows[3];
-            boolean higherHigh = highs[4] > highs[3];
-            boolean higherLow = lows[4] > lows[3];
+            // Tie-breaker logic
+            boolean isCurrentRed = CandleStickUtils.isRed(stockPrice);
+            if (isCurrentRed) {
+                // Compare current day with previous day only
+                boolean lowerHigh = highs[4] < highs[3];
+                boolean lowerLow = lows[4] < lows[3];
+                if (lowerHigh && lowerLow) return Trend.Direction.DOWN;
 
-            if (lowerHigh && lowerLow) return Trend.Direction.DOWN;
-            if (higherHigh && higherLow) return Trend.Direction.UP;
+                boolean higherHigh = highs[4] > highs[3];
+                boolean higherLow = lows[4] > lows[3];
+                if (higherHigh && higherLow) return Trend.Direction.UP;
+            } else {
+                // Current day is green - compare current with previous two days
+                boolean lowerHigh = (highs[4] < highs[3]) && (highs[3] < highs[2]);
+                boolean lowerLow = (lows[4] < lows[3]) && (lows[3] < lows[2]);
+                if (lowerHigh && lowerLow) return Trend.Direction.DOWN;
 
+                boolean higherHigh = (highs[4] > highs[3]) && (highs[3] > highs[2]);
+                boolean higherLow = (lows[4] > lows[3]) && (lows[3] > lows[2]);
+                if (higherHigh && higherLow) return Trend.Direction.UP;
+            }
             return Trend.Direction.INVALID;
         }
     }
