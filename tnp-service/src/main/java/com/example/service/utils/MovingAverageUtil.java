@@ -21,6 +21,11 @@ public class MovingAverageUtil {
         return stockTechnicals.getPrevEma5();
     }
 
+    public static double getPrev2MovingAverage5(
+            Timeframe timeframe, StockTechnicals stockTechnicals) {
+        return stockTechnicals.getPrev2Ema5();
+    }
+
     public static double getMovingAverage10(Timeframe timeframe, StockTechnicals stockTechnicals) {
         return stockTechnicals.getEma10();
     }
@@ -28,6 +33,11 @@ public class MovingAverageUtil {
     public static double getPrevMovingAverage10(
             Timeframe timeframe, StockTechnicals stockTechnicals) {
         return stockTechnicals.getPrevEma10();
+    }
+
+    public static double getPrev2MovingAverage10(
+            Timeframe timeframe, StockTechnicals stockTechnicals) {
+        return stockTechnicals.getPrev2Ema10();
     }
 
     public static double getMovingAverage20(Timeframe timeframe, StockTechnicals stockTechnicals) {
@@ -39,6 +49,11 @@ public class MovingAverageUtil {
         return stockTechnicals.getPrevEma20();
     }
 
+    public static double getPrev2MovingAverage20(
+            Timeframe timeframe, StockTechnicals stockTechnicals) {
+        return stockTechnicals.getPrev2Ema20();
+    }
+
     public static double getMovingAverage50(Timeframe timeframe, StockTechnicals stockTechnicals) {
         return stockTechnicals.getEma50();
     }
@@ -46,6 +61,11 @@ public class MovingAverageUtil {
     public static double getPrevMovingAverage50(
             Timeframe timeframe, StockTechnicals stockTechnicals) {
         return stockTechnicals.getPrevEma50();
+    }
+
+    public static double getPrev2MovingAverage50(
+            Timeframe timeframe, StockTechnicals stockTechnicals) {
+        return stockTechnicals.getPrev2Ema50();
     }
 
     public static double getMovingAverage100(Timeframe timeframe, StockTechnicals stockTechnicals) {
@@ -65,6 +85,15 @@ public class MovingAverageUtil {
         return stockTechnicals.getPrevSma100();
     }
 
+    public static double getPrev2MovingAverage100(
+            Timeframe timeframe, StockTechnicals stockTechnicals) {
+        /*
+        return (timeframe == Timeframe.MONTHLY)
+                ? stockTechnicals.getPrevSma100()
+                : stockTechnicals.getPrevEma100();*/
+        return stockTechnicals.getPrev2Sma100();
+    }
+
     public static double getMovingAverage200(Timeframe timeframe, StockTechnicals stockTechnicals) {
         /*
         return (timeframe == Timeframe.MONTHLY || timeframe == Timeframe.WEEKLY)
@@ -82,6 +111,16 @@ public class MovingAverageUtil {
                 : stockTechnicals.getPrevEma200();
          */
         return stockTechnicals.getPrevSma200();
+    }
+
+    public static double getPrev2MovingAverage200(
+            Timeframe timeframe, StockTechnicals stockTechnicals) {
+        /*
+        return (timeframe == Timeframe.MONTHLY || timeframe == Timeframe.WEEKLY)
+                ? stockTechnicals.getPrevSma200()
+                : stockTechnicals.getPrevEma200();
+         */
+        return stockTechnicals.getPrev2Sma200();
     }
 
     public static MovingAverageResult getMovingAverage(

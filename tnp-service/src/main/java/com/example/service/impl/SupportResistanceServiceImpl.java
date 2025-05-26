@@ -50,7 +50,7 @@ public class SupportResistanceServiceImpl implements SupportResistanceService {
 
     @Override
     public boolean isNearSupport(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals unused) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         Stock stock = stockPrice.getStock();
         StockPrice htStockPrice = stockPriceService.get(stock, timeframe);
         StockTechnicals htTechnicals = stockTechnicalsService.get(stock, timeframe);
@@ -61,22 +61,9 @@ public class SupportResistanceServiceImpl implements SupportResistanceService {
         }
 
         if (supportResistanceService.isNearSupport(
-                stockPrice.getOpen(),
-                stockPrice.getHigh(),
-                stockPrice.getLow(),
-                stockPrice.getClose(),
-                support)) {
-            return true;
-        }
-
-        if (supportResistanceConfirmationService.isSupportConfirmed(
-                        timeframe, stockPrice, unused, support)
-                && supportResistanceService.isNearSupport(
-                        stockPrice.getPrevOpen(),
-                        stockPrice.getPrevHigh(),
-                        stockPrice.getPrevLow(),
-                        stockPrice.getPrevClose(),
-                        support)) {
+                stockPrice,
+                support) && supportResistanceConfirmationService.isSupportConfirmed(
+                timeframe, stockPrice, stockTechnicals, support)) {
             return true;
         }
 
@@ -104,7 +91,7 @@ public class SupportResistanceServiceImpl implements SupportResistanceService {
 
     @Override
     public boolean isNearResistance(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals unused) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         Stock stock = stockPrice.getStock();
         StockPrice htStockPrice = stockPriceService.get(stock, timeframe);
         StockTechnicals htTechnicals = stockTechnicalsService.get(stock, timeframe);
@@ -115,24 +102,12 @@ public class SupportResistanceServiceImpl implements SupportResistanceService {
         }
 
         if (supportResistanceService.isNearResistance(
-                stockPrice.getOpen(),
-                stockPrice.getHigh(),
-                stockPrice.getLow(),
-                stockPrice.getClose(),
-                resistance)) {
+                stockPrice,
+                resistance) && supportResistanceConfirmationService.isResistanceConfirmed(
+                timeframe, stockPrice, stockTechnicals, resistance)) {
             return true;
         }
 
-        if (supportResistanceConfirmationService.isResistanceConfirmed(
-                        timeframe, stockPrice, unused, resistance)
-                && supportResistanceService.isNearResistance(
-                        stockPrice.getPrevOpen(),
-                        stockPrice.getPrevHigh(),
-                        stockPrice.getPrevLow(),
-                        stockPrice.getPrevClose(),
-                        resistance)) {
-            return true;
-        }
 
         return false;
     }

@@ -192,6 +192,11 @@ public class ConfidenceScoreCalculator {
             return 10;
         }
 
+        // Case: Strong bullish crossover (MACD crossed above signal, rising histogram, MACD > 0)
+        if (macd < signal && histogramRising && macdIncreasing) {
+            return 10;
+        }
+
         // Case: Moderately strong bullish (histogram rising and MACD increasing or signal
         // decreasing)
         if (macd > signal && histogramRising && (macdIncreasing || signalDecreasing)) {

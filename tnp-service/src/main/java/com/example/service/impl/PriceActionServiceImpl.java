@@ -2,11 +2,7 @@ package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
-import com.example.data.transactional.entities.BreakoutLedger;
-import com.example.data.transactional.entities.ResearchTechnical;
-import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockPrice;
-import com.example.data.transactional.entities.StockTechnicals;
+import com.example.data.transactional.entities.*;
 import com.example.dto.common.TradeSetup;
 import com.example.service.*;
 import com.example.service.StockPriceService;
@@ -15,36 +11,37 @@ import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
 import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicReference;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class PriceActionServiceImpl implements PriceActionService {
 
-    @Autowired private SupportResistanceUtilService supportResistanceService;
-    @Autowired private CandleStickConfirmationService candleStickHelperService;
+     private final CandleStickConfirmationService candleStickHelperService;
 
-    @Autowired private VolumeIndicatorService volumeIndicatorService;
+     private final VolumeIndicatorService volumeIndicatorService;
 
-    @Autowired private CandleStickService candleStickService;
+     private final CandleStickService candleStickService;
 
-    @Autowired private BreakoutLedgerService breakoutLedgerService;
+     private final BreakoutLedgerService breakoutLedgerService;
 
-    @Autowired private StockPriceHelperService stockPriceHelperService;
-    @Autowired private RelevanceService relevanceService;
-    @Autowired private DynamicRelevanceService dynamicRelevanceService;
-    @Autowired private FormulaService formulaService;
-    @Autowired private TrendService trendService;
+     private final StockPriceHelperService stockPriceHelperService;
+     private final RelevanceService relevanceService;
+     private final DynamicRelevanceService dynamicRelevanceService;
+     private final TrendService trendService;
 
-    @Autowired private DynamicTrendService dynamicTrendService;
+     private final DynamicTrendService dynamicTrendService;
 
-    @Autowired private RsiIndicatorService rsiIndicatorService;
+     private final StockPriceService<StockPrice> stockPriceService;
 
-    @Autowired private StockPriceService<StockPrice> stockPriceService;
+     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
-    @Autowired private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
+    private final CandlestickPatternService candlestickPatternService;
 
     @Override
     public TradeSetup breakOut(Stock stock, Timeframe timeframe) {
@@ -138,7 +135,7 @@ public class PriceActionServiceImpl implements PriceActionService {
                             && !isBearishCandleStick
                             && isVolumeSurge
                             && (CandleStickUtils.isStrongLowerWick(stockPrice)
-                                    || CandleStickUtils.isGreen(stockPrice)))) {
+                                 ))) {
 
                 subStrategyRef.set(
                         isBullishCandleStick
@@ -219,9 +216,7 @@ public class PriceActionServiceImpl implements PriceActionService {
             if (isBullishCandleStick
                     || (!isBearishCandleStick
                             && isVolumeSurge
-                            && isVolumeSurge
-                            && (CandleStickUtils.isStrongLowerWick(stockPrice)
-                                    || CandleStickUtils.isGreen(stockPrice)))) {
+                            && (CandleStickUtils.isStrongLowerWick(stockPrice)))) {
 
                 subStrategyRef.set(
                         isBullishCandleStick
@@ -231,11 +226,13 @@ public class PriceActionServiceImpl implements PriceActionService {
             }
         }
 
-        if (trend.getMomentum() != Trend.Phase.TOP) {
-            subStrategyRef.set(ResearchTechnical.SubStrategy.BOTTOM_BREAKOUT);
-            return dynamicRelevanceService.isBottomBreakout(
-                    trend, timeframe, stockPrice, stockTechnicals);
+        if(trend.getMomentum() == Trend.Phase.BOTTOM){
+            if(candlestickPatternService.hasAtLeastTwoPatternsWithSentiment(stockPrice, CandlestickPattern.Sentiment.BULLISH)){
+                subStrategyRef.set(ResearchTechnical.SubStrategy.BOTTOM_REVERSAL);
+                return true;
+            }
         }
+
 
         boolean isHigherTimeFrameHighBreakout =
                 stockPriceHelperService.isHigherTimeFrameHighBreakout(timeframe, stockPrice);
@@ -256,8 +253,9 @@ public class PriceActionServiceImpl implements PriceActionService {
         }
 
         boolean isHigherHighHigherLow = CandleStickUtils.isHigherHighAndHigherLow(stockPrice);
+        boolean isHtHigherHighHigherLow = CandleStickUtils.isHigherHighAndHigherLow(stockPriceService.get(stockPrice.getStock(), timeframe.getHigher()));
 
-        if (isHigherHighHigherLow
+        if ((isHigherHighHigherLow || isHtHigherHighHigherLow)
                 && dynamicRelevanceService.isBullishIndicator(
                         trend, timeframe, stockPrice, stockTechnicals)) {
             subStrategyRef.set(ResearchTechnical.SubStrategy.DYNAMIC_BULLISH_INDICATORS);
@@ -363,7 +361,7 @@ public class PriceActionServiceImpl implements PriceActionService {
                             && !isBullishCandleStick
                             && isVolumeSurge
                             && (CandleStickUtils.isStrongUpperWick(stockPrice)
-                                    || CandleStickUtils.isRed(stockPrice)))) {
+                                    ))) {
 
                 subStrategyRef.set(
                         isBearishCandleStick
@@ -444,8 +442,7 @@ public class PriceActionServiceImpl implements PriceActionService {
             if (isBearishCandleStick
                     || (!isBullishCandleStick
                             && isVolumeSurge
-                            && (CandleStickUtils.isStrongUpperWick(stockPrice)
-                                    || CandleStickUtils.isRed(stockPrice)))) {
+                            && (CandleStickUtils.isStrongUpperWick(stockPrice)))) {
 
                 subStrategyRef.set(
                         isBearishCandleStick
@@ -454,11 +451,20 @@ public class PriceActionServiceImpl implements PriceActionService {
                 return true;
             }
         }
+
+        if(trend.getMomentum() == Trend.Phase.TOP){
+            if(candlestickPatternService.hasAtLeastTwoPatternsWithSentiment(stockPrice, CandlestickPattern.Sentiment.BEARISH)){
+                subStrategyRef.set(ResearchTechnical.SubStrategy.TOP_REVERSAL);
+                return true;
+            }
+        }
+
         if (trend.getMomentum() == Trend.Phase.TOP) {
             subStrategyRef.set(ResearchTechnical.SubStrategy.TOP_BREAKDOWN);
             return dynamicRelevanceService.isTopBreakdown(
                     trend, timeframe, stockPrice, stockTechnicals);
         }
+
         boolean isHigherTimeFrameHighBreakdown =
                 stockPriceHelperService.isHigherTimeFrameHighBreakdown(timeframe, stockPrice);
         boolean isHigher2TimeFrameHighBreakdown =

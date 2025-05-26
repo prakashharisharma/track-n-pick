@@ -176,6 +176,14 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                 tradeSetup = swingActionService.breakDown(stock, timeframe);
             }
 
+            if (!tradeSetup.isActive()) {
+                tradeSetup = movingAverageActionService.breakDown(stock, timeframe);
+                double close = stockPrice.getClose();
+                if(researchTechnical.getResearchPrice() >= close && researchTechnical.getTarget() >= close) {
+                    tradeSetup.setActive(false);
+                }
+            }
+
             if (tradeSetup.isActive()) {
                 isUpdation = Boolean.TRUE;
             }
