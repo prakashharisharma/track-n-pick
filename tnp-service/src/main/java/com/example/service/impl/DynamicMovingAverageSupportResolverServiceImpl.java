@@ -139,6 +139,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
         };
     }
 
+    @Override
     public MovingAverageSupportResistanceService resolve(
             MovingAverageLength length, Timeframe timeframe, StockTechnicals stockTechnicals) {
         List<MAServiceEntry> entries =

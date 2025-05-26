@@ -58,24 +58,13 @@ public class MovingAverageSupportResistanceServiceImpl
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         double ma = maType.resolve(timeframe, stockTechnicals);
         double prevMa = maType.resolvePrev(timeframe, stockTechnicals);
+        double prev2Ma = maType.resolvePrev2(timeframe, stockTechnicals);
 
-        if (supportResistanceService.isNearSupport(
-                stockPrice.getOpen(),
-                stockPrice.getHigh(),
-                stockPrice.getLow(),
-                stockPrice.getClose(),
-                ma)) {
+        if (supportResistanceService.isNearSupport(stockPrice, ma, prevMa, prev2Ma) && supportResistanceConfirmationService.isSupportConfirmed(timeframe, stockPrice, stockTechnicals, ma)) {
             return true;
         }
 
-        return supportResistanceConfirmationService.isSupportConfirmed(
-                        timeframe, stockPrice, stockTechnicals, ma)
-                && supportResistanceService.isNearSupport(
-                        stockPrice.getPrevOpen(),
-                        stockPrice.getPrevHigh(),
-                        stockPrice.getPrevLow(),
-                        stockPrice.getPrevClose(),
-                        prevMa);
+        return  false;
     }
 
     @Override
@@ -83,23 +72,12 @@ public class MovingAverageSupportResistanceServiceImpl
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         double ma = maType.resolve(timeframe, stockTechnicals);
         double prevMa = maType.resolvePrev(timeframe, stockTechnicals);
+        double prev2Ma = maType.resolvePrev2(timeframe, stockTechnicals);
 
-        if (supportResistanceService.isNearResistance(
-                stockPrice.getOpen(),
-                stockPrice.getHigh(),
-                stockPrice.getLow(),
-                stockPrice.getClose(),
-                ma)) {
+        if (supportResistanceService.isNearResistance(stockPrice, ma, prevMa, prev2Ma) && supportResistanceConfirmationService.isResistanceConfirmed(timeframe, stockPrice, stockTechnicals, ma)) {
             return true;
         }
 
-        return supportResistanceConfirmationService.isResistanceConfirmed(
-                        timeframe, stockPrice, stockTechnicals, ma)
-                && supportResistanceService.isNearResistance(
-                        stockPrice.getPrevOpen(),
-                        stockPrice.getPrevHigh(),
-                        stockPrice.getPrevLow(),
-                        stockPrice.getPrevClose(),
-                        prevMa);
+        return  false;
     }
 }

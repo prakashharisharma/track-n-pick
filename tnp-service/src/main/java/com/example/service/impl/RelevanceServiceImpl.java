@@ -6,6 +6,7 @@ import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
+import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +103,7 @@ public class RelevanceServiceImpl implements RelevanceService {
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
-        if (trend.getDirection() == Trend.Direction.UP) {
+        if (trend.getDirection() == Trend.Direction.UP && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
             if (trend.getMomentum() == Trend.Phase.TOP
                     && timeframeSupportResistanceService.isBreakout(
                             trend, timeframe, stockPrice, stockTechnicals)
@@ -134,7 +135,7 @@ public class RelevanceServiceImpl implements RelevanceService {
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
-        if (trend.getDirection() == Trend.Direction.DOWN) {
+        if (trend.getDirection() == Trend.Direction.DOWN && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
 
             if (multiMovingAverageSupportResistanceService.isBreakdown(
                             trend, timeframe, stockPrice, stockTechnicals)

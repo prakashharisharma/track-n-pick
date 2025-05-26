@@ -6,6 +6,7 @@ import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
+import com.example.service.utils.CandleStickUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
-        if (trend.getDirection() == Trend.Direction.DOWN) {
+        if (trend.getDirection() == Trend.Direction.DOWN ) {
             if (dynamicMovingAverageSupportResolverService.isNearSupport(
                             trend, timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverSold(stockTechnicals)) {
@@ -92,7 +93,7 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
-        if (trend.getDirection() == Trend.Direction.UP) {
+        if (trend.getDirection() == Trend.Direction.UP && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
             if (trend.getMomentum() == Trend.Phase.TOP
                     && timeframeSupportResistanceService.isBreakout(
                             trend, timeframe, stockPrice, stockTechnicals)
@@ -124,7 +125,7 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
-        if (trend.getDirection() == Trend.Direction.DOWN) {
+        if (trend.getDirection() == Trend.Direction.DOWN && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
 
             if (dynamicMovingAverageSupportResolverService.isBreakdown(
                             trend, timeframe, stockPrice, stockTechnicals)
@@ -216,8 +217,9 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
 
+
         return dynamicMovingAverageSupportResolverService.isBottomBreakout(
-                trend, timeframe, stockPrice, stockTechnicals);
+                trend, timeframe, stockPrice, stockTechnicals) && (CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals) || CandleStickUtils.isStrongRange(timeframe, stockPrice, stockTechnicals));
     }
 
     @Override
@@ -227,6 +229,6 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
         return dynamicMovingAverageSupportResolverService.isTopBreakdown(
-                trend, timeframe, stockPrice, stockTechnicals);
+                trend, timeframe, stockPrice, stockTechnicals) && (CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals) || CandleStickUtils.isStrongRange(timeframe, stockPrice, stockTechnicals));
     }
 }

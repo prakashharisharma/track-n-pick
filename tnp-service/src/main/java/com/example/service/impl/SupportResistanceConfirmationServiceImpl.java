@@ -29,7 +29,7 @@ public class SupportResistanceConfirmationServiceImpl
                 stockPrice.getLow() <= supportLevel && stockPrice.getClose() > supportLevel;
 
         double percentDiff = Math.abs(stockPrice.getLow() - supportLevel) / supportLevel;
-        boolean isWithin1Percent = percentDiff <= 0.015;
+        boolean isWithin1Percent = percentDiff <= 0.005;
 
         double lowerWickSize = CandleStickUtils.lowerWickSize(stockPrice);
         double upperWickSize = CandleStickUtils.upperWickSize(stockPrice);
@@ -93,7 +93,7 @@ public class SupportResistanceConfirmationServiceImpl
                 stockPrice.getHigh() >= resistanceLevel && stockPrice.getClose() < resistanceLevel;
 
         double percentDiff = Math.abs(stockPrice.getLow() - resistanceLevel) / resistanceLevel;
-        boolean isWithin1Percent = percentDiff <= 0.015;
+        boolean isWithin1Percent = percentDiff <= 0.005;
 
         double lowerWickSize = CandleStickUtils.lowerWickSize(stockPrice);
         double upperWickSize = CandleStickUtils.upperWickSize(stockPrice);

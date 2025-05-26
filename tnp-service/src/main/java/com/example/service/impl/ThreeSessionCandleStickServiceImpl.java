@@ -198,7 +198,9 @@ public class ThreeSessionCandleStickServiceImpl implements ThreeSessionCandleSti
                                 timeframe, stockPrice, stockTechnicals);
 
         // 2) Second candle: small body (indecision)
-        boolean secondSmallBody = CandleStickUtils.isPrevSmallBody(stockPrice, stockTechnicals) || CandleStickUtils.isPrevVerySmallBody(stockPrice);
+        boolean secondSmallBody =
+                CandleStickUtils.isPrevSmallBody(stockPrice, stockTechnicals)
+                        || CandleStickUtils.isPrevVerySmallBody(stockPrice);
 
         // 3) Third candle: strong bullish (green), closing above the midpoint of the first candle
         double firstOpen = stockPrice.getPrev2Open();
@@ -490,7 +492,9 @@ public class ThreeSessionCandleStickServiceImpl implements ThreeSessionCandleSti
         }
 
         boolean firstGreen = CandleStickUtils.isPrev2SessionGreen(stockPrice);
-        boolean secondSmallBody = CandleStickUtils.isPrevSmallBody(stockPrice, stockTechnicals) || CandleStickUtils.isPrevVerySmallBody(stockPrice);
+        boolean secondSmallBody =
+                CandleStickUtils.isPrevSmallBody(stockPrice, stockTechnicals)
+                        || CandleStickUtils.isPrevVerySmallBody(stockPrice);
         boolean thirdRed =
                 CandleStickUtils.isRed(stockPrice) && CandleStickUtils.isLowerClose(stockPrice);
         boolean gapUp = CandleStickUtils.isPrevGapUp(stockPrice);
