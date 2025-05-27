@@ -40,6 +40,9 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     @Autowired private BreakoutLedgerService breakoutLedgerService;
     @Autowired private SwingActionService swingActionService;
     @Autowired private PriceActionService priceActionService;
+
+    @Autowired
+    private DynamicPriceActionService dynamicPriceActionService;
     @Autowired private CandleStickService candleStickService;
 
     @Autowired private ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
@@ -124,7 +127,12 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                         timeframe, stockPrice, stockTechnicals)) {
             if (stock.getSeries().equalsIgnoreCase("EQ")) {
                 log.info("{} Found EQ stock ", stock.getNseSymbol());
-                TradeSetup tradeSetup = priceActionService.breakOut(stock, timeframe);
+
+                TradeSetup tradeSetup = dynamicPriceActionService.breakOut(stock, timeframe);
+
+                if (!tradeSetup.isActive()) {
+                    tradeSetup = priceActionService.breakOut(stock, timeframe);
+                }
 
                 if (!tradeSetup.isActive()) {
                     tradeSetup = swingActionService.breakOut(stock, timeframe);
@@ -170,7 +178,14 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             isUpdation = Boolean.TRUE;
 
         } else {
-            tradeSetup = priceActionService.breakDown(stock, timeframe);
+
+            //if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.BOTTOM_BREAKOUT){
+                tradeSetup = dynamicPriceActionService.breakDown(stock, timeframe);
+            //}
+
+            if (!tradeSetup.isActive()) {
+                tradeSetup = priceActionService.breakDown(stock, timeframe);
+            }
 
             if (!tradeSetup.isActive()) {
                 tradeSetup = swingActionService.breakDown(stock, timeframe);

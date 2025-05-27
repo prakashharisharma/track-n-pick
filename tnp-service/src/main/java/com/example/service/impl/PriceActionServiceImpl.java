@@ -145,11 +145,6 @@ public class PriceActionServiceImpl implements PriceActionService {
             }
         }
 
-        if (trend.getMomentum() != Trend.Phase.TOP) {
-            subStrategyRef.set(ResearchTechnical.SubStrategy.BOTTOM_BREAKOUT);
-            return dynamicRelevanceService.isBottomBreakout(
-                    trend, timeframe, stockPrice, stockTechnicals);
-        }
 
         boolean isHigherTimeFrameHighBreakout =
                 stockPriceHelperService.isHigherTimeFrameHighBreakout(timeframe, stockPrice);
@@ -370,11 +365,7 @@ public class PriceActionServiceImpl implements PriceActionService {
                 return true;
             }
         }
-        if (trend.getMomentum() == Trend.Phase.TOP) {
-            subStrategyRef.set(ResearchTechnical.SubStrategy.TOP_BREAKDOWN);
-            return dynamicRelevanceService.isTopBreakdown(
-                    trend, timeframe, stockPrice, stockTechnicals);
-        }
+
         boolean isHigherTimeFrameHighBreakdown =
                 stockPriceHelperService.isHigherTimeFrameHighBreakdown(timeframe, stockPrice);
         boolean isHigher2TimeFrameHighBreakdown =
@@ -457,12 +448,6 @@ public class PriceActionServiceImpl implements PriceActionService {
                 subStrategyRef.set(ResearchTechnical.SubStrategy.TOP_REVERSAL);
                 return true;
             }
-        }
-
-        if (trend.getMomentum() == Trend.Phase.TOP) {
-            subStrategyRef.set(ResearchTechnical.SubStrategy.TOP_BREAKDOWN);
-            return dynamicRelevanceService.isTopBreakdown(
-                    trend, timeframe, stockPrice, stockTechnicals);
         }
 
         boolean isHigherTimeFrameHighBreakdown =

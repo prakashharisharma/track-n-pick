@@ -107,10 +107,6 @@ public class DynamicTrendServiceImpl implements DynamicTrendService {
             StockPrice stockPrice,
             MovingAverageResult movingAverageResult) {
 
-        // MovingAverageResult  movingAverageResult =
-        // MovingAverageUtil.getMovingAverage(MovingAverageLength.LONGEST, timeframe,
-        // stockTechnicals, true);
-
         double avg = movingAverageResult.getValue();
         double prevAvg = movingAverageResult.getPrevValue();
 
@@ -221,10 +217,6 @@ public class DynamicTrendServiceImpl implements DynamicTrendService {
             StockPrice stockPrice,
             MovingAverageResult movingAverageResult) {
 
-        // MovingAverageResult  movingAverageResult =
-        // MovingAverageUtil.getMovingAverage(MovingAverageLength.LONGEST, timeframe,
-        // stockTechnicals, true);
-
         double avg = movingAverageResult.getValue();
         double prevAvg = movingAverageResult.getPrevValue();
 
@@ -265,6 +257,7 @@ public class DynamicTrendServiceImpl implements DynamicTrendService {
             log.info("stockTechnicals or stockPrice not found");
             return new Trend(Trend.Direction.INVALID, phase);
         }
+
         MovingAverageResult shortestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
                         MovingAverageLength.SHORTEST, timeframe, stockTechnicals, true);
