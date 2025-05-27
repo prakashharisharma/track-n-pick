@@ -124,11 +124,11 @@ public class CandleStickUtils {
                 atrMultiplier = 1.1;
                 break;
             case WEEKLY:
-                minRangeMultiplier = 1.3;
+                minRangeMultiplier = 1.2;
                 atrMultiplier = 1.3;
                 break;
             case MONTHLY:
-                minRangeMultiplier = 1.5;
+                minRangeMultiplier = 1.2;
                 atrMultiplier = 1.5;
                 break;
             default:

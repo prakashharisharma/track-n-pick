@@ -31,6 +31,14 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
     }
 
     @Override
+    public boolean isSignalCrossedMacd(StockTechnicals st) {
+        return CrossOverUtil.isSlowCrossesBelowFast(
+                st.getPrevMacd(), st.getPrevSignal(),
+                st.getMacd(), st.getSignal());
+    }
+
+
+    @Override
     public boolean isSignalNearHistogram(StockTechnicals stockTechnicals) {
 
         if (stockTechnicals != null) {
@@ -99,5 +107,29 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
             return Boolean.TRUE;
         }
         return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isMacdIncreased(StockTechnicals stockTechnicals) {
+        if (stockTechnicals == null) return false;
+        return stockTechnicals.getMacd() > stockTechnicals.getPrevMacd();
+    }
+
+    @Override
+    public boolean isMacdDecreased(StockTechnicals stockTechnicals) {
+        if (stockTechnicals == null) return false;
+        return stockTechnicals.getMacd() < stockTechnicals.getPrevMacd();
+    }
+
+    @Override
+    public boolean isSignalIncreased(StockTechnicals stockTechnicals) {
+        if (stockTechnicals == null) return false;
+        return stockTechnicals.getSignal() > stockTechnicals.getPrevSignal();
+    }
+
+    @Override
+    public boolean isSignalDecreased(StockTechnicals stockTechnicals) {
+        if (stockTechnicals == null) return false;
+        return stockTechnicals.getSignal() < stockTechnicals.getPrevSignal();
     }
 }
