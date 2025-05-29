@@ -16,7 +16,10 @@ public interface MacdIndicatorService {
     public boolean isHistogramDecreased(StockTechnicals stockTechnicals);
 
     public boolean isMacdIncreased(StockTechnicals stockTechnicals);
+
     public boolean isMacdDecreased(StockTechnicals stockTechnicals);
+
     public boolean isSignalIncreased(StockTechnicals stockTechnicals);
+
     public boolean isSignalDecreased(StockTechnicals stockTechnicals);
 }

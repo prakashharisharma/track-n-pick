@@ -6,9 +6,12 @@ import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
 import com.example.service.utils.MovingAverageUtil;
+import com.example.service.utils.TrendDirectionUtil;
 import com.example.util.FormulaService;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -93,7 +96,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
             StockTechnicals stockTechnicals) {
         MovingAverageLength length = resolveLength(trend.getMomentum());
         MovingAverageSupportResistanceService service = resolve(length, timeframe, stockTechnicals);
-        return service.isNearSupport(timeframe, stockPrice, stockTechnicals);
+        return service.isNearSupport(timeframe, stockPrice, stockTechnicals, true);
     }
 
     @Override
@@ -104,7 +107,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
             StockTechnicals stockTechnicals) {
         MovingAverageLength length = resolveLength(trend.getMomentum());
         MovingAverageSupportResistanceService service = resolve(length, timeframe, stockTechnicals);
-        return service.isBreakout(timeframe, stockPrice, stockTechnicals);
+        return service.isBreakout(timeframe, stockPrice, stockTechnicals, true);
     }
 
     @Override
@@ -115,7 +118,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
             StockTechnicals stockTechnicals) {
         MovingAverageLength length = resolveLength(trend.getMomentum());
         MovingAverageSupportResistanceService service = resolve(length, timeframe, stockTechnicals);
-        return service.isBreakdown(timeframe, stockPrice, stockTechnicals);
+        return service.isBreakdown(timeframe, stockPrice, stockTechnicals, true);
     }
 
     @Override
@@ -126,16 +129,16 @@ public class DynamicMovingAverageSupportResolverServiceImpl
             StockTechnicals stockTechnicals) {
         MovingAverageLength length = resolveLength(trend.getMomentum());
         MovingAverageSupportResistanceService service = resolve(length, timeframe, stockTechnicals);
-        return service.isNearResistance(timeframe, stockPrice, stockTechnicals);
+        return service.isNearResistance(timeframe, stockPrice, stockTechnicals, true);
     }
 
     public static MovingAverageLength resolveLength(Trend.Phase phase) {
         return switch (phase) {
-            case DEEP_CORRECTION, BOTTOM -> MovingAverageLength.LONGEST;
-            case CORRECTION -> MovingAverageLength.LONG;
+            case DEEP_CORRECTION, BOTTOM -> MovingAverageLength.LOWEST;
+            case CORRECTION -> MovingAverageLength.LOW;
             case PULLBACK -> MovingAverageLength.MEDIUM;
-            case DIP -> MovingAverageLength.SHORT;
-            default -> MovingAverageLength.SHORTEST;
+            case DIP -> MovingAverageLength.HIGH;
+            default -> MovingAverageLength.HIGHEST;
         };
     }
 
@@ -174,11 +177,11 @@ public class DynamicMovingAverageSupportResolverServiceImpl
 
         int index =
                 switch (length) {
-                    case SHORTEST -> 0;
-                    case SHORT -> 1;
+                    case HIGHEST -> 0;
+                    case HIGH -> 1;
                     case MEDIUM -> 2;
-                    case LONG -> 3;
-                    case LONGEST -> 4;
+                    case LOW -> 3;
+                    case LOWEST -> 4;
                 };
 
         return entries.get(index).service;
@@ -197,36 +200,165 @@ public class DynamicMovingAverageSupportResolverServiceImpl
     }
 
     @Override
-    public boolean isBottomBreakout(
-            Trend trend,
+    public List<MAInteraction> findMAInteractions(
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
 
-        MovingAverageLength length = resolveLength(trend.getMomentum());
+        double open = stockPrice.getOpen();
+        double close = stockPrice.getClose();
+        double low = Math.min(open, close);
+        double high = Math.max(open, close);
 
-        if (length.getPeriod() >= 2) {
-            MovingAverageSupportResistanceService service =
-                    resolve(length, timeframe, stockTechnicals);
-            return service.isBreakout(timeframe, stockPrice, stockTechnicals);
-        }
+        boolean checkSupport = (TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN);
 
-        return false;
+        List<MAServiceEntry> entries =
+                List.of(
+                        new MAServiceEntry(
+                                5,
+                                MovingAverageUtil.getMovingAverage5(timeframe, stockTechnicals),
+                                fiveDaysMovingAverageSupportResistanceService),
+                        new MAServiceEntry(
+                                20,
+                                MovingAverageUtil.getMovingAverage20(timeframe, stockTechnicals),
+                                twentyDaysMovingAverageSupportResistanceService),
+                        new MAServiceEntry(
+                                50,
+                                MovingAverageUtil.getMovingAverage50(timeframe, stockTechnicals),
+                                fiftyDaysMovingAverageSupportResistanceService),
+                        new MAServiceEntry(
+                                100,
+                                MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals),
+                                oneHundredDaysMovingAverageSupportResistanceService),
+                        new MAServiceEntry(
+                                200,
+                                MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals),
+                                twoHundredDaysMovingAverageSupportResistanceService));
+
+        List<MAServiceEntry> sorted =
+                entries.stream()
+                        .sorted(Comparator.comparingDouble(e -> e.value)) // Ascending
+                        .toList();
+
+        return IntStream.range(0, sorted.size())
+                .filter(
+                        i -> {
+                            double value = sorted.get(i).value;
+                            return value >= low && value <= high;
+                        })
+                .mapToObj(
+                        i -> {
+                            double value = sorted.get(i).value;
+                            MovingAverageLength length =
+                                    switch (i) {
+                                        case 0 -> MovingAverageLength.HIGHEST;
+                                        case 1 -> MovingAverageLength.HIGH;
+                                        case 2 -> MovingAverageLength.MEDIUM;
+                                        case 3 -> MovingAverageLength.LOW;
+                                        case 4 -> MovingAverageLength.LOWEST;
+                                        default -> throw new IllegalStateException(
+                                                "Unexpected MA index: " + i);
+                                    };
+                            return MAInteraction.of(length, value, checkSupport);
+                        })
+                .toList();
+    }
+
+    public List<MAEvaluationResult> evaluateInteractions(
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals) {
+
+        List<MAInteraction> interactions =
+                findMAInteractions(timeframe, stockPrice, stockTechnicals);
+
+        return interactions.stream()
+                .map(
+                        interaction -> {
+                            MovingAverageSupportResistanceService service =
+                                    resolve(interaction.getLength(), timeframe, stockTechnicals);
+
+                            boolean nearSupport = false;
+                            boolean breakout = false;
+                            boolean nearResistance = false;
+                            boolean breakdown = false;
+
+                            if (interaction.supportSide()) {
+                                // trend DOWN -> check support & breakdown
+                                breakdown =
+                                        service.isBreakdown(
+                                                timeframe, stockPrice, stockTechnicals, false);
+                                if(!breakdown) {
+                                    nearSupport =
+                                            service.isNearSupport(
+                                                    timeframe, stockPrice, stockTechnicals, false);
+                                }
+
+                            } else {
+                                // trend UP -> check resistance & breakout
+                                breakout =
+                                        service.isBreakout(
+                                                timeframe, stockPrice, stockTechnicals, false);
+                                if(!breakout) {
+                                    nearResistance =
+                                            service.isNearResistance(
+                                                    timeframe, stockPrice, stockTechnicals, false);
+                                }
+                            }
+
+                            return new MAEvaluationResult(
+                                    interaction.getLength(),
+                                    service.getPrevValue(timeframe, stockTechnicals),
+                                    interaction.supportSide(),
+                                    nearSupport,
+                                    breakout,
+                                    nearResistance,
+                                    breakdown);
+                        })
+                .toList();
     }
 
     @Override
-    public boolean isTopBreakdown(
-            Trend trend,
+    public Optional<MAEvaluationResult> evaluateSingleInteractionSmart(
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
 
-        MovingAverageLength length = resolveLength(trend.getMomentum());
-        if (length == MovingAverageLength.SHORTEST) {
-            MovingAverageSupportResistanceService service =
-                    resolve(length, timeframe, stockTechnicals);
-            service.isBreakdown(timeframe, stockPrice, stockTechnicals);
-        }
-        return false;
+        List<MAEvaluationResult> results = evaluateInteractions(timeframe, stockPrice, stockTechnicals);
+
+        return results.stream()
+                .filter(r -> r.isBreakout() || r.isBreakdown() || r.isNearResistance() || r.isNearSupport())
+                .max(Comparator.comparingInt(this::calculateSignalScore));
     }
+
+    private int calculateSignalScore(MAEvaluationResult result) {
+        int baseScore;
+
+        if (result.isBreakout()) {
+            baseScore = 100;
+            // For breakout, a breakout above a lower MA is more significant (short-term momentum)
+            // Hence, use normal weight (lower MA has higher weight value)
+            return baseScore + result.getLength().getWeight();
+        } else if (result.isBreakdown()) {
+            baseScore = 90;
+            // For breakdown, breaking below a lower MA is more significant (short-term weakness)
+            // Hence, use normal weight (lower MA has higher weight value)
+            return baseScore + result.getLength().getWeight();
+        } else if (result.isNearResistance()) {
+            baseScore = 70;
+            // For resistance, rejection at a higher MA is more significant (long-term barrier)
+            // Hence, use reverse weight (higher MA gets higher score)
+            return baseScore + result.getLength().getReverseWeight();
+        } else if (result.isNearSupport()) {
+            baseScore = 60;
+            // For support, holding a higher MA is more significant (long-term floor)
+            // Hence, use reverse weight (higher MA gets higher score)
+            return baseScore + result.getLength().getReverseWeight();
+        }
+
+        return 0;
+    }
+
+
+
 }

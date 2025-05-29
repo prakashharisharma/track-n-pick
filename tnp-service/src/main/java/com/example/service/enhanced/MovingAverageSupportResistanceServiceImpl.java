@@ -29,55 +29,115 @@ public class MovingAverageSupportResistanceServiceImpl
 
     @Override
     public boolean isBreakout(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean confirmationCheck) {
+
         double close = stockPrice.getClose();
         double prevClose = stockPrice.getPrevClose();
         double ma = maType.resolve(timeframe, stockTechnicals);
         double prevMa = maType.resolvePrev(timeframe, stockTechnicals);
 
-        return breakoutBreakdownConfirmationService.isBreakoutConfirmed(
-                        timeframe, stockPrice, stockTechnicals, ma)
-                && breakoutService.isBreakOut(stockPrice, ma, prevMa);
+        boolean isBasicBreakout = breakoutService.isBreakOut(stockPrice, ma, prevMa);
+
+        if (!isBasicBreakout) {
+            return false;
+        }
+
+        if (confirmationCheck) {
+            return breakoutBreakdownConfirmationService.isBreakoutConfirmed(
+                    timeframe, stockPrice, stockTechnicals, ma);
+        }
+
+        return true;
     }
 
     @Override
     public boolean isBreakdown(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean confirmationCheck) {
+
         double close = stockPrice.getClose();
         double prevClose = stockPrice.getPrevClose();
         double ma = maType.resolve(timeframe, stockTechnicals);
         double prevMa = maType.resolvePrev(timeframe, stockTechnicals);
 
-        return breakoutBreakdownConfirmationService.isBreakdownConfirmed(
-                        timeframe, stockPrice, stockTechnicals, ma)
-                && breakoutService.isBreakDown(stockPrice, ma, prevMa);
+        boolean isBasicBreakdown = breakoutService.isBreakDown(stockPrice, ma, prevMa);
+
+        if (!isBasicBreakdown) {
+            return false;
+        }
+
+        if (confirmationCheck) {
+            return breakoutBreakdownConfirmationService.isBreakdownConfirmed(
+                    timeframe, stockPrice, stockTechnicals, ma);
+        }
+
+        return true;
     }
 
     @Override
     public boolean isNearSupport(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean confirmationCheck) {
+
         double ma = maType.resolve(timeframe, stockTechnicals);
         double prevMa = maType.resolvePrev(timeframe, stockTechnicals);
         double prev2Ma = maType.resolvePrev2(timeframe, stockTechnicals);
 
-        if (supportResistanceService.isNearSupport(stockPrice, ma, prevMa, prev2Ma) && supportResistanceConfirmationService.isSupportConfirmed(timeframe, stockPrice, stockTechnicals, ma)) {
-            return true;
+        boolean isBasicSupport =
+                supportResistanceService.isNearSupport(stockPrice, ma, prevMa, prev2Ma);
+
+        if (!isBasicSupport) {
+            return false;
         }
 
-        return  false;
+        if (confirmationCheck) {
+            return supportResistanceConfirmationService.isSupportConfirmed(
+                    timeframe, stockPrice, stockTechnicals, ma);
+        }
+
+        return true;
     }
 
     @Override
     public boolean isNearResistance(
-            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean confirmationCheck) {
+
         double ma = maType.resolve(timeframe, stockTechnicals);
         double prevMa = maType.resolvePrev(timeframe, stockTechnicals);
         double prev2Ma = maType.resolvePrev2(timeframe, stockTechnicals);
 
-        if (supportResistanceService.isNearResistance(stockPrice, ma, prevMa, prev2Ma) && supportResistanceConfirmationService.isResistanceConfirmed(timeframe, stockPrice, stockTechnicals, ma)) {
-            return true;
+        boolean isBasicResistance =
+                supportResistanceService.isNearResistance(stockPrice, ma, prevMa, prev2Ma);
+
+        if (!isBasicResistance) {
+            return false;
         }
 
-        return  false;
+        if (confirmationCheck) {
+            return supportResistanceConfirmationService.isResistanceConfirmed(
+                    timeframe, stockPrice, stockTechnicals, ma);
+        }
+
+        return true;
+    }
+
+    @Override
+    public double getValue(Timeframe timeframe, StockTechnicals stockTechnicals) {
+        return maType.resolve(timeframe, stockTechnicals);
+    }
+
+    @Override
+    public double getPrevValue(Timeframe timeframe, StockTechnicals stockTechnicals) {
+        return maType.resolvePrev(timeframe, stockTechnicals);
     }
 }

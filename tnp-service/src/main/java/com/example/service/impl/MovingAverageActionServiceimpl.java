@@ -76,14 +76,14 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
         boolean isPrevRed = CandleStickUtils.isPrevSessionRed(stockPrice);
         MovingAverageSupportResistanceService movingAverageSupportResistanceService =
                 dynamicMovingAverageSupportResolverService.resolve(
-                        MovingAverageLength.SHORTEST, timeframe, stockTechnicals);
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals);
 
         if (isCurrentRed && isPrevRed) {
             return movingAverageSupportResistanceService.isBreakdown(
-                    timeframe, stockPrice, stockTechnicals);
+                    timeframe, stockPrice, stockTechnicals, true);
         } else if (!isCurrentRed && !isPrevRed) {
             return movingAverageSupportResistanceService.isNearResistance(
-                    timeframe, stockPrice, stockTechnicals);
+                    timeframe, stockPrice, stockTechnicals, false);
         }
 
         return Boolean.FALSE;

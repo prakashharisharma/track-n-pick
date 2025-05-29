@@ -9,7 +9,8 @@ public interface CandlestickPatternService {
 
     List<CandlestickPattern> findLast3Within5DaysBefore(StockPrice stockPrice);
 
-    boolean hasAtLeastTwoPatternsWithSentiment(StockPrice stockPrice, CandlestickPattern.Sentiment sentiment);
+    boolean hasAtLeastTwoPatternsWithSentiment(
+            StockPrice stockPrice, CandlestickPattern.Sentiment sentiment);
 
     Optional<CandlestickPattern> findCurrentPattern(StockPrice stockPrice);
 

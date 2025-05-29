@@ -8,6 +8,7 @@ import com.example.data.transactional.entities.StockTechnicals;
 import com.example.dto.common.TradeSetup;
 import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
+import com.example.util.FormulaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class DynamicPriceActionServiceImpl implements DynamicPriceActionService{
+public class DynamicPriceActionServiceImpl implements DynamicPriceActionService {
 
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
@@ -24,6 +25,8 @@ public class DynamicPriceActionServiceImpl implements DynamicPriceActionService{
 
     private final BreakoutService breakoutService;
 
+    private final FormulaService formulaService;
+
     @Override
     public TradeSetup breakOut(Stock stock, Timeframe timeframe) {
 
@@ -31,35 +34,51 @@ public class DynamicPriceActionServiceImpl implements DynamicPriceActionService{
 
         StockPrice stockPrice = stockPriceService.get(stock, timeframe);
 
-        MovingAverageResult longestMovingAverageResult =
+        MovingAverageResult lowestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.LONGEST, timeframe, stockTechnicals, true);
+                        MovingAverageLength.LOWEST, timeframe, stockTechnicals, true);
 
-        double average = longestMovingAverageResult.getValue();
+        MovingAverageResult highestMovingAverageResult =
+                MovingAverageUtil.getMovingAverage(
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
 
-        double prevAverage = longestMovingAverageResult.getPrevValue();
+        if (formulaService.calculateChangePercentage(
+                        lowestMovingAverageResult.getPrevValue(),
+                        highestMovingAverageResult.getPrevValue())
+                >= 10.0) {
 
-        boolean isGapUp = CandleStickUtils.isGapUp(stockPrice);
-        boolean isGapDown = CandleStickUtils.isGapUp(stockPrice);
-        boolean isStrongBody = CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
-        boolean isStrongLowerWick = CandleStickUtils.isStrongLowerWick(stockPrice);
+            double average = lowestMovingAverageResult.getValue();
 
-        boolean isBreakout = (isGapUp || isStrongBody || isStrongLowerWick) && breakoutService.isBreakOut(stockPrice, average, prevAverage);
+            double prevAverage = lowestMovingAverageResult.getPrevValue();
 
-        boolean isPriceReclaimed = (isStrongBody || isStrongLowerWick || isGapDown) &&
-                stockPrice.getOpen() < average &&
-                        stockPrice.getClose() > average &&
-                        stockPrice.getPrevClose() > prevAverage;
+            boolean isGapUp = CandleStickUtils.isGapUp(stockPrice);
+            boolean isGapDown = CandleStickUtils.isGapUp(stockPrice);
+            boolean isStrongBody =
+                    CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
+            boolean isStrongLowerWick =
+                    CandleStickUtils.isStrongLowerWick(stockPrice)
+                            || CandleStickUtils.isPrevStrongLowerWick(stockPrice);
 
-        if ((isBreakout || isPriceReclaimed) && this.isMacdConfirmingBreakout(stockTechnicals)) {
+            boolean isBreakout =
+                    (isGapUp || isStrongBody || isStrongLowerWick)
+                            && breakoutService.isBreakOut(stockPrice, average, prevAverage);
 
-            return TradeSetup.builder()
-                    .active(Boolean.TRUE)
-                    .strategy(ResearchTechnical.Strategy.PRICE)
-                    .subStrategy(ResearchTechnical.SubStrategy.BOTTOM_BREAKOUT)
-                    .build();
+            boolean isPriceReclaimed =
+                    (isStrongBody || isStrongLowerWick || isGapDown)
+                            && stockPrice.getOpen() < average
+                            && stockPrice.getClose() > average
+                            && stockPrice.getPrevClose() > prevAverage;
+
+            if ((isBreakout || isPriceReclaimed)
+                    && this.isMacdConfirmingBreakout(stockTechnicals)) {
+
+                return TradeSetup.builder()
+                        .active(Boolean.TRUE)
+                        .strategy(ResearchTechnical.Strategy.PRICE)
+                        .subStrategy(ResearchTechnical.SubStrategy.BOTTOM_BREAKOUT)
+                        .build();
+            }
         }
-
         return TradeSetup.builder().active(Boolean.FALSE).build();
     }
 
@@ -69,16 +88,14 @@ public class DynamicPriceActionServiceImpl implements DynamicPriceActionService{
 
         // Case 1: MACD still below signal or in negative zone — check momentum shift
         if (macd < signal || macd < 0.0) {
-            return macdIndicatorService.isMacdIncreased(st) &&
-                    macdIndicatorService.isSignalDecreased(st) &&
-                    macdIndicatorService.isHistogramIncreased(st);
+            return macdIndicatorService.isMacdIncreased(st)
+                    && macdIndicatorService.isSignalDecreased(st)
+                    && macdIndicatorService.isHistogramIncreased(st);
         }
 
         // Case 2: MACD crossover happened, even in negative — early breakout signal
         return macdIndicatorService.isMacdCrossedSignal(st);
     }
-
-
 
     @Override
     public TradeSetup breakDown(Stock stock, Timeframe timeframe) {
@@ -88,23 +105,33 @@ public class DynamicPriceActionServiceImpl implements DynamicPriceActionService{
 
         MovingAverageResult longestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.SHORTEST, timeframe, stockTechnicals, true);
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
 
         double average = longestMovingAverageResult.getValue();
         double prevAverage = longestMovingAverageResult.getPrevValue();
+        boolean isGapUp = CandleStickUtils.isGapUp(stockPrice);
+        boolean isGapDown = CandleStickUtils.isGapUp(stockPrice);
+        boolean isStrongBody =
+                CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
+        boolean isStrongUpperWick =
+                CandleStickUtils.isStrongUpperWick(stockPrice)
+                        || CandleStickUtils.isPrevStrongUpperWick(stockPrice);
 
-        boolean isBreakdown = breakoutService.isBreakDown(stockPrice, average, prevAverage);
+        boolean isBreakdown =
+                (isGapDown || isStrongBody || isStrongUpperWick)
+                        && breakoutService.isBreakDown(stockPrice, average, prevAverage);
 
         // False breakout or resistance rejection
         boolean isPriceRejected =
-                stockPrice.getOpen() > average &&
-                        stockPrice.getClose() < average &&
-                        stockPrice.getPrevClose() < prevAverage;
+                (isStrongBody || isStrongUpperWick || isGapUp)
+                        && stockPrice.getOpen() > average
+                        && stockPrice.getClose() < average
+                        && stockPrice.getPrevClose() < prevAverage;
 
         boolean isCurrentRed = CandleStickUtils.isRed(stockPrice);
         boolean isPrevRed = CandleStickUtils.isPrevSessionRed(stockPrice);
 
-        if ((isBreakdown || isPriceRejected) && (isCurrentRed && isPrevRed)) {
+        if ((isBreakdown || isPriceRejected) && (isCurrentRed)) {
             return TradeSetup.builder()
                     .active(Boolean.TRUE)
                     .strategy(ResearchTechnical.Strategy.PRICE)
@@ -114,5 +141,4 @@ public class DynamicPriceActionServiceImpl implements DynamicPriceActionService{
 
         return TradeSetup.builder().active(Boolean.FALSE).build();
     }
-
 }
