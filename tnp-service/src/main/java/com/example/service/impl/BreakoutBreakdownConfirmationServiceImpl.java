@@ -31,8 +31,11 @@ public class BreakoutBreakdownConfirmationServiceImpl
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
             double breakoutLevel) {
+
         boolean gapUp = candleStickService.isGapUp(stockPrice);
+
         boolean openAbovePrevHigh = stockPrice.getOpen() > stockPrice.getPrevHigh();
+
         boolean prevHighBelowBreakout = stockPrice.getPrevHigh() < breakoutLevel;
 
         boolean adxStrong = stockTechnicals.getAdx() > 25;

@@ -268,7 +268,7 @@ public class TrendServiceImpl implements TrendService {
         }
         MovingAverageResult shortestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.SHORTEST, timeframe, stockTechnicals, false);
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, false);
 
         boolean shortestTermDown =
                 this.isShortestTermDownTrend(
@@ -278,7 +278,7 @@ public class TrendServiceImpl implements TrendService {
                         timeframe, stockTechnicals, stockPrice, shortestMovingAverageResult);
         MovingAverageResult shortMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.SHORT, timeframe, stockTechnicals, false);
+                        MovingAverageLength.HIGH, timeframe, stockTechnicals, false);
 
         boolean shortTermDown =
                 this.isShortTermDownTrend(
@@ -299,7 +299,7 @@ public class TrendServiceImpl implements TrendService {
                         timeframe, stockTechnicals, stockPrice, mediumMovingAverageResult);
         MovingAverageResult longMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.LONG, timeframe, stockTechnicals, false);
+                        MovingAverageLength.LOW, timeframe, stockTechnicals, false);
 
         boolean longTermDown =
                 this.isLongTermDownTrend(
@@ -309,7 +309,7 @@ public class TrendServiceImpl implements TrendService {
                         timeframe, stockTechnicals, stockPrice, longMovingAverageResult);
         MovingAverageResult longestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.LONGEST, timeframe, stockTechnicals, false);
+                        MovingAverageLength.LOWEST, timeframe, stockTechnicals, false);
 
         boolean longestTermDown =
                 this.isLongestTermDownTrend(

@@ -1,7 +1,5 @@
 package com.example.service.utils;
 
-import static com.example.service.MovingAverageLength.*;
-
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.MovingAverageLength;
@@ -174,11 +172,11 @@ public class MovingAverageUtil {
 
         int index =
                 switch (length) {
-                    case SHORTEST -> 0;
-                    case SHORT -> 1;
+                    case HIGHEST -> 0;
+                    case HIGH -> 1;
                     case MEDIUM -> 2;
-                    case LONG -> 3;
-                    case LONGEST -> 4;
+                    case LOW -> 3;
+                    case LOWEST -> 4;
                 };
 
         MAEntry selected = entries.get(index);

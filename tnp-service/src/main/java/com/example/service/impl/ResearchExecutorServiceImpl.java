@@ -41,8 +41,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     @Autowired private SwingActionService swingActionService;
     @Autowired private PriceActionService priceActionService;
 
-    @Autowired
-    private DynamicPriceActionService dynamicPriceActionService;
+    @Autowired private DynamicPriceActionService dynamicPriceActionService;
     @Autowired private CandleStickService candleStickService;
 
     @Autowired private ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
@@ -179,9 +178,10 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
         } else {
 
-            //if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.BOTTOM_BREAKOUT){
-                tradeSetup = dynamicPriceActionService.breakDown(stock, timeframe);
-            //}
+            // if (researchTechnical.getSubStrategy() ==
+            // ResearchTechnical.SubStrategy.BOTTOM_BREAKOUT){
+            tradeSetup = dynamicPriceActionService.breakDown(stock, timeframe);
+            // }
 
             if (!tradeSetup.isActive()) {
                 tradeSetup = priceActionService.breakDown(stock, timeframe);
@@ -194,7 +194,8 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             if (!tradeSetup.isActive()) {
                 tradeSetup = movingAverageActionService.breakDown(stock, timeframe);
                 double close = stockPrice.getClose();
-                if(researchTechnical.getResearchPrice() >= close && researchTechnical.getTarget() >= close) {
+                if (researchTechnical.getResearchPrice() >= close
+                        && researchTechnical.getTarget() >= close) {
                     tradeSetup.setActive(false);
                 }
             }

@@ -160,7 +160,9 @@ public class MultiMovingAverageSupportResistanceServiceImpl
                 .getOrDefault(timeframe, Collections.emptyMap())
                 .getOrDefault(trend.getMomentum(), Collections.emptyList())
                 .stream()
-                .anyMatch(service -> service.isBreakout(timeframe, stockPrice, stockTechnicals));
+                .anyMatch(
+                        service ->
+                                service.isBreakout(timeframe, stockPrice, stockTechnicals, true));
     }
 
     @Override
@@ -226,7 +228,10 @@ public class MultiMovingAverageSupportResistanceServiceImpl
                 .getOrDefault(timeframe, Collections.emptyMap())
                 .getOrDefault(trend.getMomentum(), Collections.emptyList())
                 .stream()
-                .anyMatch(service -> service.isNearSupport(timeframe, stockPrice, stockTechnicals));
+                .anyMatch(
+                        service ->
+                                service.isNearSupport(
+                                        timeframe, stockPrice, stockTechnicals, false));
     }
 
     @Override
@@ -292,7 +297,9 @@ public class MultiMovingAverageSupportResistanceServiceImpl
                 .getOrDefault(timeframe, Collections.emptyMap())
                 .getOrDefault(trend.getMomentum(), Collections.emptyList())
                 .stream()
-                .anyMatch(service -> service.isBreakdown(timeframe, stockPrice, stockTechnicals));
+                .anyMatch(
+                        service ->
+                                service.isBreakdown(timeframe, stockPrice, stockTechnicals, true));
     }
 
     @Override
@@ -364,6 +371,7 @@ public class MultiMovingAverageSupportResistanceServiceImpl
                 .stream()
                 .anyMatch(
                         service ->
-                                service.isNearResistance(timeframe, stockPrice, stockTechnicals));
+                                service.isNearResistance(
+                                        timeframe, stockPrice, stockTechnicals, false));
     }
 }

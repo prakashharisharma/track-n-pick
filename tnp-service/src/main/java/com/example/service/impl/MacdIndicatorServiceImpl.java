@@ -37,7 +37,6 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
                 st.getMacd(), st.getSignal());
     }
 
-
     @Override
     public boolean isSignalNearHistogram(StockTechnicals stockTechnicals) {
 

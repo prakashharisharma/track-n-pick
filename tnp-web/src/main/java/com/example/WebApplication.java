@@ -14,3 +14,4 @@ public class WebApplication {
         SpringApplication.run(WebApplication.class, args);
     }
 }
+// BBOX, HPIL, BAJFINANCE, VIPIND

@@ -222,6 +222,17 @@ public class CandleStickUtils {
         return stockPrice.getHigh() - Math.max(stockPrice.getOpen(), stockPrice.getClose());
     }
 
+    public static double prevUpperWickSize(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getHigh() == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getClose() == null) {
+            return 0.0;
+        }
+        return stockPrice.getPrevHigh()
+                - Math.max(stockPrice.getPrevOpen(), stockPrice.getPrevClose());
+    }
+
     public static double lowerWickSize(StockPrice stockPrice) {
         if (stockPrice == null
                 || stockPrice.getLow() == null
@@ -488,6 +499,13 @@ public class CandleStickUtils {
         return stockPrice.getPrevOpen() > stockPrice.getPrev2High();
     }
 
+    public static boolean isProGapUp(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+        return stockPrice.getOpen() > stockPrice.getPrevClose();
+    }
+
     public static boolean isGapDown(StockPrice stockPrice) {
         if (stockPrice == null) {
             return false;
@@ -500,6 +518,27 @@ public class CandleStickUtils {
             return false;
         }
         return stockPrice.getPrevOpen() < stockPrice.getPrev2Low();
+    }
+
+    public static boolean isProGapDown(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+        return stockPrice.getOpen() < stockPrice.getPrevClose();
+    }
+
+    public static boolean isRisingWindow(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+        return stockPrice.getLow() > stockPrice.getPrevHigh();
+    }
+
+    public static boolean isFallingWindow(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+        return stockPrice.getHigh() < stockPrice.getPrevLow();
     }
 
     public static boolean isOpenInsidePrevBody(StockPrice stockPrice) {
@@ -689,34 +728,50 @@ public class CandleStickUtils {
         return range > 0 && bodySize <= 0.1 * range;
     }
 
-    public static boolean isStrongLowerWick(StockPrice price) {
-        double open = price.getOpen();
-        double high = price.getHigh();
-        double low = price.getLow();
-        double close = price.getClose();
+    public static boolean isStrongLowerWick(StockPrice stockPrice) {
 
-        double bodySize = Math.abs(close - open);
-        double lowerWickSize = Math.min(open, close) - low;
-        double upperWickSize = high - Math.max(open, close);
+        double bodySize = bodySize(stockPrice);
+        double lowerWickSize = lowerWickSize(stockPrice);
+        double upperWickSize = upperWickSize(stockPrice);
 
         boolean isLowerWickSignificant =
-                lowerWickSize > (0.50 * bodySize) && lowerWickSize > upperWickSize;
+                lowerWickSize > (0.50 * bodySize) && lowerWickSize > upperWickSize * 2;
 
         return isLowerWickSignificant;
     }
 
-    public static boolean isStrongUpperWick(StockPrice price) {
-        double open = price.getOpen();
-        double high = price.getHigh();
-        double low = price.getLow();
-        double close = price.getClose();
+    public static boolean isPrevStrongLowerWick(StockPrice stockPrice) {
 
-        double bodySize = Math.abs(close - open);
-        double upperWickSize = high - Math.max(open, close);
-        double lowerWickSize = Math.min(open, close) - low;
+        double bodySize = prevSessionBodySize(stockPrice);
+        double lowerWickSize = prevLowerWickSize(stockPrice);
+        double upperWickSize = prevUpperWickSize(stockPrice);
+
+        boolean isLowerWickSignificant =
+                lowerWickSize > (0.50 * bodySize) && lowerWickSize > upperWickSize * 2;
+
+        return isLowerWickSignificant;
+    }
+
+    public static boolean isStrongUpperWick(StockPrice stockPrice) {
+
+        double bodySize = bodySize(stockPrice);
+        double lowerWickSize = lowerWickSize(stockPrice);
+        double upperWickSize = upperWickSize(stockPrice);
 
         boolean isUpperWickSignificant =
-                upperWickSize > (0.50 * bodySize) && upperWickSize > lowerWickSize;
+                upperWickSize > (0.50 * bodySize) && upperWickSize > lowerWickSize * 2;
+
+        return isUpperWickSignificant;
+    }
+
+    public static boolean isPrevStrongUpperWick(StockPrice stockPrice) {
+
+        double bodySize = prevSessionBodySize(stockPrice);
+        double lowerWickSize = prevLowerWickSize(stockPrice);
+        double upperWickSize = prevUpperWickSize(stockPrice);
+
+        boolean isUpperWickSignificant =
+                upperWickSize > (0.50 * bodySize) && upperWickSize > lowerWickSize * 2;
 
         return isUpperWickSignificant;
     }

@@ -103,7 +103,8 @@ public class RelevanceServiceImpl implements RelevanceService {
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
-        if (trend.getDirection() == Trend.Direction.UP && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
+        if (trend.getDirection() == Trend.Direction.UP
+                && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
             if (trend.getMomentum() == Trend.Phase.TOP
                     && timeframeSupportResistanceService.isBreakout(
                             trend, timeframe, stockPrice, stockTechnicals)
@@ -135,7 +136,8 @@ public class RelevanceServiceImpl implements RelevanceService {
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
-        if (trend.getDirection() == Trend.Direction.DOWN && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
+        if (trend.getDirection() == Trend.Direction.DOWN
+                && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
 
             if (multiMovingAverageSupportResistanceService.isBreakdown(
                             trend, timeframe, stockPrice, stockTechnicals)
