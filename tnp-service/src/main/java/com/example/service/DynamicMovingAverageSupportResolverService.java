@@ -36,17 +36,11 @@ public interface DynamicMovingAverageSupportResolverService {
             MovingAverageLength length, Timeframe timeframe, StockTechnicals stockTechnicals);
 
     public List<MAInteraction> findMAInteractions(
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals);
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
     public List<MAEvaluationResult> evaluateInteractions(
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals);
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
     public Optional<MAEvaluationResult> evaluateSingleInteractionSmart(
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals);
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 }

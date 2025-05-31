@@ -53,7 +53,7 @@ public class RelevanceServiceImpl implements RelevanceService {
                 return true;
             } else if (trend.getMomentum() == Trend.Phase.BOTTOM
                     && timeframeSupportResistanceService.isNearSupport(
-                            trend, timeframe, stockPrice, stockTechnicals)
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverSold(stockTechnicals)) {
                 log.info(
                         "{} timeframe support active {} momentum {}",
@@ -75,7 +75,7 @@ public class RelevanceServiceImpl implements RelevanceService {
         if (trend.getDirection() == Trend.Direction.UP) {
             if (trend.getMomentum() == Trend.Phase.TOP
                     && timeframeSupportResistanceService.isNearResistance(
-                            trend, timeframe, stockPrice, stockTechnicals)
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverBought(stockTechnicals)) {
                 log.info(
                         "{} timeframe resistance {} momentum {}",
@@ -107,7 +107,7 @@ public class RelevanceServiceImpl implements RelevanceService {
                 && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
             if (trend.getMomentum() == Trend.Phase.TOP
                     && timeframeSupportResistanceService.isBreakout(
-                            trend, timeframe, stockPrice, stockTechnicals)
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isBullish(stockTechnicals)) {
                 log.info(
                         "{} timeframe breakout active {} momentum {}}",
@@ -150,7 +150,7 @@ public class RelevanceServiceImpl implements RelevanceService {
                 return true;
             } else if (trend.getMomentum() == Trend.Phase.BOTTOM
                     && timeframeSupportResistanceService.isBreakdown(
-                            trend, timeframe, stockPrice, stockTechnicals)
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isBearish(stockTechnicals)) {
                 log.info(
                         "{} timeframe breakdown {} momentum {}",
@@ -178,7 +178,7 @@ public class RelevanceServiceImpl implements RelevanceService {
 
         if (trend.getDirection() == Trend.Direction.DOWN) {
             if (timeframeSupportResistanceService.isNearSupport(
-                            trend, timeframe, stockPrice, stockTechnicals)
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverSold(stockTechnicals)) {
                 log.info(
                         "{} timeframe support active {} momentum {}",
@@ -190,8 +190,7 @@ public class RelevanceServiceImpl implements RelevanceService {
         }
 
         if (trend.getDirection() == Trend.Direction.UP) {
-            if (timeframeSupportResistanceService.isBreakout(
-                            trend, timeframe, stockPrice, stockTechnicals)
+            if (timeframeSupportResistanceService.isBreakout(timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isBullish(stockTechnicals)) {
                 log.info(
                         "{} timeframe breakout active {} momentum {}}",
@@ -315,7 +314,7 @@ public class RelevanceServiceImpl implements RelevanceService {
         // if(volumeIndicatorService.isBearish(stockTechnicals, timeframe)) {
         if (trend.getDirection() == Trend.Direction.DOWN) {
             if (timeframeSupportResistanceService.isBreakdown(
-                            trend, timeframe, stockPrice, stockTechnicals)
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isBearish(stockTechnicals)) {
                 log.info(
                         "{} timeframe breakdown {} momentum {}",
@@ -327,7 +326,7 @@ public class RelevanceServiceImpl implements RelevanceService {
         }
         if (trend.getDirection() == Trend.Direction.UP) {
             if (timeframeSupportResistanceService.isNearResistance(
-                            trend, timeframe, stockPrice, stockTechnicals)
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverBought(stockTechnicals)) {
                 log.info(
                         "{} timeframe resistance {} momentum {}",

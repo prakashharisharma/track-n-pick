@@ -151,11 +151,6 @@ public class MovingAverageUtil {
 
         if (sortByValue) {
 
-            // Sort by current value
-            /*
-            entries = entries.stream()
-                    .sorted(Comparator.comparingDouble(ma -> ma.value))
-                    .toList();*/
             // Sort by value descending (highest MA first)
 
             entries =

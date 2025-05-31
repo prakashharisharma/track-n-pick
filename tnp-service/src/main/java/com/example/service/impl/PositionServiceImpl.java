@@ -30,7 +30,7 @@ public class PositionServiceImpl implements PositionService {
                 formulaService.calculateFraction(
                         totalCapital, riskFactor); // risk = capital * (riskFactor / 100)
 
-        double stopLoss = researchTechnical.getResearchPrice() - researchTechnical.getStopLoss();
+        double stopLoss = researchTechnical.getEntryPrice() - researchTechnical.getStopLoss();
 
         // Safety check to avoid division by zero or negative stop loss
         if (stopLoss <= 0) {
@@ -52,15 +52,14 @@ public class PositionServiceImpl implements PositionService {
         double availableFunds = totalCapital - totalInvestmentValue.doubleValue();
 
         // Check if there's enough available funds to allocate to the position size
-        double positionValue = positionSize * researchTechnical.getResearchPrice();
+        double positionValue = positionSize * researchTechnical.getEntryPrice();
 
         // If the available funds are less than the required position value, adjust the position
         // size
         if (availableFunds < positionValue) {
             // Calculate the maximum position size that can be accommodated within the available
             // funds
-            long adjustedPositionSize =
-                    (long) (availableFunds / researchTechnical.getResearchPrice());
+            long adjustedPositionSize = (long) (availableFunds / researchTechnical.getEntryPrice());
             return Math.max(adjustedPositionSize, 0); // Ensure position size is not negative
         }
 
@@ -78,29 +77,30 @@ public class PositionServiceImpl implements PositionService {
     }
 
     private double getRiskFactor(ResearchTechnical researchTechnical) {
-        if (researchTechnical.getStrategy() == ResearchTechnical.Strategy.VOLUME) {
+        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.VOLUME) {
             return RiskFactor.VOLUME_HV;
-        } else if (researchTechnical.getStrategy() == ResearchTechnical.Strategy.PRICE) {
-            if (researchTechnical.getSubStrategy()
+        } else if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.PRICE) {
+            if (researchTechnical.getEntrySubStrategy()
                     == ResearchTechnical.SubStrategy.STRONG_BREAKOUT) {
                 return RiskFactor.PRICE_STRONG_BREAKOUT;
-            } else if (researchTechnical.getSubStrategy()
+            } else if (researchTechnical.getEntrySubStrategy()
                     == ResearchTechnical.SubStrategy.WEAK_BREAKOUT) {
                 return RiskFactor.PRICE_WEAK_BREAKOUT;
-            } else if (researchTechnical.getSubStrategy()
+            } else if (researchTechnical.getEntrySubStrategy()
                     == ResearchTechnical.SubStrategy.STRONG_SUPPORT) {
                 return RiskFactor.PRICE_STRONG_SUPPORT;
-            } else if (researchTechnical.getSubStrategy()
+            } else if (researchTechnical.getEntrySubStrategy()
                     == ResearchTechnical.SubStrategy.WEAK_SUPPORT) {
                 return RiskFactor.PRICE_WEAK_SUPPORT;
-            } else if (researchTechnical.getSubStrategy()
+            } else if (researchTechnical.getEntrySubStrategy()
                     == ResearchTechnical.SubStrategy.BULLISH_INDICATORS) {
                 return RiskFactor.PRICE_BULLISH_INDICATORS;
             }
-        } else if (researchTechnical.getStrategy() == ResearchTechnical.Strategy.SWING) {
-            if (researchTechnical.getSubStrategy() == ResearchTechnical.SubStrategy.STRONG_SWING) {
+        } else if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.SWING) {
+            if (researchTechnical.getEntrySubStrategy()
+                    == ResearchTechnical.SubStrategy.STRONG_SWING) {
                 return RiskFactor.SWING_STRONG_SWING;
-            } else if (researchTechnical.getSubStrategy()
+            } else if (researchTechnical.getEntrySubStrategy()
                     == ResearchTechnical.SubStrategy.WEAK_SWING) {
                 return RiskFactor.SWING_WEAK_SWING;
             }

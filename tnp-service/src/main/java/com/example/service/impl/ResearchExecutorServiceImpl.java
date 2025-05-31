@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -51,6 +52,14 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     @Autowired private FormulaService formulaService;
 
     @Autowired private VolumeIndicatorService volumeIndicatorService;
+
+    @Autowired
+    @Qualifier("basicPriceActionSignalEvaluator")
+    private TradeSignalEvaluator basicPriceActionSignalEvaluator;
+
+    @Autowired
+    @Qualifier("dynamicPriceActionSignalEvaluator")
+    private TradeSignalEvaluator dynamicPriceActionSignalEvaluator;
 
     @Override
     public void executeFundamental(Stock stock) {
@@ -127,6 +136,17 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             if (stock.getSeries().equalsIgnoreCase("EQ")) {
                 log.info("{} Found EQ stock ", stock.getNseSymbol());
 
+                TradeSetup tradeSetup =
+                        dynamicPriceActionSignalEvaluator.evaluateEntry(
+                                timeframe, stock, stockPrice, stockTechnicals);
+
+                if (!tradeSetup.isActive()) {
+                    tradeSetup =
+                            basicPriceActionSignalEvaluator.evaluateEntry(
+                                    timeframe, stock, stockPrice, stockTechnicals);
+                }
+
+                /*
                 TradeSetup tradeSetup = dynamicPriceActionService.breakOut(stock, timeframe);
 
                 if (!tradeSetup.isActive()) {
@@ -136,6 +156,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                 if (!tradeSetup.isActive()) {
                     tradeSetup = swingActionService.breakOut(stock, timeframe);
                 }
+                */
 
                 if (tradeSetup.isActive()) {
                     log.info(
@@ -168,20 +189,34 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
         // if (candleStickService.isRed(stockPrice)) {
         if (candleStickService.isRed(stockPrice)
                 && this.isTargetAchieved(researchTechnical, timeframe, stock, stockPrice)) {
-
+            tradeSetup.setActive(true);
+            tradeSetup.setStrategy(ResearchTechnical.Strategy.TARGET);
+            tradeSetup.setSubStrategy(ResearchTechnical.SubStrategy.TARGET_ACHIEVED);
             isUpdation = Boolean.TRUE;
 
         } else if (candleStickService.isRed(stockPrice)
                 && this.isStopLossTriggered(researchTechnical, timeframe, stock, stockPrice)) {
 
+            tradeSetup.setActive(true);
+            tradeSetup.setStrategy(ResearchTechnical.Strategy.STOP_LOSS);
+            tradeSetup.setSubStrategy(ResearchTechnical.SubStrategy.STOP_LOSS_TRIGGERED);
             isUpdation = Boolean.TRUE;
 
         } else {
 
-            // if (researchTechnical.getSubStrategy() ==
-            // ResearchTechnical.SubStrategy.BOTTOM_BREAKOUT){
+            tradeSetup =
+                    dynamicPriceActionSignalEvaluator.evaluateExit(
+                            timeframe, stock, stockPrice, stockTechnicals);
+
+            if (!tradeSetup.isActive()) {
+                tradeSetup =
+                        basicPriceActionSignalEvaluator.evaluateExit(
+                                timeframe, stock, stockPrice, stockTechnicals);
+            }
+
+            /*
             tradeSetup = dynamicPriceActionService.breakDown(stock, timeframe);
-            // }
+
 
             if (!tradeSetup.isActive()) {
                 tradeSetup = priceActionService.breakDown(stock, timeframe);
@@ -194,17 +229,17 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             if (!tradeSetup.isActive()) {
                 tradeSetup = movingAverageActionService.breakDown(stock, timeframe);
                 double close = stockPrice.getClose();
-                if (researchTechnical.getResearchPrice() >= close
+                if (researchTechnical.getEntryPrice() >= close
                         && researchTechnical.getTarget() >= close) {
                     tradeSetup.setActive(false);
                 }
             }
+            */
 
             if (tradeSetup.isActive()) {
                 isUpdation = Boolean.TRUE;
             }
         }
-        // }
 
         if (isUpdation) {
             researchTechnicalService.exit(

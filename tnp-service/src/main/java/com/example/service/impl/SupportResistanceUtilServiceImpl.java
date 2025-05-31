@@ -57,8 +57,7 @@ public class SupportResistanceUtilServiceImpl implements SupportResistanceUtilSe
         double low = stockPrice.getLow();
 
         // Only check for low slightly above average (edge case), since < average is in condition2
-        boolean condition1 =
-                (low > average) && ((low - average) / average <= 0.005);
+        boolean condition1 = (low > average) && ((low - average) / average <= 0.005);
 
         // Condition 2: Current session open/close above average, but low touched or pierced support
         boolean condition2 =
@@ -119,16 +118,15 @@ public class SupportResistanceUtilServiceImpl implements SupportResistanceUtilSe
 
         // Condition 1: Current high is within +0.5% of the average, but still below it.
         // This indicates price is approaching resistance without breaking through.
-        boolean condition1 =
-                high < average && ((average - high) / average <= 0.005);
+        boolean condition1 = high < average && ((average - high) / average <= 0.005);
 
         // Condition 2: Open and close are both above average,
         // but high touched or pierced resistance (above or very close to average).
         // This suggests a potential rejection or failed breakout.
         boolean condition2 =
-                open < average &&
-                        close < average &&
-                        (high > average || ((average - high) / average <= 0.005));
+                open < average
+                        && close < average
+                        && (high > average || ((average - high) / average <= 0.005));
 
         // Condition 3: Failed breakout — open above average, close below, prior sessions below
         // resistance

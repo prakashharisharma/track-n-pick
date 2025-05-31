@@ -173,7 +173,7 @@ public class WebRunner implements CommandLineRunner {
 
         log.info("Application started....");
 
-        //bhavProcessor.processAndResearchTechnicals();
+        bhavProcessor.processAndResearchTechnicals();
 
         /*
         Stock stock = stockService.getStockByNseSymbol("360ONE");
@@ -252,7 +252,7 @@ public class WebRunner implements CommandLineRunner {
         System.out.println("*************");
          */
         // this.testmcap();
-        this.testDynamicSR();
+        // this.testDynamicSR();
         // this.updateScore();
         System.out.println("STARTED");
     }
@@ -283,50 +283,71 @@ public class WebRunner implements CommandLineRunner {
 
     private void testDynamicSR() {
 
-       // List<Stock> stockList = stockService.getActiveStocks();
+        List<Stock> stockList = stockService.getActiveStocks();
 
+        /*
         List<Stock> stockList = new ArrayList<>();
         stockList.add(stockService.getStockByNseSymbol("MMFL"));
         stockList.add(stockService.getStockByNseSymbol("DCMSRIND"));
         stockList.add(stockService.getStockByNseSymbol("NBIFIN"));
         stockList.add(stockService.getStockByNseSymbol("WEIZMANIND"));
-
+        */
 
         for (Stock stock : stockList) {
             StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
             StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
 
-
             List<MAEvaluationResult> maEvaluationResults =
-                    dynamicMovingAverageSupportResolverService.evaluateInteractions(Timeframe.DAILY, stockPrice, stockTechnicals);
+                    dynamicMovingAverageSupportResolverService.evaluateInteractions(
+                            Timeframe.DAILY, stockPrice, stockTechnicals);
 
             maEvaluationResults.forEach(
                     mae -> {
-                        System.out.println(stock.getNseSymbol() + " : " + stockPrice.getClose() + " : " + mae);
+                        System.out.println(
+                                stock.getNseSymbol() + " : " + stockPrice.getClose() + " : " + mae);
                     });
 
+            Optional<MAEvaluationResult> evaluationResultOptional =
+                    dynamicMovingAverageSupportResolverService.evaluateSingleInteractionSmart(
+                            Timeframe.DAILY, stockPrice, stockTechnicals);
 
-
-            Optional<MAEvaluationResult> evaluationResultOptional= dynamicMovingAverageSupportResolverService
-                    .evaluateSingleInteractionSmart(Timeframe.DAILY, stockPrice, stockTechnicals);
-
-            if(evaluationResultOptional.isPresent()) {
+            if (evaluationResultOptional.isPresent()) {
                 MAEvaluationResult evaluationResult = evaluationResultOptional.get();
 
-                if (evaluationResult.isNearSupport()){
-                    System.out.println("SUPPORT : " + stock.getNseSymbol() + " : " + stockPrice.getClose() + " : " + evaluationResult);
-                }
-                else if (evaluationResult.isBreakout()){
-                System.out.println("BREAKOUT : " + stock.getNseSymbol() + " : " + stockPrice.getClose() + " : " + evaluationResult);
-                }
-                else if (evaluationResult.isNearResistance()){
-                    System.out.println("RESISTANCE : " + stock.getNseSymbol() + " : " + stockPrice.getClose() + " : " + evaluationResult);
-                }
-                else if (evaluationResult.isBreakdown()){
-                    System.out.println("BREAKDOWN : " + stock.getNseSymbol() + " : " + stockPrice.getClose() + " : " + evaluationResult);
+                if (evaluationResult.isNearSupport()) {
+                    System.out.println(
+                            "SUPPORT : "
+                                    + stock.getNseSymbol()
+                                    + " : "
+                                    + stockPrice.getClose()
+                                    + " : "
+                                    + evaluationResult);
+                } else if (evaluationResult.isBreakout()) {
+                    System.out.println(
+                            "BREAKOUT : "
+                                    + stock.getNseSymbol()
+                                    + " : "
+                                    + stockPrice.getClose()
+                                    + " : "
+                                    + evaluationResult);
+                } else if (evaluationResult.isNearResistance()) {
+                    System.out.println(
+                            "RESISTANCE : "
+                                    + stock.getNseSymbol()
+                                    + " : "
+                                    + stockPrice.getClose()
+                                    + " : "
+                                    + evaluationResult);
+                } else if (evaluationResult.isBreakdown()) {
+                    System.out.println(
+                            "BREAKDOWN : "
+                                    + stock.getNseSymbol()
+                                    + " : "
+                                    + stockPrice.getClose()
+                                    + " : "
+                                    + evaluationResult);
                 }
             }
-
         }
     }
 
@@ -356,15 +377,14 @@ public class WebRunner implements CommandLineRunner {
 
             double allottedAmount = ((capital * riskFactor) / researchTechnical.getRisk());
 
-            long positionSize = (long) (allottedAmount / researchTechnical.getResearchPrice());
+            long positionSize = (long) (allottedAmount / researchTechnical.getEntryPrice());
 
             double reward =
                     formulaService.calculateChangePercentage(
-                            researchTechnical.getResearchPrice(), researchTechnical.getTarget());
+                            researchTechnical.getEntryPrice(), researchTechnical.getTarget());
 
             double risk = formulaService.calculateFraction(capital, riskFactor);
-            double stopLoss =
-                    (researchTechnical.getResearchPrice() - researchTechnical.getStopLoss());
+            double stopLoss = (researchTechnical.getEntryPrice() - researchTechnical.getStopLoss());
             positionSize = (long) (risk / stopLoss);
             positionSize = positionService.calculate(user.getId(), researchTechnical);
 

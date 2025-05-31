@@ -1,7 +1,6 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
-import com.example.data.common.type.Trend;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
@@ -21,10 +20,7 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
 
     @Override
     public boolean isBreakout(
-            Trend trend,
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (resistanceLevelDetector.isBreakout(stockPrice.getStock(), timeframe)) {
             log.info(
                     "Resistance breakout for {} at {} timeframe.",
@@ -33,7 +29,7 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
             return true;
         }
 
-        if (isMultiTimeFrameBreakout(trend, timeframe, stockPrice, stockTechnicals)) {
+        if (isMultiTimeFrameBreakout(timeframe, stockPrice, stockTechnicals)) {
             log.info(
                     "Multi-timeframe breakout confluence found for {} at {}",
                     stockPrice.getStock().getNseSymbol(),
@@ -45,10 +41,7 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
     }
 
     private boolean isMultiTimeFrameBreakout(
-            Trend trend,
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         return switch (timeframe) {
             case DAILY -> supportResistanceService.isBreakout(
                             Timeframe.WEEKLY, stockPrice, stockTechnicals)
@@ -68,10 +61,7 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
 
     @Override
     public boolean isNearSupport(
-            Trend trend,
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (supportLevelDetector.isNearSupport(stockPrice.getStock(), timeframe)) {
             log.info(
                     "Support identified for {} at {} timeframe.",
@@ -80,7 +70,7 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
             return true;
         }
 
-        if (isMultiTimeFrameSupport(trend, timeframe, stockPrice, stockTechnicals)) {
+        if (isMultiTimeFrameSupport(timeframe, stockPrice, stockTechnicals)) {
             log.info(
                     "Multi-timeframe support confluence found for {} at {}",
                     stockPrice.getStock().getNseSymbol(),
@@ -92,10 +82,7 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
     }
 
     private boolean isMultiTimeFrameSupport(
-            Trend trend,
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         return switch (timeframe) {
             case DAILY -> supportResistanceService.isNearSupport(
                             Timeframe.WEEKLY, stockPrice, stockTechnicals)
@@ -115,10 +102,7 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
 
     @Override
     public boolean isBreakdown(
-            Trend trend,
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (supportLevelDetector.isBreakDown(stockPrice.getStock(), timeframe)) {
             log.info(
                     "Breakdown identified for {} at {} timeframe.",
@@ -127,7 +111,7 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
             return true;
         }
 
-        if (isMultiTimeFrameBreakdown(trend, timeframe, stockPrice, stockTechnicals)) {
+        if (isMultiTimeFrameBreakdown(timeframe, stockPrice, stockTechnicals)) {
             log.info(
                     "Multi-timeframe breakdown confluence found for {} at {}",
                     stockPrice.getStock().getNseSymbol(),
@@ -139,10 +123,7 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
     }
 
     private boolean isMultiTimeFrameBreakdown(
-            Trend trend,
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         return switch (timeframe) {
             case DAILY -> supportResistanceService.isBreakdown(
                             Timeframe.WEEKLY, stockPrice, stockTechnicals)
@@ -162,20 +143,16 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
 
     @Override
     public boolean isNearResistance(
-            Trend trend,
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (resistanceLevelDetector.isNearResistance(stockPrice.getStock(), timeframe)) {
             log.info(
                     "Resistance identified for {} at {} timeframe with trend {}",
                     stockPrice.getStock().getNseSymbol(),
-                    timeframe,
-                    trend);
+                    timeframe);
             return true;
         }
 
-        if (isMultiTimeFrameResistance(trend, timeframe, stockPrice, stockTechnicals)) {
+        if (isMultiTimeFrameResistance(timeframe, stockPrice, stockTechnicals)) {
             log.debug(
                     "Multi-timeframe resistance confluence found for {} at {}",
                     stockPrice.getStock().getNseSymbol(),
@@ -187,10 +164,7 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
     }
 
     private boolean isMultiTimeFrameResistance(
-            Trend trend,
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
         return switch (timeframe) {
             case DAILY -> supportResistanceService.isNearResistance(
                             Timeframe.WEEKLY, stockPrice, stockTechnicals)

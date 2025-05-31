@@ -34,6 +34,8 @@ public class ResistanceLevelDetectorImpl implements ResistanceLevelDetector {
         boolean isMultiTimeFrameBreakout = this.isMultiTimeFrameBreakout(stock, timeframe);
         boolean potentialBreakout = isResistanceBreak || isMultiTimeFrameBreakout;
 
+        return potentialBreakout;
+        /*
         if (!potentialBreakout) return false;
 
         boolean isConfirmed =
@@ -46,6 +48,7 @@ public class ResistanceLevelDetectorImpl implements ResistanceLevelDetector {
         }
 
         return isConfirmed;
+         */
     }
 
     private boolean isMultiTimeFrameBreakout(Stock stock, Timeframe timeframe) {
@@ -73,11 +76,16 @@ public class ResistanceLevelDetectorImpl implements ResistanceLevelDetector {
         double resistanceLevel = findConfluenceResistance(resistanceLevels);
 
         boolean isNear = checkResistance(currentStockPrice, resistanceLevel);
+
+        /*
         boolean isConfirmed =
                 supportResistanceConfirmationService.isResistanceConfirmed(
                         timeframe, currentStockPrice, stockTechnicals, resistanceLevel);
 
         return isNear && isConfirmed;
+         */
+
+        return isNear;
     }
 
     private List<Double> getRelevantResistanceLevels(Stock stock, Timeframe timeframe) {
