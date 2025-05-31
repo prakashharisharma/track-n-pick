@@ -45,6 +45,7 @@ public class PriceActionServiceImpl implements PriceActionService {
 
         StockPrice stockPrice = stockPriceService.get(stock, timeframe);
         StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
+
         if (candleStickService.isDead(stockPrice)) {
             return TradeSetup.builder().active(Boolean.FALSE).build();
         }

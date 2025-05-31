@@ -201,16 +201,15 @@ public class DynamicMovingAverageSupportResolverServiceImpl
 
     @Override
     public List<MAInteraction> findMAInteractions(
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
         double open = stockPrice.getOpen();
         double close = stockPrice.getClose();
         double low = Math.min(open, close);
         double high = Math.max(open, close);
 
-        boolean checkSupport = (TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN);
+        boolean checkSupport =
+                (TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN);
 
         List<MAServiceEntry> entries =
                 List.of(
@@ -237,10 +236,12 @@ public class DynamicMovingAverageSupportResolverServiceImpl
 
         List<MAServiceEntry> sorted =
                 entries.stream()
-                        .sorted(Comparator.comparingDouble(e -> e.value)) // Ascending
+                        .sorted(
+                                Comparator.comparingDouble((MAServiceEntry e) -> e.value)
+                                        .reversed())
                         .toList();
 
-        return IntStream.range(0, sorted.size())
+        return IntStream.range(1, sorted.size())
                 .filter(
                         i -> {
                             double value = sorted.get(i).value;
@@ -251,11 +252,11 @@ public class DynamicMovingAverageSupportResolverServiceImpl
                             double value = sorted.get(i).value;
                             MovingAverageLength length =
                                     switch (i) {
-                                        case 0 -> MovingAverageLength.HIGHEST;
-                                        case 1 -> MovingAverageLength.HIGH;
-                                        case 2 -> MovingAverageLength.MEDIUM;
-                                        case 3 -> MovingAverageLength.LOW;
-                                        case 4 -> MovingAverageLength.LOWEST;
+                                        case 1 -> MovingAverageLength.HIGHEST;
+                                        case 2 -> MovingAverageLength.HIGH;
+                                        case 3 -> MovingAverageLength.MEDIUM;
+                                        case 4 -> MovingAverageLength.LOW;
+                                        case 5 -> MovingAverageLength.LOWEST;
                                         default -> throw new IllegalStateException(
                                                 "Unexpected MA index: " + i);
                                     };
@@ -265,9 +266,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
     }
 
     public List<MAEvaluationResult> evaluateInteractions(
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
         List<MAInteraction> interactions =
                 findMAInteractions(timeframe, stockPrice, stockTechnicals);
@@ -288,7 +287,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
                                 breakdown =
                                         service.isBreakdown(
                                                 timeframe, stockPrice, stockTechnicals, false);
-                                if(!breakdown) {
+                                if (!breakdown) {
                                     nearSupport =
                                             service.isNearSupport(
                                                     timeframe, stockPrice, stockTechnicals, false);
@@ -299,7 +298,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
                                 breakout =
                                         service.isBreakout(
                                                 timeframe, stockPrice, stockTechnicals, false);
-                                if(!breakout) {
+                                if (!breakout) {
                                     nearResistance =
                                             service.isNearResistance(
                                                     timeframe, stockPrice, stockTechnicals, false);
@@ -308,6 +307,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
 
                             return new MAEvaluationResult(
                                     interaction.getLength(),
+                                    service.getValue(timeframe, stockTechnicals),
                                     service.getPrevValue(timeframe, stockTechnicals),
                                     interaction.supportSide(),
                                     nearSupport,
@@ -320,18 +320,64 @@ public class DynamicMovingAverageSupportResolverServiceImpl
 
     @Override
     public Optional<MAEvaluationResult> evaluateSingleInteractionSmart(
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
-        List<MAEvaluationResult> results = evaluateInteractions(timeframe, stockPrice, stockTechnicals);
+        List<MAEvaluationResult> results =
+                evaluateInteractions(timeframe, stockPrice, stockTechnicals);
 
+        List<MAEvaluationResult> breakouts =
+                results.stream().filter(MAEvaluationResult::isBreakout).toList();
+        List<MAEvaluationResult> breakdowns =
+                results.stream().filter(MAEvaluationResult::isBreakdown).toList();
+        List<MAEvaluationResult> supports =
+                results.stream().filter(MAEvaluationResult::isNearSupport).toList();
+        List<MAEvaluationResult> resistances =
+                results.stream().filter(MAEvaluationResult::isNearResistance).toList();
+
+        // 1. Breakdown + Support → Support with lower MA
+        if (!breakdowns.isEmpty() && !supports.isEmpty()) {
+            return supports.stream().min(Comparator.comparingInt(r -> r.getLength().getWeight()));
+        }
+
+        // 2. Breakout + Resistance → Resistance with higher MA
+        if (!breakouts.isEmpty() && !resistances.isEmpty()) {
+            return resistances.stream()
+                    .max(Comparator.comparingInt(r -> r.getLength().getWeight()));
+        }
+
+        // 3. Breakout + Breakout → Lower MA breakout (higher weight)
+        if (breakouts.size() > 1) {
+            return breakouts.stream().max(Comparator.comparingInt(r -> r.getLength().getWeight()));
+        }
+
+        // 4. Breakdown + Breakdown → Higher MA breakdown (lower weight)
+        if (breakdowns.size() > 1) {
+            return breakdowns.stream().min(Comparator.comparingInt(r -> r.getLength().getWeight()));
+        }
+
+        // 5. Support + Support → Support with higher MA (lower weight)
+        if (supports.size() > 1) {
+            return supports.stream().min(Comparator.comparingInt(r -> r.getLength().getWeight()));
+        }
+
+        // 6. Resistance + Resistance → Resistance with lower MA (higher weight)
+        if (resistances.size() > 1) {
+            return resistances.stream()
+                    .max(Comparator.comparingInt(r -> r.getLength().getWeight()));
+        }
+
+        // 7. Fallback: best individual signal by scoring
         return results.stream()
-                .filter(r -> r.isBreakout() || r.isBreakdown() || r.isNearResistance() || r.isNearSupport())
+                .filter(
+                        r ->
+                                r.isBreakout()
+                                        || r.isBreakdown()
+                                        || r.isNearResistance()
+                                        || r.isNearSupport())
                 .max(Comparator.comparingInt(this::calculateSignalScore));
     }
 
-    private int calculateSignalScore(MAEvaluationResult result) {
+    int calculateSignalScore(MAEvaluationResult result) {
         int baseScore;
 
         if (result.isBreakout()) {
@@ -358,7 +404,4 @@ public class DynamicMovingAverageSupportResolverServiceImpl
 
         return 0;
     }
-
-
-
 }

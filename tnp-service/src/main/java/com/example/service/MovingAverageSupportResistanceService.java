@@ -31,5 +31,6 @@ public interface MovingAverageSupportResistanceService {
             boolean confirmationCheck);
 
     public double getValue(Timeframe timeframe, StockTechnicals stockTechnicals);
+
     public double getPrevValue(Timeframe timeframe, StockTechnicals stockTechnicals);
 }

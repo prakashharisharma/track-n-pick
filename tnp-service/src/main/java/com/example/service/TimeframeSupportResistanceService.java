@@ -1,7 +1,6 @@
 package com.example.service;
 
 import com.example.data.common.type.Timeframe;
-import com.example.data.common.type.Trend;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 
@@ -23,10 +22,7 @@ public interface TimeframeSupportResistanceService {
      * @return true if a breakout is detected, false otherwise.
      */
     public boolean isBreakout(
-            Trend trend,
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals);
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
     /**
      * Determines if the stock is near a key support level. A stock is considered near support if it
@@ -38,10 +34,7 @@ public interface TimeframeSupportResistanceService {
      * @return true if the stock is near a support level, false otherwise.
      */
     public boolean isNearSupport(
-            Trend trend,
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals);
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
     /**
      * Checks if a breakdown has occurred at the given timeframe. A breakdown occurs when the stock
@@ -53,10 +46,7 @@ public interface TimeframeSupportResistanceService {
      * @return true if a breakdown is detected, false otherwise.
      */
     public boolean isBreakdown(
-            Trend trend,
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals);
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
     /**
      * Determines if the stock is near a key resistance level. A stock is considered near resistance
@@ -68,8 +58,5 @@ public interface TimeframeSupportResistanceService {
      * @return true if the stock is near a resistance level, false otherwise.
      */
     public boolean isNearResistance(
-            Trend trend,
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals);
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 }

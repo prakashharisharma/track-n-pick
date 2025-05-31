@@ -39,11 +39,16 @@ public class SupportLevelDetectorImpl implements SupportLevelDetector {
         double supportLevel = findConfluenceSupport(supportLevels);
 
         boolean isNear = checkSupport(currentStockPrice, supportLevel);
+
+        /*
         boolean isConfirmed =
                 supportResistanceConfirmationService.isSupportConfirmed(
                         timeframe, currentStockPrice, stockTechnicals, supportLevel);
 
         return isNear && isConfirmed;
+         */
+
+        return isNear;
     }
 
     @Override
@@ -56,6 +61,7 @@ public class SupportLevelDetectorImpl implements SupportLevelDetector {
         boolean isMultiTimeFrameBreakdown = this.isMultiTimeFrameBreakdown(stock, timeframe);
         boolean potentialBreakdown = isSupportBreak || isMultiTimeFrameBreakdown;
 
+        /*
         if (!potentialBreakdown) return false;
 
         boolean isConfirmed =
@@ -71,6 +77,9 @@ public class SupportLevelDetectorImpl implements SupportLevelDetector {
         }
 
         return isConfirmed;
+         */
+
+        return potentialBreakdown;
     }
 
     private boolean isMultiTimeFrameBreakdown(Stock stock, Timeframe timeframe) {

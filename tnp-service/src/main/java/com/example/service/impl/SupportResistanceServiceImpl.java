@@ -33,19 +33,20 @@ public class SupportResistanceServiceImpl implements SupportResistanceService {
     public boolean isBreakout(Timeframe timeframe, StockPrice stockPrice, StockTechnicals unused) {
         Stock stock = stockPrice.getStock();
         StockPrice htStockPrice = stockPriceService.get(stock, timeframe);
-        StockTechnicals htTechnicals = stockTechnicalsService.get(stock, timeframe);
-
         double resistance = htStockPrice.getHigh();
+
         if (stockPrice.getOpen() < htStockPrice.getLow()) {
             resistance = htStockPrice.getLow();
         }
 
+        /*
         if (breakoutBreakdownConfirmationService.isBreakoutConfirmed(
                 timeframe, stockPrice, unused, resistance)) {
             return breakoutService.isBreakOut(stockPrice, resistance, resistance);
         }
+        */
 
-        return false;
+        return breakoutService.isBreakOut(stockPrice, resistance, resistance);
     }
 
     @Override
@@ -54,39 +55,41 @@ public class SupportResistanceServiceImpl implements SupportResistanceService {
         Stock stock = stockPrice.getStock();
 
         StockPrice htStockPrice = stockPriceService.get(stock, timeframe);
-        StockTechnicals htTechnicals = stockTechnicalsService.get(stock, timeframe);
 
         double support = htStockPrice.getLow();
         if (stockPrice.getOpen() > htStockPrice.getHigh()) {
             support = htStockPrice.getHigh();
         }
 
+        /*
         if (supportResistanceService.isNearSupport(stockPrice, support)
                 && supportResistanceConfirmationService.isSupportConfirmed(
                         timeframe, stockPrice, stockTechnicals, support)) {
             return true;
         }
+        */
 
-        return false;
+        return supportResistanceService.isNearSupport(stockPrice, support);
     }
 
     @Override
     public boolean isBreakdown(Timeframe timeframe, StockPrice stockPrice, StockTechnicals unused) {
         Stock stock = stockPrice.getStock();
         StockPrice htStockPrice = stockPriceService.get(stock, timeframe);
-        StockTechnicals htTechnicals = stockTechnicalsService.get(stock, timeframe);
 
         double support = htStockPrice.getLow();
         if (stockPrice.getOpen() > htStockPrice.getHigh()) {
             support = htStockPrice.getHigh();
         }
 
+        /*
         if (breakoutBreakdownConfirmationService.isBreakdownConfirmed(
                 timeframe, stockPrice, unused, support)) {
             return breakoutService.isBreakDown(stockPrice, support, support);
         }
+        */
 
-        return false;
+        return breakoutService.isBreakDown(stockPrice, support, support);
     }
 
     @Override
@@ -101,12 +104,14 @@ public class SupportResistanceServiceImpl implements SupportResistanceService {
             resistance = htStockPrice.getLow();
         }
 
+        /*
         if (supportResistanceService.isNearResistance(stockPrice, resistance)
                 && supportResistanceConfirmationService.isResistanceConfirmed(
                         timeframe, stockPrice, stockTechnicals, resistance)) {
             return true;
         }
+        */
 
-        return false;
+        return supportResistanceService.isNearResistance(stockPrice, resistance);
     }
 }

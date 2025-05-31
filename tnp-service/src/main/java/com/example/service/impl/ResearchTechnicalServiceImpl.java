@@ -91,8 +91,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         newResearchTechnical.setStock(stock);
         newResearchTechnical.setTimeframe(timeframe);
         newResearchTechnical.setType(Trade.Type.BUY);
-        newResearchTechnical.setStrategy(tradeSetup.getStrategy());
-        newResearchTechnical.setSubStrategy(tradeSetup.getSubStrategy());
+        newResearchTechnical.setEntryStrategy(tradeSetup.getStrategy());
+        newResearchTechnical.setEntrySubStrategy(tradeSetup.getSubStrategy());
 
         newResearchTechnical.setVolume(stockTechnicals.getVolume());
         newResearchTechnical.setPrevVolume(stockTechnicals.getPrevVolume());
@@ -101,7 +101,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         newResearchTechnical.setPrevVolumeAvg(
                 VolumeAverageUtil.getPrevAverageVolume(timeframe, stockTechnicals));
 
-        newResearchTechnical.setResearchPrice(this.calculateResearchPrice(tradeSetup, stockPrice));
+        newResearchTechnical.setEntryPrice(this.calculateResearchPrice(tradeSetup, stockPrice));
 
         newResearchTechnical.setStopLoss(
                 this.calculateStopLoss(tradeSetup, stockPrice, newResearchTechnical));
@@ -114,15 +114,15 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         newResearchTechnical.setRisk(
                 Math.abs(
                         formulaService.calculateChangePercentage(
-                                newResearchTechnical.getResearchPrice(),
+                                newResearchTechnical.getEntryPrice(),
                                 newResearchTechnical.getStopLoss())));
 
         double confidenceScore =
                 ConfidenceScoreCalculator.calculateConfidenceScore(
-                        newResearchTechnical.getSubStrategy().getPriority(),
+                        newResearchTechnical.getEntrySubStrategy().getPriority(),
                         newResearchTechnical.getRisk(),
                         fundamentalResearchService.marketCap(newResearchTechnical.getStock()),
-                        newResearchTechnical.getResearchPrice(),
+                        newResearchTechnical.getEntryPrice(),
                         ConfidenceScoreCalculator.calculateVolumeScore(
                                 stockTechnicals.getVolume(),
                                 stockTechnicals.getPrevVolume(),
@@ -166,6 +166,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         existingResearch.setExitDate(sessionDate);
         existingResearch.setExitPrice(stockPrice.getClose());
         existingResearch.setType(Trade.Type.SELL);
+        existingResearch.setExitStrategy(tradeSetup.getStrategy());
+        existingResearch.setEntrySubStrategy(tradeSetup.getSubStrategy());
         existingResearch.setLastModified(LocalDate.now());
         return researchTechnicalRepository.save(existingResearch);
     }
@@ -241,7 +243,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
 
         double stopLoss =
-                researchTechnical.getResearchPrice() > stockPrice.getLow()
+                researchTechnical.getEntryPrice() > stockPrice.getLow()
                         ? stockPrice.getLow()
                         : stockPrice.getLow() - buffer;
 
@@ -541,7 +543,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         LocalDate date = null;
 
         if (researchTechnical.getType() == Trade.Type.BUY) {
-            price = researchTechnical.getResearchPrice();
+            price = researchTechnical.getEntryPrice();
             date = researchTechnical.getResearchDate();
         } else if (researchTechnical.getType() == Trade.Type.SELL) {
             price = researchTechnical.getExitPrice();
@@ -593,7 +595,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         LocalDate date = null;
 
         if (researchTechnical.getType() == Trade.Type.BUY) {
-            price = researchTechnical.getResearchPrice();
+            price = researchTechnical.getEntryPrice();
             date = researchTechnical.getResearchDate();
         } else if (researchTechnical.getType() == Trade.Type.SELL) {
             price = researchTechnical.getExitPrice();
@@ -658,13 +660,13 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 stockPriceService.get(researchTechnical.getStock(), Timeframe.DAILY);
 
         double currentPrice = stockPrice.getClose();
-        double prevClose = researchTechnical.getResearchPrice();
+        double prevClose = researchTechnical.getEntryPrice();
         double changePercent = prevClose != 0 ? ((currentPrice - prevClose) / prevClose) * 100 : 0;
 
         if (researchTechnical.getExitDate() != null) {
 
             currentPrice = researchTechnical.getExitPrice();
-            prevClose = researchTechnical.getResearchPrice();
+            prevClose = researchTechnical.getEntryPrice();
             changePercent = prevClose != 0 ? ((currentPrice - prevClose) / prevClose) * 100 : 0;
         }
 
@@ -679,7 +681,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 .score(researchTechnical.getScore())
                 .price(stockPrice.getClose())
                 .researchDate(researchTechnical.getResearchDate())
-                .researchPrice(researchTechnical.getResearchPrice())
+                .researchPrice(researchTechnical.getEntryPrice())
                 .exitDate(researchTechnical.getExitDate())
                 .exitPrice(researchTechnical.getExitPrice())
                 .changePercent(miscUtil.roundToTwoDecimals(changePercent))
@@ -693,7 +695,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         double risk =
                 formulaService.calculateChangePercentage(
-                        researchTechnical.getResearchPrice(), researchTechnical.getStopLoss());
+                        researchTechnical.getEntryPrice(), researchTechnical.getStopLoss());
 
         double mcapInCr = fundamentalResearchService.marketCap(researchTechnical.getStock());
 
@@ -703,10 +705,10 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         double confidenceScore =
                 ConfidenceScoreCalculator.calculateConfidenceScore(
-                        researchTechnical.getSubStrategy().getPriority(),
+                        researchTechnical.getEntrySubStrategy().getPriority(),
                         risk,
                         mcapInCr,
-                        researchTechnical.getResearchPrice(),
+                        researchTechnical.getEntryPrice(),
                         ConfidenceScoreCalculator.calculateVolumeScore(
                                 researchTechnical.getVolume(),
                                 researchTechnical.getPrevVolume(),
@@ -722,13 +724,13 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         System.out.println(
                 researchTechnical.getStock().getNseSymbol()
                         + " : "
-                        + researchTechnical.getSubStrategy()
+                        + researchTechnical.getEntrySubStrategy()
                         + " : "
                         + risk
                         + " : "
                         + mcapInCr
                         + " : "
-                        + researchTechnical.getResearchPrice()
+                        + researchTechnical.getEntryPrice()
                         + " :"
                         + miscUtil.roundToTwoDecimals(confidenceScore));
         researchTechnical.setScore(confidenceScore);
