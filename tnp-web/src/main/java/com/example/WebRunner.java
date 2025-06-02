@@ -148,7 +148,8 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private YearlySupportResistanceService yearlySupportResistanceService;
 
-    @Autowired private TimeframeSupportResistanceService timeframeSupportResistanceService;
+    @Autowired
+    private MultiTimeframeSupportResistanceService multiTimeframeSupportResistanceService;
 
     @Autowired private SectorDownloadService sectorDownloadService;
 

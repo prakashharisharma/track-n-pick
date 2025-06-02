@@ -8,6 +8,7 @@ import com.example.data.transactional.entities.StockTechnicals;
 import com.example.dto.common.TradeSetup;
 import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
+import com.example.service.utils.SubStrategyHelper;
 import com.example.util.FormulaService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -123,7 +124,10 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                         .map(threshold -> maPercentageDiff >= threshold)
                         .orElse(true);
 
-        if (isValid) {
+        // We will not consider breakout for HIGHEST MA for DAILY
+        if (isValid
+                && (timeframe == Timeframe.DAILY
+                        && evaluationResult.getLength() != MovingAverageLength.HIGHEST)) {
             boolean isGapUp = CandleStickUtils.isGapUp(stockPrice);
             boolean isStrongBody =
                     CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
@@ -133,7 +137,10 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
             if ((isGapUp || isStrongBody || isStrongLowerWick)
                     && this.isMacdConfirmingBreakout(stockTechnicals)) {
-                return Optional.of(ResearchTechnical.SubStrategy.BREAKOUT);
+
+                // return Optional.of(ResearchTechnical.SubStrategy.BREAKOUT);
+                return SubStrategyHelper.resolveByName(
+                        evaluationResult.getLength().name() + "_breakout");
             }
         }
 
@@ -141,6 +148,10 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
     }
 
     private boolean isMacdConfirmingBreakout(StockTechnicals st) {
+
+        if (st == null) {
+            return false;
+        }
 
         double macd = st.getMacd();
         double signal = st.getSignal();
@@ -195,7 +206,9 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             // TODO: prevBullishCandleStick
 
             if (isUpperWickSizeConfirmed && isBullishCandleStick && isVolumeSurge) {
-                return Optional.of(ResearchTechnical.SubStrategy.SUPPORT);
+                // return Optional.of(ResearchTechnical.SubStrategy.SUPPORT);
+                return SubStrategyHelper.resolveByName(
+                        evaluationResult.getLength().name() + "_support");
             }
         }
 
@@ -236,7 +249,9 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             boolean isPrevRed = CandleStickUtils.isPrevSessionRed(stockPrice);
 
             if ((isGapDown || isStrongBody || isStrongUpperWick || isPrevRed)) {
-                return Optional.of(ResearchTechnical.SubStrategy.BREAKDOWN);
+                // return Optional.of(ResearchTechnical.SubStrategy.BREAKDOWN);
+                return SubStrategyHelper.resolveByName(
+                        evaluationResult.getLength().name() + "_breakdown");
             }
         }
 
@@ -282,7 +297,9 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
             // TODO: prevBearishCandleStick
             if (isLowerWickSizeConfirmed && isBearishCandleStick && isVolumeSurge) {
-                return Optional.of(ResearchTechnical.SubStrategy.RESISTANCE);
+                // return Optional.of(ResearchTechnical.SubStrategy.RESISTANCE);
+                return SubStrategyHelper.resolveByName(
+                        evaluationResult.getLength().name() + "_resistance");
             }
         }
 

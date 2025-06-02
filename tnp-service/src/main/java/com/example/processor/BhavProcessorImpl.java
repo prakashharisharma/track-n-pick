@@ -400,7 +400,7 @@ public class BhavProcessorImpl implements BhavProcessor {
 
             // Delay *between* submissions to prevent MongoDB bursts
             try {
-                ThreadsUtil.delay(200);
+                ThreadsUtil.delay(800);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

@@ -26,40 +26,33 @@ public class ResistanceLevelDetectorImpl implements ResistanceLevelDetector {
 
     @Override
     public boolean isBreakout(Stock stock, Timeframe timeframe) {
-        StockPrice currentStockPrice = stockPriceService.get(stock, timeframe);
-        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
-        if (currentStockPrice == null) return false;
+        StockPrice current = stockPriceService.get(stock, timeframe);
+        if (current == null) return false;
 
-        boolean isResistanceBreak = this.isNearResistance(stock, timeframe);
+        List<Double> resistanceLevels = getRelevantResistanceLevels(stock, timeframe);
+        if (resistanceLevels.isEmpty()) return false;
+
+        double resistanceLevel = findConfluenceResistance(resistanceLevels);
+        double currentHigh = current.getHigh();
+
+        // Breakout = high is significantly above resistance (beyond threshold)
+        double deviation = (currentHigh - resistanceLevel) / resistanceLevel;
+        boolean brokeAboveResistance = deviation > THRESHOLD;
+
         boolean isMultiTimeFrameBreakout = this.isMultiTimeFrameBreakout(stock, timeframe);
-        boolean potentialBreakout = isResistanceBreak || isMultiTimeFrameBreakout;
+        boolean potentialBreakout = brokeAboveResistance || isMultiTimeFrameBreakout;
 
         return potentialBreakout;
-        /*
-        if (!potentialBreakout) return false;
-
-        boolean isConfirmed =
-                breakoutBreakdownConfirmationService.isBreakoutConfirmed(
-                        timeframe, currentStockPrice, stockTechnicals, currentStockPrice.getHigh());
-
-        if (isConfirmed) {
-            System.out.println(
-                    "Breakout confirmed for " + stock.getNseSymbol() + " at " + timeframe);
-        }
-
-        return isConfirmed;
-         */
     }
 
     private boolean isMultiTimeFrameBreakout(Stock stock, Timeframe timeframe) {
         if (timeframe == DAILY) {
-            return this.isNearResistance(stock, WEEKLY) && this.isNearResistance(stock, MONTHLY);
+            return this.isBreakout(stock, WEEKLY) && this.isBreakout(stock, MONTHLY);
         } else if (timeframe == WEEKLY) {
-            return this.isNearResistance(stock, MONTHLY)
-                    && this.isNearResistance(stock, Timeframe.QUARTERLY);
+            return this.isBreakout(stock, MONTHLY) && this.isBreakout(stock, Timeframe.QUARTERLY);
         } else if (timeframe == MONTHLY) {
-            return this.isNearResistance(stock, Timeframe.QUARTERLY)
-                    && this.isNearResistance(stock, Timeframe.YEARLY);
+            return this.isBreakout(stock, Timeframe.QUARTERLY)
+                    && this.isBreakout(stock, Timeframe.YEARLY);
         }
         return false;
     }
@@ -67,25 +60,32 @@ public class ResistanceLevelDetectorImpl implements ResistanceLevelDetector {
     @Override
     public boolean isNearResistance(Stock stock, Timeframe timeframe) {
         StockPrice currentStockPrice = stockPriceService.get(stock, timeframe);
-        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
         if (currentStockPrice == null) return false;
 
         List<Double> resistanceLevels = getRelevantResistanceLevels(stock, timeframe);
+
         if (resistanceLevels.isEmpty()) return false;
 
         double resistanceLevel = findConfluenceResistance(resistanceLevels);
 
         boolean isNear = checkResistance(currentStockPrice, resistanceLevel);
 
-        /*
-        boolean isConfirmed =
-                supportResistanceConfirmationService.isResistanceConfirmed(
-                        timeframe, currentStockPrice, stockTechnicals, resistanceLevel);
+        boolean isMultiTimeFrameResistance = this.isMultiTimeFrameResistance(stock, timeframe);
+        boolean potentialResistance = isNear || isMultiTimeFrameResistance;
 
-        return isNear && isConfirmed;
-         */
+        return potentialResistance;
+    }
 
-        return isNear;
+    private boolean isMultiTimeFrameResistance(Stock stock, Timeframe timeframe) {
+        if (timeframe == DAILY) {
+            return this.isBreakout(stock, WEEKLY) && this.isBreakout(stock, MONTHLY);
+        } else if (timeframe == WEEKLY) {
+            return this.isBreakout(stock, MONTHLY) && this.isBreakout(stock, Timeframe.QUARTERLY);
+        } else if (timeframe == MONTHLY) {
+            return this.isBreakout(stock, Timeframe.QUARTERLY)
+                    && this.isBreakout(stock, Timeframe.YEARLY);
+        }
+        return false;
     }
 
     private List<Double> getRelevantResistanceLevels(Stock stock, Timeframe timeframe) {
