@@ -18,7 +18,7 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
 
     private final DynamicMovingAverageSupportResolverService
             dynamicMovingAverageSupportResolverService;
-    private final TimeframeSupportResistanceService timeframeSupportResistanceService;
+    private final MultiTimeframeSupportResistanceService multiTimeframeSupportResistanceService;
     private final MultiIndicatorService multiIndicatorService;
     private final RsiIndicatorService rsiIndicatorService;
     private final ObvIndicatorService obvIndicatorService;
@@ -40,7 +40,7 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
                         trend.getMomentum());
                 return true;
             } else if (trend.getMomentum() == Trend.Phase.BOTTOM
-                    && timeframeSupportResistanceService.isNearSupport(
+                    && multiTimeframeSupportResistanceService.isNearSupport(
                             timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverSold(stockTechnicals)) {
                 log.info(
@@ -62,7 +62,7 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
             StockTechnicals stockTechnicals) {
         if (trend.getDirection() == Trend.Direction.UP) {
             if (trend.getMomentum() == Trend.Phase.TOP
-                    && timeframeSupportResistanceService.isNearResistance(
+                    && multiTimeframeSupportResistanceService.isNearResistance(
                             timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverBought(stockTechnicals)) {
                 log.info(
@@ -94,7 +94,7 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
         if (trend.getDirection() == Trend.Direction.UP
                 && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
             if (trend.getMomentum() == Trend.Phase.TOP
-                    && timeframeSupportResistanceService.isBreakout(
+                    && multiTimeframeSupportResistanceService.isBreakout(
                             timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isBullish(stockTechnicals)) {
                 log.info(
@@ -137,7 +137,7 @@ public class DynamicRelevanceServiceImpl implements DynamicRelevanceService {
                         trend.getMomentum());
                 return true;
             } else if (trend.getMomentum() == Trend.Phase.BOTTOM
-                    && timeframeSupportResistanceService.isBreakdown(
+                    && multiTimeframeSupportResistanceService.isBreakdown(
                             timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isBearish(stockTechnicals)) {
                 log.info(
