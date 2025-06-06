@@ -142,50 +142,52 @@ public class DynamicMovingAverageSupportResolverServiceImpl
         };
     }
 
+    private List<MAServiceEntry> getSortedMAEntries(Timeframe timeframe, StockTechnicals stockTechnicals) {
+        List<MAServiceEntry> entries = List.of(
+                new MAServiceEntry(
+                        5,
+                        MovingAverageUtil.getMovingAverage5(timeframe, stockTechnicals),
+                        fiveDaysMovingAverageSupportResistanceService),
+                new MAServiceEntry(
+                        20,
+                        MovingAverageUtil.getMovingAverage20(timeframe, stockTechnicals),
+                        twentyDaysMovingAverageSupportResistanceService),
+                new MAServiceEntry(
+                        50,
+                        MovingAverageUtil.getMovingAverage50(timeframe, stockTechnicals),
+                        fiftyDaysMovingAverageSupportResistanceService),
+                new MAServiceEntry(
+                        100,
+                        MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals),
+                        oneHundredDaysMovingAverageSupportResistanceService),
+                new MAServiceEntry(
+                        200,
+                        MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals),
+                        twoHundredDaysMovingAverageSupportResistanceService)
+        );
+
+        return entries.stream()
+                .sorted(Comparator.comparingDouble((MAServiceEntry e) -> e.value).reversed())
+                .toList();
+    }
+
     @Override
     public MovingAverageSupportResistanceService resolve(
             MovingAverageLength length, Timeframe timeframe, StockTechnicals stockTechnicals) {
-        List<MAServiceEntry> entries =
-                List.of(
-                        new MAServiceEntry(
-                                5,
-                                MovingAverageUtil.getMovingAverage5(timeframe, stockTechnicals),
-                                fiveDaysMovingAverageSupportResistanceService),
-                        new MAServiceEntry(
-                                20,
-                                MovingAverageUtil.getMovingAverage20(timeframe, stockTechnicals),
-                                twentyDaysMovingAverageSupportResistanceService),
-                        new MAServiceEntry(
-                                50,
-                                MovingAverageUtil.getMovingAverage50(timeframe, stockTechnicals),
-                                fiftyDaysMovingAverageSupportResistanceService),
-                        new MAServiceEntry(
-                                100,
-                                MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals),
-                                oneHundredDaysMovingAverageSupportResistanceService),
-                        new MAServiceEntry(
-                                200,
-                                MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals),
-                                twoHundredDaysMovingAverageSupportResistanceService));
 
-        entries =
-                entries.stream()
-                        .sorted(
-                                Comparator.comparingDouble((MAServiceEntry e) -> e.value)
-                                        .reversed())
-                        .toList();
+        List<MAServiceEntry> sorted = getSortedMAEntries(timeframe, stockTechnicals);
 
-        int index =
-                switch (length) {
-                    case HIGHEST -> 0;
-                    case HIGH -> 1;
-                    case MEDIUM -> 2;
-                    case LOW -> 3;
-                    case LOWEST -> 4;
-                };
+        int index = switch (length) {
+            case HIGHEST -> 0;
+            case HIGH -> 1;
+            case MEDIUM -> 2;
+            case LOW -> 3;
+            case LOWEST -> 4;
+        };
 
-        return entries.get(index).service;
+        return sorted.get(index).service;
     }
+
 
     private static class MAServiceEntry {
         int period;
@@ -203,65 +205,25 @@ public class DynamicMovingAverageSupportResolverServiceImpl
     public List<MAInteraction> findMAInteractions(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
-        double open = stockPrice.getOpen();
-        double close = stockPrice.getClose();
-        double low = Math.min(open, close);
-        double high = Math.max(open, close);
+        double low = stockPrice.getLow();
+        double high = stockPrice.getHigh();
+        boolean checkSupport = TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN;
 
-        boolean checkSupport =
-                (TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN);
+        List<MAServiceEntry> sorted = getSortedMAEntries(timeframe, stockTechnicals);
 
-        List<MAServiceEntry> entries =
-                List.of(
-                        new MAServiceEntry(
-                                5,
-                                MovingAverageUtil.getMovingAverage5(timeframe, stockTechnicals),
-                                fiveDaysMovingAverageSupportResistanceService),
-                        new MAServiceEntry(
-                                20,
-                                MovingAverageUtil.getMovingAverage20(timeframe, stockTechnicals),
-                                twentyDaysMovingAverageSupportResistanceService),
-                        new MAServiceEntry(
-                                50,
-                                MovingAverageUtil.getMovingAverage50(timeframe, stockTechnicals),
-                                fiftyDaysMovingAverageSupportResistanceService),
-                        new MAServiceEntry(
-                                100,
-                                MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals),
-                                oneHundredDaysMovingAverageSupportResistanceService),
-                        new MAServiceEntry(
-                                200,
-                                MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals),
-                                twoHundredDaysMovingAverageSupportResistanceService));
+        MovingAverageLength[] lengths = MovingAverageLength.values(); // HIGHEST to LOWEST
 
-        List<MAServiceEntry> sorted =
-                entries.stream()
-                        .sorted(
-                                Comparator.comparingDouble((MAServiceEntry e) -> e.value)
-                                        .reversed())
-                        .toList();
-
-        return IntStream.range(1, sorted.size())
-                .filter(
-                        i -> {
-                            double value = sorted.get(i).value;
-                            return value >= low && value <= high;
-                        })
-                .mapToObj(
-                        i -> {
-                            double value = sorted.get(i).value;
-                            MovingAverageLength length =
-                                    switch (i) {
-                                        case 1 -> MovingAverageLength.HIGHEST;
-                                        case 2 -> MovingAverageLength.HIGH;
-                                        case 3 -> MovingAverageLength.MEDIUM;
-                                        case 4 -> MovingAverageLength.LOW;
-                                        case 5 -> MovingAverageLength.LOWEST;
-                                        default -> throw new IllegalStateException(
-                                                "Unexpected MA index: " + i);
-                                    };
-                            return MAInteraction.of(length, value, checkSupport);
-                        })
+        return IntStream.range(0, sorted.size())
+                .filter(i -> {
+                    double value = sorted.get(i).value;
+                    //return value >= low && value <= high;
+                    return high >= value * 0.999 && low <= value * 1.001;
+                })
+                .mapToObj(i -> {
+                    double value = sorted.get(i).value;
+                    MovingAverageLength length = lengths[i];
+                    return MAInteraction.of(length, value, checkSupport);
+                })
                 .toList();
     }
 

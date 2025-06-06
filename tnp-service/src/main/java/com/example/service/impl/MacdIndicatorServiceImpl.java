@@ -75,6 +75,22 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
     }
 
     @Override
+    public boolean isHistogramAboveZero(StockTechnicals stockTechnicals) {
+        if (stockTechnicals != null) {
+
+            double histogram =
+                    formulaService.calculateHistogram(
+                            stockTechnicals.getMacd(), stockTechnicals.getSignal());
+
+            if (histogram > 0.0) {
+                return Boolean.TRUE;
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
     public boolean isHistogramGreen(StockTechnicals stockTechnicals) {
         // StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
         return formulaService.calculateHistogram(

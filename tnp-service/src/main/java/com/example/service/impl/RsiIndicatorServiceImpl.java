@@ -1,5 +1,6 @@
 package com.example.service.impl;
 
+import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.CrossOverUtil;
 import com.example.service.RsiIndicatorService;
@@ -10,9 +11,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class RsiIndicatorServiceImpl implements RsiIndicatorService {
 
-    private static double RSI_OVERSOLD = 45.0;
+    private static double DEFAULT_OVERSOLD = 40.0;
 
-    private static double RSI_OVERBOUGHT = 65.0;
+    private static double DEFAULT_OVERBOUGHT = 70.0;
 
     @Override
     public boolean isBullish(StockTechnicals stockTechnicals) {
@@ -25,11 +26,11 @@ public class RsiIndicatorServiceImpl implements RsiIndicatorService {
         if (stockTechnicals.getRsi() > stockTechnicals.getPrevRsi()) {
             boolean isRsiEnteredBullishZone =
                     CrossOverUtil.isFastCrossesAboveSlow(
-                            stockTechnicals.getPrevRsi(), RSI_OVERSOLD,
-                            stockTechnicals.getRsi(), RSI_OVERSOLD);
+                            stockTechnicals.getPrevRsi(), DEFAULT_OVERSOLD,
+                            stockTechnicals.getRsi(), DEFAULT_OVERSOLD);
 
             return isRsiEnteredBullishZone
-                    || Math.ceil(stockTechnicals.getPrevRsi()) > RSI_OVERSOLD;
+                    || Math.ceil(stockTechnicals.getPrevRsi()) > DEFAULT_OVERSOLD;
         }
 
         return false;
@@ -42,8 +43,8 @@ public class RsiIndicatorServiceImpl implements RsiIndicatorService {
                 || stockTechnicals.getPrevRsi() == null) {
             return false;
         }
-        return stockTechnicals.getPrevRsi() <= RSI_OVERSOLD
-                || stockTechnicals.getRsi() <= RSI_OVERSOLD;
+        return stockTechnicals.getPrevRsi() <= DEFAULT_OVERSOLD
+                || stockTechnicals.getRsi() <= DEFAULT_OVERSOLD;
     }
 
     @Override
@@ -53,15 +54,15 @@ public class RsiIndicatorServiceImpl implements RsiIndicatorService {
                 || stockTechnicals.getPrevRsi() == null) {
             return false;
         }
-
+        double overBoughtFactor= this.getOverBoughtFactor(stockTechnicals);
         if (stockTechnicals.getRsi() < stockTechnicals.getPrevRsi()) {
             boolean isRsiEnteredBearishZone =
                     CrossOverUtil.isSlowCrossesBelowFast(
-                            stockTechnicals.getPrevRsi(), RSI_OVERBOUGHT,
-                            stockTechnicals.getRsi(), RSI_OVERBOUGHT);
+                            stockTechnicals.getPrevRsi(), overBoughtFactor,
+                            stockTechnicals.getRsi(), overBoughtFactor);
 
             return isRsiEnteredBearishZone
-                    || Math.ceil(stockTechnicals.getPrevRsi()) < RSI_OVERBOUGHT;
+                    || Math.ceil(stockTechnicals.getPrevRsi()) < overBoughtFactor;
         }
 
         return false;
@@ -74,9 +75,23 @@ public class RsiIndicatorServiceImpl implements RsiIndicatorService {
                 || stockTechnicals.getPrevRsi() == null) {
             return false;
         }
-        return stockTechnicals.getPrevRsi() >= RSI_OVERBOUGHT
-                || stockTechnicals.getRsi() >= RSI_OVERBOUGHT;
+
+        double overBoughtFactor= this.getOverBoughtFactor(stockTechnicals);
+
+        return stockTechnicals.getPrevRsi() >= overBoughtFactor
+                || stockTechnicals.getRsi() >= overBoughtFactor;
     }
+
+    private double getOverBoughtFactor(StockTechnicals stockTechnicals) {
+        Timeframe timeframe = stockTechnicals.getTimeframe();
+
+        return switch (timeframe) {
+            case WEEKLY -> 75.0;
+            case MONTHLY -> 80.0;
+            default -> 70.0; // fallback value if needed
+        };
+    }
+
 
     @Override
     public double rsi(StockTechnicals stockTechnicals) {
