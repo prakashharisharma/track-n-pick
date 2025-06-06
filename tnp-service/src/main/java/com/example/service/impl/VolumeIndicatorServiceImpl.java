@@ -428,4 +428,16 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
 
         return avgTradingValue >= MIN_TRADING_VALUE;
     }
+
+    @Override
+    public boolean isVolumeAverage(StockTechnicals stockTechnicals) {
+
+        if(stockTechnicals.getVolume() > stockTechnicals.getVolumeAvg20()){
+            return true;
+        }else         if(stockTechnicals.getPrevVolume() > stockTechnicals.getPrevVolumeAvg20()){
+            return true;
+        }
+
+        return false;
+    }
 }

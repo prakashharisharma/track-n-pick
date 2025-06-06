@@ -243,7 +243,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                 updatePriceService.updatePrice(Timeframe.DAILY, stock, stockPrice);
                 researchExecutorService.executeFundamental(stock);
                 stockPriceList.add(stockPrice);
-                miscUtil.delay(ThreadsUtil.poolSize() * 8);
+                miscUtil.delay(ThreadsUtil.poolSize() * 75);
             } catch (Exception e) {
                 log.error(
                         "{} An error occurred while processing daily batch",
@@ -288,7 +288,7 @@ public class BhavProcessorImpl implements BhavProcessor {
             submitIfRequired(executor, futuresMap, Timeframe.WEEKLY, isLastWeek, batch);
 
             try {
-                ThreadsUtil.delay(numThreads * 128); // optional single delay per batch
+                ThreadsUtil.delay(numThreads * 75); // optional single delay per batch
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

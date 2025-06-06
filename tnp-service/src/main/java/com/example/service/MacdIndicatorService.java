@@ -10,7 +10,7 @@ public interface MacdIndicatorService {
     public boolean isSignalNearHistogram(StockTechnicals stockTechnicals);
 
     public boolean isHistogramBelowZero(StockTechnicals stockTechnicals);
-
+    public boolean isHistogramAboveZero(StockTechnicals stockTechnicals);
     public boolean isHistogramGreen(StockTechnicals stockTechnicals);
 
     public boolean isHistogramIncreased(StockTechnicals stockTechnicals);

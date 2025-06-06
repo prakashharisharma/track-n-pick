@@ -1,7 +1,11 @@
 package com.example.service.impl;
 
+import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.ResearchTechnical;
+import com.example.data.transactional.entities.StockPrice;
+import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
+import com.example.service.utils.MovingAverageUtil;
 import com.example.util.FormulaService;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +23,21 @@ public class PositionServiceImpl implements PositionService {
     private final PortfolioService portfolioService;
     private final TradeService tradeService;
 
+    private final StockPriceService<StockPrice> stockPriceService;
+
+    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
+
     @Override
     public long calculate(Long userId, ResearchTechnical researchTechnical) {
 
+        StockPrice stockPrice = stockPriceService.get(researchTechnical.getStock(), researchTechnical.getTimeframe());
+
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(researchTechnical.getStock(), researchTechnical.getTimeframe());
+
         double totalCapital = this.totalCapital(userId);
 
-        double riskFactor = this.getRiskFactor(researchTechnical); // Typically a % like 1 or 2
+       // double riskFactor = this.getRiskFactor(researchTechnical); // Typically a % like 1 or 2
+        double riskFactor = this.getRiskFactor(researchTechnical.getTimeframe(), stockPrice, stockTechnicals, researchTechnical);
 
         double risk =
                 formulaService.calculateFraction(
@@ -108,4 +121,49 @@ public class PositionServiceImpl implements PositionService {
 
         return 0.0;
     }
+
+    private double getRiskFactor(
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals, ResearchTechnical researchTechnical) {
+
+        double close = stockPrice.getClose();
+        double ma200 = MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals);
+        double ma100 = MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals);
+        double ma50 = MovingAverageUtil.getMovingAverage50(timeframe, stockTechnicals);
+
+        ResearchTechnical.SubStrategy subStrategy = researchTechnical.getEntrySubStrategy();
+
+        if (subStrategy.isBreakout()) {
+            if (close > ma200 && close > ma50) {
+                return 2.0;
+            } else if (close > ma200) {
+                return 1.75;
+            } else if (close > ma100) {
+                return 1.50;
+            } else if (close > ma50) {
+                return 1.25;
+            } else {
+                return 1.0;
+            }
+        }
+
+        if (subStrategy.isSupport()) {
+            if (close > ma200 && close > ma50) {
+                return 1.5;
+            } else if (close > ma200) {
+                return 1.25;
+            } else if (close > ma100) {
+                return 1.0;
+            } else if (close > ma50) {
+                return 0.75;
+            } else {
+                return 0.50;
+            }
+        }
+
+        // Default fallback for other strategies
+        return 0.50;
+    }
+
 }

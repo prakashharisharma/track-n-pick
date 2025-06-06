@@ -140,8 +140,33 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         newResearchTechnical.setResearchDate(sessionDate);
         newResearchTechnical.setLastModified(LocalDate.now());
 
-        return researchTechnicalRepository.save(newResearchTechnical);
+        if(isRiskWithinLimit(timeframe, newResearchTechnical.getEntrySubStrategy(), newResearchTechnical.getRisk())) {
+            newResearchTechnical = researchTechnicalRepository.save(newResearchTechnical);
+        }
+
+        return newResearchTechnical;
     }
+
+    public static boolean isRiskWithinLimit(Timeframe timeframe, ResearchTechnical.SubStrategy subStrategy, double risk) {
+        if (subStrategy.isSupport()) {
+            return switch (timeframe) {
+                case DAILY -> risk < 7.0;
+                case WEEKLY -> risk < 9.5;
+                case MONTHLY -> risk < 12.0;
+                default -> false;
+            };
+        } else if (subStrategy.isBreakout()) {
+            return switch (timeframe) {
+                case DAILY -> risk < 5.0;
+                case WEEKLY -> risk < 7.5;
+                case MONTHLY -> risk < 10.0;
+                default -> false;
+            };
+        } else {
+            return false;
+        }
+    }
+
 
     @Override
     public ResearchTechnical exit(
@@ -255,6 +280,11 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     }
 
     private double calculateResearchPrice(TradeSetup tradeSetup, StockPrice stockPrice) {
+
+        if(tradeSetup.getResearchPrice() > 0.0){
+            return tradeSetup.getResearchPrice();
+        }
+
         ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
         boolean isWeakSupport = this.isWeakSupport(subStrategy);
         boolean isWeakBreakout = this.isWeakBreakout(subStrategy);

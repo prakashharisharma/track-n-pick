@@ -7,10 +7,7 @@ import com.example.data.transactional.entities.StockTechnicals;
 public interface TimeframeSupportResistanceService {
 
     public boolean isBreakout(
-            Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals,
-            boolean confirmationCheck);
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
     public boolean isNearSupport(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);

@@ -775,4 +775,21 @@ public class CandleStickUtils {
 
         return isUpperWickSignificant;
     }
+
+    public static boolean isUpperWickDominant(StockPrice stockPrice) {
+
+        double bodySize = bodySize(stockPrice);
+        double lowerWickSize = lowerWickSize(stockPrice);
+        double upperWickSize = upperWickSize(stockPrice);
+
+        return upperWickSize > lowerWickSize && upperWickSize > bodySize;
+    }
+
+    public static boolean isLowerWickDominant(StockPrice stockPrice) {
+        double bodySize = bodySize(stockPrice);
+        double lowerWickSize = lowerWickSize(stockPrice);
+        double upperWickSize = upperWickSize(stockPrice);
+
+        return  lowerWickSize > upperWickSize && lowerWickSize > bodySize;
+    }
 }

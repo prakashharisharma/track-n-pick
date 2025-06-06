@@ -34,8 +34,6 @@ public class MovingAverageSupportResistanceServiceImpl
             StockTechnicals stockTechnicals,
             boolean confirmationCheck) {
 
-        double close = stockPrice.getClose();
-        double prevClose = stockPrice.getPrevClose();
         double ma = maType.resolve(timeframe, stockTechnicals);
         double prevMa = maType.resolvePrev(timeframe, stockTechnicals);
 
