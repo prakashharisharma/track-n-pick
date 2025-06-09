@@ -30,14 +30,23 @@ public class PositionServiceImpl implements PositionService {
     @Override
     public long calculate(Long userId, ResearchTechnical researchTechnical) {
 
-        StockPrice stockPrice = stockPriceService.get(researchTechnical.getStock(), researchTechnical.getTimeframe());
+        StockPrice stockPrice =
+                stockPriceService.get(
+                        researchTechnical.getStock(), researchTechnical.getTimeframe());
 
-        StockTechnicals stockTechnicals = stockTechnicalsService.get(researchTechnical.getStock(), researchTechnical.getTimeframe());
+        StockTechnicals stockTechnicals =
+                stockTechnicalsService.get(
+                        researchTechnical.getStock(), researchTechnical.getTimeframe());
 
         double totalCapital = this.totalCapital(userId);
 
-       // double riskFactor = this.getRiskFactor(researchTechnical); // Typically a % like 1 or 2
-        double riskFactor = this.getRiskFactor(researchTechnical.getTimeframe(), stockPrice, stockTechnicals, researchTechnical);
+        // double riskFactor = this.getRiskFactor(researchTechnical); // Typically a % like 1 or 2
+        double riskFactor =
+                this.getRiskFactor(
+                        researchTechnical.getTimeframe(),
+                        stockPrice,
+                        stockTechnicals,
+                        researchTechnical);
 
         double risk =
                 formulaService.calculateFraction(
@@ -125,7 +134,8 @@ public class PositionServiceImpl implements PositionService {
     private double getRiskFactor(
             Timeframe timeframe,
             StockPrice stockPrice,
-            StockTechnicals stockTechnicals, ResearchTechnical researchTechnical) {
+            StockTechnicals stockTechnicals,
+            ResearchTechnical researchTechnical) {
 
         double close = stockPrice.getClose();
         double ma200 = MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals);
@@ -165,5 +175,4 @@ public class PositionServiceImpl implements PositionService {
         // Default fallback for other strategies
         return 0.50;
     }
-
 }

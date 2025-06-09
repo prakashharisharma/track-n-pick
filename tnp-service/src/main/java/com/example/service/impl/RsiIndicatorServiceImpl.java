@@ -54,7 +54,7 @@ public class RsiIndicatorServiceImpl implements RsiIndicatorService {
                 || stockTechnicals.getPrevRsi() == null) {
             return false;
         }
-        double overBoughtFactor= this.getOverBoughtFactor(stockTechnicals);
+        double overBoughtFactor = this.getOverBoughtFactor(stockTechnicals);
         if (stockTechnicals.getRsi() < stockTechnicals.getPrevRsi()) {
             boolean isRsiEnteredBearishZone =
                     CrossOverUtil.isSlowCrossesBelowFast(
@@ -76,7 +76,7 @@ public class RsiIndicatorServiceImpl implements RsiIndicatorService {
             return false;
         }
 
-        double overBoughtFactor= this.getOverBoughtFactor(stockTechnicals);
+        double overBoughtFactor = this.getOverBoughtFactor(stockTechnicals);
 
         return stockTechnicals.getPrevRsi() >= overBoughtFactor
                 || stockTechnicals.getRsi() >= overBoughtFactor;
@@ -91,7 +91,6 @@ public class RsiIndicatorServiceImpl implements RsiIndicatorService {
             default -> 70.0; // fallback value if needed
         };
     }
-
 
     @Override
     public double rsi(StockTechnicals stockTechnicals) {

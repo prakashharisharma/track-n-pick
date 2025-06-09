@@ -29,7 +29,8 @@ public enum MovingAverageLength {
         return fromWeightOrDefault(this.weight + 1, this);
     }
 
-    private static MovingAverageLength fromWeightOrDefault(int weight, MovingAverageLength defaultValue) {
+    private static MovingAverageLength fromWeightOrDefault(
+            int weight, MovingAverageLength defaultValue) {
         for (MovingAverageLength length : values()) {
             if (length.weight == weight) {
                 return length;

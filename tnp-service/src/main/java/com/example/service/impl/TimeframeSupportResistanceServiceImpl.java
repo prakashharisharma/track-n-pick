@@ -23,28 +23,48 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
     public boolean isBreakout(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
-        double resistance = getReferenceLevel(stockPrice, timeframe, LevelType.RESISTANCE, SupportResistanceStyle.BODY_BASED);
+        double resistance =
+                getReferenceLevel(
+                        stockPrice,
+                        timeframe,
+                        LevelType.RESISTANCE,
+                        SupportResistanceStyle.BODY_BASED);
 
         return breakoutService.isBreakOut(stockPrice, resistance, resistance);
     }
 
     @Override
     public boolean isBreakdown(Timeframe timeframe, StockPrice stockPrice, StockTechnicals unused) {
-        double support = getReferenceLevel(stockPrice, timeframe, LevelType.SUPPORT,SupportResistanceStyle.BODY_BASED);
+        double support =
+                getReferenceLevel(
+                        stockPrice,
+                        timeframe,
+                        LevelType.SUPPORT,
+                        SupportResistanceStyle.BODY_BASED);
         return breakoutService.isBreakDown(stockPrice, support, support);
     }
 
     @Override
     public boolean isNearSupport(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals unused) {
-        double support = getReferenceLevel(stockPrice, timeframe, LevelType.SUPPORT,SupportResistanceStyle.WICK_BASED);
+        double support =
+                getReferenceLevel(
+                        stockPrice,
+                        timeframe,
+                        LevelType.SUPPORT,
+                        SupportResistanceStyle.WICK_BASED);
         return supportResistanceService.isNearSupport(stockPrice, support);
     }
 
     @Override
     public boolean isNearResistance(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals unused) {
-        double resistance = getReferenceLevel(stockPrice, timeframe, LevelType.RESISTANCE,SupportResistanceStyle.WICK_BASED);
+        double resistance =
+                getReferenceLevel(
+                        stockPrice,
+                        timeframe,
+                        LevelType.RESISTANCE,
+                        SupportResistanceStyle.WICK_BASED);
         return supportResistanceService.isNearResistance(stockPrice, resistance);
     }
 
@@ -62,23 +82,34 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
      * @param type The level type to calculate (SUPPORT or RESISTANCE)
      * @return The calculated reference level
      */
-    private double getReferenceLevel(StockPrice stockPrice, Timeframe timeframe, LevelType type, SupportResistanceStyle style) {
+    private double getReferenceLevel(
+            StockPrice stockPrice,
+            Timeframe timeframe,
+            LevelType type,
+            SupportResistanceStyle style) {
         Stock stock = stockPrice.getStock();
         StockPrice htStockPrice = stockPriceService.get(stock, timeframe);
 
         if (htStockPrice == null) {
-            log.warn("HTF stock price not found for stock: {} and timeframe: {}", stock.getNseSymbol(), timeframe);
+            log.warn(
+                    "HTF stock price not found for stock: {} and timeframe: {}",
+                    stock.getNseSymbol(),
+                    timeframe);
             return Double.NaN;
         }
 
-        boolean isNewerSession = htStockPrice.getSessionDate().isBefore(stockPrice.getSessionDate());
+        boolean isNewerSession =
+                htStockPrice.getSessionDate().isBefore(stockPrice.getSessionDate());
 
         double rawLevel;
 
         if (style == SupportResistanceStyle.BODY_BASED) {
             double htOpen = isNewerSession ? htStockPrice.getOpen() : htStockPrice.getPrevOpen();
             double htClose = isNewerSession ? htStockPrice.getClose() : htStockPrice.getPrevClose();
-            double level = type == LevelType.SUPPORT ? Math.min(htOpen, htClose) : Math.max(htOpen, htClose);
+            double level =
+                    type == LevelType.SUPPORT
+                            ? Math.min(htOpen, htClose)
+                            : Math.max(htOpen, htClose);
 
             log.debug("Using BODY-BASED {} level: {}", type, level);
             rawLevel = level;
@@ -87,14 +118,19 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
             boolean isBullish = htStockPrice.getClose() > htStockPrice.getOpen();
             boolean isBearish = htStockPrice.getClose() < htStockPrice.getOpen();
 
-            rawLevel = switch (type) {
-                case SUPPORT -> isNewerSession
-                        ? (isBullish ? htStockPrice.getHigh() : htStockPrice.getLow())
-                        : (isBullish ? htStockPrice.getPrevHigh() : htStockPrice.getPrevLow());
-                case RESISTANCE -> isNewerSession
-                        ? (isBearish ? htStockPrice.getLow() : htStockPrice.getHigh())
-                        : (isBearish ? htStockPrice.getPrevLow() : htStockPrice.getPrevHigh());
-            };
+            rawLevel =
+                    switch (type) {
+                        case SUPPORT -> isNewerSession
+                                ? (isBullish ? htStockPrice.getHigh() : htStockPrice.getLow())
+                                : (isBullish
+                                        ? htStockPrice.getPrevHigh()
+                                        : htStockPrice.getPrevLow());
+                        case RESISTANCE -> isNewerSession
+                                ? (isBearish ? htStockPrice.getLow() : htStockPrice.getHigh())
+                                : (isBearish
+                                        ? htStockPrice.getPrevLow()
+                                        : htStockPrice.getPrevHigh());
+                    };
 
             log.debug("Using WICK-BASED {} level: {}", type, rawLevel);
         }
@@ -105,7 +141,8 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
         double min = Math.min(open, close);
         double max = Math.max(open, close);
 
-        boolean bodyCrossesLevel = (open < rawLevel && close > rawLevel) || (open > rawLevel && close < rawLevel);
+        boolean bodyCrossesLevel =
+                (open < rawLevel && close > rawLevel) || (open > rawLevel && close < rawLevel);
         if (bodyCrossesLevel) {
             log.info("Candle body crosses the {} level at {}", type, rawLevel);
             return rawLevel;

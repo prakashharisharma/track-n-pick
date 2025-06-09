@@ -39,8 +39,9 @@ class DynamicMovingAverageSupportResolverServiceImplTest {
             boolean breakout,
             boolean nearResistance,
             boolean breakdown) {
+
         return new MAEvaluationResult(
-                len, 100.0, support, nearSupport, breakout, nearResistance, breakdown);
+                len, 100.0, 80.0, support, nearSupport, breakout, nearResistance, breakdown);
     }
 
     @Test
@@ -49,10 +50,13 @@ class DynamicMovingAverageSupportResolverServiceImplTest {
         var support = result(MovingAverageLength.LOW, true, true, false, false, false);
 
         var spy = spy(service);
-        doReturn(List.of(breakdown, support)).when(spy).evaluateInteractions(any(), any(), any());
+        doReturn(List.of(breakdown, support))
+                .when(spy)
+                .evaluateInteractions(any(), any(), any(), true);
 
         Optional<MAEvaluationResult> result =
-                spy.evaluateSingleInteractionSmart(Timeframe.DAILY, stockPrice, stockTechnicals);
+                spy.evaluateSingleInteractionSmart(
+                        Timeframe.DAILY, stockPrice, stockTechnicals, true);
         assertTrue(result.isPresent());
         assertEquals(support, result.get());
     }
@@ -63,10 +67,13 @@ class DynamicMovingAverageSupportResolverServiceImplTest {
         var resistance = result(MovingAverageLength.HIGH, false, false, false, true, false);
 
         var spy = spy(service);
-        doReturn(List.of(breakout, resistance)).when(spy).evaluateInteractions(any(), any(), any());
+        doReturn(List.of(breakout, resistance))
+                .when(spy)
+                .evaluateInteractions(any(), any(), any(), true);
 
         Optional<MAEvaluationResult> result =
-                spy.evaluateSingleInteractionSmart(Timeframe.DAILY, stockPrice, stockTechnicals);
+                spy.evaluateSingleInteractionSmart(
+                        Timeframe.DAILY, stockPrice, stockTechnicals, true);
         assertTrue(result.isPresent());
         assertEquals(resistance, result.get());
     }
@@ -77,10 +84,13 @@ class DynamicMovingAverageSupportResolverServiceImplTest {
         var breakout2 = result(MovingAverageLength.MEDIUM, false, false, true, false, false);
 
         var spy = spy(service);
-        doReturn(List.of(breakout1, breakout2)).when(spy).evaluateInteractions(any(), any(), any());
+        doReturn(List.of(breakout1, breakout2))
+                .when(spy)
+                .evaluateInteractions(any(), any(), any(), true);
 
         Optional<MAEvaluationResult> result =
-                spy.evaluateSingleInteractionSmart(Timeframe.DAILY, stockPrice, stockTechnicals);
+                spy.evaluateSingleInteractionSmart(
+                        Timeframe.DAILY, stockPrice, stockTechnicals, true);
         assertTrue(result.isPresent());
         assertEquals(breakout1, result.get());
     }
@@ -93,10 +103,11 @@ class DynamicMovingAverageSupportResolverServiceImplTest {
         var spy = spy(service);
         doReturn(List.of(breakdown1, breakdown2))
                 .when(spy)
-                .evaluateInteractions(any(), any(), any());
+                .evaluateInteractions(any(), any(), any(), true);
 
         Optional<MAEvaluationResult> result =
-                spy.evaluateSingleInteractionSmart(Timeframe.DAILY, stockPrice, stockTechnicals);
+                spy.evaluateSingleInteractionSmart(
+                        Timeframe.DAILY, stockPrice, stockTechnicals, true);
         assertTrue(result.isPresent());
         assertEquals(breakdown1, result.get());
     }
@@ -107,10 +118,13 @@ class DynamicMovingAverageSupportResolverServiceImplTest {
         var support2 = result(MovingAverageLength.LOW, true, true, false, false, false);
 
         var spy = spy(service);
-        doReturn(List.of(support1, support2)).when(spy).evaluateInteractions(any(), any(), any());
+        doReturn(List.of(support1, support2))
+                .when(spy)
+                .evaluateInteractions(any(), any(), any(), true);
 
         Optional<MAEvaluationResult> result =
-                spy.evaluateSingleInteractionSmart(Timeframe.DAILY, stockPrice, stockTechnicals);
+                spy.evaluateSingleInteractionSmart(
+                        Timeframe.DAILY, stockPrice, stockTechnicals, true);
         assertTrue(result.isPresent());
         assertEquals(support1, result.get());
     }
@@ -121,10 +135,11 @@ class DynamicMovingAverageSupportResolverServiceImplTest {
         var res2 = result(MovingAverageLength.LOW, false, false, false, true, false);
 
         var spy = spy(service);
-        doReturn(List.of(res1, res2)).when(spy).evaluateInteractions(any(), any(), any());
+        doReturn(List.of(res1, res2)).when(spy).evaluateInteractions(any(), any(), any(), true);
 
         Optional<MAEvaluationResult> result =
-                spy.evaluateSingleInteractionSmart(Timeframe.DAILY, stockPrice, stockTechnicals);
+                spy.evaluateSingleInteractionSmart(
+                        Timeframe.DAILY, stockPrice, stockTechnicals, true);
         assertTrue(result.isPresent());
         assertEquals(res2, result.get());
     }
@@ -134,11 +149,12 @@ class DynamicMovingAverageSupportResolverServiceImplTest {
         var res = result(MovingAverageLength.MEDIUM, true, true, false, false, false);
 
         var spy = spy(service);
-        doReturn(List.of(res)).when(spy).evaluateInteractions(any(), any(), any());
+        doReturn(List.of(res)).when(spy).evaluateInteractions(any(), any(), any(), true);
         // doReturn(100).when(spy).calculateSignalScore(res);
 
         Optional<MAEvaluationResult> result =
-                spy.evaluateSingleInteractionSmart(Timeframe.DAILY, stockPrice, stockTechnicals);
+                spy.evaluateSingleInteractionSmart(
+                        Timeframe.DAILY, stockPrice, stockTechnicals, true);
         assertTrue(result.isPresent());
         assertEquals(res, result.get());
     }
@@ -147,13 +163,14 @@ class DynamicMovingAverageSupportResolverServiceImplTest {
     void testNoSignals() {
         var invalid =
                 new MAEvaluationResult(
-                        MovingAverageLength.HIGH, 100.0, false, false, false, false, false);
+                        MovingAverageLength.HIGH, 100.0, 120.0, false, false, false, false, false);
 
         var spy = spy(service);
-        doReturn(List.of(invalid)).when(spy).evaluateInteractions(any(), any(), any());
+        doReturn(List.of(invalid)).when(spy).evaluateInteractions(any(), any(), any(), true);
 
         Optional<MAEvaluationResult> result =
-                spy.evaluateSingleInteractionSmart(Timeframe.DAILY, stockPrice, stockTechnicals);
+                spy.evaluateSingleInteractionSmart(
+                        Timeframe.DAILY, stockPrice, stockTechnicals, true);
         assertTrue(result.isEmpty());
     }
 }

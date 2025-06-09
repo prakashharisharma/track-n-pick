@@ -400,7 +400,16 @@ public class BhavProcessorImpl implements BhavProcessor {
 
             // Delay *between* submissions to prevent MongoDB bursts
             try {
-                ThreadsUtil.delay(800);
+                LocalDate today = miscUtil.currentDate();
+
+                if (calendarService.isLastTradingSessionOfMonth(today)) {
+                    ThreadsUtil.delay(1000);
+                } else if (calendarService.isLastTradingSessionOfWeek(today)) {
+                    ThreadsUtil.delay(800);
+                } else {
+                    ThreadsUtil.delay(600);
+                }
+
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
