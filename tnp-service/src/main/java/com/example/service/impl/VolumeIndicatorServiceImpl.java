@@ -432,9 +432,9 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     @Override
     public boolean isVolumeAverage(StockTechnicals stockTechnicals) {
 
-        if(stockTechnicals.getVolume() > stockTechnicals.getVolumeAvg20()){
+        if (stockTechnicals.getVolume() > stockTechnicals.getVolumeAvg20()) {
             return true;
-        }else         if(stockTechnicals.getPrevVolume() > stockTechnicals.getPrevVolumeAvg20()){
+        } else if (stockTechnicals.getPrevVolume() > stockTechnicals.getPrevVolumeAvg20()) {
             return true;
         }
 

@@ -21,7 +21,6 @@ import com.example.external.ta.service.McService;
 import com.example.processor.BhavProcessor;
 import com.example.service.*;
 import com.example.service.calc.*;
-import com.example.service.enhanced.MovingAverageType;
 import com.example.service.impl.FundamentalResearchService;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.util.FormulaService;
@@ -255,7 +254,7 @@ public class WebRunner implements CommandLineRunner {
         System.out.println("*************");
          */
         // this.testmcap();
-         //this.testDynamicSR();
+        // this.testDynamicSR();
         // this.updateScore();
         System.out.println("STARTED");
     }
@@ -302,7 +301,7 @@ public class WebRunner implements CommandLineRunner {
 
             List<MAEvaluationResult> maEvaluationResults =
                     dynamicMovingAverageSupportResolverService.evaluateInteractions(
-                            Timeframe.DAILY, stockPrice, stockTechnicals);
+                            Timeframe.DAILY, stockPrice, stockTechnicals, true);
 
             maEvaluationResults.forEach(
                     mae -> {
@@ -312,7 +311,7 @@ public class WebRunner implements CommandLineRunner {
 
             Optional<MAEvaluationResult> evaluationResultOptional =
                     dynamicMovingAverageSupportResolverService.evaluateSingleInteractionSmart(
-                            Timeframe.DAILY, stockPrice, stockTechnicals);
+                            Timeframe.DAILY, stockPrice, stockTechnicals, true);
 
             if (evaluationResultOptional.isPresent()) {
                 MAEvaluationResult evaluationResult = evaluationResultOptional.get();
@@ -335,16 +334,189 @@ public class WebRunner implements CommandLineRunner {
                                     + evaluationResult);
 
                     System.out.println("**********");
-                    MovingAverageResult movingAverageResult = MovingAverageUtil.getMovingAverage(MovingAverageLength.HIGHEST, Timeframe.DAILY, stockTechnicals, true);
-                    System.out.println("HIGHEST : "+ movingAverageResult.getValue() + " : " + movingAverageResult.getPrevValue());
-                    movingAverageResult = MovingAverageUtil.getMovingAverage(MovingAverageLength.HIGH, Timeframe.DAILY, stockTechnicals, true);
-                    System.out.println("HIGH : "+ movingAverageResult.getValue() + " : " + movingAverageResult.getPrevValue());
-                    movingAverageResult = MovingAverageUtil.getMovingAverage(MovingAverageLength.MEDIUM, Timeframe.DAILY, stockTechnicals, true);
-                    System.out.println("MEDIUM : "+ movingAverageResult.getValue() + " : " + movingAverageResult.getPrevValue());
-                    movingAverageResult = MovingAverageUtil.getMovingAverage(MovingAverageLength.LOW, Timeframe.DAILY, stockTechnicals, true);
-                    System.out.println("LOW : "+ movingAverageResult.getValue() + " : " + movingAverageResult.getPrevValue());
-                    movingAverageResult = MovingAverageUtil.getMovingAverage(MovingAverageLength.LOWEST, Timeframe.DAILY, stockTechnicals, true);
-                    System.out.println("LOWEST : "+ movingAverageResult.getValue() + " : " + movingAverageResult.getPrevValue());
+                    MovingAverageResult movingAverageResult =
+                            MovingAverageUtil.getMovingAverage(
+                                    MovingAverageLength.HIGHEST,
+                                    Timeframe.DAILY,
+                                    stockTechnicals,
+                                    true);
+                    System.out.println(
+                            "HIGHEST : "
+                                    + movingAverageResult.getValue()
+                                    + " : "
+                                    + movingAverageResult.getPrevValue());
+                    movingAverageResult =
+                            MovingAverageUtil.getMovingAverage(
+                                    MovingAverageLength.HIGH,
+                                    Timeframe.DAILY,
+                                    stockTechnicals,
+                                    true);
+                    System.out.println(
+                            "HIGH : "
+                                    + movingAverageResult.getValue()
+                                    + " : "
+                                    + movingAverageResult.getPrevValue());
+                    movingAverageResult =
+                            MovingAverageUtil.getMovingAverage(
+                                    MovingAverageLength.MEDIUM,
+                                    Timeframe.DAILY,
+                                    stockTechnicals,
+                                    true);
+                    System.out.println(
+                            "MEDIUM : "
+                                    + movingAverageResult.getValue()
+                                    + " : "
+                                    + movingAverageResult.getPrevValue());
+                    movingAverageResult =
+                            MovingAverageUtil.getMovingAverage(
+                                    MovingAverageLength.LOW,
+                                    Timeframe.DAILY,
+                                    stockTechnicals,
+                                    true);
+                    System.out.println(
+                            "LOW : "
+                                    + movingAverageResult.getValue()
+                                    + " : "
+                                    + movingAverageResult.getPrevValue());
+                    movingAverageResult =
+                            MovingAverageUtil.getMovingAverage(
+                                    MovingAverageLength.LOWEST,
+                                    Timeframe.DAILY,
+                                    stockTechnicals,
+                                    true);
+                    System.out.println(
+                            "LOWEST : "
+                                    + movingAverageResult.getValue()
+                                    + " : "
+                                    + movingAverageResult.getPrevValue());
+                    System.out.println("**********");
+                } else if (evaluationResult.isNearResistance()) {
+                    System.out.println(
+                            "RESISTANCE : "
+                                    + stock.getNseSymbol()
+                                    + " : "
+                                    + stockPrice.getClose()
+                                    + " : "
+                                    + evaluationResult);
+                } else if (evaluationResult.isBreakdown()) {
+                    System.out.println(
+                            "BREAKDOWN : "
+                                    + stock.getNseSymbol()
+                                    + " : "
+                                    + stockPrice.getClose()
+                                    + " : "
+                                    + evaluationResult);
+                }
+            }
+        }
+    }
+
+    private void tesSimmpleSR() {
+
+        List<Stock> stockList = stockService.getActiveStocks();
+
+        /*
+        List<Stock> stockList = new ArrayList<>();
+        stockList.add(stockService.getStockByNseSymbol("MMFL"));
+        stockList.add(stockService.getStockByNseSymbol("DCMSRIND"));
+        stockList.add(stockService.getStockByNseSymbol("NBIFIN"));
+        stockList.add(stockService.getStockByNseSymbol("WEIZMANIND"));
+        */
+
+        for (Stock stock : stockList) {
+            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
+
+            List<MAEvaluationResult> maEvaluationResults =
+                    dynamicMovingAverageSupportResolverService.evaluateInteractions(
+                            Timeframe.DAILY, stockPrice, stockTechnicals, false);
+
+            maEvaluationResults.forEach(
+                    mae -> {
+                        System.out.println(
+                                stock.getNseSymbol() + " : " + stockPrice.getClose() + " : " + mae);
+                    });
+
+            Optional<MAEvaluationResult> evaluationResultOptional =
+                    dynamicMovingAverageSupportResolverService.evaluateSingleInteractionSmart(
+                            Timeframe.DAILY, stockPrice, stockTechnicals, false);
+
+            if (evaluationResultOptional.isPresent()) {
+                MAEvaluationResult evaluationResult = evaluationResultOptional.get();
+
+                if (evaluationResult.isNearSupport()) {
+                    System.out.println(
+                            "SUPPORT : "
+                                    + stock.getNseSymbol()
+                                    + " : "
+                                    + stockPrice.getClose()
+                                    + " : "
+                                    + evaluationResult);
+                } else if (evaluationResult.isBreakout()) {
+                    System.out.println(
+                            "BREAKOUT : "
+                                    + stock.getNseSymbol()
+                                    + " : "
+                                    + stockPrice.getClose()
+                                    + " : "
+                                    + evaluationResult);
+
+                    System.out.println("**********");
+                    MovingAverageResult movingAverageResult =
+                            MovingAverageUtil.getMovingAverage(
+                                    MovingAverageLength.HIGHEST,
+                                    Timeframe.DAILY,
+                                    stockTechnicals,
+                                    false);
+                    System.out.println(
+                            "HIGHEST : "
+                                    + movingAverageResult.getValue()
+                                    + " : "
+                                    + movingAverageResult.getPrevValue());
+                    movingAverageResult =
+                            MovingAverageUtil.getMovingAverage(
+                                    MovingAverageLength.HIGH,
+                                    Timeframe.DAILY,
+                                    stockTechnicals,
+                                    false);
+                    System.out.println(
+                            "HIGH : "
+                                    + movingAverageResult.getValue()
+                                    + " : "
+                                    + movingAverageResult.getPrevValue());
+                    movingAverageResult =
+                            MovingAverageUtil.getMovingAverage(
+                                    MovingAverageLength.MEDIUM,
+                                    Timeframe.DAILY,
+                                    stockTechnicals,
+                                    false);
+                    System.out.println(
+                            "MEDIUM : "
+                                    + movingAverageResult.getValue()
+                                    + " : "
+                                    + movingAverageResult.getPrevValue());
+                    movingAverageResult =
+                            MovingAverageUtil.getMovingAverage(
+                                    MovingAverageLength.LOW,
+                                    Timeframe.DAILY,
+                                    stockTechnicals,
+                                    false);
+                    System.out.println(
+                            "LOW : "
+                                    + movingAverageResult.getValue()
+                                    + " : "
+                                    + movingAverageResult.getPrevValue());
+                    movingAverageResult =
+                            MovingAverageUtil.getMovingAverage(
+                                    MovingAverageLength.LOWEST,
+                                    Timeframe.DAILY,
+                                    stockTechnicals,
+                                    false);
+                    System.out.println(
+                            "LOWEST : "
+                                    + movingAverageResult.getValue()
+                                    + " : "
+                                    + movingAverageResult.getPrevValue());
                     System.out.println("**********");
                 } else if (evaluationResult.isNearResistance()) {
                     System.out.println(

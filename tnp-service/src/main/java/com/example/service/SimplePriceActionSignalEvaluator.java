@@ -17,16 +17,11 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @RequiredArgsConstructor
-@Service("dynamicPriceActionSignalEvaluator")
-public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
+@Service("simplePriceActionSignalEvaluator")
+public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
 
     private final DynamicMovingAverageSupportResolverService
             dynamicMovingAverageSupportResolverService;
-    private final TimeframeSupportResistanceService timeframeSupportResistanceService;
-
-    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
-
-    private final StockPriceService<StockPrice> stockPriceService;
 
     private final CandleStickConfirmationService candleStickConfirmationService;
 
@@ -72,7 +67,7 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             if (subStrategyRef.isPresent()) {
                 return TradeSetup.builder()
                         .active(Boolean.TRUE)
-                        .strategy(ResearchTechnical.Strategy.DYNAMIC)
+                        .strategy(ResearchTechnical.Strategy.SIMPLE)
                         .subStrategy(subStrategyRef.get())
                         .researchPrice(researchPrice)
                         .build();
@@ -145,7 +140,7 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             if (subStrategyRef.isPresent()) {
                 return TradeSetup.builder()
                         .active(Boolean.TRUE)
-                        .strategy(ResearchTechnical.Strategy.DYNAMIC)
+                        .strategy(ResearchTechnical.Strategy.SIMPLE)
                         .subStrategy(subStrategyRef.get())
                         .build();
             }
@@ -162,6 +157,9 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             MAEvaluationResult evaluationResult) {
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
+        MovingAverageResult ma200 =
+                MovingAverageUtil.getMovingAverage(
+                        MovingAverageLength.LOWEST, timeframe, stockTechnicals, true);
 
         if (evaluationResult.getLength() == MovingAverageLength.HIGHEST
                 || rsiIndicatorService.isOverBought(stockTechnicals)
@@ -196,22 +194,9 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             }
         }
 
-        MovingAverageResult highestMovingAverageResult =
-                MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
-
-        double maToHighestPercentageDiff =
-                formulaService.calculateChangePercentage(
-                        evaluationResult.getPrevValue(), highestMovingAverageResult.getPrevValue());
-
-        boolean isHighestMADiffValid =
-                MAThresholdsConfig.getThreshold(
-                                MAInteractionType.BREAKOUT, evaluationResult.getLength())
-                        .map(threshold -> maToHighestPercentageDiff >= threshold)
-                        .orElse(true);
-
-        // We will not consider breakout for HIGHEST MA for DAILY
-        if (isHigherMADiffValid && isHighestMADiffValid) {
+        if (isHigherMADiffValid
+                && MovingAverageUtil.isAtLeastTwoMovingAverageIncreasing(
+                        evaluationResult.getLength(), stockTechnicals)) {
             boolean isGapUp = CandleStickUtils.isGapUp(stockPrice);
             boolean isStrongBody =
                     CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
@@ -237,33 +222,28 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                     && rsiIndicatorService.isBullish(stockTechnicals)
                     && (isVolumeAboveAvg || (stockTechnicals.getPrevRsi() < 30.0))) {
 
-                // if(this.higherTimeframeConfirmation(stockPrice, stockTechnicals)) {
+                // return Optional.of(ResearchTechnical.SubStrategy.BREAKOUT);
                 return SubStrategyHelper.resolveByName(
                         evaluationResult.getLength().name() + "_breakout");
-                // }
             }
         }
 
         return Optional.empty();
     }
 
-    public boolean higherTimeframeConfirmation(
-            StockPrice stockPrice, StockTechnicals stockTechnicals) {
+    private String getMANameByLength(MovingAverageLength movingAverageLength) {
 
-        Stock stock = stockPrice.getStock();
-        Timeframe htTimeframe = stockPrice.getTimeframe().getHigher();
-        StockTechnicals htStockTechnicals = stockTechnicalsService.get(stock, htTimeframe);
+        if (movingAverageLength == MovingAverageLength.LOWEST) {
+            return "ma200";
+        } else if (movingAverageLength == MovingAverageLength.LOW) {
+            return "ma100";
+        } else if (movingAverageLength == MovingAverageLength.MEDIUM) {
+            return "ma50";
+        } else if (movingAverageLength == MovingAverageLength.HIGH) {
+            return "MA20";
+        }
 
-        boolean isHigherTimeframeRsiAndMacdBullish =
-                (this.isMacdConfirmingBreakout(htStockTechnicals)
-                                || this.isMacdTurningUp(htStockTechnicals))
-                        && rsiIndicatorService.isBullish(htStockTechnicals);
-
-        boolean isHigherTimeframeBreakout =
-                timeframeSupportResistanceService.isBreakout(
-                        htTimeframe, stockPrice, stockTechnicals);
-
-        return isHigherTimeframeRsiAndMacdBullish || isHigherTimeframeBreakout;
+        return "MA5";
     }
 
     private boolean isMacdConfirmingBreakout(StockTechnicals st) {

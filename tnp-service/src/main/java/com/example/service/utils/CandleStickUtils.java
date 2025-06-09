@@ -790,6 +790,6 @@ public class CandleStickUtils {
         double lowerWickSize = lowerWickSize(stockPrice);
         double upperWickSize = upperWickSize(stockPrice);
 
-        return  lowerWickSize > upperWickSize && lowerWickSize > bodySize;
+        return lowerWickSize > upperWickSize && lowerWickSize > bodySize;
     }
 }
