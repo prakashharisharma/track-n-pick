@@ -295,6 +295,7 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                     && macdIndicatorService.isSignalDecreased(st)
                     && macdIndicatorService.isHistogramIncreased(st);
 
+
         }
 
         // Case 2: MACD crossover happened, even in negative — early breakout signal
