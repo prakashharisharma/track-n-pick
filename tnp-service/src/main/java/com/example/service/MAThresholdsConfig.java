@@ -14,7 +14,7 @@ public class MAThresholdsConfig {
                 MAInteractionType.BREAKOUT,
                 Map.of(
                         MovingAverageLength.LOWEST, 10.0, // MA5
-                        MovingAverageLength.LOW, 8.0, // MA20
+                        MovingAverageLength.LOW, 7.0, // MA20
                         MovingAverageLength.MEDIUM, 5.0, // MA50
                         MovingAverageLength.HIGH, 2.0 // MA100
                         // MA200 (HIGHEST) => anchor, no check
@@ -25,7 +25,7 @@ public class MAThresholdsConfig {
                 Map.of(
                         MovingAverageLength.LOW, 2.0,
                         MovingAverageLength.MEDIUM, 5.0,
-                        MovingAverageLength.HIGH, 8.0,
+                        MovingAverageLength.HIGH, 7.0,
                         MovingAverageLength.HIGHEST, 10.0
                         // MA200 (LOWEST) => anchor, no check
                         ));
@@ -34,7 +34,7 @@ public class MAThresholdsConfig {
                 MAInteractionType.SUPPORT,
                 Map.of(
                         MovingAverageLength.LOWEST, 10.0, // MA5
-                        MovingAverageLength.LOW, 8.0,
+                        MovingAverageLength.LOW, 7.0,
                         MovingAverageLength.MEDIUM, 5.0,
                         MovingAverageLength.HIGH, 2.0
                         // MA5 (HIGHEST) => anchor, no check
@@ -45,7 +45,7 @@ public class MAThresholdsConfig {
                 Map.of(
                         MovingAverageLength.LOW, 2.0,
                         MovingAverageLength.MEDIUM, 5.0,
-                        MovingAverageLength.HIGH, 8.0,
+                        MovingAverageLength.HIGH, 7.0,
                         MovingAverageLength.HIGHEST, 10.0
                         // MA5 (LOWEST) => anchor, no check
                         ));

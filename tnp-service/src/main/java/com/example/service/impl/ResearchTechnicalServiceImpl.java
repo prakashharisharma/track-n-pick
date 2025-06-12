@@ -50,6 +50,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
     private final PositionService positionService;
 
+    private final ResearchInsightService researchInsightService;
+
     private static final Map<Timeframe, Supplier<ResearchTechnical>> STOCK_PRICE_CREATORS =
             Map.of(
                     Timeframe.DAILY, ResearchTechnicalDaily::new,
@@ -140,10 +142,12 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         newResearchTechnical.setResearchDate(sessionDate);
         newResearchTechnical.setLastModified(LocalDate.now());
 
-        if (isRiskWithinLimit(
+        boolean isRiskWithinLimit = isRiskWithinLimit(
                 timeframe,
                 newResearchTechnical.getEntrySubStrategy(),
-                newResearchTechnical.getRisk())) {
+                newResearchTechnical.getRisk());
+
+        if (isRiskWithinLimit && researchInsightService.isStrongInsights(stock)) {
             newResearchTechnical = researchTechnicalRepository.save(newResearchTechnical);
         }
 

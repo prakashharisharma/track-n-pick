@@ -82,7 +82,7 @@ public class BhavProcessorImpl implements BhavProcessor {
             String series = record.getSeries();
 
             // Ignore Rights Issue (-RI) stocks
-            if (symbol.endsWith("-RI") || symbol.endsWith("-RE") || symbol.endsWith("-RE1")) {
+            if (symbol.endsWith("-RI") || symbol.endsWith("-RE") || symbol.endsWith("-RE1")|| symbol.endsWith("-RE2")|| symbol.endsWith("-RE3")) {
                 continue;
             }
 
@@ -400,6 +400,7 @@ public class BhavProcessorImpl implements BhavProcessor {
 
             // Delay *between* submissions to prevent MongoDB bursts
             try {
+
                 LocalDate today = miscUtil.currentDate();
 
                 if (calendarService.isLastTradingSessionOfMonth(today)) {
@@ -409,6 +410,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                 } else {
                     ThreadsUtil.delay(600);
                 }
+                //ThreadsUtil.delay(600);
 
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -420,6 +422,7 @@ public class BhavProcessorImpl implements BhavProcessor {
 
     private void processTechnicalsBatch(Stock stock) {
         LocalDate today = miscUtil.currentDate();
+
 
         if (calendarService.isLastTradingSessionOfMonth(today)) {
             processOne(Timeframe.MONTHLY, stock, today);
@@ -434,9 +437,15 @@ public class BhavProcessorImpl implements BhavProcessor {
 
     private void processOne(Timeframe timeframe, Stock stock, LocalDate date) {
         try {
+
             StockTechnicals stockTechnicals = updateTechnicalsService.build(timeframe, stock, date);
+
             updateTechnicalsService.updateTechnicals(timeframe, stock, stockTechnicals);
-            researchExecutorService.executeTechnical(timeframe, stock, date);
+
+            //if(timeframe == Timeframe.DAILY) {
+                researchExecutorService.executeTechnical(timeframe, stock, date);
+            //}
+
         } catch (Exception e) {
             log.error("{} Error processing {} batch", stock.getNseSymbol(), timeframe, e);
         }

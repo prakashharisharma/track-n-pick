@@ -237,9 +237,9 @@ public class MovingAverageUtil {
         return ma50 > ma100 && ma100 > ma200;
     }
 
-    public static boolean areAtLeastThreeMAsIncreasing(
-            Timeframe timeframe, StockTechnicals stockTechnicals) {
-
+    public static boolean isAllMAsIncreasing(
+             StockTechnicals stockTechnicals) {
+        Timeframe timeframe = stockTechnicals.getTimeframe();
         int count = 0;
 
         if (getMovingAverage5(timeframe, stockTechnicals)
@@ -253,7 +253,7 @@ public class MovingAverageUtil {
         if (getMovingAverage200(timeframe, stockTechnicals)
                 > getMovingAverage200(timeframe, stockTechnicals)) count++;
 
-        return count >= 3;
+        return count >= 5;
     }
 
     public static boolean isAtLeastTwoMovingAverageIncreasing(

@@ -6,7 +6,7 @@ import com.example.data.transactional.entities.StockTechnicals;
 
 public interface TimeframeSupportResistanceService {
 
-    public boolean isBreakout(
+    public MAEvaluationResult isBreakout(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
     public boolean isNearSupport(

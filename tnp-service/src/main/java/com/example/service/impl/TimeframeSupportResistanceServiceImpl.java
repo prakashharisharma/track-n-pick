@@ -20,7 +20,7 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
     private final BreakoutService breakoutService;
 
     @Override
-    public boolean isBreakout(
+    public MAEvaluationResult isBreakout(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
         double resistance =
@@ -30,7 +30,21 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
                         LevelType.RESISTANCE,
                         SupportResistanceStyle.BODY_BASED);
 
-        return breakoutService.isBreakOut(stockPrice, resistance, resistance);
+        boolean supportSide = false;
+        boolean nearSupport= false;
+        boolean breakout= false;
+        boolean nearResistance= false;
+        boolean breakdown= false;
+
+        if( breakoutService.isBreakOut(stockPrice, resistance, resistance)){
+            breakout = true;
+        }
+
+        return new MAEvaluationResult(MovingAverageLength.HIGHEST, resistance, resistance,              supportSide,
+         nearSupport,
+         breakout,
+         nearResistance,
+         breakdown );
     }
 
     @Override

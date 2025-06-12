@@ -11,6 +11,7 @@ import com.example.data.transactional.repo.TradingHolidayRepository;
 import com.example.dto.assembler.StockPriceOHLCVAssembler;
 import com.example.dto.common.OHLCV;
 import com.example.dto.common.TradeSetup;
+import com.example.dto.integration.StockOverviewResponse;
 import com.example.dto.io.BseSectorListResponse;
 import com.example.dto.io.FinancialsSummaryDto;
 import com.example.dto.io.SectorIO;
@@ -170,6 +171,9 @@ public class WebRunner implements CommandLineRunner {
     @Autowired
     private DynamicMovingAverageSupportResolverService dynamicMovingAverageSupportResolverService;
 
+
+    @Autowired
+    private Research360Client research360Client;
     @Override
     public void run(String... arg0) throws InterruptedException, IOException {
 
@@ -192,7 +196,7 @@ public class WebRunner implements CommandLineRunner {
         // this.testObv();
         // this.testTimeFrameSR();
 
-        // this.allocatePositions();
+        //this.allocatePositions();
 
         // this.updateRemainigSectorsActivityFromNSE();
 
@@ -256,7 +260,25 @@ public class WebRunner implements CommandLineRunner {
         // this.testmcap();
         // this.testDynamicSR();
         // this.updateScore();
+       // this.testResearch360();
         System.out.println("STARTED");
+    }
+
+    private void testResearch360(){
+        Stock stock = stockService.getStockByNseSymbol("ITBEES");
+
+        StockOverviewResponse stockOverviewResponse = null;
+        try {
+            stockOverviewResponse = research360Client.fetchStockOverview(stock.getIsinCode());
+            System.out.println("Quality : " + stockOverviewResponse.getData().getQualityColor());
+            System.out.println("Valuation : " + stockOverviewResponse.getData().getValuationColor());
+            System.out.println("Technical : " + stockOverviewResponse.getData().getTechnicalColor());
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
     }
 
     private void updateScore() {
@@ -552,17 +574,18 @@ public class WebRunner implements CommandLineRunner {
     /** Position Size = (Total trading fund * Risk%)/SL% */
     private void allocatePositions() {
 
-        double capital = 78000.0;
-        double riskFactor = 1.0;
+        double capital = 1137000;
+        //double riskFactor = 1.0;
 
-        // User user = new User();
-        User user = userService.getUserByUsername("phsdhan");
+         User user = new User();
+        user.setId(1l);
+        //User user = userService.getUserByUsername("phsdhan");
 
         List<ResearchTechnical> researchTechnicalList =
                 researchTechnicalService.getAll(Trade.Type.BUY);
 
         for (ResearchTechnical researchTechnical : researchTechnicalList) {
-
+/*
             double allottedAmount = ((capital * riskFactor) / researchTechnical.getRisk());
 
             long positionSize = (long) (allottedAmount / researchTechnical.getEntryPrice());
@@ -573,8 +596,9 @@ public class WebRunner implements CommandLineRunner {
 
             double risk = formulaService.calculateFraction(capital, riskFactor);
             double stopLoss = (researchTechnical.getEntryPrice() - researchTechnical.getStopLoss());
-            positionSize = (long) (risk / stopLoss);
-            positionSize = positionService.calculate(user.getId(), researchTechnical);
+            positionSize = (long) (risk / stopLoss);*/
+
+            long positionSize = positionService.calculate(user.getId(), researchTechnical);
 
             System.out.println(researchTechnical.getStock().getNseSymbol() + " " + positionSize);
         }

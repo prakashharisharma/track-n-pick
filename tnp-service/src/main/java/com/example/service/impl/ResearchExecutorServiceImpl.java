@@ -220,6 +220,12 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
             if (!tradeSetup.isActive()) {
                 tradeSetup =
+                        simplePriceActionSignalEvaluator.evaluateExit(
+                                timeframe, stock, stockPrice, stockTechnicals);
+            }
+
+            if (!tradeSetup.isActive()) {
+                tradeSetup =
                         basicPriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
             }

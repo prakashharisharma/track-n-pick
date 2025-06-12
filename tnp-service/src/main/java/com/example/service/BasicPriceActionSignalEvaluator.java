@@ -12,6 +12,8 @@ import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.SubStrategyHelper;
 import com.example.service.utils.TrendDirectionUtil;
 import java.util.Optional;
+
+import com.example.util.FormulaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,8 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
     private final RsiIndicatorService rsiIndicatorService;
 
+    private final FormulaService formulaService;
+
     @Override
     public TradeSetup evaluateEntry(
             Timeframe timeframe,
@@ -44,25 +48,48 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         Optional<ResearchTechnical.SubStrategy> subStrategyRef = Optional.empty();
         Trend.Direction direction = TrendDirectionUtil.findDirection(stockPrice);
+        double researchPrice = 0.0;
         if (direction == Trend.Direction.UP) {
-            if (timeframeSupportResistanceService.isBreakout(
-                    timeframe.getHigher().getHigher(), stockPrice, stockTechnicals)) {
+            MAEvaluationResult higherHighereValuationResult = timeframeSupportResistanceService.isBreakout(
+                    timeframe.getHigher().getHigher(), stockPrice, stockTechnicals);
+            MAEvaluationResult higherValuationResult = timeframeSupportResistanceService.isBreakout(
+                    timeframe.getHigher().getHigher(), stockPrice, stockTechnicals);
+            if (higherHighereValuationResult.isBreakout()) {
                 subStrategyRef =
                         confirmBreakout(
-                                timeframe.getHigher().getHigher(),
+                                timeframe,
                                 stock,
                                 stockPrice,
                                 stockTechnicals,
                                 timeframe.getHigher().getHigher().name() + "_breakout");
-            } else if (timeframeSupportResistanceService.isBreakout(
-                    timeframe.getHigher(), stockPrice, stockTechnicals)) {
+
+
+                researchPrice =
+                        this.calculateEntryPriceForBreakout(
+                                timeframe,
+                                stockPrice,
+                                stockTechnicals,
+                                higherHighereValuationResult.getValue());
+
+
+
+            } else if (higherValuationResult.isBreakout()) {
                 subStrategyRef =
                         confirmBreakout(
-                                timeframe.getHigher(),
+                                timeframe,
                                 stock,
                                 stockPrice,
                                 stockTechnicals,
                                 timeframe.getHigher().name() + "_breakout");
+
+                researchPrice =
+                        this.calculateEntryPriceForBreakout(
+                                timeframe,
+                                stockPrice,
+                                stockTechnicals,
+                                higherValuationResult.getValue());
+
+
             }
 
         } else if (direction == Trend.Direction.DOWN) {
@@ -90,6 +117,7 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
         if (subStrategyRef.isPresent()) {
             return TradeSetup.builder()
                     .active(Boolean.TRUE)
+                    .researchPrice(researchPrice)
                     .strategy(ResearchTechnical.Strategy.BASIC)
                     .subStrategy(subStrategyRef.get())
                     .build();
@@ -98,6 +126,50 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
         return TradeSetup.builder().active(Boolean.FALSE).build();
     }
 
+    public double calculateEntryPriceForBreakout(
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            double breakoutValue) {
+
+        boolean isUpperWickClean =
+                candleStickConfirmationService.isUpperWickSizeConfirmed(
+                        timeframe, stockPrice, stockTechnicals);
+        boolean isHistogramAboveZero = macdIndicatorService.isHistogramAboveZero(stockTechnicals);
+
+        double open = stockPrice.getOpen();
+        double close = stockPrice.getClose();
+        double high = stockPrice.getHigh();
+        double low = stockPrice.getLow();
+
+        double entryPrice = (open + high + low + close) / 4.0;
+
+        entryPrice = entryPrice * 1.00382;
+
+        // 1. Clean upper wick and RSI above 60
+        if (isUpperWickClean && Math.ceil(stockTechnicals.getRsi()) >= 60.0) {
+            entryPrice = high;
+        }
+
+        // 2. Clean upper wick and Body above breakout level
+        else if (open > breakoutValue && close > breakoutValue && isUpperWickClean) {
+            entryPrice = (high + close) / 2.0;
+        }
+
+        // 3. Body above breakout level
+        else if (open > breakoutValue && close > breakoutValue) {
+            entryPrice = (open + close) / 2.0;
+            entryPrice = entryPrice * 1.00382;
+        }
+
+        // 4. Clean upper wick and bullish momentum
+        else if (isUpperWickClean && isHistogramAboveZero) {
+            entryPrice = (high + close) / 2.0;
+        }
+
+        // 5. Default to average price
+        return formulaService.ceilToNearestHalf(entryPrice);
+    }
     @Override
     public TradeSetup evaluateExit(
             Timeframe timeframe,
@@ -192,6 +264,16 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 stock.getNseSymbol(),
                 stockPrice.getTimeframe());
 
+        MovingAverageResult highestMovingAverageResult =
+                MovingAverageUtil.getMovingAverage(
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
+
+        if (stockPrice.getClose() > highestMovingAverageResult.getValue()
+                || rsiIndicatorService.isOverBought(stockTechnicals)
+                || CandleStickUtils.isUpperWickDominant(stockPrice)) {
+            return Optional.empty();
+        }
+
         boolean isGapUp = CandleStickUtils.isGapUp(stockPrice);
 
         boolean isStrongBody =
@@ -208,54 +290,46 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 isMovingAverageConfirmingBreakout(
                         stockPrice.getTimeframe(), stockPrice, stockTechnicals);
 
-        boolean isUpperWickSizeConfirmed =
-                candleStickConfirmationService.isUpperWickSizeConfirmed(
-                        stockPrice.getTimeframe(), stockPrice, stockTechnicals);
-
         boolean isBullishCandleStick =
                 candleStickConfirmationService.isBullishConfirmed(
                         timeframe, stockPrice, stockTechnicals, false);
 
+        boolean isMacdConfirmingBreakout =
+                this.isMacdConfirmingBreakout(stockTechnicals)
+                        || this.isMacdTurningUp(stockTechnicals);
+
         boolean currentConfirmation =
                 (isVolumeAboveAvg || (stockTechnicals.getPrevRsi() < 30.0))
-                        && isUpperWickSizeConfirmed
                         && (isBullishCandleStick
                                 || isGapUp
                                 || isStrongBody
                                 || isStrongLowerWick
                                 || isMovingAverageConfirmingBreakout)
-                        && rsiIndicatorService.isBullish(stockTechnicals);
+                        && rsiIndicatorService.isBullish(stockTechnicals)
+                && isMacdConfirmingBreakout;
 
-        // Get HTF stock price and resistance level
-        StockPrice htStockPrice = stockPriceService.get(stock, timeframe);
-
-        if (htStockPrice == null) return Optional.empty();
-        // Get HTF technicals
-        StockTechnicals htStockTechnicals = stockTechnicalsService.get(stock, timeframe);
-        if (htStockTechnicals == null) return Optional.empty();
-
-        MovingAverageResult htMediumMovingAverageResult =
-                MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.MEDIUM, timeframe, htStockTechnicals, true);
-
-        // Checked if higher tf price is above medium avg
-        if (htStockPrice.getClose() > htMediumMovingAverageResult.getValue()) {
-
-            boolean isMacdConfirmingBreakout =
-                    isMacdConfirmingBreakout(htStockTechnicals)
-                            || isMacdTurningUp(htStockTechnicals);
-
-            boolean isRsiConfirmingBreakout = rsiIndicatorService.isBullish(htStockTechnicals);
-
-            boolean htConfirmation = isMacdConfirmingBreakout && isRsiConfirmingBreakout;
-
-            if (currentConfirmation && htConfirmation) {
-
-                return SubStrategyHelper.resolveByName(subStrategyName);
+            if (currentConfirmation ) {
+                if (this.higherTimeframeConfirmation(stockPrice, stockTechnicals)) {
+                    return SubStrategyHelper.resolveByName(subStrategyName);
+                }
             }
-        }
 
         return Optional.empty();
+    }
+
+    public boolean higherTimeframeConfirmation(
+            StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
+        Stock stock = stockPrice.getStock();
+        Timeframe htTimeframe = stockPrice.getTimeframe().getHigher();
+        StockTechnicals htStockTechnicals = stockTechnicalsService.get(stock, htTimeframe);
+
+        boolean isHigherTimeframeRsiAndMacdBullish =
+                (this.isMacdConfirmingBreakout(htStockTechnicals)
+                        || this.isMacdTurningUp(htStockTechnicals))
+                        && rsiIndicatorService.isBullish(htStockTechnicals);
+
+        return isHigherTimeframeRsiAndMacdBullish;
     }
 
     private void shiftMacd(StockTechnicals stockTechnicals) {
@@ -283,11 +357,6 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             return macdIndicatorService.isMacdIncreased(st)
                     && macdIndicatorService.isSignalDecreased(st)
                     && macdIndicatorService.isHistogramIncreased(st);
-
-            /*
-            return  macdIndicatorService.isSignalDecreased(st)
-                    && macdIndicatorService.isHistogramIncreased(st);
-              */
         }
 
         // Case 2: MACD crossover happened, even in negative — early breakout signal
@@ -295,8 +364,11 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
     }
 
     private boolean isMacdTurningUp(StockTechnicals stockTechnicals) {
-        return stockTechnicals.getMacd() > stockTechnicals.getPrevMacd()
-                && stockTechnicals.getSignal() > stockTechnicals.getPrevSignal();
+
+        return macdIndicatorService.isMacdIncreased(stockTechnicals)
+                && macdIndicatorService.isSignalIncreased(stockTechnicals)
+                && macdIndicatorService.isHistogramIncreased(stockTechnicals)
+                && macdIndicatorService.isMacdBelowZero(stockTechnicals);
     }
 
     private boolean isMacdAndRsiConfirmingBreakout(StockTechnicals st) {
@@ -326,8 +398,7 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                         timeframe, stockPrice, stockTechnicals, true);
         if (evaluationResultOptional.isPresent()) {
             MAEvaluationResult evaluationResult = evaluationResultOptional.get();
-            return ((timeframe == Timeframe.DAILY
-                            && evaluationResult.getLength() != MovingAverageLength.HIGHEST))
+            return ((evaluationResult.getLength() != MovingAverageLength.HIGHEST))
                     && evaluationResult.isBreakout();
         }
         return false;
