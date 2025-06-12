@@ -3,6 +3,9 @@ package com.example.service;
 import com.example.data.transactional.entities.StockTechnicals;
 
 public interface MacdIndicatorService {
+
+    public boolean isMacdBelowZero(StockTechnicals stockTechnicals);
+
     public boolean isMacdCrossedSignal(StockTechnicals stockTechnicals);
 
     public boolean isSignalCrossedMacd(StockTechnicals stockTechnicals);

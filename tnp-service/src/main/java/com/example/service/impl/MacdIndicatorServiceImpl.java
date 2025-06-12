@@ -18,6 +18,18 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
     @Autowired private FormulaService formulaService;
 
     @Override
+    public boolean isMacdBelowZero(StockTechnicals stockTechnicals) {
+        if (stockTechnicals != null) {
+
+            if (stockTechnicals.getMacd() <= 0.0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
     public boolean isMacdCrossedSignal(StockTechnicals stockTechnicals) {
 
         boolean isMAcdCrossedSignal =

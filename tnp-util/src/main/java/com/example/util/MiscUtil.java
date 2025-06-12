@@ -95,8 +95,8 @@ public class MiscUtil {
     }
 
     public LocalDate currentDate() {
-        // return LocalDate.of(2025, 06, 06);
-        return LocalDate.now();
+         //return LocalDate.of(2025, 06, 10);
+         return LocalDate.now();
     }
 
     public LocalDate currentYearFirstDay() {

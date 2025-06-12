@@ -276,6 +276,11 @@ public class StockPriceServiceImpl implements StockPriceService {
 
     private void shiftPreviousPrice(StockPrice stockPrice) {
 
+        stockPrice.setPrev6Open(stockPrice.getPrev5Open());
+        stockPrice.setPrev6High(stockPrice.getPrev5High());
+        stockPrice.setPrev6Low(stockPrice.getPrev5Low());
+        stockPrice.setPrev6Close(stockPrice.getPrev5Close());
+
         stockPrice.setPrev5Open(stockPrice.getPrev4Open());
         stockPrice.setPrev5High(stockPrice.getPrev4High());
         stockPrice.setPrev5Low(stockPrice.getPrev4Low());

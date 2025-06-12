@@ -93,23 +93,33 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
         double high = stockPrice.getHigh();
         double low = stockPrice.getLow();
 
-        // 1. Clean upper wick and Body above breakout level
-        if (open > breakoutValue && close > breakoutValue && isUpperWickClean) {
-            return (high + close) / 2.0;
+        double entryPrice = (open + high + low + close) / 4.0;
+
+        entryPrice = entryPrice * 1.00382;
+
+        // 1. Clean upper wick and RSI above 60
+        if (isUpperWickClean && Math.ceil(stockTechnicals.getRsi()) >= 60.0) {
+            entryPrice = high;
         }
 
-        // 2. Body above breakout level
+        // 2. Clean upper wick and Body above breakout level
+        else if (open > breakoutValue && close > breakoutValue && isUpperWickClean) {
+            entryPrice = (high + close) / 2.0;
+        }
+
+        // 3. Body above breakout level
         else if (open > breakoutValue && close > breakoutValue) {
-            return (open + close) / 2.0;
+            entryPrice = (open + close) / 2.0;
+            entryPrice = entryPrice * 1.00382;
         }
 
-        // 2. Clean upper wick and bullish momentum
+        // 4. Clean upper wick and bullish momentum
         else if (isUpperWickClean && isHistogramAboveZero) {
-            return (high + close) / 2.0;
+            entryPrice = (high + close) / 2.0;
         }
 
-        // 3. Default to average price
-        return (open + high + low + close) / 4.0;
+        // 5. Default to average price
+        return formulaService.ceilToNearestHalf(entryPrice);
     }
 
     @Override
@@ -157,9 +167,17 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
             MAEvaluationResult evaluationResult) {
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
-        MovingAverageResult ma200 =
+        MovingAverageResult lowestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
                         MovingAverageLength.LOWEST, timeframe, stockTechnicals, true);
+
+        MovingAverageResult highestMovingAverageResult =
+                MovingAverageUtil.getMovingAverage(
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
+
+        double lowestAndHighestPercentageDiff =
+                formulaService.calculateChangePercentage(
+                        lowestMovingAverageResult.getPrevValue(), highestMovingAverageResult.getPrevValue());
 
         if (evaluationResult.getLength() == MovingAverageLength.HIGHEST
                 || rsiIndicatorService.isOverBought(stockTechnicals)
@@ -171,11 +189,20 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                 MovingAverageUtil.getMovingAverage(
                         evaluationResult.getLength().getHigher(), timeframe, stockTechnicals, true);
 
+        MovingAverageResult lowerMovingAverageResult =
+                MovingAverageUtil.getMovingAverage(
+                        evaluationResult.getLength().getHigher(), timeframe, stockTechnicals, true);
+
+
         double maPercentageDiff =
                 formulaService.calculateChangePercentage(
                         evaluationResult.getPrevValue(), higherMovingAverageResult.getPrevValue());
 
-        boolean isHigherMADiffValid = maPercentageDiff >= 2.0;
+        double lowerMaPercentageDiff =
+                formulaService.calculateChangePercentage(
+                        lowerMovingAverageResult.getPrevValue(), evaluationResult.getPrevValue());
+
+        boolean isHigherMADiffValid = maPercentageDiff >= 2.0 || (lowerMaPercentageDiff >= 2.0 && maPercentageDiff <= 1.0);
 
         if (!isHigherMADiffValid && stockPrice.getClose() > higherMovingAverageResult.getValue()) {
 
@@ -190,13 +217,19 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                         formulaService.calculateChangePercentage(
                                 evaluationResult.getPrevValue(),
                                 nextHigherMovingAverageResult.getPrevValue());
-                isHigherMADiffValid = maPercentageDiff >= 2.0;
+
+                isHigherMADiffValid = maPercentageDiff >= 2.0 || (lowerMaPercentageDiff >= 2.0 && maPercentageDiff <= 1.0);
             }
         }
 
-        if (isHigherMADiffValid
+        if (
+                (isHigherMADiffValid
                 && MovingAverageUtil.isAtLeastTwoMovingAverageIncreasing(
-                        evaluationResult.getLength(), stockTechnicals)) {
+                        evaluationResult.getLength(), stockTechnicals))
+        ||
+           ( lowestAndHighestPercentageDiff < 2.0
+                   && MovingAverageUtil.isAllMAsIncreasing(stockTechnicals))
+        ) {
             boolean isGapUp = CandleStickUtils.isGapUp(stockPrice);
             boolean isStrongBody =
                     CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
@@ -262,11 +295,7 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                     && macdIndicatorService.isSignalDecreased(st)
                     && macdIndicatorService.isHistogramIncreased(st);
 
-            /*
-            return  macdIndicatorService.isSignalDecreased(st)
-                    && macdIndicatorService.isHistogramIncreased(st);
 
-             */
         }
 
         // Case 2: MACD crossover happened, even in negative — early breakout signal
@@ -275,9 +304,10 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
 
     private boolean isMacdTurningUp(StockTechnicals stockTechnicals) {
 
-        return stockTechnicals.getMacd() > stockTechnicals.getPrevMacd()
-                && stockTechnicals.getSignal() > stockTechnicals.getPrevSignal()
-                && stockTechnicals.getMacd() < stockTechnicals.getSignal();
+        return macdIndicatorService.isMacdIncreased(stockTechnicals)
+                && macdIndicatorService.isSignalIncreased(stockTechnicals)
+                && macdIndicatorService.isHistogramIncreased(stockTechnicals)
+                && macdIndicatorService.isMacdBelowZero(stockTechnicals);
     }
 
     private Optional<ResearchTechnical.SubStrategy> confirmSupportBounce(

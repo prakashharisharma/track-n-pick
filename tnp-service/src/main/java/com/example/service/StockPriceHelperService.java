@@ -390,4 +390,39 @@ public class StockPriceHelperService {
                         stockPrice
                                 .getHigh()); // Default to current high if no valid highs are found
     }
+
+    public StockPrice buildPrevSessionStockPrice(StockPrice stockPrice){
+
+        stockPrice.setOpen(stockPrice.getPrevOpen());
+        stockPrice.setHigh(stockPrice.getPrevHigh());
+        stockPrice.setLow(stockPrice.getPrevLow());
+        stockPrice.setClose(stockPrice.getPrevClose());
+
+        stockPrice.setPrevOpen(stockPrice.getPrev2Open());
+        stockPrice.setPrevHigh(stockPrice.getPrev2High());
+        stockPrice.setPrevLow(stockPrice.getPrev2Low());
+        stockPrice.setPrevClose(stockPrice.getPrev2Close());
+
+        stockPrice.setPrev2Open(stockPrice.getPrev3Open());
+        stockPrice.setPrev2High(stockPrice.getPrev3High());
+        stockPrice.setPrev2Low(stockPrice.getPrev3Low());
+        stockPrice.setPrev2Close(stockPrice.getPrev3Close());
+
+        stockPrice.setPrev3Open(stockPrice.getPrev4Open());
+        stockPrice.setPrev3High(stockPrice.getPrev4High());
+        stockPrice.setPrev3Low(stockPrice.getPrev4Low());
+        stockPrice.setPrev3Close(stockPrice.getPrev4Close());
+
+        stockPrice.setPrev4Open(stockPrice.getPrev5Open());
+        stockPrice.setPrev4High(stockPrice.getPrev5High());
+        stockPrice.setPrev4Low(stockPrice.getPrev5Low());
+        stockPrice.setPrev4Close(stockPrice.getPrev5Close());
+
+        stockPrice.setPrev5Open(stockPrice.getPrev6Open());
+        stockPrice.setPrev5High(stockPrice.getPrev6High());
+        stockPrice.setPrev5Low(stockPrice.getPrev6Low());
+        stockPrice.setPrev5Close(stockPrice.getPrev6Close());
+
+        return  stockPrice;
+    }
 }

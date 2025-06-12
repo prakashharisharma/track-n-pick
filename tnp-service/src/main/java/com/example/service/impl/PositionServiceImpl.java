@@ -38,8 +38,8 @@ public class PositionServiceImpl implements PositionService {
                 stockTechnicalsService.get(
                         researchTechnical.getStock(), researchTechnical.getTimeframe());
 
-        double totalCapital = this.totalCapital(userId);
-
+       // double totalCapital = this.totalCapital(userId);
+        double totalCapital = 1137000;
         // double riskFactor = this.getRiskFactor(researchTechnical); // Typically a % like 1 or 2
         double riskFactor =
                 this.getRiskFactor(
