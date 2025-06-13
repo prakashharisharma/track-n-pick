@@ -135,7 +135,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                                 stockTechnicals.getSignal(),
                                 (stockTechnicals.getPrevMacd() - stockTechnicals.getPrevSignal()),
                                 stockTechnicals.getPrevMacd(),
-                                stockTechnicals.getPrevSignal()));
+                                stockTechnicals.getPrevSignal()), researchInsightService.valuationScore(stock));
 
         newResearchTechnical.setScore(miscUtil.roundToTwoDecimals(confidenceScore));
 
@@ -156,24 +156,37 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
     public static boolean isRiskWithinLimit(
             Timeframe timeframe, ResearchTechnical.SubStrategy subStrategy, double risk) {
+
+        double weight = subStrategy.getPriority();
+        double riskBuffer = 0.0;
+
+        if (weight >= 10) {
+            riskBuffer = 3.0;
+        } else if (weight >= 9) {
+            riskBuffer = 2.0;
+        } else if (weight >= 8) {
+            riskBuffer = 1.0;
+        }
+
         if (subStrategy.isBreakout()) {
             return switch (timeframe) {
-                case DAILY -> risk < 7.0;
-                case WEEKLY -> risk < 9.5;
-                case MONTHLY -> risk < 12.0;
+                case DAILY -> risk <= (7.0 + riskBuffer);
+                case WEEKLY -> risk <= (9.5 + riskBuffer);
+                case MONTHLY -> risk <= (12.0 + riskBuffer);
                 default -> false;
             };
         } else if (subStrategy.isSupport()) {
             return switch (timeframe) {
-                case DAILY -> risk < 5.0;
-                case WEEKLY -> risk < 7.5;
-                case MONTHLY -> risk < 10.0;
+                case DAILY -> risk <= (5.0 + riskBuffer);
+                case WEEKLY -> risk <= (7.5 + riskBuffer);
+                case MONTHLY -> risk <= (10.0 + riskBuffer);
                 default -> false;
             };
         } else {
             return false;
         }
     }
+
 
     @Override
     public ResearchTechnical exit(
@@ -199,7 +212,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         existingResearch.setExitPrice(stockPrice.getClose());
         existingResearch.setType(Trade.Type.SELL);
         existingResearch.setExitStrategy(tradeSetup.getStrategy());
-        existingResearch.setEntrySubStrategy(tradeSetup.getSubStrategy());
+        existingResearch.setExitSubStrategy(tradeSetup.getSubStrategy());
         existingResearch.setLastModified(LocalDate.now());
         return researchTechnicalRepository.save(existingResearch);
     }
@@ -756,7 +769,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                                 stockTechnicals.getSignal(),
                                 (stockTechnicals.getPrevMacd() - stockTechnicals.getPrevSignal()),
                                 stockTechnicals.getPrevMacd(),
-                                stockTechnicals.getPrevSignal()));
+                                stockTechnicals.getPrevSignal()), researchInsightService.valuationScore(researchTechnical.getStock()));
 
         System.out.println(
                 researchTechnical.getStock().getNseSymbol()

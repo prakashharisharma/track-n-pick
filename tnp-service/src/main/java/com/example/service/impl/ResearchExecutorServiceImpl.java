@@ -65,6 +65,10 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     @Qualifier("simplePriceActionSignalEvaluator")
     private TradeSignalEvaluator simplePriceActionSignalEvaluator;
 
+    @Autowired
+    @Qualifier("pivotPriceActionSignalEvaluator")
+    private TradeSignalEvaluator pivotPriceActionSignalEvaluator;
+
     @Override
     public void executeFundamental(Stock stock) {
 
@@ -152,21 +156,15 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
-                            basicPriceActionSignalEvaluator.evaluateEntry(
+                            pivotPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
 
-                /*
-                TradeSetup tradeSetup = dynamicPriceActionService.breakOut(stock, timeframe);
-
                 if (!tradeSetup.isActive()) {
-                    tradeSetup = priceActionService.breakOut(stock, timeframe);
+                    tradeSetup =
+                            basicPriceActionSignalEvaluator.evaluateEntry(
+                                    timeframe, stock, stockPrice, stockTechnicals);
                 }
-
-                if (!tradeSetup.isActive()) {
-                    tradeSetup = swingActionService.breakOut(stock, timeframe);
-                }
-                */
 
                 if (tradeSetup.isActive()) {
                     log.info(

@@ -26,18 +26,21 @@ public class ConfidenceScoreCalculator {
             double marketCapInCrores,
             double researchPrice,
             double volumeScore,
-            double macdScore) {
+            double macdScore,
+            double valuationScore) {
 
-        double riskWeight = 0.50;
-        double strategyWeight = 0.10;
-        double macdWeight = 0.15;
+
+        double riskWeight = 0.40;
+        double strategyWeight = 0.15;
+        double macdWeight = 0.10;
         double volumeWeight = 0.10;
         double mcapWeight = 0.10;
         double priceWeight = 0.05;
+        double valuationWeight = 0.10;
 
         if (strategyScore >= 9) {
-            macdWeight = 0.10;
-            volumeWeight = 0.15;
+            macdWeight = 0.08;
+            volumeWeight = 0.12;
         }
 
         // Clamp scores to [0–10]
@@ -50,6 +53,7 @@ public class ConfidenceScoreCalculator {
         double marketCapScore = getMarketCapScore(marketCapInCrores); // Score based on market cap
         double researchPriceScore =
                 getResearchPriceScore(researchPrice); // Score based on price deviation
+        double valuationScoreClamped = clamp(valuationScore / 10.0); // Normalize 0–100 to 0–10
 
         // Logging each component
         log.info(
@@ -76,13 +80,15 @@ public class ConfidenceScoreCalculator {
                 volumeScore * volumeWeight);
         log.info(
                 "MACD Score: {} (Weight: {}) => {}", macdScore, macdWeight, macdScore * macdWeight);
+        log.info("Valuation Score: {} (Weight: {}) => {}", valuationScoreClamped, valuationWeight, valuationScoreClamped * valuationWeight);
 
         return (strategyScore * strategyWeight)
                 + (riskScore * riskWeight)
                 + (marketCapScore * mcapWeight)
                 + (researchPriceScore * priceWeight)
                 + (volumeScore * volumeWeight)
-                + (macdScore * macdWeight);
+                + (macdScore * macdWeight)
+                + (valuationScoreClamped * valuationWeight);
     }
 
     /**

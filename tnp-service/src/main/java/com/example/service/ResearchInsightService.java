@@ -8,11 +8,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class ResearchInsightService {
 
+    private static final Map<String, Double> valuationMap = new HashMap<>();
     private final Research360Client research360Client;
 
     public boolean isStrongInsights(Stock stock){
@@ -25,8 +29,13 @@ public class ResearchInsightService {
                     stockOverviewResponse.getData() == null){
                 return false;
             }
+            valuationMap.put(stock.getNseSymbol(), stockOverviewResponse.getData().getValuationValue());
 
             if(stockOverviewResponse.getData().getQualityColor() == null || stockOverviewResponse.getData().getQualityColor() == SentimentColor.NEGATIVE){
+                return false;
+            }
+
+            if(stockOverviewResponse.getData().getValuationColor() == SentimentColor.NEGATIVE && stockOverviewResponse.getData().getTechnicalColor() == SentimentColor.NEGATIVE){
                 return false;
             }
 
@@ -62,5 +71,13 @@ public class ResearchInsightService {
 
     }
 
+    public double valuationScore(Stock stock){
+
+        if(valuationMap.containsKey(stock.getNseSymbol())){
+            return valuationMap.get(stock.getNseSymbol());
+        }
+
+        return 0.0;
+    }
 
 }
