@@ -30,6 +30,18 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
     }
 
     @Override
+    public boolean isMacdBelowSignal(StockTechnicals stockTechnicals) {
+        if (stockTechnicals != null) {
+
+            if (stockTechnicals.getMacd() < stockTechnicals.getSignal()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
     public boolean isMacdCrossedSignal(StockTechnicals stockTechnicals) {
 
         boolean isMAcdCrossedSignal =

@@ -15,6 +15,8 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.persistence.EntityNotFoundException;
+
+import com.example.service.utils.PivotPointUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -149,6 +151,10 @@ public class StockPriceServiceImpl implements StockPriceService {
         stockPrice.setHigh(high);
         stockPrice.setLow(low);
         stockPrice.setClose(close);
+
+        // Calculate and set Pivot levels before updating
+        setPivotLevels(stockPrice);
+
         stockPrice.setSessionDate(sessionDate);
 
         log.info("Updating {} StockPrice for stockId: {}", timeframe, stock.getStockId());
@@ -305,5 +311,20 @@ public class StockPriceServiceImpl implements StockPriceService {
         stockPrice.setPrevHigh(stockPrice.getHigh());
         stockPrice.setPrevLow(stockPrice.getLow());
         stockPrice.setPrevClose(stockPrice.getClose());
+    }
+
+    private void setPivotLevels(StockPrice stockPrice){
+
+        PivotPointUtils.PivotLevels pivotLevels = PivotPointUtils.calculate(stockPrice.getHigh(), stockPrice.getLow(), stockPrice.getClose());
+
+        stockPrice.setPivot(pivotLevels.getPivot());
+
+        stockPrice.setResistance1(pivotLevels.getResistance1());
+        stockPrice.setResistance2(pivotLevels.getResistance2());
+        stockPrice.setResistance3(pivotLevels.getResistance3());
+
+        stockPrice.setSupport1(pivotLevels.getSupport1());
+        stockPrice.setSupport2(pivotLevels.getSupport2());
+        stockPrice.setSupport3(pivotLevels.getSupport3());
     }
 }

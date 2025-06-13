@@ -202,9 +202,10 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                 formulaService.calculateChangePercentage(
                         lowerMovingAverageResult.getPrevValue(), evaluationResult.getPrevValue());
 
-        boolean isHigherMADiffValid = maPercentageDiff >= 2.0 || (lowerMaPercentageDiff >= 2.0 && maPercentageDiff <= 1.0);
+        boolean isHigherMADiffValid = maPercentageDiff >= 2.0 || lowerMaPercentageDiff >= 2.0;
 
-        if (!isHigherMADiffValid && stockPrice.getClose() > higherMovingAverageResult.getValue()) {
+        if (!isHigherMADiffValid && stockPrice.getClose() > higherMovingAverageResult.getValue() && maPercentageDiff <= 1.0) {
+
 
             if (evaluationResult.getLength().getWeight() > MovingAverageLength.HIGH.getWeight()) {
                 MovingAverageResult nextHigherMovingAverageResult =
@@ -218,7 +219,7 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                                 evaluationResult.getPrevValue(),
                                 nextHigherMovingAverageResult.getPrevValue());
 
-                isHigherMADiffValid = maPercentageDiff >= 2.0 || (lowerMaPercentageDiff >= 2.0 && maPercentageDiff <= 1.0);
+                isHigherMADiffValid = maPercentageDiff >= 3.0;
             }
         }
 

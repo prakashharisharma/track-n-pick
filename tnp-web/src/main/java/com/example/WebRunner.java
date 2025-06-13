@@ -24,6 +24,7 @@ import com.example.service.*;
 import com.example.service.calc.*;
 import com.example.service.impl.FundamentalResearchService;
 import com.example.service.utils.MovingAverageUtil;
+import com.example.service.utils.PivotPointUtils;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.util.ThreadsUtil;
@@ -164,6 +165,9 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private FinancialsSummaryService financialsSummaryService;
 
     @Autowired
+    private StockPriceRepository stockPriceRepository;
+
+    @Autowired
     private NSETotalIssuedSharesAndFaceValueFetcher nseTotalIssuedSharesAndFaceValueFetcher;
 
     @Autowired private VolumeIndicatorService volumeIndicatorService;
@@ -260,19 +264,46 @@ public class WebRunner implements CommandLineRunner {
         // this.testmcap();
         // this.testDynamicSR();
         // this.updateScore();
-       // this.testResearch360();
+      // this.testResearch360();
+       // this.updatePivotLevels();
         System.out.println("STARTED");
     }
 
+    private void updatePivotLevels(){
+
+        List<Stock> stocks = stockService.getActiveStocks();
+
+        for(Stock stock : stocks) {
+
+            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.YEARLY);
+            if(stockPrice!=null) {
+                PivotPointUtils.PivotLevels pivotLevels = PivotPointUtils.calculate(stockPrice.getHigh(), stockPrice.getLow(), stockPrice.getClose());
+
+                stockPrice.setPivot(pivotLevels.getPivot());
+
+                stockPrice.setResistance1(pivotLevels.getResistance1());
+                stockPrice.setResistance2(pivotLevels.getResistance2());
+                stockPrice.setResistance3(pivotLevels.getResistance3());
+
+                stockPrice.setSupport1(pivotLevels.getSupport1());
+                stockPrice.setSupport2(pivotLevels.getSupport2());
+                stockPrice.setSupport3(pivotLevels.getSupport3());
+
+                stockPriceRepository.save(stockPrice);
+            }
+            System.out.println("Updated : " + stock.getNseSymbol());
+        }
+    }
+
     private void testResearch360(){
-        Stock stock = stockService.getStockByNseSymbol("ITBEES");
+        Stock stock = stockService.getStockByNseSymbol("VBL");
 
         StockOverviewResponse stockOverviewResponse = null;
         try {
             stockOverviewResponse = research360Client.fetchStockOverview(stock.getIsinCode());
-            System.out.println("Quality : " + stockOverviewResponse.getData().getQualityColor());
-            System.out.println("Valuation : " + stockOverviewResponse.getData().getValuationColor());
-            System.out.println("Technical : " + stockOverviewResponse.getData().getTechnicalColor());
+            System.out.println("Quality : " + stockOverviewResponse.getData().getQualityColor() +" : "+stockOverviewResponse.getData().getQualityValue());
+            System.out.println("Valuation : " + stockOverviewResponse.getData().getValuationColor()+" : "+stockOverviewResponse.getData().getValuationValue());
+            System.out.println("Technical : " + stockOverviewResponse.getData().getTechnicalColor()+" : "+stockOverviewResponse.getData().getTechnicalValue());
 
         } catch (Exception e) {
             throw new RuntimeException(e);

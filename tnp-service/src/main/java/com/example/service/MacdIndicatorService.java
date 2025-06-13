@@ -6,6 +6,8 @@ public interface MacdIndicatorService {
 
     public boolean isMacdBelowZero(StockTechnicals stockTechnicals);
 
+    public boolean isMacdBelowSignal(StockTechnicals stockTechnicals);
+
     public boolean isMacdCrossedSignal(StockTechnicals stockTechnicals);
 
     public boolean isSignalCrossedMacd(StockTechnicals stockTechnicals);
