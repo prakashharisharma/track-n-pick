@@ -11,12 +11,11 @@ import com.example.data.transactional.entities.StockPriceYearly;
 import com.example.data.transactional.repo.StockPriceRepository;
 import com.example.data.transactional.repo.StockRepository;
 import com.example.service.StockPriceService;
+import com.example.service.utils.PivotPointUtils;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.persistence.EntityNotFoundException;
-
-import com.example.service.utils.PivotPointUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -313,9 +312,11 @@ public class StockPriceServiceImpl implements StockPriceService {
         stockPrice.setPrevClose(stockPrice.getClose());
     }
 
-    private void setPivotLevels(StockPrice stockPrice){
+    private void setPivotLevels(StockPrice stockPrice) {
 
-        PivotPointUtils.PivotLevels pivotLevels = PivotPointUtils.calculate(stockPrice.getHigh(), stockPrice.getLow(), stockPrice.getClose());
+        PivotPointUtils.PivotLevels pivotLevels =
+                PivotPointUtils.calculate(
+                        stockPrice.getHigh(), stockPrice.getLow(), stockPrice.getClose());
 
         stockPrice.setPivot(pivotLevels.getPivot());
 

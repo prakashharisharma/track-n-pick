@@ -1,13 +1,11 @@
 package com.example.service.utils;
 
-import com.example.data.transactional.entities.StockPrice;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 public class PivotPointUtils {
 
     public static PivotLevels calculate(double high, double low, double close) {
-
 
         double pivot = (high + low + close) / 3.0;
 

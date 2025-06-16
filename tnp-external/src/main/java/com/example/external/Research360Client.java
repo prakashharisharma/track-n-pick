@@ -9,7 +9,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class Research360Client {
@@ -17,7 +16,10 @@ public class Research360Client {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public StockOverviewResponse fetchStockOverview(String isin) throws Exception {
-        String url = "https://www.research360.in/ajax/stockOverviewApiHandler.php?companyISIN=" + isin + "&tbl_flag=extraActivity";
+        String url =
+                "https://www.research360.in/ajax/stockOverviewApiHandler.php?companyISIN="
+                        + isin
+                        + "&tbl_flag=extraActivity";
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/json");
@@ -27,12 +29,8 @@ public class Research360Client {
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                String.class
-        );
+        ResponseEntity<String> response =
+                restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 
         // Debug: print the raw HTML if needed
         // System.out.println(response.getBody());
@@ -47,5 +45,4 @@ public class Research360Client {
             throw new Exception("Failed to parse stock overview JSON", e);
         }
     }
-
 }

@@ -4,8 +4,8 @@ import com.example.dto.config.SentimentColorDeserializer;
 import com.example.dto.type.SentimentColor;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import lombok.Data;
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class StockOverviewResponse {
@@ -23,16 +23,19 @@ public class StockOverviewResponse {
 
         @JsonDeserialize(using = SentimentColorDeserializer.class)
         private SentimentColor qualityColor;
+
         private String qualityInsight;
         private double qualityValue;
 
         @JsonDeserialize(using = SentimentColorDeserializer.class)
         private SentimentColor technicalColor;
+
         private String technicalInsight;
         private double technicalValue;
 
         @JsonDeserialize(using = SentimentColorDeserializer.class)
         private SentimentColor valuationColor;
+
         private String valuationInsight;
         private double valuationValue;
 
@@ -52,4 +55,3 @@ public class StockOverviewResponse {
         private double value;
     }
 }
-

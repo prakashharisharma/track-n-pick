@@ -31,20 +31,24 @@ public class TimeframeSupportResistanceServiceImpl implements TimeframeSupportRe
                         SupportResistanceStyle.BODY_BASED);
 
         boolean supportSide = false;
-        boolean nearSupport= false;
-        boolean breakout= false;
-        boolean nearResistance= false;
-        boolean breakdown= false;
+        boolean nearSupport = false;
+        boolean breakout = false;
+        boolean nearResistance = false;
+        boolean breakdown = false;
 
-        if( breakoutService.isBreakOut(stockPrice, resistance, resistance)){
+        if (breakoutService.isBreakOut(stockPrice, resistance, resistance)) {
             breakout = true;
         }
 
-        return new MAEvaluationResult(MovingAverageLength.HIGHEST, resistance, resistance,              supportSide,
-         nearSupport,
-         breakout,
-         nearResistance,
-         breakdown );
+        return new MAEvaluationResult(
+                MovingAverageLength.HIGHEST,
+                resistance,
+                resistance,
+                supportSide,
+                nearSupport,
+                breakout,
+                nearResistance,
+                breakdown);
     }
 
     @Override
