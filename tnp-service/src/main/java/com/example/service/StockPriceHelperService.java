@@ -391,7 +391,7 @@ public class StockPriceHelperService {
                                 .getHigh()); // Default to current high if no valid highs are found
     }
 
-    public StockPrice buildPrevSessionStockPrice(StockPrice stockPrice){
+    public StockPrice buildPrevSessionStockPrice(StockPrice stockPrice) {
 
         stockPrice.setOpen(stockPrice.getPrevOpen());
         stockPrice.setHigh(stockPrice.getPrevHigh());
@@ -423,6 +423,6 @@ public class StockPriceHelperService {
         stockPrice.setPrev5Low(stockPrice.getPrev6Low());
         stockPrice.setPrev5Close(stockPrice.getPrev6Close());
 
-        return  stockPrice;
+        return stockPrice;
     }
 }

@@ -164,8 +164,7 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private FinancialsSummaryService financialsSummaryService;
 
-    @Autowired
-    private StockPriceRepository stockPriceRepository;
+    @Autowired private StockPriceRepository stockPriceRepository;
 
     @Autowired
     private NSETotalIssuedSharesAndFaceValueFetcher nseTotalIssuedSharesAndFaceValueFetcher;
@@ -175,9 +174,8 @@ public class WebRunner implements CommandLineRunner {
     @Autowired
     private DynamicMovingAverageSupportResolverService dynamicMovingAverageSupportResolverService;
 
+    @Autowired private Research360Client research360Client;
 
-    @Autowired
-    private Research360Client research360Client;
     @Override
     public void run(String... arg0) throws InterruptedException, IOException {
 
@@ -200,7 +198,7 @@ public class WebRunner implements CommandLineRunner {
         // this.testObv();
         // this.testTimeFrameSR();
 
-        //this.allocatePositions();
+        // this.allocatePositions();
 
         // this.updateRemainigSectorsActivityFromNSE();
 
@@ -264,20 +262,22 @@ public class WebRunner implements CommandLineRunner {
         // this.testmcap();
         // this.testDynamicSR();
         // this.updateScore();
-      // this.testResearch360();
-       // this.updatePivotLevels();
+        // this.testResearch360();
+        // this.updatePivotLevels();
         System.out.println("STARTED");
     }
 
-    private void updatePivotLevels(){
+    private void updatePivotLevels() {
 
         List<Stock> stocks = stockService.getActiveStocks();
 
-        for(Stock stock : stocks) {
+        for (Stock stock : stocks) {
 
             StockPrice stockPrice = stockPriceService.get(stock, Timeframe.YEARLY);
-            if(stockPrice!=null) {
-                PivotPointUtils.PivotLevels pivotLevels = PivotPointUtils.calculate(stockPrice.getHigh(), stockPrice.getLow(), stockPrice.getClose());
+            if (stockPrice != null) {
+                PivotPointUtils.PivotLevels pivotLevels =
+                        PivotPointUtils.calculate(
+                                stockPrice.getHigh(), stockPrice.getLow(), stockPrice.getClose());
 
                 stockPrice.setPivot(pivotLevels.getPivot());
 
@@ -295,21 +295,31 @@ public class WebRunner implements CommandLineRunner {
         }
     }
 
-    private void testResearch360(){
+    private void testResearch360() {
         Stock stock = stockService.getStockByNseSymbol("VBL");
 
         StockOverviewResponse stockOverviewResponse = null;
         try {
             stockOverviewResponse = research360Client.fetchStockOverview(stock.getIsinCode());
-            System.out.println("Quality : " + stockOverviewResponse.getData().getQualityColor() +" : "+stockOverviewResponse.getData().getQualityValue());
-            System.out.println("Valuation : " + stockOverviewResponse.getData().getValuationColor()+" : "+stockOverviewResponse.getData().getValuationValue());
-            System.out.println("Technical : " + stockOverviewResponse.getData().getTechnicalColor()+" : "+stockOverviewResponse.getData().getTechnicalValue());
+            System.out.println(
+                    "Quality : "
+                            + stockOverviewResponse.getData().getQualityColor()
+                            + " : "
+                            + stockOverviewResponse.getData().getQualityValue());
+            System.out.println(
+                    "Valuation : "
+                            + stockOverviewResponse.getData().getValuationColor()
+                            + " : "
+                            + stockOverviewResponse.getData().getValuationValue());
+            System.out.println(
+                    "Technical : "
+                            + stockOverviewResponse.getData().getTechnicalColor()
+                            + " : "
+                            + stockOverviewResponse.getData().getTechnicalValue());
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-
     }
 
     private void updateScore() {
@@ -606,17 +616,17 @@ public class WebRunner implements CommandLineRunner {
     private void allocatePositions() {
 
         double capital = 1137000;
-        //double riskFactor = 1.0;
+        // double riskFactor = 1.0;
 
-         User user = new User();
+        User user = new User();
         user.setId(1l);
-        //User user = userService.getUserByUsername("phsdhan");
+        // User user = userService.getUserByUsername("phsdhan");
 
         List<ResearchTechnical> researchTechnicalList =
                 researchTechnicalService.getAll(Trade.Type.BUY);
 
         for (ResearchTechnical researchTechnical : researchTechnicalList) {
-/*
+            /*
             double allottedAmount = ((capital * riskFactor) / researchTechnical.getRisk());
 
             long positionSize = (long) (allottedAmount / researchTechnical.getEntryPrice());

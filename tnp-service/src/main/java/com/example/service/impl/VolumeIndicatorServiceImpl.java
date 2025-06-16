@@ -436,6 +436,8 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
             return true;
         } else if (stockTechnicals.getPrevVolume() > stockTechnicals.getPrevVolumeAvg20()) {
             return true;
+        } else if (stockTechnicals.getVolumeAvg20() > stockTechnicals.getPrevVolumeAvg20()) {
+            return true;
         }
 
         return false;

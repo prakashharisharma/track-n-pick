@@ -237,8 +237,7 @@ public class MovingAverageUtil {
         return ma50 > ma100 && ma100 > ma200;
     }
 
-    public static boolean isAllMAsIncreasing(
-             StockTechnicals stockTechnicals) {
+    public static boolean isAllMAsIncreasing(StockTechnicals stockTechnicals) {
         Timeframe timeframe = stockTechnicals.getTimeframe();
         int count = 0;
 
@@ -256,6 +255,24 @@ public class MovingAverageUtil {
         return count >= 5;
     }
 
+    public static boolean isAllMAsDecreasing(StockTechnicals stockTechnicals) {
+        Timeframe timeframe = stockTechnicals.getTimeframe();
+        int count = 0;
+
+        if (getMovingAverage5(timeframe, stockTechnicals)
+                < getMovingAverage5(timeframe, stockTechnicals)) count++;
+        if (getMovingAverage20(timeframe, stockTechnicals)
+                < getMovingAverage20(timeframe, stockTechnicals)) count++;
+        if (getMovingAverage50(timeframe, stockTechnicals)
+                < getMovingAverage50(timeframe, stockTechnicals)) count++;
+        if (getMovingAverage100(timeframe, stockTechnicals)
+                < getMovingAverage100(timeframe, stockTechnicals)) count++;
+        if (getMovingAverage200(timeframe, stockTechnicals)
+                < getMovingAverage200(timeframe, stockTechnicals)) count++;
+
+        return count >= 5;
+    }
+
     public static boolean isAtLeastTwoMovingAverageIncreasing(
             MovingAverageLength currentLength, StockTechnicals stockTechnicals) {
 
@@ -265,7 +282,7 @@ public class MovingAverageUtil {
             // Get all lower MA lengths
             List<MovingAverageLength> higherLengths =
                     Arrays.stream(MovingAverageLength.values())
-                            .filter(length -> length.ordinal() > currentLength.ordinal())
+                            .filter(length -> length.ordinal() < currentLength.ordinal())
                             .toList();
 
             for (MovingAverageLength higherLength : higherLengths) {
@@ -300,6 +317,54 @@ public class MovingAverageUtil {
             double previousMA = movingAverageResult.getPrevValue();
 
             if (currentMA > previousMA) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean isAtLeastTwoMovingAverageDecreasing(
+            MovingAverageLength currentLength, StockTechnicals stockTechnicals) {
+
+        // If already at the highest, no higher MAs to check
+        if (currentLength == MovingAverageLength.HIGHEST) {
+
+            // Get all lower MA lengths
+            List<MovingAverageLength> lowerLengths =
+                    Arrays.stream(MovingAverageLength.values())
+                            .filter(length -> length.ordinal() > currentLength.ordinal())
+                            .toList();
+
+            for (MovingAverageLength lowerLength : lowerLengths) {
+                MovingAverageResult movingAverageResult =
+                        getMovingAverage(
+                                lowerLength, stockTechnicals.getTimeframe(), stockTechnicals, true);
+                double currentMA = movingAverageResult.getValue();
+                double previousMA = movingAverageResult.getPrevValue();
+
+                if (currentMA < previousMA) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // Get all higher MA lengths
+        List<MovingAverageLength> higherLengths =
+                Arrays.stream(MovingAverageLength.values())
+                        .filter(length -> length.ordinal() < currentLength.ordinal())
+                        .toList();
+
+        for (MovingAverageLength higherLength : higherLengths) {
+            MovingAverageResult movingAverageResult =
+                    getMovingAverage(
+                            higherLength, stockTechnicals.getTimeframe(), stockTechnicals, true);
+            double currentMA = movingAverageResult.getValue();
+            double previousMA = movingAverageResult.getPrevValue();
+
+            if (currentMA < previousMA) {
                 return true;
             }
         }

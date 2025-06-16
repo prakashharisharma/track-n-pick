@@ -135,17 +135,19 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                                 stockTechnicals.getSignal(),
                                 (stockTechnicals.getPrevMacd() - stockTechnicals.getPrevSignal()),
                                 stockTechnicals.getPrevMacd(),
-                                stockTechnicals.getPrevSignal()), researchInsightService.valuationScore(stock));
+                                stockTechnicals.getPrevSignal()),
+                        researchInsightService.valuationScore(stock));
 
         newResearchTechnical.setScore(miscUtil.roundToTwoDecimals(confidenceScore));
 
         newResearchTechnical.setResearchDate(sessionDate);
         newResearchTechnical.setLastModified(LocalDate.now());
 
-        boolean isRiskWithinLimit = isRiskWithinLimit(
-                timeframe,
-                newResearchTechnical.getEntrySubStrategy(),
-                newResearchTechnical.getRisk());
+        boolean isRiskWithinLimit =
+                isRiskWithinLimit(
+                        timeframe,
+                        newResearchTechnical.getEntrySubStrategy(),
+                        newResearchTechnical.getRisk());
 
         if (isRiskWithinLimit && researchInsightService.isStrongInsights(stock)) {
             newResearchTechnical = researchTechnicalRepository.save(newResearchTechnical);
@@ -186,7 +188,6 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
             return false;
         }
     }
-
 
     @Override
     public ResearchTechnical exit(
@@ -769,7 +770,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                                 stockTechnicals.getSignal(),
                                 (stockTechnicals.getPrevMacd() - stockTechnicals.getPrevSignal()),
                                 stockTechnicals.getPrevMacd(),
-                                stockTechnicals.getPrevSignal()), researchInsightService.valuationScore(researchTechnical.getStock()));
+                                stockTechnicals.getPrevSignal()),
+                        researchInsightService.valuationScore(researchTechnical.getStock()));
 
         System.out.println(
                 researchTechnical.getStock().getNseSymbol()

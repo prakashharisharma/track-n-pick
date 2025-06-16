@@ -29,7 +29,6 @@ public class ConfidenceScoreCalculator {
             double macdScore,
             double valuationScore) {
 
-
         double riskWeight = 0.40;
         double strategyWeight = 0.15;
         double macdWeight = 0.10;
@@ -80,7 +79,11 @@ public class ConfidenceScoreCalculator {
                 volumeScore * volumeWeight);
         log.info(
                 "MACD Score: {} (Weight: {}) => {}", macdScore, macdWeight, macdScore * macdWeight);
-        log.info("Valuation Score: {} (Weight: {}) => {}", valuationScoreClamped, valuationWeight, valuationScoreClamped * valuationWeight);
+        log.info(
+                "Valuation Score: {} (Weight: {}) => {}",
+                valuationScoreClamped,
+                valuationWeight,
+                valuationScoreClamped * valuationWeight);
 
         return (strategyScore * strategyWeight)
                 + (riskScore * riskWeight)

@@ -48,9 +48,13 @@ public class MultiTimeframeSupportResistanceServiceImpl
 
         // --- Evaluate breakout on both higher timeframes ---
         boolean breakoutHT1 =
-                timeframeSupportResistanceService.isBreakout(ht1, stockPrice, stockTechnicals).isBreakout();
+                timeframeSupportResistanceService
+                        .isBreakout(ht1, stockPrice, stockTechnicals)
+                        .isBreakout();
         boolean breakoutHT2 =
-                timeframeSupportResistanceService.isBreakout(ht2, stockPrice, stockTechnicals).isBreakout();
+                timeframeSupportResistanceService
+                        .isBreakout(ht2, stockPrice, stockTechnicals)
+                        .isBreakout();
 
         // --- Confirm with MACD on either of the higher timeframes ---
         boolean macdConfirmed =
