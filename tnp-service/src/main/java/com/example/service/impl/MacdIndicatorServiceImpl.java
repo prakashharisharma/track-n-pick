@@ -1,8 +1,8 @@
 package com.example.service.impl;
 
 import com.example.data.transactional.entities.StockTechnicals;
-import com.example.service.BreakoutLedgerService;
 import com.example.service.CrossOverUtil;
+import com.example.service.EvaluationLogService;
 import com.example.service.MacdIndicatorService;
 import com.example.util.FormulaService;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MacdIndicatorServiceImpl implements MacdIndicatorService {
 
-    @Autowired private BreakoutLedgerService breakoutLedgerService;
+    @Autowired private EvaluationLogService evaluationLogService;
 
     @Autowired private FormulaService formulaService;
 

@@ -2,7 +2,7 @@ package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
-import com.example.data.transactional.entities.BreakoutLedger;
+import com.example.data.transactional.entities.EvaluationLog;
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
@@ -24,7 +24,7 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
     private static double MA_ACTION_RISK_REWARD = 2.0;
 
     @Autowired private CandleStickService candleStickService;
-    @Autowired private BreakoutLedgerService breakoutLedgerService;
+    @Autowired private EvaluationLogService evaluationLogService;
 
     @Autowired private SupportResistanceUtilService supportResistanceService;
 
@@ -56,8 +56,11 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
         }
 
         if (isBreakDown) {
-            breakoutLedgerService.addNegative(
-                    stock, timeframe, BreakoutLedger.BreakoutCategory.BREAKDOWN_EMA20);
+
+            evaluationLogService.add(
+                    stockPrice,
+                    EvaluationLog.Type.NEGATIVE,
+                    EvaluationLog.BreakoutCategory.BREAKDOWN_EMA20.name());
 
             return TradeSetup.builder()
                     .active(Boolean.TRUE)
@@ -80,7 +83,7 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
 
         if (isCurrentRed && isPrevRed) {
             return movingAverageSupportResistanceService.isBreakdown(
-                    timeframe, stockPrice, stockTechnicals, true);
+                    timeframe, stockPrice, stockTechnicals, false);
         } else if (!isCurrentRed && !isPrevRed) {
             return movingAverageSupportResistanceService.isNearResistance(
                     timeframe, stockPrice, stockTechnicals, false);

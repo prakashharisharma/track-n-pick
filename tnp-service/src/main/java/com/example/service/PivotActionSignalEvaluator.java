@@ -10,7 +10,6 @@ import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.SignalEvaluatorHelperService;
 import com.example.service.utils.SubStrategyHelper;
-import com.example.util.FormulaService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,15 +39,7 @@ public class PivotActionSignalEvaluator implements TradeSignalEvaluator {
 
     private final BreakoutService breakoutService;
 
-    private final VolumeIndicatorService volumeIndicatorService;
-
     private final RsiIndicatorService rsiIndicatorService;
-
-    private final MacdIndicatorService macdIndicatorService;
-
-    private final CandleStickConfirmationService candleStickConfirmationService;
-
-    private final FormulaService formulaService;
 
     private final SignalEvaluatorHelperService signalEvaluatorHelperService;
 
@@ -74,21 +65,21 @@ public class PivotActionSignalEvaluator implements TradeSignalEvaluator {
 
             if (breakoutService.isBreakOut(
                     stockPrice, htStockPrice.getResistance1(), htStockPrice.getResistance1())) {
-                if (htStockPrice.getClose() > movingAverageResult.getValue()) {
-                    subStrategyRef =
-                            confirmBreakout(
-                                    timeframe,
-                                    stock,
-                                    stockPrice,
-                                    stockTechnicals,
-                                    timeframe.getHigher().getHigher().name());
-                    researchPrice =
-                            signalEvaluatorHelperService.calculateEntryPrice(
-                                    timeframe,
-                                    stockPrice,
-                                    stockTechnicals,
-                                    htStockPrice.getResistance1());
-                }
+                // if (htStockPrice.getClose() > movingAverageResult.getValue()) {
+                subStrategyRef =
+                        confirmBreakout(
+                                timeframe,
+                                stock,
+                                stockPrice,
+                                stockTechnicals,
+                                timeframe.getHigher().getHigher().name());
+                researchPrice =
+                        signalEvaluatorHelperService.calculateEntryPrice(
+                                timeframe,
+                                stockPrice,
+                                stockTechnicals,
+                                htStockPrice.getResistance1());
+                // }
             }
 
             if (subStrategyRef.isPresent()) {
@@ -112,7 +103,14 @@ public class PivotActionSignalEvaluator implements TradeSignalEvaluator {
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
-        if (CandleStickUtils.isUpperWickDominant(stockPrice)) {
+        MovingAverageResult highestMovingAverageResult =
+                MovingAverageUtil.getMovingAverage(
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
+
+        if ((stockPrice.getClose() > highestMovingAverageResult.getValue()
+                        && timeframe == Timeframe.DAILY)
+                || rsiIndicatorService.isOverBought(stockTechnicals)
+                || CandleStickUtils.isUpperWickDominant(stockPrice)) {
             return Optional.empty();
         }
 
@@ -134,6 +132,7 @@ public class PivotActionSignalEvaluator implements TradeSignalEvaluator {
             Stock stock,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
+
         return TradeSetup.builder().active(Boolean.FALSE).build();
     }
 

@@ -1,10 +1,7 @@
 package com.example.service;
 
 import com.example.data.common.type.Timeframe;
-import com.example.data.transactional.entities.ResearchTechnical;
-import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockPrice;
-import com.example.data.transactional.entities.StockTechnicals;
+import com.example.data.transactional.entities.*;
 import com.example.dto.common.TradeSetup;
 import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
@@ -23,23 +20,14 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
     private final DynamicMovingAverageSupportResolverService
             dynamicMovingAverageSupportResolverService;
-    private final TimeframeSupportResistanceService timeframeSupportResistanceService;
-
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
-
-    private final StockPriceService<StockPrice> stockPriceService;
-
-    private final StockPriceHelperService stockPriceHelperService;
-
     private final SignalEvaluatorHelperService signalEvaluatorHelperService;
-
     private final CandleStickConfirmationService candleStickConfirmationService;
-
     private final VolumeIndicatorService volumeIndicatorService;
-    private final MacdIndicatorService macdIndicatorService;
-
     private final RsiIndicatorService rsiIndicatorService;
     private final FormulaService formulaService;
+
+    private final EvaluationLogService evaluationLogService;
 
     @Override
     public TradeSetup evaluateEntry(
@@ -58,6 +46,14 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             Optional<ResearchTechnical.SubStrategy> subStrategyRef = Optional.empty();
 
             if (evaluationResult.isBreakout()) {
+                evaluationLogService.add(
+                        stockPrice,
+                        EvaluationLog.Type.POSITIVE,
+                        ResearchTechnical.Strategy.DYNAMIC.name()
+                                + " breakout found"
+                                + " on "
+                                + evaluationResult.getLength());
+
                 subStrategyRef =
                         confirmBreakout(
                                 timeframe, stock, stockPrice, stockTechnicals, evaluationResult);
@@ -68,11 +64,7 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                                 stockPrice,
                                 stockTechnicals,
                                 evaluationResult.getValue());
-            } /* else if (evaluationResult.isNearSupport()) {
-                  subStrategyRef =
-                          confirmSupportBounce(
-                                  timeframe, stock, stockPrice, stockTechnicals, evaluationResult);
-              }*/
+            }
 
             if (subStrategyRef.isPresent()) {
                 return TradeSetup.builder()
@@ -133,7 +125,15 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
-        if (evaluationResult.getLength() == MovingAverageLength.HIGHEST
+        MovingAverageResult movingAverageResult =
+                MovingAverageUtil.getMovingAverage(
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, false);
+
+        boolean isMa5Highest =
+                evaluationResult.getLength() == MovingAverageLength.HIGHEST
+                        && movingAverageResult.getValue() == evaluationResult.getValue();
+
+        if ((timeframe == Timeframe.DAILY && isMa5Highest)
                 || rsiIndicatorService.isOverBought(stockTechnicals)
                 || CandleStickUtils.isUpperWickDominant(stockPrice)) {
             return Optional.empty();
@@ -141,7 +141,11 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         boolean isHighestMovingAverageDiffValid =
                 signalEvaluatorHelperService.isHighestMovingAverageDiffValid(
-                        timeframe, stockTechnicals, evaluationResult);
+                        timeframe,
+                        stockPrice,
+                        stockTechnicals,
+                        evaluationResult,
+                        MAInteractionType.BREAKOUT);
 
         boolean isHigherMovingAverageDiffValid =
                 signalEvaluatorHelperService.isHigherMovingAverageDiffValid(
@@ -162,10 +166,10 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                         signalEvaluatorHelperService.higherTimeframeBreakoutConfirmation(
                                 stockPrice, stockTechnicals, htStockTechnicals);
 
-                if (isHigherTimeframeConfirmation) {
-                    return SubStrategyHelper.resolveByName(
-                            evaluationResult.getLength().name() + "_breakout");
-                }
+                // if (isHigherTimeframeConfirmation) {
+                return SubStrategyHelper.resolveByName(
+                        evaluationResult.getLength().name() + "_breakout");
+                // }
             }
         }
 
@@ -230,15 +234,14 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
         log.debug(
                 "Confirming breakdown for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
-        if (evaluationResult.getLength() == MovingAverageLength.LOWEST
-                || rsiIndicatorService.isOverSold(stockTechnicals)
+        if (rsiIndicatorService.isOverSold(stockTechnicals)
                 || CandleStickUtils.isLowerWickDominant(stockPrice)) {
             return Optional.empty();
         }
 
         boolean isLowestMovingAverageDiffValid =
                 signalEvaluatorHelperService.isLowestMovingAverageDiffValid(
-                        timeframe, stockTechnicals, evaluationResult);
+                        timeframe, stockPrice, stockTechnicals, evaluationResult);
 
         boolean isLowerMovingAverageDiffValid =
                 signalEvaluatorHelperService.isLowerMovingAverageDiffValid(
@@ -269,7 +272,6 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 "Confirming resistance rejection for stock={} timeframe={}",
                 stock.getNseSymbol(),
                 timeframe);
-
         MovingAverageResult lowestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
                         MovingAverageLength.LOWEST, timeframe, stockTechnicals, true);

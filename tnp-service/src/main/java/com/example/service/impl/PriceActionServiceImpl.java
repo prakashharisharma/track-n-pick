@@ -25,7 +25,7 @@ public class PriceActionServiceImpl implements PriceActionService {
 
     private final CandleStickService candleStickService;
 
-    private final BreakoutLedgerService breakoutLedgerService;
+    private final EvaluationLogService evaluationLogService;
 
     private final StockPriceHelperService stockPriceHelperService;
     private final RelevanceService relevanceService;
@@ -303,8 +303,10 @@ public class PriceActionServiceImpl implements PriceActionService {
                     ResearchTechnical.Strategy.PRICE,
                     subStrategyRef.get());
 
-            breakoutLedgerService.addNegative(
-                    stock, timeframe, BreakoutLedger.BreakoutCategory.BREAKDOWN_CANDLESTICK);
+            evaluationLogService.add(
+                    stockPrice,
+                    EvaluationLog.Type.NEGATIVE,
+                    EvaluationLog.BreakoutCategory.BREAKDOWN_CANDLESTICK.name());
             return TradeSetup.builder()
                     .active(Boolean.TRUE)
                     .strategy(ResearchTechnical.Strategy.PRICE)

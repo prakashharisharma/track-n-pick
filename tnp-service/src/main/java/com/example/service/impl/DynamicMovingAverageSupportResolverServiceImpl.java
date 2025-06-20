@@ -225,6 +225,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
 
         double low = stockPrice.getLow();
         double high = stockPrice.getHigh();
+
         boolean checkSupport = TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN;
 
         List<MAServiceEntry> sorted = getSortedMAEntries(timeframe, stockTechnicals, sortByValue);

@@ -23,10 +23,10 @@ public class MAThresholdsConfig {
         thresholds.put(
                 MAInteractionType.BREAKDOWN,
                 Map.of(
-                        MovingAverageLength.LOW, 2.5,
-                        MovingAverageLength.MEDIUM, 5.0,
-                        MovingAverageLength.HIGH, 7.5,
-                        MovingAverageLength.HIGHEST, 10.0
+                        MovingAverageLength.LOW, 2.25,
+                        MovingAverageLength.MEDIUM, 4.5,
+                        MovingAverageLength.HIGH, 6.75,
+                        MovingAverageLength.HIGHEST, 9.0
                         // MA200 (LOWEST) => anchor, no check
                         ));
 
@@ -43,10 +43,10 @@ public class MAThresholdsConfig {
         thresholds.put(
                 MAInteractionType.RESISTANCE,
                 Map.of(
-                        MovingAverageLength.LOW, 2.5,
-                        MovingAverageLength.MEDIUM, 5.0,
-                        MovingAverageLength.HIGH, 7.5,
-                        MovingAverageLength.HIGHEST, 10.0
+                        MovingAverageLength.LOW, 2.25,
+                        MovingAverageLength.MEDIUM, 4.5,
+                        MovingAverageLength.HIGH, 6.75,
+                        MovingAverageLength.HIGHEST, 9.0
                         // MA5 (LOWEST) => anchor, no check
                         ));
     }

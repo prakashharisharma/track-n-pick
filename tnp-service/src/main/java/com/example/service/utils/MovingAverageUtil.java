@@ -252,7 +252,7 @@ public class MovingAverageUtil {
         if (getMovingAverage200(timeframe, stockTechnicals)
                 > getMovingAverage200(timeframe, stockTechnicals)) count++;
 
-        return count >= 5;
+        return count >= 3;
     }
 
     public static boolean isAllMAsDecreasing(StockTechnicals stockTechnicals) {
@@ -270,7 +270,67 @@ public class MovingAverageUtil {
         if (getMovingAverage200(timeframe, stockTechnicals)
                 < getMovingAverage200(timeframe, stockTechnicals)) count++;
 
-        return count >= 5;
+        return count >= 3;
+    }
+
+    public static boolean isLowerMovingAverageIncreasing(
+            MovingAverageLength currentLength, StockTechnicals stockTechnicals) {
+        List<MovingAverageLength> lowerLengths =
+                Arrays.stream(MovingAverageLength.values())
+                        .filter(length -> length.getWeight() > currentLength.getWeight())
+                        .toList();
+
+        int increasingCount = countIncreasingMovingAverages(lowerLengths, stockTechnicals);
+        int requiredCount = (lowerLengths.size() + 1) / 2;
+
+        return increasingCount >= requiredCount;
+    }
+
+    public static boolean isHigherMovingAverageDecreasing(
+            MovingAverageLength currentLength, StockTechnicals stockTechnicals) {
+        List<MovingAverageLength> lowerLengths =
+                Arrays.stream(MovingAverageLength.values())
+                        .filter(length -> length.getWeight() < currentLength.getWeight())
+                        .toList();
+
+        int increasingCount = countDecreasingMovingAverages(lowerLengths, stockTechnicals);
+        int requiredCount = (lowerLengths.size() + 1) / 2;
+
+        return increasingCount >= requiredCount;
+    }
+
+    public static int countIncreasingMovingAverages(
+            List<MovingAverageLength> lengths, StockTechnicals stockTechnicals) {
+        int count = 0;
+
+        for (MovingAverageLength length : lengths) {
+            MovingAverageResult movingAverageResult =
+                    MovingAverageUtil.getMovingAverage(
+                            length, stockTechnicals.getTimeframe(), stockTechnicals, true);
+
+            if (movingAverageResult.getValue() > movingAverageResult.getPrevValue()) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    public static int countDecreasingMovingAverages(
+            List<MovingAverageLength> lengths, StockTechnicals stockTechnicals) {
+        int count = 0;
+
+        for (MovingAverageLength length : lengths) {
+            MovingAverageResult movingAverageResult =
+                    MovingAverageUtil.getMovingAverage(
+                            length, stockTechnicals.getTimeframe(), stockTechnicals, true);
+
+            if (movingAverageResult.getValue() > movingAverageResult.getPrevValue()) {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     public static boolean isAtLeastTwoMovingAverageIncreasing(
@@ -282,46 +342,25 @@ public class MovingAverageUtil {
             // Get all lower MA lengths
             List<MovingAverageLength> higherLengths =
                     Arrays.stream(MovingAverageLength.values())
-                            .filter(length -> length.ordinal() < currentLength.ordinal())
+                            .filter(length -> length.getWeight() < currentLength.getWeight())
                             .toList();
 
-            for (MovingAverageLength higherLength : higherLengths) {
-                MovingAverageResult movingAverageResult =
-                        getMovingAverage(
-                                higherLength,
-                                stockTechnicals.getTimeframe(),
-                                stockTechnicals,
-                                true);
-                double currentMA = movingAverageResult.getValue();
-                double previousMA = movingAverageResult.getPrevValue();
+            int increasingCount = countIncreasingMovingAverages(higherLengths, stockTechnicals);
+            int requiredCount = (higherLengths.size() + 1) / 2;
 
-                if (currentMA > previousMA) {
-                    return true;
-                }
-            }
-
-            return false;
+            return increasingCount >= requiredCount;
         }
 
         // Get all lower MA lengths
         List<MovingAverageLength> lowerLengths =
                 Arrays.stream(MovingAverageLength.values())
-                        .filter(length -> length.ordinal() > currentLength.ordinal())
+                        .filter(length -> length.getWeight() > currentLength.getWeight())
                         .toList();
 
-        for (MovingAverageLength lowerLength : lowerLengths) {
-            MovingAverageResult movingAverageResult =
-                    getMovingAverage(
-                            lowerLength, stockTechnicals.getTimeframe(), stockTechnicals, true);
-            double currentMA = movingAverageResult.getValue();
-            double previousMA = movingAverageResult.getPrevValue();
+        int increasingCount = countIncreasingMovingAverages(lowerLengths, stockTechnicals);
+        int requiredCount = (lowerLengths.size() + 1) / 2;
 
-            if (currentMA > previousMA) {
-                return true;
-            }
-        }
-
-        return false;
+        return increasingCount >= requiredCount;
     }
 
     public static boolean isAtLeastTwoMovingAverageDecreasing(

@@ -416,4 +416,8 @@ public class FormulaService {
     public double ceilToNearestQuarter(double value) {
         return Math.ceil(value * 4) / 4.0;
     }
+
+    public double roundToNearestHalf(double value) {
+        return Math.round(value * 2) / 2.0;
+    }
 }

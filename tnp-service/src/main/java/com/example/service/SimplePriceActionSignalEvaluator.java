@@ -59,12 +59,11 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                                 stockPrice,
                                 stockTechnicals,
                                 evaluationResult.getValue());
-
-            } else if (evaluationResult.isNearSupport()) {
-                subStrategyRef =
-                        confirmSupportBounce(
-                                timeframe, stock, stockPrice, stockTechnicals, evaluationResult);
-            }
+            } /*else if (evaluationResult.isNearSupport()) {
+                  subStrategyRef =
+                          confirmSupportBounce(
+                                  timeframe, stock, stockPrice, stockTechnicals, evaluationResult);
+              }*/
 
             if (subStrategyRef.isPresent()) {
                 return TradeSetup.builder()
@@ -98,11 +97,11 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                 subStrategyRef =
                         confirmBreakdown(
                                 timeframe, stock, stockPrice, stockTechnicals, evaluationResult);
-            } else if (evaluationResult.isNearResistance()) {
-                subStrategyRef =
-                        confirmResistanceRejection(
-                                timeframe, stock, stockPrice, stockTechnicals, evaluationResult);
-            }
+            } /* else if (evaluationResult.isNearResistance()) {
+                  subStrategyRef =
+                          confirmResistanceRejection(
+                                  timeframe, stock, stockPrice, stockTechnicals, evaluationResult);
+              }*/
 
             if (subStrategyRef.isPresent()) {
                 return TradeSetup.builder()
@@ -124,8 +123,15 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
             MAEvaluationResult evaluationResult) {
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
+        MovingAverageResult movingAverageResult =
+                MovingAverageUtil.getMovingAverage(
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, false);
 
-        if (evaluationResult.getLength() == MovingAverageLength.HIGHEST
+        boolean isMa5Highest =
+                evaluationResult.getLength() == MovingAverageLength.HIGHEST
+                        && movingAverageResult.getValue() == evaluationResult.getValue();
+
+        if ((timeframe == Timeframe.DAILY && isMa5Highest)
                 || rsiIndicatorService.isOverBought(stockTechnicals)
                 || CandleStickUtils.isUpperWickDominant(stockPrice)) {
             return Optional.empty();
@@ -139,11 +145,22 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                 signalEvaluatorHelperService.isLowestAndHighestMovingAverageDiffInNarrowRange(
                         timeframe, stockTechnicals);
 
+        boolean isHighestMovingAverageDiffValid =
+                signalEvaluatorHelperService.isHighestMovingAverageDiffValid(
+                        timeframe,
+                        stockPrice,
+                        stockTechnicals,
+                        evaluationResult,
+                        MAInteractionType.BREAKOUT);
+
         if ((isHigherMovingAverageDiffValid
-                        && MovingAverageUtil.isAtLeastTwoMovingAverageIncreasing(
+                        && MovingAverageUtil.isLowerMovingAverageIncreasing(
                                 evaluationResult.getLength(), stockTechnicals))
                 || (isLowestAndHighestMovingAverageDiffInNarrowRange
-                        && MovingAverageUtil.isAllMAsIncreasing(stockTechnicals))) {
+                        && MovingAverageUtil.isAllMAsIncreasing(stockTechnicals))
+                || (isHighestMovingAverageDiffValid
+                        && MovingAverageUtil.isLowerMovingAverageIncreasing(
+                                MovingAverageLength.HIGHEST, stockTechnicals))) {
 
             boolean isCurrentBreakoutConfirmation =
                     signalEvaluatorHelperService.currentBreakoutConfirmation(
@@ -231,22 +248,21 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
         log.debug(
                 "Confirming breakdown for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
-        if (evaluationResult.getLength() == MovingAverageLength.LOWEST
-                || rsiIndicatorService.isOverSold(stockTechnicals)
+        if (rsiIndicatorService.isOverSold(stockTechnicals)
                 || CandleStickUtils.isLowerWickDominant(stockPrice)) {
             return Optional.empty();
         }
 
         boolean isLowestMovingAverageDiffValid =
                 signalEvaluatorHelperService.isLowestMovingAverageDiffValid(
-                        timeframe, stockTechnicals, evaluationResult);
+                        timeframe, stockPrice, stockTechnicals, evaluationResult);
 
         boolean isLowestAndHighestMovingAverageDiffInWideRange =
                 signalEvaluatorHelperService.isLowestAndHighestMovingAverageDiffInWideRange(
                         timeframe, stockTechnicals);
 
         if ((isLowestMovingAverageDiffValid
-                        && MovingAverageUtil.isAtLeastTwoMovingAverageDecreasing(
+                        && MovingAverageUtil.isHigherMovingAverageDecreasing(
                                 evaluationResult.getLength(), stockTechnicals))
                 || (isLowestAndHighestMovingAverageDiffInWideRange
                         && MovingAverageUtil.isAllMAsDecreasing(stockTechnicals))) {
