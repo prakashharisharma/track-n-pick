@@ -4,6 +4,8 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.VolumeIndicatorService;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,14 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     private static double THRESHOLD_MONTHLY = 0.5;
 
     private static double MIN_TRADING_VALUE = 3_00_00_000.0;
+
+    private static Map<Timeframe, Double> volumeMultipleFactor = new HashMap<>();
+
+    static {
+        volumeMultipleFactor.put(Timeframe.DAILY, 1.5);
+        volumeMultipleFactor.put(Timeframe.WEEKLY, 1.25);
+        volumeMultipleFactor.put(Timeframe.MONTHLY, 1.0);
+    }
 
     @Override
     public boolean isBullish(
@@ -430,13 +440,17 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     }
 
     @Override
-    public boolean isVolumeAverage(StockTechnicals stockTechnicals) {
+    public boolean isVolumeSurge(StockTechnicals stockTechnicals) {
 
         if (stockTechnicals.getVolume() > stockTechnicals.getVolumeAvg20()) {
             return true;
         } else if (stockTechnicals.getPrevVolume() > stockTechnicals.getPrevVolumeAvg20()) {
             return true;
         } else if (stockTechnicals.getVolumeAvg20() > stockTechnicals.getPrevVolumeAvg20()) {
+            return true;
+        } else if (stockTechnicals.getVolume()
+                > stockTechnicals.getPrevVolume()
+                        * volumeMultipleFactor.get(stockTechnicals.getTimeframe())) {
             return true;
         }
 

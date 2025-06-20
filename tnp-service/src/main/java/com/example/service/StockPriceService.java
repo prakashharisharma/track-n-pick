@@ -63,4 +63,6 @@ public interface StockPriceService<T extends StockPrice> {
     T get(Long stockId, Timeframe timeframe);
 
     T get(Stock stock, Timeframe timeframe);
+
+    T buildPrevSessionStockPrice(T t);
 }

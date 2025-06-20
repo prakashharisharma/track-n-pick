@@ -23,8 +23,10 @@ import com.example.processor.BhavProcessor;
 import com.example.service.*;
 import com.example.service.calc.*;
 import com.example.service.impl.FundamentalResearchService;
+import com.example.service.utils.MArketConditionUtils;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.PivotPointUtils;
+import com.example.service.utils.SupportResistanceZoneUtils;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.util.ThreadsUtil;
@@ -182,7 +184,8 @@ public class WebRunner implements CommandLineRunner {
         log.info("Application started....");
 
         bhavProcessor.processAndResearchTechnicals();
-
+        // testdetectMArketConfition();
+        // testSupportResistanceZones();
         /*
         Stock stock = stockService.getStockByNseSymbol("360ONE");
         StockTechnicals stockTechnicals = updateTechnicalsService.build(Timeframe.MONTHLY, stock, LocalDate.of(2024,9,30));
@@ -265,6 +268,66 @@ public class WebRunner implements CommandLineRunner {
         // this.testResearch360();
         // this.updatePivotLevels();
         System.out.println("STARTED");
+    }
+
+    private void testdetectMArketConfition() {
+
+        /*
+               List<Stock> stocks = new ArrayList<>();
+               Stock stockToAdd = stockService.getStockByNseSymbol("SAPPHIRE");
+               stocks.add(stockToAdd);
+               stockToAdd = stockService.getStockByNseSymbol("SERVOTECH");
+               stocks.add(stockToAdd);
+               stockToAdd = stockService.getStockByNseSymbol("LTIM");
+               stocks.add(stockToAdd);
+               stockToAdd = stockService.getStockByNseSymbol("DOMS");
+               stocks.add(stockToAdd);
+
+        */
+
+        List<Stock> stocks = stockService.getActiveStocks();
+
+        for (Stock stock : stocks) {
+
+            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.MONTHLY);
+
+            if (stockPrice != null) {
+
+                MArketConditionUtils.MarketCondition marketCondition =
+                        MArketConditionUtils.detectMarketConditionFromOHLC(stockPrice);
+
+                // System.out.println(stock.getNseSymbol() +" 1 : " + marketCondition);
+
+                marketCondition = MArketConditionUtils.detectMarketCondition(stockPrice);
+                // System.out.println(stock.getNseSymbol() +" 2 : " + marketCondition);
+
+                marketCondition = MArketConditionUtils.detectCombinedMarketCondition(stockPrice);
+
+                System.out.println(stock.getNseSymbol() + " 3 : " + marketCondition);
+            }
+        }
+    }
+
+    private void testSupportResistanceZones() {
+
+        List<Stock> stocks = new ArrayList<>();
+        Stock stockToAdd = stockService.getStockByNseSymbol("SAPPHIRE");
+        stocks.add(stockToAdd);
+        stockToAdd = stockService.getStockByNseSymbol("SERVOTECH");
+        stocks.add(stockToAdd);
+        stockToAdd = stockService.getStockByNseSymbol("LTIM");
+        stocks.add(stockToAdd);
+
+        for (Stock stock : stocks) {
+
+            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.MONTHLY);
+            if (stockPrice != null) {
+                SupportResistanceZones supportResistanceZones =
+                        SupportResistanceZoneUtils.calculateSupportResistanceZones(stockPrice);
+                System.out.println("Support : " + supportResistanceZones.getSupport());
+                System.out.println("Resistance : " + supportResistanceZones.getResistance());
+            }
+        }
     }
 
     private void updatePivotLevels() {
@@ -615,7 +678,7 @@ public class WebRunner implements CommandLineRunner {
     /** Position Size = (Total trading fund * Risk%)/SL% */
     private void allocatePositions() {
 
-        double capital = 1137000;
+        double capital = 1140000;
         // double riskFactor = 1.0;
 
         User user = new User();

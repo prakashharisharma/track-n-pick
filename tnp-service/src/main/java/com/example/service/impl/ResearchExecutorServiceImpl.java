@@ -1,7 +1,7 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
-import com.example.data.transactional.entities.BreakoutLedger;
+import com.example.data.transactional.entities.EvaluationLog;
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
@@ -38,7 +38,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     @Autowired private MovingAverageActionService movingAverageActionService;
     @Autowired private StockPriceService<StockPrice> stockPriceService;
     @Autowired private ValuationLedgerService valuationLedgerService;
-    @Autowired private BreakoutLedgerService breakoutLedgerService;
+    @Autowired private EvaluationLogService evaluationLogService;
     @Autowired private SwingActionService swingActionService;
     @Autowired private PriceActionService priceActionService;
 
@@ -68,6 +68,10 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     @Autowired
     @Qualifier("pivotPriceActionSignalEvaluator")
     private TradeSignalEvaluator pivotPriceActionSignalEvaluator;
+
+    @Autowired
+    @Qualifier("rangePriceActionSignalEvaluator")
+    private RangePriceActionSignalEvaluator rangePriceActionSignalEvaluator;
 
     @Override
     public void executeFundamental(Stock stock) {
@@ -156,6 +160,12 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
+                            rangePriceActionSignalEvaluator.evaluateEntry(
+                                    timeframe, stock, stockPrice, stockTechnicals);
+                }
+
+                if (!tradeSetup.isActive()) {
+                    tradeSetup =
                             pivotPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
@@ -173,6 +183,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                             timeframe,
                             tradeSetup.getStrategy(),
                             tradeSetup.getSubStrategy());
+
                     researchTechnicalService.entry(
                             stock, timeframe, tradeSetup, stockPrice, stockTechnicals, sessionDate);
                 }
@@ -210,7 +221,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             tradeSetup.setSubStrategy(ResearchTechnical.SubStrategy.STOP_LOSS_TRIGGERED);
             isUpdation = Boolean.TRUE;
 
-        } else {
+        } else if (researchTechnical.getEntryPrice() >= stockPrice.getClose()) {
 
             tradeSetup =
                     dynamicPriceActionSignalEvaluator.evaluateExit(
@@ -219,6 +230,12 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             if (!tradeSetup.isActive()) {
                 tradeSetup =
                         simplePriceActionSignalEvaluator.evaluateExit(
+                                timeframe, stock, stockPrice, stockTechnicals);
+            }
+
+            if (!tradeSetup.isActive()) {
+                tradeSetup =
+                        rangePriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
             }
 
@@ -269,9 +286,13 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             Stock stock,
             StockPrice stockPrice) {
 
-        if (researchTechnical.getStopLoss() > stockPrice.getClose()) {
-            breakoutLedgerService.addNegative(
-                    stock, timeframe, BreakoutLedger.BreakoutCategory.STOPLOSS_TRIGGERED);
+        if (researchTechnical.getStopLoss() > stockPrice.getClose()
+                && stockPrice.getClose()
+                        < Math.min(stockPrice.getPrevOpen(), stockPrice.getPrevClose())) {
+            evaluationLogService.add(
+                    stockPrice,
+                    EvaluationLog.Type.NEGATIVE,
+                    EvaluationLog.BreakoutCategory.STOPLOSS_TRIGGERED.name());
             log.info(
                     "{} Stop loss triggered, stopLoss {}",
                     stock.getNseSymbol(),
@@ -289,8 +310,10 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             StockPrice stockPrice) {
 
         if (researchTechnical.getTarget() <= stockPrice.getClose()) {
-            breakoutLedgerService.addNegative(
-                    stock, timeframe, BreakoutLedger.BreakoutCategory.TARGET_ACHIEVED);
+            evaluationLogService.add(
+                    stockPrice,
+                    EvaluationLog.Type.POSITIVE,
+                    EvaluationLog.BreakoutCategory.TARGET_ACHIEVED.name());
             log.info(
                     "{} Target achieved, target {}",
                     stock.getNseSymbol(),

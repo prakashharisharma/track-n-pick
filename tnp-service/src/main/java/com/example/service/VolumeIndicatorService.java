@@ -40,5 +40,5 @@ public interface VolumeIndicatorService {
     public boolean isTradingValueSufficient(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
-    public boolean isVolumeAverage(StockTechnicals stockTechnicals);
+    public boolean isVolumeSurge(StockTechnicals stockTechnicals);
 }

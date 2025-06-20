@@ -15,6 +15,7 @@ import com.example.service.utils.VolumeAverageUtil;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
     private final MiscUtil miscUtil;
     private final CalendarService calendarService;
+
+    private final TargetService targetService;
 
     private final StockPriceService<StockPrice> stockPriceService;
 
@@ -109,10 +112,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 this.calculateStopLoss(tradeSetup, stockPrice, newResearchTechnical));
 
         newResearchTechnical.setTarget(
-                formulaService.calculateTarget(
-                        stockPrice.getHigh(),
-                        stockPrice.getLow(),
-                        this.calculateRiskRewardRatio(tradeSetup.getSubStrategy())));
+                targetService.calculateTarget(stockPrice, newResearchTechnical));
+
         newResearchTechnical.setRisk(
                 Math.abs(
                         formulaService.calculateChangePercentage(
@@ -141,7 +142,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         newResearchTechnical.setScore(miscUtil.roundToTwoDecimals(confidenceScore));
 
         newResearchTechnical.setResearchDate(sessionDate);
-        newResearchTechnical.setLastModified(LocalDate.now());
+        newResearchTechnical.setLastModified(LocalDateTime.now());
 
         boolean isRiskWithinLimit =
                 isRiskWithinLimit(
@@ -149,7 +150,11 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         newResearchTechnical.getEntrySubStrategy(),
                         newResearchTechnical.getRisk());
 
-        if (isRiskWithinLimit && researchInsightService.isStrongInsights(stock)) {
+        boolean isTargetValid =
+                targetService.isTargetValid(
+                        newResearchTechnical.getEntryPrice(), newResearchTechnical.getTarget());
+
+        if (isRiskWithinLimit && isTargetValid && researchInsightService.isStrongInsights(stock)) {
             newResearchTechnical = researchTechnicalRepository.save(newResearchTechnical);
         }
 
@@ -214,7 +219,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         existingResearch.setType(Trade.Type.SELL);
         existingResearch.setExitStrategy(tradeSetup.getStrategy());
         existingResearch.setExitSubStrategy(tradeSetup.getSubStrategy());
-        existingResearch.setLastModified(LocalDate.now());
+        existingResearch.setLastModified(LocalDateTime.now());
         return researchTechnicalRepository.save(existingResearch);
     }
 
@@ -286,6 +291,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
             TradeSetup tradeSetup, StockPrice stockPrice, ResearchTechnical researchTechnical) {
 
         double buffer = 0.005 * stockPrice.getLow(); // 0.5% buffer
+
         ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
 
         double stopLoss =
@@ -293,7 +299,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         ? stockPrice.getLow()
                         : stockPrice.getLow() - buffer;
 
-        if (this.isSupport(subStrategy)) {
+        if (subStrategy.isBreakout()) {
             stopLoss = stockPriceHelperService.findLowestLow(stockPrice);
         }
 
