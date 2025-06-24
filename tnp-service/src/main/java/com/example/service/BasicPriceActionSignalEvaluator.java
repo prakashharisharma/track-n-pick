@@ -217,7 +217,7 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         boolean isLowerMovingAverageIncreasing =
                 MovingAverageUtil.isLowerMovingAverageIncreasing(
-                        MovingAverageLength.HIGHEST, stockTechnicals);
+                        MovingAverageLength.HIGHEST, stockTechnicals, true);
 
         if (currentConfirmation && isLowerMovingAverageIncreasing) {
 

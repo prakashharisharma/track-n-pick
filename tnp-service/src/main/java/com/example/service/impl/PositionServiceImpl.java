@@ -38,9 +38,8 @@ public class PositionServiceImpl implements PositionService {
                 stockTechnicalsService.get(
                         researchTechnical.getStock(), researchTechnical.getTimeframe());
 
-        // double totalCapital = this.totalCapital(userId);
-        double totalCapital = 1137000;
-        // double riskFactor = this.getRiskFactor(researchTechnical); // Typically a % like 1 or 2
+        double totalCapital = this.totalCapital(userId);
+
         double riskFactor =
                 this.getRiskFactor(
                         researchTechnical.getTimeframe(),
@@ -48,9 +47,7 @@ public class PositionServiceImpl implements PositionService {
                         stockTechnicals,
                         researchTechnical);
 
-        double risk =
-                formulaService.calculateFraction(
-                        totalCapital, riskFactor); // risk = capital * (riskFactor / 100)
+        double risk = formulaService.calculateFraction(totalCapital, riskFactor);
 
         double stopLoss = researchTechnical.getEntryPrice() - researchTechnical.getStopLoss();
 
@@ -68,26 +65,25 @@ public class PositionServiceImpl implements PositionService {
     @Override
     public long calculateAdjustedPositionSize(
             Long userId, ResearchTechnical researchTechnical, long positionSize) {
+
         double totalCapital = this.totalCapital(userId);
-        // Get the available funds in the user's portfolio
         BigDecimal totalInvestmentValue = portfolioService.getTotalInvestmentValue(userId);
         double availableFunds = totalCapital - totalInvestmentValue.doubleValue();
 
-        // Check if there's enough available funds to allocate to the position size
-        double positionValue = positionSize * researchTechnical.getEntryPrice();
+        double entryPrice = researchTechnical.getEntryPrice();
+        double originalPositionValue = positionSize * entryPrice;
 
-        // If the available funds are less than the required position value, adjust the position
-        // size
-        if (availableFunds < positionValue) {
-            // Calculate the maximum position size that can be accommodated within the available
-            // funds
-            long adjustedPositionSize = (long) (availableFunds / researchTechnical.getEntryPrice());
-            return Math.max(adjustedPositionSize, 0); // Ensure position size is not negative
-        }
+        // Calculate what percentage of total capital this position represents
+        double positionPercent =
+                formulaService.calculatePercentage(totalCapital, originalPositionValue);
 
-        // If available funds are greater than or equal to the required position value, return the
-        // original position size
-        return positionSize;
+        // Adjusted capital for the same percentage, but on available funds
+        double adjustedPositionValue =
+                formulaService.calculateFraction(availableFunds, positionPercent);
+
+        long adjustedPositionSize = (long) (adjustedPositionValue / entryPrice);
+
+        return Math.max(adjustedPositionSize, 0);
     }
 
     private double totalCapital(Long userId) {
@@ -96,39 +92,6 @@ public class PositionServiceImpl implements PositionService {
         BigDecimal netProfit = tradeService.getTotalRealizedPnl(userId);
 
         return investmentValue.doubleValue() + netProfit.doubleValue();
-    }
-
-    private double getRiskFactor(ResearchTechnical researchTechnical) {
-        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.VOLUME) {
-            return RiskFactor.VOLUME_HV;
-        } else if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.PRICE) {
-            if (researchTechnical.getEntrySubStrategy()
-                    == ResearchTechnical.SubStrategy.STRONG_BREAKOUT) {
-                return RiskFactor.PRICE_STRONG_BREAKOUT;
-            } else if (researchTechnical.getEntrySubStrategy()
-                    == ResearchTechnical.SubStrategy.WEAK_BREAKOUT) {
-                return RiskFactor.PRICE_WEAK_BREAKOUT;
-            } else if (researchTechnical.getEntrySubStrategy()
-                    == ResearchTechnical.SubStrategy.STRONG_SUPPORT) {
-                return RiskFactor.PRICE_STRONG_SUPPORT;
-            } else if (researchTechnical.getEntrySubStrategy()
-                    == ResearchTechnical.SubStrategy.WEAK_SUPPORT) {
-                return RiskFactor.PRICE_WEAK_SUPPORT;
-            } else if (researchTechnical.getEntrySubStrategy()
-                    == ResearchTechnical.SubStrategy.BULLISH_INDICATORS) {
-                return RiskFactor.PRICE_BULLISH_INDICATORS;
-            }
-        } else if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.SWING) {
-            if (researchTechnical.getEntrySubStrategy()
-                    == ResearchTechnical.SubStrategy.STRONG_SWING) {
-                return RiskFactor.SWING_STRONG_SWING;
-            } else if (researchTechnical.getEntrySubStrategy()
-                    == ResearchTechnical.SubStrategy.WEAK_SWING) {
-                return RiskFactor.SWING_WEAK_SWING;
-            }
-        }
-
-        return 0.0;
     }
 
     private double getRiskFactor(

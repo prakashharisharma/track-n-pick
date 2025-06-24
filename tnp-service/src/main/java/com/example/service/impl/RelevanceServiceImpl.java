@@ -2,7 +2,6 @@ package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
-import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
@@ -293,13 +292,6 @@ public class RelevanceServiceImpl implements RelevanceService {
             return false;
         }
 
-        log.info(
-                "{} indicator support / breakout rejected as price is away from EMA20. Using"
-                        + " Strategy: {}, SubStrategy: {}",
-                stockPrice.getStock().getNseSymbol(),
-                ResearchTechnical.Strategy.PRICE,
-                ResearchTechnical.SubStrategy.RMAO);
-
         return true;
     }
 
@@ -422,13 +414,6 @@ public class RelevanceServiceImpl implements RelevanceService {
         if (!multiIndicatorService.isBearish(stockTechnicals)) {
             return false;
         }
-
-        log.info(
-                "{} indicator resistance / breakdown rejected as price is away from EMA20. Using"
-                        + " Strategy: {}, SubStrategy: {}",
-                stockPrice.getStock().getNseSymbol(),
-                ResearchTechnical.Strategy.PRICE,
-                ResearchTechnical.SubStrategy.RMAO);
 
         return true;
     }
