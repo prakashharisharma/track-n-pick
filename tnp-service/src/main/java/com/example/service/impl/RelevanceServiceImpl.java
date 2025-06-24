@@ -293,13 +293,6 @@ public class RelevanceServiceImpl implements RelevanceService {
             return false;
         }
 
-        log.info(
-                "{} indicator support / breakout rejected as price is away from EMA20. Using"
-                        + " Strategy: {}, SubStrategy: {}",
-                stockPrice.getStock().getNseSymbol(),
-                ResearchTechnical.Strategy.PRICE,
-                ResearchTechnical.SubStrategy.RMAO);
-
         return true;
     }
 
@@ -423,12 +416,6 @@ public class RelevanceServiceImpl implements RelevanceService {
             return false;
         }
 
-        log.info(
-                "{} indicator resistance / breakdown rejected as price is away from EMA20. Using"
-                        + " Strategy: {}, SubStrategy: {}",
-                stockPrice.getStock().getNseSymbol(),
-                ResearchTechnical.Strategy.PRICE,
-                ResearchTechnical.SubStrategy.RMAO);
 
         return true;
     }

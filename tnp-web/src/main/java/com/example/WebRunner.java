@@ -1048,10 +1048,6 @@ public class WebRunner implements CommandLineRunner {
         for (Stock stock : stockList) {
             if (stock.getSeries() != null && stock.getSeries().equalsIgnoreCase("EQ")) {
                 if (fundamentalResearchService.isMcapInRange(stock)) {
-                    /*
-                    if(researchLedgerTechnicalService.isActive(stock, ResearchIO.ResearchTrigger.BUY)){
-                    	System.out.println("RESEARCH " + stock.getNseSymbol());
-                    }*/
 
                     if (calendarService.isLastTradingSessionOfMonth(miscUtil.currentDate())) {
                         System.out.println("******* MONTHLY :" + stock.getNseSymbol() + " *******");

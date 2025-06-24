@@ -26,6 +26,8 @@ public class SignalEvaluatorHelperService {
 
     private final TimeframeSupportResistanceService timeframeSupportResistanceService;
 
+    private final ResistanceValidationService resistanceValidationService;
+
     private final EvaluationLogService evaluationLogService;
 
     public boolean isHigherMovingAverageDiffValid(
@@ -147,12 +149,7 @@ public class SignalEvaluatorHelperService {
                                     nextHighMaDiff,
                                     nextNextHighMaDiff,
                                     nextHighThreshold + nextHighMaDiff));
-                } /*else if (nextNextHighMaDiff > nextNextHighThreshold) {
-                      isHigherMADiffValid = true;
-                      evaluationLogService.add(stockTechnicals, EvaluationLog.Type.POSITIVE,
-                              StringUtils.format("nextNextHighDiff:{} > {} → true",
-                                      nextNextHighMaDiff, nextNextHighThreshold));
-                  } */ else {
+                } else {
                     evaluationLogService.add(
                             stockTechnicals,
                             EvaluationLog.Type.NEUTRAL,
@@ -542,7 +539,8 @@ public class SignalEvaluatorHelperService {
         return isBullishCandle
                 && isMacdConfirmingBreakout
                 && rsiIndicatorService.isBullish(stockTechnicals)
-                && volumeIndicatorService.isVolumeSurge(stockTechnicals);
+                && volumeIndicatorService.isVolumeSurge(stockTechnicals)
+                && resistanceValidationService.isOutsideHigherTimeframeResistanceZone(stockPrice);
     }
 
     public boolean higherTimeframeBreakoutConfirmation(

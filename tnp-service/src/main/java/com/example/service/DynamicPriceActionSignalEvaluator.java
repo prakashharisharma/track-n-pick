@@ -151,7 +151,6 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 signalEvaluatorHelperService.isHigherMovingAverageDiffValid(
                         timeframe, stockTechnicals, evaluationResult);
 
-        // We will not consider breakout for HIGHEST MA for DAILY
         if (isHighestMovingAverageDiffValid && isHigherMovingAverageDiffValid) {
 
             boolean isCurrentBreakoutConfirmation =
@@ -159,71 +158,15 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                             stockPrice, stockTechnicals);
 
             if (isCurrentBreakoutConfirmation) {
-                StockTechnicals htStockTechnicals =
-                        stockTechnicalsService.get(stockPrice.getStock(), timeframe.getHigher());
 
-                boolean isHigherTimeframeConfirmation =
-                        signalEvaluatorHelperService.higherTimeframeBreakoutConfirmation(
-                                stockPrice, stockTechnicals, htStockTechnicals);
-
-                // if (isHigherTimeframeConfirmation) {
                 return SubStrategyHelper.resolveByName(
                         evaluationResult.getLength().name() + "_breakout");
-                // }
             }
         }
 
         return Optional.empty();
     }
 
-    private Optional<ResearchTechnical.SubStrategy> confirmSupportBounce(
-            Timeframe timeframe,
-            Stock stock,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals,
-            MAEvaluationResult evaluationResult) {
-        log.debug(
-                "Confirming support bounce for stock={} timeframe={}",
-                stock.getNseSymbol(),
-                timeframe);
-
-        MovingAverageResult highestMovingAverageResult =
-                MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
-
-        double maPercentageDiff =
-                formulaService.calculateChangePercentage(
-                        evaluationResult.getPrevValue(), highestMovingAverageResult.getPrevValue());
-
-        boolean isValid =
-                MAThresholdsConfig.getThreshold(
-                                MAInteractionType.SUPPORT, evaluationResult.getLength())
-                        .map(threshold -> maPercentageDiff >= threshold)
-                        .orElse(true);
-
-        if (isValid) {
-            boolean isUpperWickSizeConfirmed =
-                    candleStickConfirmationService.isUpperWickSizeConfirmed(
-                            timeframe, stockPrice, stockTechnicals);
-
-            boolean isBullishCandleStick =
-                    candleStickConfirmationService.isBullishConfirmed(
-                            timeframe, stockPrice, stockTechnicals, true);
-
-            boolean isVolumeSurge =
-                    volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
-
-            // TODO: prevBullishCandleStick
-
-            if (isUpperWickSizeConfirmed && isBullishCandleStick && isVolumeSurge) {
-                // return Optional.of(ResearchTechnical.SubStrategy.SUPPORT);
-                return SubStrategyHelper.resolveByName(
-                        evaluationResult.getLength().name() + "_support");
-            }
-        }
-
-        return Optional.empty();
-    }
 
     private Optional<ResearchTechnical.SubStrategy> confirmBreakdown(
             Timeframe timeframe,
