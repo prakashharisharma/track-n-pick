@@ -226,8 +226,11 @@ public class DynamicMovingAverageSupportResolverServiceImpl
         double low = stockPrice.getLow();
         double high = stockPrice.getHigh();
 
-        boolean checkSupport = TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN;
+        System.out.println("low " + low);
+        System.out.println("high " + high);
 
+        boolean checkSupport = TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN;
+        System.out.println("checkSupport " + checkSupport);
         List<MAServiceEntry> sorted = getSortedMAEntries(timeframe, stockTechnicals, sortByValue);
 
         MovingAverageLength[] lengths = MovingAverageLength.values(); // HIGHEST to LOWEST
@@ -257,6 +260,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
         List<MAInteraction> interactions =
                 findMAInteractions(timeframe, stockPrice, stockTechnicals, sortByValue);
 
+        System.out.println("size " + interactions.size());
         return interactions.stream()
                 .map(
                         interaction -> {
@@ -326,39 +330,53 @@ public class DynamicMovingAverageSupportResolverServiceImpl
         List<MAEvaluationResult> resistances =
                 results.stream().filter(MAEvaluationResult::isNearResistance).toList();
 
-        // 1. Breakdown + Support → Support with lower MA
+        Comparator<MAEvaluationResult> weightComparator =
+                sortByValue
+                        ? Comparator.comparingInt(
+                                r -> r.getLength().getWeight()) // Lower MA preferred
+                        : Comparator.comparingInt(
+                                r -> r.getLength().getReverseWeight()); // Higher MA preferred
+
+        Comparator<MAEvaluationResult> reverseComparator =
+                sortByValue
+                        ? Comparator.comparingInt(
+                                r ->
+                                        r.getLength()
+                                                .getReverseWeight()) // Higher MA gets higher score
+                        : Comparator.comparingInt(
+                                r -> r.getLength().getWeight()); // Lower MA gets higher score
+
+        // 1. Breakdown + Support → Support with lower MA (if sortByValue), else higher MA
         if (!breakdowns.isEmpty() && !supports.isEmpty()) {
-            return supports.stream().min(Comparator.comparingInt(r -> r.getLength().getWeight()));
+            return supports.stream().min(weightComparator);
         }
 
-        // 2. Breakout + Resistance → Resistance with higher MA
+        // 2. Breakout + Resistance → Resistance with higher MA (if sortByValue), else lower MA
         if (!breakouts.isEmpty() && !resistances.isEmpty()) {
-            return resistances.stream()
-                    .max(Comparator.comparingInt(r -> r.getLength().getWeight()));
+            return resistances.stream().max(weightComparator);
         }
 
         // 3. Breakout + Breakout → Lower MA breakout (higher weight)
         if (breakouts.size() > 1) {
-            return breakouts.stream().max(Comparator.comparingInt(r -> r.getLength().getWeight()));
+            return breakouts.stream().max(weightComparator);
         }
 
         // 4. Breakdown + Breakdown → Higher MA breakdown (lower weight)
         if (breakdowns.size() > 1) {
-            return breakdowns.stream().min(Comparator.comparingInt(r -> r.getLength().getWeight()));
+            return breakdowns.stream().min(weightComparator);
         }
 
         // 5. Support + Support → Support with higher MA (lower weight)
         if (supports.size() > 1) {
-            return supports.stream().min(Comparator.comparingInt(r -> r.getLength().getWeight()));
+            return supports.stream().min(weightComparator);
         }
 
         // 6. Resistance + Resistance → Resistance with lower MA (higher weight)
         if (resistances.size() > 1) {
-            return resistances.stream()
-                    .max(Comparator.comparingInt(r -> r.getLength().getWeight()));
+            return resistances.stream().max(weightComparator);
         }
 
-        // 7. Fallback: best individual signal by scoring
+        // 7. Fallback: best scored signal depending on sortByValue
         return results.stream()
                 .filter(
                         r ->
@@ -366,32 +384,39 @@ public class DynamicMovingAverageSupportResolverServiceImpl
                                         || r.isBreakdown()
                                         || r.isNearResistance()
                                         || r.isNearSupport())
-                .max(Comparator.comparingInt(this::calculateSignalScore));
+                .max(Comparator.comparingInt(r -> calculateSignalScore(r, sortByValue)));
     }
 
-    int calculateSignalScore(MAEvaluationResult result) {
+    int calculateSignalScore(MAEvaluationResult result, boolean sortByValue) {
         int baseScore;
 
         if (result.isBreakout()) {
             baseScore = 100;
-            // For breakout, a breakout above a lower MA is more significant (short-term momentum)
-            // Hence, use normal weight (lower MA has higher weight value)
-            return baseScore + result.getLength().getWeight();
+            return baseScore
+                    + (sortByValue
+                            ? result.getLength().getWeight()
+                            : result.getLength().getReverseWeight());
+
         } else if (result.isBreakdown()) {
             baseScore = 90;
-            // For breakdown, breaking below a lower MA is more significant (short-term weakness)
-            // Hence, use normal weight (lower MA has higher weight value)
-            return baseScore + result.getLength().getWeight();
+            return baseScore
+                    + (sortByValue
+                            ? result.getLength().getWeight()
+                            : result.getLength().getReverseWeight());
+
         } else if (result.isNearResistance()) {
             baseScore = 70;
-            // For resistance, rejection at a higher MA is more significant (long-term barrier)
-            // Hence, use reverse weight (higher MA gets higher score)
-            return baseScore + result.getLength().getReverseWeight();
+            return baseScore
+                    + (sortByValue
+                            ? result.getLength().getReverseWeight()
+                            : result.getLength().getWeight());
+
         } else if (result.isNearSupport()) {
             baseScore = 60;
-            // For support, holding a higher MA is more significant (long-term floor)
-            // Hence, use reverse weight (higher MA gets higher score)
-            return baseScore + result.getLength().getReverseWeight();
+            return baseScore
+                    + (sortByValue
+                            ? result.getLength().getReverseWeight()
+                            : result.getLength().getWeight());
         }
 
         return 0;

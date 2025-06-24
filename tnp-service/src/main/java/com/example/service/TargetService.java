@@ -60,18 +60,6 @@ public class TargetService {
 
     private double calculateRiskRewardRatio(ResearchTechnical.SubStrategy subStrategy) {
 
-        if (subStrategy == ResearchTechnical.SubStrategy.STRONG_SUPPORT) {
-            return 3.0;
-        } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT) {
-            return 2.0;
-        } else if (subStrategy == ResearchTechnical.SubStrategy.STRONG_BREAKOUT) {
-            return 3.0;
-        } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_BREAKOUT) {
-            return 2.0;
-        } else if (subStrategy == ResearchTechnical.SubStrategy.BULLISH_INDICATORS) {
-            return 2.0;
-        }
-
         return 2.0;
     }
 

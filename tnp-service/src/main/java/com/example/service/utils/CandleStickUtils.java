@@ -385,6 +385,21 @@ public class CandleStickUtils {
         return (close != null && prevOpen != null) && close < prevOpen;
     }
 
+    public static boolean isLowerHigh(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        Double high = stockPrice.getHigh();
+        Double prevHigh = stockPrice.getPrevHigh();
+
+        if (high == null || prevHigh == null) {
+            return false;
+        }
+
+        return high < prevHigh;
+    }
+
     public static boolean isLowerLow(StockPrice stockPrice) {
         if (stockPrice == null) {
             return false;

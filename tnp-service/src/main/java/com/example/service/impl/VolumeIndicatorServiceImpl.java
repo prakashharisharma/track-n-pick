@@ -1,15 +1,20 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
+import com.example.data.transactional.entities.EvaluationLog;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
+import com.example.service.EvaluationLogService;
 import com.example.service.VolumeIndicatorService;
+import com.example.util.StringUtils;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
 
@@ -26,6 +31,8 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     private static double THRESHOLD_MONTHLY = 0.5;
 
     private static double MIN_TRADING_VALUE = 3_00_00_000.0;
+
+    private final EvaluationLogService evaluationLogService;
 
     private static Map<Timeframe, Double> volumeMultipleFactor = new HashMap<>();
 
@@ -442,17 +449,64 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     @Override
     public boolean isVolumeSurge(StockTechnicals stockTechnicals) {
 
-        if (stockTechnicals.getVolume() > stockTechnicals.getVolumeAvg20()) {
+        double currentVolume = stockTechnicals.getVolume();
+        double prevVolume = stockTechnicals.getPrevVolume();
+        double avgVolume20 = stockTechnicals.getVolumeAvg20();
+        double prevAvgVolume20 = stockTechnicals.getPrevVolumeAvg20();
+        Timeframe timeframe = stockTechnicals.getTimeframe();
+        double multiplier =
+                volumeMultipleFactor.getOrDefault(timeframe, 1.5); // fallback multiplier
+
+        if (currentVolume > avgVolume20) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            "Volume Surge: currentVolume:{} > avgVolume20:{}",
+                            currentVolume,
+                            avgVolume20));
             return true;
-        } else if (stockTechnicals.getPrevVolume() > stockTechnicals.getPrevVolumeAvg20()) {
+        } else if (prevVolume > prevAvgVolume20) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            "Volume Surge: prevVolume:{} > prevAvgVolume20:{}",
+                            prevVolume,
+                            prevAvgVolume20));
             return true;
-        } else if (stockTechnicals.getVolumeAvg20() > stockTechnicals.getPrevVolumeAvg20()) {
+        } else if (avgVolume20 > prevAvgVolume20) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            "Volume Surge: avgVolume20:{} > prevAvgVolume20:{}",
+                            avgVolume20,
+                            prevAvgVolume20));
             return true;
-        } else if (stockTechnicals.getVolume()
-                > stockTechnicals.getPrevVolume()
-                        * volumeMultipleFactor.get(stockTechnicals.getTimeframe())) {
+        } else if (currentVolume > prevVolume * multiplier) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            "Volume Surge: currentVolume:{} > prevVolume:{} * multiplier:{}",
+                            currentVolume,
+                            prevVolume,
+                            multiplier));
             return true;
         }
+
+        evaluationLogService.add(
+                stockTechnicals,
+                EvaluationLog.Type.NEUTRAL,
+                StringUtils.format(
+                        "No volume surge: volume:{} prevVolume:{} avg20:{} prevAvg20:{}"
+                                + " multiplier:{}",
+                        currentVolume,
+                        prevVolume,
+                        avgVolume20,
+                        prevAvgVolume20,
+                        multiplier));
 
         return false;
     }

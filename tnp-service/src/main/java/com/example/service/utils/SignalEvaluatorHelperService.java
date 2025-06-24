@@ -28,320 +28,351 @@ public class SignalEvaluatorHelperService {
 
     private final EvaluationLogService evaluationLogService;
 
-    public boolean isHigherMovingAverageDiffValid(
+    public boolean isNearestMovingAverageDiffValidForBreakout(
             Timeframe timeframe,
             StockTechnicals stockTechnicals,
-            MAEvaluationResult evaluationResult) {
+            MAEvaluationResult evaluationResult,
+            boolean sortByValue) {
 
         MovingAverageLength currentLength = evaluationResult.getLength();
-        double nextHighThreshold = 2.5;
         double nextNextHighThreshold = 5.0;
+        double nextHighThreshold = 2.5;
+        double nextNextLowThreshold = 5.0;
+        double nextLowThreshold = 2.5;
 
-        boolean isHigherMADiffValid = false;
+        boolean isValid = false;
 
-        // Get next higher MA and % difference
-        MovingAverageLength nextHighLength = currentLength.getHigher();
+        MovingAverageLength nextHighLength = currentLength.getHigher(sortByValue);
         MovingAverageResult nextHighMA =
                 MovingAverageUtil.getMovingAverage(
-                        nextHighLength, timeframe, stockTechnicals, true);
-        double nextHighMaDiff =
-                formulaService.calculateChangePercentage(
-                        evaluationResult.getPrevValue(), nextHighMA.getPrevValue());
-        nextHighMaDiff = formulaService.ceilToNearestQuarter(nextHighMaDiff);
+                        nextHighLength, timeframe, stockTechnicals, sortByValue);
+        double nextHighDiff =
+                formulaService.ceilToNearestQuarter(
+                        formulaService.calculateAbsChangePercentage(
+                                evaluationResult.getPrevValue(), nextHighMA.getPrevValue()));
 
-        // Handle HIGHEST case
-        if (currentLength == MovingAverageLength.HIGHEST) {
-            MovingAverageLength nextLowLength = currentLength.getLower();
-            MovingAverageResult nextLowMA =
+        MovingAverageLength nextLowLength = currentLength.getLower(sortByValue);
+
+        MovingAverageResult nextLowMA =
+                MovingAverageUtil.getMovingAverage(
+                        nextLowLength, timeframe, stockTechnicals, sortByValue);
+        double nextLowDiff =
+                formulaService.ceilToNearestQuarter(
+                        formulaService.calculateAbsChangePercentage(
+                                nextLowMA.getPrevValue(), evaluationResult.getPrevValue()));
+
+        /*
+        boolean isHighest = (sortByValue ? currentLength == MovingAverageLength.HIGHEST : currentLength == MovingAverageLength.LOWEST);
+        boolean isLowest = (sortByValue ? currentLength == MovingAverageLength.LOWEST : currentLength == MovingAverageLength.HIGHEST);
+        */
+        boolean isHighest = currentLength == MovingAverageLength.HIGHEST;
+        boolean isLowest = currentLength == MovingAverageLength.LOWEST;
+
+        if (isLowest) {
+            // Check only nextHighDiff or nextNextHighDiff
+            MovingAverageLength nextNextHighLength = nextHighLength.getHigher(sortByValue);
+            MovingAverageResult nextNextHighMA =
                     MovingAverageUtil.getMovingAverage(
-                            nextLowLength, timeframe, stockTechnicals, true);
+                            nextNextHighLength, timeframe, stockTechnicals, sortByValue);
+            double nextNextHighDiff =
+                    formulaService.ceilToNearestQuarter(
+                            formulaService.calculateAbsChangePercentage(
+                                    evaluationResult.getPrevValue(),
+                                    nextNextHighMA.getPrevValue()));
 
-            double nextLowMaDiff =
-                    formulaService.calculateChangePercentage(
-                            nextLowMA.getPrevValue(), evaluationResult.getPrevValue());
-            nextLowMaDiff = formulaService.ceilToNearestQuarter(nextLowMaDiff);
-
-            boolean isLowerMovingAverageIncreasing =
-                    MovingAverageUtil.isLowerMovingAverageIncreasing(
-                            currentLength, stockTechnicals);
-
-            isHigherMADiffValid =
-                    nextLowMaDiff >= nextHighThreshold || isLowerMovingAverageIncreasing;
+            isValid =
+                    nextHighDiff >= nextHighThreshold
+                            || (nextNextHighDiff
+                                    >= (nextHighThreshold + (nextHighThreshold - nextHighDiff)));
 
             evaluationLogService.add(
                     stockTechnicals,
-                    isHigherMADiffValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
+                    isValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
                     StringUtils.format(
-                            "HIGHEST MA — nextLowMA:{} current:{} diff:{} isLowerIncreasing:{} →"
-                                    + " {}",
-                            nextLowMA.getPrevValue(),
-                            evaluationResult.getPrevValue(),
-                            nextLowMaDiff,
-                            isLowerMovingAverageIncreasing,
-                            isHigherMADiffValid));
-
-        }
-
-        // Handle HIGH case
-        else if (currentLength == MovingAverageLength.HIGH) {
-            MovingAverageLength nextLowLength = currentLength.getLower();
-            MovingAverageResult nextLowMA =
+                            "{} LOWEST MA → nextHighDiff:{} nextNextHighDiff:{} threshold:{} → {}",
+                            timeframe.name(),
+                            nextHighDiff,
+                            nextNextHighDiff,
+                            nextHighThreshold + nextHighDiff,
+                            isValid));
+        } else if (isHighest) {
+            // Check only nextLowDiff or nextNextLowDiff
+            MovingAverageLength nextNextLowLength = nextLowLength.getLower(sortByValue);
+            MovingAverageResult nextNextLowMA =
                     MovingAverageUtil.getMovingAverage(
-                            nextLowLength, timeframe, stockTechnicals, true);
+                            nextNextLowLength, timeframe, stockTechnicals, sortByValue);
+            double nextNextLowDiff =
+                    formulaService.ceilToNearestQuarter(
+                            formulaService.calculateAbsChangePercentage(
+                                    evaluationResult.getPrevValue(), nextNextLowMA.getPrevValue()));
 
-            double nextLowMaDiff =
-                    formulaService.calculateChangePercentage(
-                            nextLowMA.getPrevValue(), evaluationResult.getPrevValue());
-            nextLowMaDiff = formulaService.ceilToNearestQuarter(nextLowMaDiff);
-
-            boolean isLowerMovingAverageIncreasing =
-                    MovingAverageUtil.isLowerMovingAverageIncreasing(
-                            currentLength, stockTechnicals);
-
-            isHigherMADiffValid =
-                    nextHighMaDiff >= nextHighThreshold
-                            && (nextLowMaDiff >= nextHighThreshold
-                                    || isLowerMovingAverageIncreasing);
+            isValid =
+                    nextLowDiff >= nextLowThreshold
+                            || (nextNextLowDiff
+                                    >= (nextLowThreshold + (nextLowThreshold - nextLowDiff)));
 
             evaluationLogService.add(
                     stockTechnicals,
-                    isHigherMADiffValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
+                    isValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
                     StringUtils.format(
-                            "HIGH MA — nextHighDiff:{} nextLowDiff:{} isLowerIncreasing:{} → {}",
-                            nextHighMaDiff,
-                            nextLowMaDiff,
-                            isLowerMovingAverageIncreasing,
-                            isHigherMADiffValid));
+                            "{} HIGHEST MA → nextLowDiff:{} nextNextLowDiff:{} threshold:{} → {}",
+                            timeframe.name(),
+                            nextLowDiff,
+                            nextNextLowDiff,
+                            nextLowThreshold + nextLowDiff,
+                            isValid));
+        } else {
+            // MID MAs — both high and low must satisfy
+            MovingAverageLength nextNextHighLength = nextHighLength.getHigher(sortByValue);
+            MovingAverageResult nextNextHighMA =
+                    MovingAverageUtil.getMovingAverage(
+                            nextNextHighLength, timeframe, stockTechnicals, sortByValue);
+            double nextNextHighDiff =
+                    formulaService.ceilToNearestQuarter(
+                            formulaService.calculateAbsChangePercentage(
+                                    evaluationResult.getPrevValue(),
+                                    nextNextHighMA.getPrevValue()));
+
+            MovingAverageLength nextNextLowLength = nextLowLength.getLower(sortByValue);
+            MovingAverageResult nextNextLowMA =
+                    MovingAverageUtil.getMovingAverage(
+                            nextNextLowLength, timeframe, stockTechnicals, sortByValue);
+            double nextNextLowDiff =
+                    formulaService.ceilToNearestQuarter(
+                            formulaService.calculateAbsChangePercentage(
+                                    evaluationResult.getPrevValue(), nextNextLowMA.getPrevValue()));
+
+            boolean highValid =
+                    nextHighDiff >= nextHighThreshold
+                            || (nextNextHighDiff
+                                    >= (nextHighThreshold + (nextHighThreshold - nextHighDiff)));
+
+            boolean lowValid =
+                    nextLowDiff >= nextLowThreshold
+                            || (nextNextLowDiff
+                                    >= (nextLowThreshold + (nextLowThreshold - nextLowDiff)));
+
+            isValid = highValid || lowValid;
+
+            evaluationLogService.add(
+                    stockTechnicals,
+                    isValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
+                    StringUtils.format(
+                            "{} {} MA — nextHighDiff {} nextNextHighDiff {} nextLowDiff {}"
+                                    + " nextNextLowDiff {}  highValid:{} lowValid:{} → {}",
+                            timeframe.name(),
+                            currentLength,
+                            nextHighDiff,
+                            nextNextHighDiff,
+                            nextLowDiff,
+                            nextNextLowDiff,
+                            highValid,
+                            lowValid,
+                            isValid));
         }
 
-        // All other cases
-        else {
-            if (nextHighMaDiff >= nextHighThreshold) {
-                isHigherMADiffValid = true;
-                evaluationLogService.add(
-                        stockTechnicals,
-                        EvaluationLog.Type.POSITIVE,
-                        StringUtils.format(
-                                "MA nextHighDiff:{} ≥ {} → true",
-                                nextHighMaDiff,
-                                nextHighThreshold));
-            } else {
-                // Check next-next higher
-                MovingAverageLength nextNextHighLength = nextHighLength.getHigher();
-                MovingAverageResult nextNextHighMA =
-                        MovingAverageUtil.getMovingAverage(
-                                nextNextHighLength, timeframe, stockTechnicals, true);
-                double nextNextHighMaDiff =
-                        formulaService.calculateChangePercentage(
-                                evaluationResult.getPrevValue(), nextNextHighMA.getPrevValue());
-                nextNextHighMaDiff = formulaService.ceilToNearestQuarter(nextNextHighMaDiff);
-
-                if (nextNextHighMaDiff >= (nextHighThreshold + nextHighMaDiff)) {
-
-                    isHigherMADiffValid = true;
-                    evaluationLogService.add(
-                            stockTechnicals,
-                            EvaluationLog.Type.POSITIVE,
-                            StringUtils.format(
-                                    "nextHighDiff:{} <= 0.5 && nextNextHighDiff:{} ≥ {} → true",
-                                    nextHighMaDiff,
-                                    nextNextHighMaDiff,
-                                    nextHighThreshold + nextHighMaDiff));
-                } /*else if (nextNextHighMaDiff > nextNextHighThreshold) {
-                      isHigherMADiffValid = true;
-                      evaluationLogService.add(stockTechnicals, EvaluationLog.Type.POSITIVE,
-                              StringUtils.format("nextNextHighDiff:{} > {} → true",
-                                      nextNextHighMaDiff, nextNextHighThreshold));
-                  } */ else {
-                    evaluationLogService.add(
-                            stockTechnicals,
-                            EvaluationLog.Type.NEUTRAL,
-                            StringUtils.format(
-                                    "MA nextHighDiff:{} and nextNextHighDiff:{} did not meet"
-                                            + " thresholds",
-                                    nextHighMaDiff,
-                                    nextNextHighMaDiff));
-                }
-            }
-        }
-
-        return isHigherMADiffValid;
+        return isValid;
     }
 
-    public boolean isLowerMovingAverageDiffValid(
+    public boolean isNearestMovingAverageDiffValidForBreakdown(
             Timeframe timeframe,
             StockTechnicals stockTechnicals,
-            MAEvaluationResult evaluationResult) {
+            MAEvaluationResult evaluationResult,
+            boolean sortByValue) {
 
         MovingAverageLength currentLength = evaluationResult.getLength();
-
-        double nextLowThreshold = 2.0;
+        double nextNextHighThreshold = 4.0;
+        double nextHighThreshold = 2.0;
         double nextNextLowThreshold = 4.0;
+        double nextLowThreshold = 2.0;
 
-        boolean isLowerMADiffValid = false;
+        boolean isValid = false;
 
-        // Get next lower MA and its % difference
-        MovingAverageLength nextLowLength = currentLength.getLower();
+        MovingAverageLength nextHighLength = currentLength.getHigher(sortByValue);
+        MovingAverageResult nextHighMA =
+                MovingAverageUtil.getMovingAverage(
+                        nextHighLength, timeframe, stockTechnicals, sortByValue);
+        double nextHighDiff =
+                formulaService.ceilToNearestQuarter(
+                        formulaService.calculateAbsChangePercentage(
+                                evaluationResult.getPrevValue(), nextHighMA.getPrevValue()));
+
+        MovingAverageLength nextLowLength = currentLength.getLower(sortByValue);
         MovingAverageResult nextLowMA =
-                MovingAverageUtil.getMovingAverage(nextLowLength, timeframe, stockTechnicals, true);
+                MovingAverageUtil.getMovingAverage(
+                        nextLowLength, timeframe, stockTechnicals, sortByValue);
+        double nextLowDiff =
+                formulaService.ceilToNearestQuarter(
+                        formulaService.calculateAbsChangePercentage(
+                                nextLowMA.getPrevValue(), evaluationResult.getPrevValue()));
 
-        double nextLowMaDiff =
-                formulaService.calculateChangePercentage(
-                        nextLowMA.getPrevValue(), evaluationResult.getPrevValue());
-        nextLowMaDiff = formulaService.ceilToNearestQuarter(nextLowMaDiff);
+        /*
+        boolean isHighest = (sortByValue ? currentLength == MovingAverageLength.HIGHEST : currentLength == MovingAverageLength.LOWEST);
+        boolean isLowest = (sortByValue ? currentLength == MovingAverageLength.LOWEST : currentLength == MovingAverageLength.HIGHEST);
+        */
+        boolean isHighest = currentLength == MovingAverageLength.HIGHEST;
+        boolean isLowest = currentLength == MovingAverageLength.LOWEST;
 
-        if (currentLength == MovingAverageLength.LOWEST) {
-            MovingAverageLength nextHighLength = currentLength.getHigher();
-            MovingAverageResult nextHighMA =
+        if (isLowest) {
+            // Check only nextHighDiff or nextNextHighDiff
+            MovingAverageLength nextNextHighLength = nextHighLength.getHigher(sortByValue);
+            MovingAverageResult nextNextHighMA =
                     MovingAverageUtil.getMovingAverage(
-                            nextHighLength, timeframe, stockTechnicals, true);
+                            nextNextHighLength, timeframe, stockTechnicals, sortByValue);
+            double nextNextHighDiff =
+                    formulaService.ceilToNearestQuarter(
+                            formulaService.calculateAbsChangePercentage(
+                                    evaluationResult.getPrevValue(),
+                                    nextNextHighMA.getPrevValue()));
 
-            double nextHighMaDiff =
-                    formulaService.calculateChangePercentage(
-                            nextHighMA.getPrevValue(), evaluationResult.getPrevValue());
-            nextHighMaDiff = formulaService.ceilToNearestQuarter(nextHighMaDiff);
-
-            boolean isHigherMovingAverageDecreasing =
-                    MovingAverageUtil.isHigherMovingAverageDecreasing(
-                            currentLength, stockTechnicals);
-
-            isLowerMADiffValid =
-                    nextHighMaDiff >= nextLowThreshold || isHigherMovingAverageDecreasing;
+            isValid =
+                    nextHighDiff >= nextHighThreshold
+                            || (nextNextHighDiff
+                                    >= (nextHighThreshold + (nextHighThreshold - nextHighDiff)));
 
             evaluationLogService.add(
                     stockTechnicals,
-                    isLowerMADiffValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
+                    isValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
                     StringUtils.format(
-                            "LOWEST MA — nextHighMA:{} current:{} diff:{} isHigherDecreasing:{} →"
-                                    + " {}",
-                            nextHighMA.getPrevValue(),
-                            evaluationResult.getPrevValue(),
-                            nextHighMaDiff,
-                            isHigherMovingAverageDecreasing,
-                            isLowerMADiffValid));
-
-        } else if (currentLength == MovingAverageLength.LOW) {
-            MovingAverageLength nextHighLength = currentLength.getHigher();
-            MovingAverageResult nextHighMA =
+                            "{} LOWEST MA → nextHighDiff:{} nextNextHighDiff:{} threshold:{} → {}",
+                            timeframe.name(),
+                            nextHighDiff,
+                            nextNextHighDiff,
+                            nextHighThreshold + nextHighDiff,
+                            isValid));
+        } else if (isHighest) {
+            // Check only nextLowDiff or nextNextLowDiff
+            MovingAverageLength nextNextLowLength = nextLowLength.getLower(sortByValue);
+            MovingAverageResult nextNextLowMA =
                     MovingAverageUtil.getMovingAverage(
-                            nextHighLength, timeframe, stockTechnicals, true);
+                            nextNextLowLength, timeframe, stockTechnicals, sortByValue);
+            double nextNextLowDiff =
+                    formulaService.ceilToNearestQuarter(
+                            formulaService.calculateAbsChangePercentage(
+                                    evaluationResult.getPrevValue(), nextNextLowMA.getPrevValue()));
 
-            double nextHighMaDiff =
-                    formulaService.calculateChangePercentage(
-                            nextHighMA.getPrevValue(), evaluationResult.getPrevValue());
-            nextHighMaDiff = formulaService.ceilToNearestQuarter(nextHighMaDiff);
-
-            boolean isHigherMovingAverageDecreasing =
-                    MovingAverageUtil.isHigherMovingAverageDecreasing(
-                            currentLength, stockTechnicals);
-
-            isLowerMADiffValid =
-                    nextLowMaDiff >= nextLowThreshold
-                            && (nextHighMaDiff >= nextLowThreshold
-                                    || isHigherMovingAverageDecreasing);
+            isValid =
+                    nextLowDiff >= nextLowThreshold
+                            || (nextNextLowDiff
+                                    >= (nextLowThreshold + (nextLowThreshold - nextLowDiff)));
 
             evaluationLogService.add(
                     stockTechnicals,
-                    isLowerMADiffValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
+                    isValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
                     StringUtils.format(
-                            "LOW MA — nextLowDiff:{} nextHighDiff:{} isHigherDecreasing:{} → {}",
-                            nextLowMaDiff,
-                            nextHighMaDiff,
-                            isHigherMovingAverageDecreasing,
-                            isLowerMADiffValid));
-
+                            "{} HIGHEST MA → nextLowDiff:{} nextNextLowDiff:{} threshold:{} → {}",
+                            timeframe.name(),
+                            nextLowDiff,
+                            nextNextLowDiff,
+                            nextLowThreshold + nextLowDiff,
+                            isValid));
         } else {
-            if (nextLowMaDiff >= nextLowThreshold) {
-                isLowerMADiffValid = true;
-                evaluationLogService.add(
-                        stockTechnicals,
-                        EvaluationLog.Type.POSITIVE,
-                        StringUtils.format(
-                                "MA nextLowDiff:{} ≥ {} → true", nextLowMaDiff, nextLowThreshold));
-            } else {
-                // Check next-next lower MA
-                MovingAverageLength nextNextLowLength = nextLowLength.getLower();
-                MovingAverageResult nextNextLowMA =
-                        MovingAverageUtil.getMovingAverage(
-                                nextNextLowLength, timeframe, stockTechnicals, true);
+            // MID MAs — both high and low must satisfy
+            MovingAverageLength nextNextHighLength = nextHighLength.getHigher(sortByValue);
+            MovingAverageResult nextNextHighMA =
+                    MovingAverageUtil.getMovingAverage(
+                            nextNextHighLength, timeframe, stockTechnicals, sortByValue);
+            double nextNextHighDiff =
+                    formulaService.ceilToNearestQuarter(
+                            formulaService.calculateAbsChangePercentage(
+                                    evaluationResult.getPrevValue(),
+                                    nextNextHighMA.getPrevValue()));
 
-                double nextNextLowMaDiff =
-                        formulaService.calculateChangePercentage(
-                                evaluationResult.getPrevValue(), nextNextLowMA.getPrevValue());
-                nextNextLowMaDiff = formulaService.ceilToNearestQuarter(nextNextLowMaDiff);
+            MovingAverageLength nextNextLowLength = nextLowLength.getLower(sortByValue);
+            MovingAverageResult nextNextLowMA =
+                    MovingAverageUtil.getMovingAverage(
+                            nextNextLowLength, timeframe, stockTechnicals, sortByValue);
+            double nextNextLowDiff =
+                    formulaService.ceilToNearestQuarter(
+                            formulaService.calculateAbsChangePercentage(
+                                    evaluationResult.getPrevValue(), nextNextLowMA.getPrevValue()));
 
-                if (nextNextLowMaDiff >= (nextLowThreshold + nextLowMaDiff)) {
-                    isLowerMADiffValid = true;
-                    evaluationLogService.add(
-                            stockTechnicals,
-                            EvaluationLog.Type.POSITIVE,
-                            StringUtils.format(
-                                    "nextLowDiff:{} <= 0.5 && nextNextLowDiff:{} ≥ {} → true",
-                                    nextLowMaDiff,
-                                    nextNextLowMaDiff,
-                                    nextLowThreshold + nextLowMaDiff));
-                } /*else if (nextNextLowMaDiff > nextNextLowThreshold) {
-                      isLowerMADiffValid = true;
-                      evaluationLogService.add(stockTechnicals, EvaluationLog.Type.POSITIVE,
-                              StringUtils.format("nextNextLowDiff:{} > {} → true",
-                                      nextNextLowMaDiff, nextNextLowThreshold));
-                  } */ else {
-                    evaluationLogService.add(
-                            stockTechnicals,
-                            EvaluationLog.Type.NEUTRAL,
-                            StringUtils.format(
-                                    "MA nextLowDiff:{} and nextNextLowDiff:{} did not meet"
-                                            + " thresholds",
-                                    nextLowMaDiff,
-                                    nextNextLowMaDiff));
-                }
-            }
+            boolean highValid =
+                    nextHighDiff >= nextHighThreshold
+                            || (nextNextHighDiff
+                                    >= (nextHighThreshold + (nextHighThreshold - nextHighDiff)));
+
+            boolean lowValid =
+                    nextLowDiff >= nextLowThreshold
+                            || (nextNextLowDiff
+                                    >= (nextLowThreshold + (nextLowThreshold - nextLowDiff)));
+
+            isValid = highValid || lowValid;
+
+            evaluationLogService.add(
+                    stockTechnicals,
+                    isValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
+                    StringUtils.format(
+                            "{} {} MA — nextHighDiff {} nextNextHighDiff {} nextLowDiff {}"
+                                    + " nextNextLowDiff {}  highValid:{} lowValid:{} → {}",
+                            timeframe.name(),
+                            currentLength,
+                            nextHighDiff,
+                            nextNextHighDiff,
+                            nextLowDiff,
+                            nextNextLowDiff,
+                            highValid,
+                            lowValid,
+                            isValid));
         }
 
-        return isLowerMADiffValid;
+        return isValid;
     }
 
-    public boolean isHighestMovingAverageDiffValid(
+    public boolean isLowestAndHighestMovingAverageDiffValid(
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
-            MAEvaluationResult evaluationResult,
-            MAInteractionType maInteractionType) {
+            MAInteractionType maInteractionType,
+            boolean sortByValue) {
+
         MovingAverageResult highestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
-        /*
-        double maToHighestPercentageDiff =
-                formulaService.calculateChangePercentage(
-                        evaluationResult.getPrevValue(), highestMovingAverageResult.getPrevValue());
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, sortByValue);
 
-         */
+        MovingAverageResult lowestMovingAverageResult =
+                MovingAverageUtil.getMovingAverage(
+                        MovingAverageLength.LOWEST, timeframe, stockTechnicals, sortByValue);
 
-        double maToHighestPercentageDiff =
-                formulaService.ceilToNearestHalf(
-                        formulaService.calculateChangePercentage(
-                                Math.min(stockPrice.getOpen(), stockPrice.getPrevClose()),
-                                highestMovingAverageResult.getPrevValue()));
+        double lowestToHighestPercentageDiff =
+                formulaService.calculateAbsChangePercentage(
+                        lowestMovingAverageResult.getPrevValue(),
+                        highestMovingAverageResult.getPrevValue());
+
+        MovingAverageLength thresholdLookupLength = getThresholdLookupLength(maInteractionType);
 
         boolean result =
-                MAThresholdsConfig.getThreshold(maInteractionType, evaluationResult.getLength())
-                        .map(threshold -> maToHighestPercentageDiff >= threshold)
+                MAThresholdsConfig.getThreshold(maInteractionType, thresholdLookupLength)
+                        .map(threshold -> lowestToHighestPercentageDiff >= threshold)
                         .orElse(true);
 
-        if (result) {
-            evaluationLogService.add(
-                    stockPrice,
-                    EvaluationLog.Type.POSITIVE,
-                    StringUtils.format(
-                            "Valid HighestMovingAverageDiff {} found for {} HIGHEST {} and"
-                                    + " difference is {} ",
-                            maInteractionType,
-                            Math.min(stockPrice.getOpen(), stockPrice.getPrevClose()),
-                            highestMovingAverageResult.getPrevValue(),
-                            maToHighestPercentageDiff));
-        }
+        evaluationLogService.add(
+                stockPrice,
+                (maInteractionType == MAInteractionType.BREAKOUT
+                                        || maInteractionType == MAInteractionType.SUPPORT)
+                                && result
+                        ? EvaluationLog.Type.POSITIVE
+                        : EvaluationLog.Type.NEUTRAL,
+                StringUtils.format(
+                        "{} Valid {} LowestToHighestPercentageDiff {} for LOWEST {} HIGHEST {} and"
+                                + " difference is {} ",
+                        timeframe.name(),
+                        maInteractionType,
+                        result,
+                        lowestMovingAverageResult.getPrevValue(),
+                        highestMovingAverageResult.getPrevValue(),
+                        lowestToHighestPercentageDiff));
 
         return result;
+    }
+
+    public MovingAverageLength getThresholdLookupLength(MAInteractionType maInteractionType) {
+        if (maInteractionType == MAInteractionType.BREAKOUT
+                || maInteractionType == MAInteractionType.SUPPORT) {
+            return MovingAverageLength.LOWEST;
+        }
+
+        return MovingAverageLength.HIGHEST;
     }
 
     public boolean isLowestMovingAverageDiffValid(
@@ -376,8 +407,9 @@ public class SignalEvaluatorHelperService {
                     stockPrice,
                     EvaluationLog.Type.POSITIVE,
                     StringUtils.format(
-                            "Valid LowestMovingAverageDiff found for {} HIGHEST {} and difference"
-                                    + " is {} ",
+                            "{} Valid LowestMovingAverageDiff found for {} HIGHEST {} and"
+                                    + " difference is {} ",
+                            timeframe.name(),
                             Math.min(stockPrice.getOpen(), stockPrice.getPrevClose()),
                             lowestMovingAverageResult.getPrevValue(),
                             maPercentageDiff));
@@ -449,8 +481,9 @@ public class SignalEvaluatorHelperService {
                     stockPrice,
                     EvaluationLog.Type.POSITIVE,
                     StringUtils.format(
-                            "Bullish Candle found for isStrongBody: {}, isStrongLowerWick: {},"
+                            "{} Bullish Candle found for isStrongBody: {}, isStrongLowerWick: {},"
                                     + " isBullishConfirmed: {}, isGapUp: {} ",
+                            timeframe.name(),
                             isStrongBody,
                             isStrongLowerWick,
                             isBullishConfirmed,
@@ -488,8 +521,9 @@ public class SignalEvaluatorHelperService {
                     stockPrice,
                     EvaluationLog.Type.NEGATIVE,
                     StringUtils.format(
-                            "Bearish Candle found for isStrongBody: {}, isStrongUpperWick: {},"
+                            "{} Bearish Candle found for isStrongBody: {}, isStrongUpperWick: {},"
                                     + " isBearishConfirmed: {}, isGapDown: {} ",
+                            timeframe.name(),
                             isStrongBody,
                             isStrongUpperWick,
                             isBearishConfirmed,
@@ -529,7 +563,23 @@ public class SignalEvaluatorHelperService {
     }
 
     public boolean isMacdConfirmingBreakout(StockTechnicals stockTechnicals) {
-        return this.isMacdNearTurningUp(stockTechnicals) || this.isMacdTurningUp(stockTechnicals);
+
+        boolean isNearTurningUp = this.isMacdNearTurningUp(stockTechnicals);
+        boolean isTurningUp = this.isMacdTurningUp(stockTechnicals);
+        boolean result = isNearTurningUp || isTurningUp;
+
+        evaluationLogService.add(
+                stockTechnicals,
+                EvaluationLog.Type.POSITIVE,
+                StringUtils.format(
+                        "{} MACD breakout confirmation: isMacdNearTurningUp: {}, isMacdTurningUp:"
+                                + " {} → {}",
+                        stockTechnicals.getTimeframe().name(),
+                        isNearTurningUp,
+                        isTurningUp,
+                        result));
+
+        return result;
     }
 
     public boolean currentBreakoutConfirmation(
@@ -566,7 +616,10 @@ public class SignalEvaluatorHelperService {
 
         boolean isPrevStrongUpperWick = CandleStickUtils.isPrevStrongUpperWick(stockPrice);
 
-        return isBearishCandle && (isPrevRed || isPrevStrongUpperWick);
+        boolean isLowerHighAndLowerLow =
+                CandleStickUtils.isLowerHigh(stockPrice) && CandleStickUtils.isLowerLow(stockPrice);
+
+        return isBearishCandle && (isPrevRed || isPrevStrongUpperWick || isLowerHighAndLowerLow);
     }
 
     public double calculateEntryPrice(

@@ -332,36 +332,48 @@ public class StockPriceServiceImpl implements StockPriceService {
     @Override
     public StockPrice buildPrevSessionStockPrice(StockPrice stockPrice) {
 
-        stockPrice.setOpen(stockPrice.getPrevOpen());
-        stockPrice.setHigh(stockPrice.getPrevHigh());
-        stockPrice.setLow(stockPrice.getPrevLow());
-        stockPrice.setClose(stockPrice.getPrevClose());
+        StockPrice newStockPrice =
+                STOCK_PRICE_CREATORS
+                        .getOrDefault(
+                                stockPrice.getTimeframe(),
+                                () -> {
+                                    throw new IllegalArgumentException(
+                                            "Unsupported timeframe: " + stockPrice.getTimeframe());
+                                })
+                        .get();
 
-        stockPrice.setPrevOpen(stockPrice.getPrev2Open());
-        stockPrice.setPrevHigh(stockPrice.getPrev2High());
-        stockPrice.setPrevLow(stockPrice.getPrev2Low());
-        stockPrice.setPrevClose(stockPrice.getPrev2Close());
+        newStockPrice.setTimeframe(stockPrice.getTimeframe());
+        newStockPrice.setStock(stockPrice.getStock());
+        newStockPrice.setOpen(stockPrice.getPrevOpen());
+        newStockPrice.setHigh(stockPrice.getPrevHigh());
+        newStockPrice.setLow(stockPrice.getPrevLow());
+        newStockPrice.setClose(stockPrice.getPrevClose());
 
-        stockPrice.setPrev2Open(stockPrice.getPrev3Open());
-        stockPrice.setPrev2High(stockPrice.getPrev3High());
-        stockPrice.setPrev2Low(stockPrice.getPrev3Low());
-        stockPrice.setPrev2Close(stockPrice.getPrev3Close());
+        newStockPrice.setPrevOpen(stockPrice.getPrev2Open());
+        newStockPrice.setPrevHigh(stockPrice.getPrev2High());
+        newStockPrice.setPrevLow(stockPrice.getPrev2Low());
+        newStockPrice.setPrevClose(stockPrice.getPrev2Close());
 
-        stockPrice.setPrev3Open(stockPrice.getPrev4Open());
-        stockPrice.setPrev3High(stockPrice.getPrev4High());
-        stockPrice.setPrev3Low(stockPrice.getPrev4Low());
-        stockPrice.setPrev3Close(stockPrice.getPrev4Close());
+        newStockPrice.setPrev2Open(stockPrice.getPrev3Open());
+        newStockPrice.setPrev2High(stockPrice.getPrev3High());
+        newStockPrice.setPrev2Low(stockPrice.getPrev3Low());
+        newStockPrice.setPrev2Close(stockPrice.getPrev3Close());
 
-        stockPrice.setPrev4Open(stockPrice.getPrev5Open());
-        stockPrice.setPrev4High(stockPrice.getPrev5High());
-        stockPrice.setPrev4Low(stockPrice.getPrev5Low());
-        stockPrice.setPrev4Close(stockPrice.getPrev5Close());
+        newStockPrice.setPrev3Open(stockPrice.getPrev4Open());
+        newStockPrice.setPrev3High(stockPrice.getPrev4High());
+        newStockPrice.setPrev3Low(stockPrice.getPrev4Low());
+        newStockPrice.setPrev3Close(stockPrice.getPrev4Close());
 
-        stockPrice.setPrev5Open(stockPrice.getPrev6Open());
-        stockPrice.setPrev5High(stockPrice.getPrev6High());
-        stockPrice.setPrev5Low(stockPrice.getPrev6Low());
-        stockPrice.setPrev5Close(stockPrice.getPrev6Close());
+        newStockPrice.setPrev4Open(stockPrice.getPrev5Open());
+        newStockPrice.setPrev4High(stockPrice.getPrev5High());
+        newStockPrice.setPrev4Low(stockPrice.getPrev5Low());
+        newStockPrice.setPrev4Close(stockPrice.getPrev5Close());
 
-        return stockPrice;
+        newStockPrice.setPrev5Open(stockPrice.getPrev6Open());
+        newStockPrice.setPrev5High(stockPrice.getPrev6High());
+        newStockPrice.setPrev5Low(stockPrice.getPrev6Low());
+        newStockPrice.setPrev5Close(stockPrice.getPrev6Close());
+
+        return newStockPrice;
     }
 }
