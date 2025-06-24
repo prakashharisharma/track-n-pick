@@ -154,7 +154,9 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 targetService.isTargetValid(
                         newResearchTechnical.getEntryPrice(), newResearchTechnical.getTarget());
 
-        if (isRiskWithinLimit && isTargetValid && researchInsightService.isStrongInsights(stock)) {
+        if (isRiskWithinLimit
+                && isTargetValid
+                && researchInsightService.isStrongInsights(stockPrice)) {
             newResearchTechnical = researchTechnicalRepository.save(newResearchTechnical);
         }
 
@@ -165,6 +167,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
             Timeframe timeframe, ResearchTechnical.SubStrategy subStrategy, double risk) {
 
         double weight = subStrategy.getPriority();
+
         double riskBuffer = 0.0;
 
         if (weight >= 10) {
@@ -270,23 +273,6 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         }
     }
 
-    private double calculateRiskRewardRatio(ResearchTechnical.SubStrategy subStrategy) {
-
-        if (subStrategy == ResearchTechnical.SubStrategy.STRONG_SUPPORT) {
-            return 3.0;
-        } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT) {
-            return 2.0;
-        } else if (subStrategy == ResearchTechnical.SubStrategy.STRONG_BREAKOUT) {
-            return 3.0;
-        } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_BREAKOUT) {
-            return 2.0;
-        } else if (subStrategy == ResearchTechnical.SubStrategy.BULLISH_INDICATORS) {
-            return 2.0;
-        }
-
-        return 2.0;
-    }
-
     private double calculateStopLoss(
             TradeSetup tradeSetup, StockPrice stockPrice, ResearchTechnical researchTechnical) {
 
@@ -313,108 +299,19 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         }
 
         ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
-        boolean isWeakSupport = this.isWeakSupport(subStrategy);
-        boolean isWeakBreakout = this.isWeakBreakout(subStrategy);
+
         boolean isRedCandle = CandleStickUtils.isRed(stockPrice);
 
         double researchPrice = stockPrice.getHigh();
 
-        if (isWeakSupport) {
-            researchPrice =
-                    isRedCandle
-                            ? (stockPrice.getLow()
-                                    + (stockPrice.getClose() - stockPrice.getLow()) * 0.25)
-                            : (stockPrice.getClose()
-                                    + (stockPrice.getHigh() - stockPrice.getClose()) * 0.25);
-        } else if (isWeakBreakout) {
-            researchPrice =
-                    isRedCandle
-                            ? (stockPrice.getClose()
-                                    + (stockPrice.getOpen() - stockPrice.getClose()) * 0.25)
-                            : (stockPrice.getClose()
-                                    + (stockPrice.getHigh() - stockPrice.getClose()) * 0.25);
-        } else {
-
-            researchPrice =
-                    isRedCandle
-                            ? (stockPrice.getOpen()
-                                    + (stockPrice.getHigh() - stockPrice.getOpen()) * 0.50)
-                            : (stockPrice.getClose()
-                                    + (stockPrice.getHigh() - stockPrice.getClose()) * 0.50);
-        }
+        researchPrice =
+                isRedCandle
+                        ? (stockPrice.getOpen()
+                                + (stockPrice.getHigh() - stockPrice.getOpen()) * 0.50)
+                        : (stockPrice.getClose()
+                                + (stockPrice.getHigh() - stockPrice.getClose()) * 0.50);
 
         return Math.min(formulaService.ceilToNearestQuarter(researchPrice), stockPrice.getHigh());
-    }
-
-    private boolean isSupport(ResearchTechnical.SubStrategy subStrategy) {
-        return subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT
-                || subStrategy == ResearchTechnical.SubStrategy.STRONG_SUPPORT;
-    }
-
-    private boolean isWeakSupport(ResearchTechnical.SubStrategy subStrategy) {
-        return subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT;
-    }
-
-    private boolean isWeakBreakout(ResearchTechnical.SubStrategy subStrategy) {
-        return subStrategy == ResearchTechnical.SubStrategy.WEAK_BREAKOUT
-                || subStrategy == ResearchTechnical.SubStrategy.WEAK_SWING;
-    }
-
-    public double calculateScore(
-            Stock stock,
-            Timeframe timeframe,
-            TradeSetup tradeSetup,
-            StockTechnicals stockTechnicals,
-            StockPrice stockPrice) {
-
-        double score = 0.0;
-        double bullishScore =
-                this.calculateBullishScore(stock, timeframe, stockTechnicals, stockPrice);
-
-        ResearchTechnical.Strategy strategy = tradeSetup.getStrategy();
-        ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
-
-        if (strategy == ResearchTechnical.Strategy.SWING) {
-            if (subStrategy == ResearchTechnical.SubStrategy.STRONG_SWING) {
-                if (bullishScore > 0.0) {
-                    return RiskFactor.SWING_STRONG_SWING + bullishScore;
-                }
-            } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_SWING) {
-                if (bullishScore > 0.0) {
-                    return RiskFactor.SWING_WEAK_SWING + bullishScore;
-                }
-            }
-        }
-
-        if (strategy == ResearchTechnical.Strategy.PRICE) {
-            if (subStrategy == ResearchTechnical.SubStrategy.STRONG_SUPPORT) {
-                if (bullishScore > 0.0) {
-                    return RiskFactor.PRICE_STRONG_SUPPORT + bullishScore;
-                }
-            } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_SUPPORT) {
-                if (bullishScore > 0.0) {
-                    return RiskFactor.PRICE_WEAK_SUPPORT + bullishScore;
-                }
-            } else if (subStrategy == ResearchTechnical.SubStrategy.STRONG_BREAKOUT) {
-                if (bullishScore > 0.0) {
-                    return RiskFactor.PRICE_STRONG_BREAKOUT + bullishScore;
-                }
-            } else if (subStrategy == ResearchTechnical.SubStrategy.WEAK_BREAKOUT) {
-                if (bullishScore > 0.0) {
-                    return RiskFactor.PRICE_WEAK_BREAKOUT + bullishScore;
-                }
-            }
-        }
-
-        if (strategy == ResearchTechnical.Strategy.VOLUME) {
-            if (subStrategy == ResearchTechnical.SubStrategy.HV) {
-                if (bullishScore > 0.0) {
-                    return RiskFactor.VOLUME_HV + bullishScore;
-                }
-            }
-        }
-
-        return score;
     }
 
     private Double calculateBullishScore(

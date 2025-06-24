@@ -10,7 +10,6 @@ import com.example.data.transactional.repo.*;
 import com.example.data.transactional.repo.TradingHolidayRepository;
 import com.example.dto.assembler.StockPriceOHLCVAssembler;
 import com.example.dto.common.OHLCV;
-import com.example.dto.common.TradeSetup;
 import com.example.dto.integration.StockOverviewResponse;
 import com.example.dto.io.BseSectorListResponse;
 import com.example.dto.io.FinancialsSummaryDto;
@@ -52,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,6 +115,8 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private AverageDirectionalIndexCalculatorService averageDirectionalIndexService;
 
+    @Autowired private DailySupportResistanceService dailySupportResistanceService;
+
     @Autowired private McService mcService;
 
     @Autowired private QuarterlySupportResistanceService quarterlySupportResistanceService;
@@ -136,9 +138,6 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
 
     @Autowired private CandleStickConfirmationService candleStickHelperService;
-    @Autowired private SwingActionService swingActionService;
-
-    @Autowired private PriceActionService priceActionService;
 
     @Autowired private FundamentalResearchService fundamentalResearchService;
     @Autowired private CandleStickService candleStickService;
@@ -155,6 +154,10 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired
     private MultiTimeframeSupportResistanceService multiTimeframeSupportResistanceService;
+
+    @Autowired
+    @Qualifier("simplePriceActionSignalEvaluator")
+    private TradeSignalEvaluator simplePriceActionSignalEvaluator;
 
     @Autowired private SectorDownloadService sectorDownloadService;
 
@@ -184,6 +187,7 @@ public class WebRunner implements CommandLineRunner {
         log.info("Application started....");
 
         bhavProcessor.processAndResearchTechnicals();
+
         // testdetectMArketConfition();
         // testSupportResistanceZones();
         /*
@@ -263,11 +267,20 @@ public class WebRunner implements CommandLineRunner {
         System.out.println("*************");
          */
         // this.testmcap();
-        // this.testDynamicSR();
+        // this.testSignalEvaluator();
+        //  this.testDynamicSR();
         // this.updateScore();
         // this.testResearch360();
         // this.updatePivotLevels();
         System.out.println("STARTED");
+    }
+
+    public void testSignalEvaluator() {
+        Stock stock = stockService.getStockByNseSymbol("DOMS");
+        StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
+        simplePriceActionSignalEvaluator.evaluateEntry(
+                Timeframe.DAILY, stock, stockPrice, stockTechnicals);
     }
 
     private void testdetectMArketConfition() {
@@ -411,17 +424,16 @@ public class WebRunner implements CommandLineRunner {
 
     private void testDynamicSR() {
 
-        List<Stock> stockList = stockService.getActiveStocks();
+        // List<Stock> stockList = stockService.getActiveStocks();
 
-        /*
         List<Stock> stockList = new ArrayList<>();
-        stockList.add(stockService.getStockByNseSymbol("MMFL"));
-        stockList.add(stockService.getStockByNseSymbol("DCMSRIND"));
-        stockList.add(stockService.getStockByNseSymbol("NBIFIN"));
-        stockList.add(stockService.getStockByNseSymbol("WEIZMANIND"));
-        */
+        stockList.add(stockService.getStockByNseSymbol("DOMS"));
+        // stockList.add(stockService.getStockByNseSymbol("DCMSRIND"));
+        // stockList.add(stockService.getStockByNseSymbol("NBIFIN"));
+        // stockList.add(stockService.getStockByNseSymbol("WEIZMANIND"));
 
         for (Stock stock : stockList) {
+            System.out.println("Evaluation...." + stock.getNseSymbol());
             StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
             StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
 
@@ -996,48 +1008,6 @@ public class WebRunner implements CommandLineRunner {
         return sectors;
     }
 
-    private void scanBullishCandleStickPattern() {
-
-        System.out.println("******* Scanning Bullish *******");
-        List<Stock> stockList = stockService.getActiveStocks();
-
-        for (Stock stock : stockList) {
-
-            if (stock.getSeries() != null && stock.getSeries().equalsIgnoreCase("EQ")) {
-                if (fundamentalResearchService.isMcapInRange(stock)) {
-                    // candleStickExecutorService.executeBullish(stock);
-                    if (researchLedgerFundamentalService.isResearchActive(stock)) {
-                        System.out.println("FUNDAMENTAL " + stock.getNseSymbol());
-                    }
-                    System.out.println("******* DAILY :" + stock.getNseSymbol() + " *******");
-
-                    StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
-                    StockTechnicals stockTechnicals =
-                            stockTechnicalsService.get(stock, Timeframe.DAILY);
-                    TradeSetup tradeSetup = priceActionService.breakOut(stock, Timeframe.DAILY);
-                    // System.out.println(stock.getNseSymbol() + " : Price Action " +
-                    // tradeSetup.isActive());
-                    tradeSetup = swingActionService.breakOut(stock, Timeframe.DAILY);
-                    System.out.println(
-                            stock.getNseSymbol() + " : Swing Action " + tradeSetup.isActive());
-                    if (calendarService.isLastTradingSessionOfWeek(miscUtil.currentDate())) {
-                        System.out.println("******* WEEKLY :" + stock.getNseSymbol() + " *******");
-                        stockPrice = stockPriceService.get(stock, Timeframe.WEEKLY);
-                        stockTechnicals = stockTechnicalsService.get(stock, Timeframe.WEEKLY);
-                        tradeSetup = priceActionService.breakOut(stock, Timeframe.WEEKLY);
-
-                        tradeSetup = swingActionService.breakOut(stock, Timeframe.WEEKLY);
-                    }
-                    if (calendarService.isLastTradingSessionOfMonth(miscUtil.currentDate())) {
-                        System.out.println("******* MONTHLY :" + stock.getNseSymbol() + " *******");
-                        priceActionService.breakOut(stock, Timeframe.MONTHLY);
-                        swingActionService.breakOut(stock, Timeframe.MONTHLY);
-                    }
-                }
-            }
-        }
-    }
-
     private void scanBearishCandleStickPattern() {
 
         System.out.println("******* Scanning Bullish *******");
@@ -1051,14 +1021,12 @@ public class WebRunner implements CommandLineRunner {
 
                     if (calendarService.isLastTradingSessionOfMonth(miscUtil.currentDate())) {
                         System.out.println("******* MONTHLY :" + stock.getNseSymbol() + " *******");
-                        priceActionService.breakDown(stock, Timeframe.MONTHLY);
                     }
                     if (calendarService.isLastTradingSessionOfWeek(miscUtil.currentDate())) {
                         System.out.println("******* WEEKLY :" + stock.getNseSymbol() + " *******");
-                        priceActionService.breakDown(stock, Timeframe.WEEKLY);
                     }
                     System.out.println("******* DAILY :" + stock.getNseSymbol() + " *******");
-                    priceActionService.breakDown(stock, Timeframe.DAILY);
+
                     // movingAverageActionService.breakDown(stock, Timeframe.DAILY);
                 }
             }
@@ -1482,10 +1450,10 @@ public class WebRunner implements CommandLineRunner {
             executorService.submit(
                     () -> {
                         try {
-                            processYearlyPriceUpdate(stock);
-                            processQuarterlyPriceUpdate(stock);
-                            processMonthlyPriceUpdate(stock);
-                            processWeeklyPriceUpdate(stock);
+                            // processYearlyPriceUpdate(stock);
+                            // processQuarterlyPriceUpdate(stock);
+                            // processMonthlyPriceUpdate(stock);
+                            // processWeeklyPriceUpdate(stock);
                             processDailyPriceUpdate(stock);
 
                             stock.setActivityCompleted(true);
@@ -1845,14 +1813,13 @@ public class WebRunner implements CommandLineRunner {
     }
 
     private void processDailyPriceUpdate(Stock stock) {
-        /*
 
         long startTime = System.currentTimeMillis();
         System.out.println("Starting daily activity for " + stock.getNseSymbol());
 
         try {
 
-            LocalDate initialDate = LocalDate.of(2025, 03, 17);
+            LocalDate initialDate = LocalDate.of(2025, 06, 16);
 
             LocalDate from = initialDate;
             LocalDate to = initialDate;
@@ -1912,7 +1879,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = from;
 
-            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
+            } while (to.isBefore(LocalDate.of(2025, 06, 21)));
 
             long endTime = System.currentTimeMillis();
 
@@ -1926,7 +1893,7 @@ public class WebRunner implements CommandLineRunner {
             miscUtil.delay(500);
         } catch (Exception e) {
             System.out.println("An error occured while getting data " + stock.getNseSymbol());
-        }*/
+        }
     }
 
     public void processTechnicalsUpdate() {
@@ -1941,8 +1908,8 @@ public class WebRunner implements CommandLineRunner {
                     () -> {
                         try {
 
-                            processMonthlyTechnicalsUpdate(stock);
-                            processWeeklyTechnicalsUpdate(stock);
+                            // processMonthlyTechnicalsUpdate(stock);
+                            // processWeeklyTechnicalsUpdate(stock);
                             processDailyTechnicalsUpdate(stock);
 
                             stock.setActivityCompleted(true);
@@ -2046,7 +2013,7 @@ public class WebRunner implements CommandLineRunner {
 
         try {
 
-            LocalDate initialDate = LocalDate.of(2025, 03, 13);
+            LocalDate initialDate = LocalDate.of(2025, 06, 16);
 
             LocalDate from = initialDate;
             LocalDate to = initialDate;
@@ -2064,7 +2031,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = from;
 
-            } while (to.isBefore(LocalDate.now()));
+            } while (to.isBefore(LocalDate.of(2025, 06, 21)));
 
             long endTime = System.currentTimeMillis();
 

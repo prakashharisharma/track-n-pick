@@ -2,7 +2,6 @@ package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
-import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
@@ -415,7 +414,6 @@ public class RelevanceServiceImpl implements RelevanceService {
         if (!multiIndicatorService.isBearish(stockTechnicals)) {
             return false;
         }
-
 
         return true;
     }

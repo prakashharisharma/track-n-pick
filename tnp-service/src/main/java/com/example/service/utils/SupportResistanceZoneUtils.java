@@ -73,14 +73,8 @@ public class SupportResistanceZoneUtils {
                         stockPrice.getPrev4Close(),
                         stockPrice.getPrev5Close());
 
-        System.out.println("close: " + closes);
-
         Zone resistanceZone = getClusteredZone(highs);
         Zone supportZone = getClusteredZone(lows);
-
-        System.out.println("supportZone: " + supportZone);
-
-        System.out.println("resistanceZone: " + resistanceZone);
 
         return SupportResistanceZones.builder()
                 .support(supportZone)

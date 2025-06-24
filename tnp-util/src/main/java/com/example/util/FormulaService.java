@@ -147,6 +147,17 @@ public class FormulaService {
         return ((num2 - num1) / num1) * 100;
     }
 
+    public double calculateAbsChangePercentage(double num1, double num2) {
+        if (num1 == 0.0) {
+            return 0.0;
+        }
+        if (num1 > num2) {
+            return ((num1 - num2) / num2) * 100;
+        }
+
+        return ((num2 - num1) / num1) * 100;
+    }
+
     /**
      * Applies a percentage change to the given number.
      *

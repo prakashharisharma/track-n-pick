@@ -19,6 +19,7 @@ public class ResistanceValidationService {
     private final StockPriceService stockPriceService;
     private final FormulaService formulaService; // For 1% calculation
     private final EvaluationLogService evaluationLogService;
+
     public boolean isOutsideHigherTimeframeResistanceZone(StockPrice stockPrice) {
         Timeframe current = stockPrice.getTimeframe();
         Stock stock = stockPrice.getStock();
@@ -29,31 +30,43 @@ public class ResistanceValidationService {
             StockPrice higherTfPrice = stockPriceService.get(stock, higher);
             if (higherTfPrice == null) break;
 
-            SupportResistanceZones zones = SupportResistanceZoneUtils.calculateSupportResistanceZones(higherTfPrice);
+            SupportResistanceZones zones =
+                    SupportResistanceZoneUtils.calculateSupportResistanceZones(higherTfPrice);
             SupportResistanceZoneUtils.Zone resistance = zones.getResistance();
 
             double resistanceStart = resistance.getStart();
             double resistanceEnd = resistance.getEnd();
 
-            double onePercentBelowStart = resistanceStart - formulaService.calculateFraction(resistanceStart, 1.0);
+            double onePercentBelowStart =
+                    resistanceStart - formulaService.calculateFraction(resistanceStart, 1.0);
 
             boolean isOutside = close < onePercentBelowStart || close > resistanceEnd;
 
-
             log.debug(
-                    "{}: Close={} | Resistance Start={} End={} | 1% Below Start={} | OutsideZone={}",
-                    higher.name(), close, resistanceStart, resistanceEnd, onePercentBelowStart, isOutside
-            );
+                    "{}: Close={} | Resistance Start={} End={} | 1% Below Start={} |"
+                            + " OutsideZone={}",
+                    higher.name(),
+                    close,
+                    resistanceStart,
+                    resistanceEnd,
+                    onePercentBelowStart,
+                    isOutside);
 
-            if (!isOutside){
+            if (!isOutside) {
                 evaluationLogService.add(
                         stockPrice,
                         EvaluationLog.Type.NEUTRAL,
                         StringUtils.format(
-                                "{} Timeframe resistance alert Close={} | Resistance Start={} End={} | 1% Below Start={} | OutsideZone={}",
-                                higher.name(), close, resistanceStart, resistanceEnd, onePercentBelowStart, isOutside));
+                                "{} Timeframe resistance alert Close={} | Resistance Start={}"
+                                        + " End={} | 1% Below Start={} | OutsideZone={}",
+                                higher.name(),
+                                close,
+                                resistanceStart,
+                                resistanceEnd,
+                                onePercentBelowStart,
+                                isOutside));
                 return false;
-            }// still within resistance zone
+            } // still within resistance zone
 
             Timeframe nextHigher = higher.getHigher();
             if (nextHigher == higher) break; // Reached top
@@ -63,4 +76,3 @@ public class ResistanceValidationService {
         return true;
     }
 }
-

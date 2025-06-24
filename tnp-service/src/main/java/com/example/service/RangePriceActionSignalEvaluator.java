@@ -98,8 +98,8 @@ public class RangePriceActionSignalEvaluator implements TradeSignalEvaluator {
                 signalEvaluatorHelperService.isBullishCandle(stockPrice, stockTechnicals);
         boolean isVolumeSurge = volumeIndicatorService.isVolumeSurge(stockTechnicals);
         boolean isHighestMovingAverageDiffValid =
-                signalEvaluatorHelperService.isHighestMovingAverageDiffValid(
-                        timeframe, stockPrice, stockTechnicals, null, MAInteractionType.SUPPORT);
+                signalEvaluatorHelperService.isLowestAndHighestMovingAverageDiffValid(
+                        timeframe, stockPrice, stockTechnicals, MAInteractionType.SUPPORT, true);
 
         if (isBullishCandle && isVolumeSurge && isHighestMovingAverageDiffValid) {
             return SubStrategyHelper.resolveByName(timeframe.getHigher().getHigher() + "_support");

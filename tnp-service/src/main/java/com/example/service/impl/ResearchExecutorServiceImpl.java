@@ -39,10 +39,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     @Autowired private StockPriceService<StockPrice> stockPriceService;
     @Autowired private ValuationLedgerService valuationLedgerService;
     @Autowired private EvaluationLogService evaluationLogService;
-    @Autowired private SwingActionService swingActionService;
-    @Autowired private PriceActionService priceActionService;
 
-    @Autowired private DynamicPriceActionService dynamicPriceActionService;
     @Autowired private CandleStickService candleStickService;
 
     @Autowired private ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
@@ -60,6 +57,10 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     @Autowired
     @Qualifier("dynamicPriceActionSignalEvaluator")
     private TradeSignalEvaluator dynamicPriceActionSignalEvaluator;
+
+    @Autowired
+    @Qualifier("hybridPriceActionSignalEvaluator")
+    private TradeSignalEvaluator hybridPriceActionSignalEvaluator;
 
     @Autowired
     @Qualifier("simplePriceActionSignalEvaluator")
@@ -149,12 +150,18 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                 log.info("{} Found EQ stock ", stock.getNseSymbol());
 
                 TradeSetup tradeSetup =
-                        dynamicPriceActionSignalEvaluator.evaluateEntry(
+                        simplePriceActionSignalEvaluator.evaluateEntry(
                                 timeframe, stock, stockPrice, stockTechnicals);
 
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
-                            simplePriceActionSignalEvaluator.evaluateEntry(
+                            dynamicPriceActionSignalEvaluator.evaluateEntry(
+                                    timeframe, stock, stockPrice, stockTechnicals);
+                }
+
+                if (!tradeSetup.isActive()) {
+                    tradeSetup =
+                            hybridPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
 
