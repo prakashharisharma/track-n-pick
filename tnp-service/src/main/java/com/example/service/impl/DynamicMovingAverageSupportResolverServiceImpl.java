@@ -226,11 +226,8 @@ public class DynamicMovingAverageSupportResolverServiceImpl
         double low = stockPrice.getLow();
         double high = stockPrice.getHigh();
 
-        System.out.println("low " + low);
-        System.out.println("high " + high);
-
         boolean checkSupport = TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN;
-        System.out.println("checkSupport " + checkSupport);
+
         List<MAServiceEntry> sorted = getSortedMAEntries(timeframe, stockTechnicals, sortByValue);
 
         MovingAverageLength[] lengths = MovingAverageLength.values(); // HIGHEST to LOWEST
@@ -260,7 +257,6 @@ public class DynamicMovingAverageSupportResolverServiceImpl
         List<MAInteraction> interactions =
                 findMAInteractions(timeframe, stockPrice, stockTechnicals, sortByValue);
 
-        System.out.println("size " + interactions.size());
         return interactions.stream()
                 .map(
                         interaction -> {
@@ -330,12 +326,22 @@ public class DynamicMovingAverageSupportResolverServiceImpl
         List<MAEvaluationResult> resistances =
                 results.stream().filter(MAEvaluationResult::isNearResistance).toList();
 
+        /*
         Comparator<MAEvaluationResult> weightComparator =
                 sortByValue
                         ? Comparator.comparingInt(
                                 r -> r.getLength().getWeight()) // Lower MA preferred
                         : Comparator.comparingInt(
                                 r -> r.getLength().getReverseWeight()); // Higher MA preferred
+
+         */
+
+        Comparator<MAEvaluationResult> weightComparator =
+                sortByValue
+                        ? Comparator.comparingInt(
+                                (MAEvaluationResult r) -> r.getLength().getWeight())
+                        : Comparator.comparingDouble((MAEvaluationResult r) -> r.getPrevValue())
+                                .reversed();
 
         Comparator<MAEvaluationResult> reverseComparator =
                 sortByValue

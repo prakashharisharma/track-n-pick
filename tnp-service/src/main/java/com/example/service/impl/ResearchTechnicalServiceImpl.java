@@ -147,6 +147,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         boolean isRiskWithinLimit =
                 isRiskWithinLimit(
                         timeframe,
+                        stockPrice,
+                        stockTechnicals,
                         newResearchTechnical.getEntrySubStrategy(),
                         newResearchTechnical.getRisk());
 
@@ -164,16 +166,20 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     }
 
     public static boolean isRiskWithinLimit(
-            Timeframe timeframe, ResearchTechnical.SubStrategy subStrategy, double risk) {
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            ResearchTechnical.SubStrategy subStrategy,
+            double risk) {
 
         double weight = subStrategy.getPriority();
 
-        double riskBuffer = 0.0;
+        double riskBuffer = -2.0;
 
         if (weight >= 10) {
-            riskBuffer = 3.0;
-        } else if (weight >= 9) {
             riskBuffer = 2.0;
+        } else if (weight >= 9) {
+            riskBuffer = 1.5;
         } else if (weight >= 8) {
             riskBuffer = 1.0;
         }
@@ -181,8 +187,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         if (subStrategy.isBreakout()) {
             return switch (timeframe) {
                 case DAILY -> risk <= (7.0 + riskBuffer);
-                case WEEKLY -> risk <= (9.5 + riskBuffer);
-                case MONTHLY -> risk <= (12.0 + riskBuffer);
+                case WEEKLY -> risk <= (8.5 + riskBuffer);
+                case MONTHLY -> risk <= (10.0 + riskBuffer);
                 default -> false;
             };
         } else if (subStrategy.isSupport()) {
@@ -238,41 +244,6 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         return researchTechnicalRepository.findAllByType(type);
     }
 
-    private double calculateMacdScore(ResearchTechnical researchTechnical) {
-
-        StockTechnicals stockTechnicals =
-                stockTechnicalsService.get(
-                        researchTechnical.getStock(), researchTechnical.getTimeframe());
-
-        if (stockTechnicals == null) return 5.0; // neutral score if data missing
-
-        Double macd = stockTechnicals.getMacd();
-        Double signal = stockTechnicals.getSignal();
-        Double prevMacd = stockTechnicals.getPrevMacd();
-        Double prevSignal = stockTechnicals.getPrevSignal();
-
-        // Handle null MACD or signal values
-        if (macd == null || signal == null || prevMacd == null || prevSignal == null) {
-            return 5.0; // neutral score if any MACD-related data is missing
-        }
-
-        double currHistogram = formulaService.calculateHistogram(macd, signal);
-        double prevHistogram = formulaService.calculateHistogram(prevMacd, prevSignal);
-
-        boolean bullish = macd > signal;
-        boolean rising = currHistogram > prevHistogram;
-
-        if (bullish && rising) {
-            return 9.0 + Math.min(1.0, (currHistogram - prevHistogram) * 5); // up to 10
-        } else if (bullish) {
-            return 7.0;
-        } else if (macd.equals(signal)) {
-            return 5.0;
-        } else {
-            return Math.max(0.0, 4.0 - (signal - macd)); // inverse decay
-        }
-    }
-
     private double calculateStopLoss(
             TradeSetup tradeSetup, StockPrice stockPrice, ResearchTechnical researchTechnical) {
 
@@ -312,99 +283,6 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                                 + (stockPrice.getHigh() - stockPrice.getClose()) * 0.50);
 
         return Math.min(formulaService.ceilToNearestQuarter(researchPrice), stockPrice.getHigh());
-    }
-
-    private Double calculateBullishScore(
-            Stock stock,
-            Timeframe timeframe,
-            StockTechnicals stockTechnicals,
-            StockPrice stockPrice) {
-
-        double score = 0.0;
-        double close = stockPrice.getClose();
-
-        double movingAverageScore =
-                this.checkAndIncrease(
-                        close, this.getMovingAverage5(timeframe, stockTechnicals), score);
-        if (movingAverageScore > score) {
-            score = movingAverageScore + 0.00;
-        }
-        movingAverageScore =
-                this.checkAndIncrease(
-                        close, this.getMovingAverage10(timeframe, stockTechnicals), score);
-        if (movingAverageScore > score) {
-            score = movingAverageScore + 0.10;
-        }
-        movingAverageScore =
-                this.checkAndIncrease(
-                        close, this.getMovingAverage20(timeframe, stockTechnicals), score);
-        if (movingAverageScore > score) {
-            score = movingAverageScore + 0.20;
-        }
-        movingAverageScore =
-                this.checkAndIncrease(
-                        close, this.getMovingAverage50(timeframe, stockTechnicals), score);
-        if (movingAverageScore > score) {
-            score = movingAverageScore + 0.30;
-        }
-        movingAverageScore =
-                this.checkAndIncrease(
-                        close, this.getMovingAverage100(timeframe, stockTechnicals), score);
-        if (movingAverageScore > score) {
-            score = movingAverageScore + 0.40;
-        }
-        movingAverageScore =
-                this.checkAndIncrease(
-                        close, this.getMovingAverage200(timeframe, stockTechnicals), score);
-        if (movingAverageScore > score) {
-            score = movingAverageScore + 0.50;
-        }
-
-        return score;
-    }
-
-    private double getMovingAverage5(Timeframe timeframe, StockTechnicals stockTechnicals) {
-        return stockTechnicals.getEma5();
-    }
-
-    private double getMovingAverage10(Timeframe timeframe, StockTechnicals stockTechnicals) {
-        return stockTechnicals.getEma10();
-    }
-
-    private double getMovingAverage20(Timeframe timeframe, StockTechnicals stockTechnicals) {
-        return stockTechnicals.getEma20();
-    }
-
-    private double getMovingAverage50(Timeframe timeframe, StockTechnicals stockTechnicals) {
-        return (timeframe == Timeframe.MONTHLY)
-                ? stockTechnicals.getSma50()
-                : stockTechnicals.getEma50();
-    }
-
-    private double getMovingAverage100(Timeframe timeframe, StockTechnicals stockTechnicals) {
-        return (timeframe == Timeframe.MONTHLY || timeframe == Timeframe.WEEKLY)
-                ? stockTechnicals.getSma100()
-                : stockTechnicals.getEma100();
-    }
-
-    private double getMovingAverage200(Timeframe timeframe, StockTechnicals stockTechnicals) {
-        return (timeframe == Timeframe.MONTHLY || timeframe == Timeframe.WEEKLY)
-                ? stockTechnicals.getSma200()
-                : stockTechnicals.getEma200();
-    }
-
-    private Double checkAndIncrease(double close, double ema, double score) {
-
-        if (close >= ema && ema > 0.0) {
-            score = score + 0.10;
-        }
-
-        /*
-        if(ema == 0.0){
-        	score = score - 0.5;
-        }*/
-
-        return score;
     }
 
     @Override

@@ -709,6 +709,22 @@ public class CandleStickUtils {
         return smallByRange || smallByAtr;
     }
 
+    public static boolean isCloseHighEqual(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getPrevOpen() == null
+                || stockPrice.getPrevClose() == null
+                || stockPrice.getPrevHigh() == null
+                || stockPrice.getPrevLow() == null) {
+            return false;
+        }
+
+        if (stockPrice.getClose().equals(stockPrice.getHigh())) {
+            return true;
+        }
+
+        return false;
+    }
+
     public static boolean isPrevSmallBody(StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null
                 || stockPrice.getPrevOpen() == null

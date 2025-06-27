@@ -133,7 +133,9 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
         if (rsiIndicatorService.isOverBought(stockTechnicals)
-                || CandleStickUtils.isUpperWickDominant(stockPrice)) {
+                || (CandleStickUtils.isUpperWickDominant(stockPrice)
+                        && CandleStickUtils.isStrongRange(
+                                timeframe, stockPrice, stockTechnicals))) {
             return Optional.empty();
         }
 

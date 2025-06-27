@@ -13,6 +13,7 @@ import com.example.service.*;
 import com.example.service.ResearchTechnicalService;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
+import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import java.time.LocalDate;
@@ -213,8 +214,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
         boolean isUpdation = Boolean.FALSE;
         TradeSetup tradeSetup = TradeSetup.builder().build();
         // if (candleStickService.isRed(stockPrice)) {
-        if (candleStickService.isRed(stockPrice)
-                && this.isTargetAchieved(researchTechnical, timeframe, stock, stockPrice)) {
+        if (this.isTargetAchieved(researchTechnical, timeframe, stock, stockPrice)) {
             tradeSetup.setActive(true);
             tradeSetup.setStrategy(ResearchTechnical.Strategy.TARGET);
             tradeSetup.setSubStrategy(ResearchTechnical.SubStrategy.TARGET_ACHIEVED);
@@ -316,16 +316,24 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             Stock stock,
             StockPrice stockPrice) {
 
-        if (researchTechnical.getTarget() <= stockPrice.getClose()) {
-            evaluationLogService.add(
-                    stockPrice,
-                    EvaluationLog.Type.POSITIVE,
-                    EvaluationLog.BreakoutCategory.TARGET_ACHIEVED.name());
-            log.info(
-                    "{} Target achieved, target {}",
-                    stock.getNseSymbol(),
-                    researchTechnical.getTarget());
-            return Boolean.TRUE;
+        boolean isLowerHighLowerLow =
+                CandleStickUtils.isLowerHigh(stockPrice) && CandleStickUtils.isLowerLow(stockPrice);
+
+        if (CandleStickUtils.isRed(stockPrice)
+                || CandleStickUtils.isStrongUpperWick(stockPrice)
+                || isLowerHighLowerLow) {
+
+            if (researchTechnical.getTarget() <= stockPrice.getClose()) {
+                evaluationLogService.add(
+                        stockPrice,
+                        EvaluationLog.Type.POSITIVE,
+                        EvaluationLog.BreakoutCategory.TARGET_ACHIEVED.name());
+                log.info(
+                        "{} Target achieved, target {}",
+                        stock.getNseSymbol(),
+                        researchTechnical.getTarget());
+                return Boolean.TRUE;
+            }
         }
 
         return Boolean.FALSE;

@@ -449,14 +449,36 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     @Override
     public boolean isVolumeSurge(StockTechnicals stockTechnicals) {
 
-        double currentVolume = stockTechnicals.getVolume();
-        double prevVolume = stockTechnicals.getPrevVolume();
-        double avgVolume20 = stockTechnicals.getVolumeAvg20();
-        double prevAvgVolume20 = stockTechnicals.getPrevVolumeAvg20();
+        long currentVolume = stockTechnicals.getVolume();
+        long prevVolume = stockTechnicals.getPrevVolume();
+        long avgVolume20 = stockTechnicals.getVolumeAvg20();
+        long prevAvgVolume20 = stockTechnicals.getPrevVolumeAvg20();
         Timeframe timeframe = stockTechnicals.getTimeframe();
         double multiplier =
                 volumeMultipleFactor.getOrDefault(timeframe, 1.5); // fallback multiplier
 
+        long avgCurrentVolume = (currentVolume + prevVolume) / 2;
+        long avgAverageVolume = (avgVolume20 + prevAvgVolume20) / 2;
+        boolean isAvgIncreasing = avgVolume20 > prevAvgVolume20;
+        boolean isVolumeIncreasing = currentVolume > prevVolume;
+        boolean isVolumeAboveAverage =
+                (currentVolume > avgVolume20) || (avgCurrentVolume > avgAverageVolume);
+
+        if (isAvgIncreasing && isVolumeAboveAverage) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format("Volume Surge: AvgIncreasing && VolumeAboveAverage"));
+            return true;
+        } else if (isAvgIncreasing && isVolumeIncreasing) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format("Volume Surge: AvgIncreasing && VolumeIncreasing"));
+            return true;
+        }
+
+        /*
         if (currentVolume > avgVolume20) {
             evaluationLogService.add(
                     stockTechnicals,
@@ -494,7 +516,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
                             prevVolume,
                             multiplier));
             return true;
-        }
+        }*/
 
         evaluationLogService.add(
                 stockTechnicals,

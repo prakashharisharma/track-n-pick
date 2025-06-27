@@ -229,12 +229,13 @@ public class MovingAverageUtil {
     }
 
     public static boolean isAlignedBullish(Timeframe timeframe, StockTechnicals stockTechnicals) {
-
+        double ma5 = getMovingAverage5(timeframe, stockTechnicals);
+        double ma20 = getMovingAverage20(timeframe, stockTechnicals);
         double ma50 = getMovingAverage50(timeframe, stockTechnicals);
         double ma100 = getMovingAverage100(timeframe, stockTechnicals);
         double ma200 = getMovingAverage200(timeframe, stockTechnicals);
 
-        return ma50 > ma100 && ma100 > ma200;
+        return ma5 > ma20 && ma20 > ma50 && ma50 > ma100 && ma100 > ma200;
     }
 
     public static boolean isAllMAsIncreasing(StockTechnicals stockTechnicals) {
@@ -277,9 +278,17 @@ public class MovingAverageUtil {
             MovingAverageLength currentLength,
             StockTechnicals stockTechnicals,
             boolean sortByValue) {
+
         List<MovingAverageLength> lowerLengths =
                 Arrays.stream(MovingAverageLength.values())
-                        .filter(length -> length.getWeight() > currentLength.getWeight())
+                        .filter(
+                                length -> {
+                                    if (sortByValue) {
+                                        return length.getWeight() > currentLength.getWeight();
+                                    } else {
+                                        return length.getMaDays() > currentLength.getMaDays();
+                                    }
+                                })
                         .toList();
 
         int increasingCount =
@@ -293,14 +302,22 @@ public class MovingAverageUtil {
             MovingAverageLength currentLength,
             StockTechnicals stockTechnicals,
             boolean sortByValue) {
-        List<MovingAverageLength> lowerLengths =
+
+        List<MovingAverageLength> higherLengths =
                 Arrays.stream(MovingAverageLength.values())
-                        .filter(length -> length.getWeight() < currentLength.getWeight())
+                        .filter(
+                                length -> {
+                                    if (sortByValue) {
+                                        return length.getWeight() < currentLength.getWeight();
+                                    } else {
+                                        return length.getMaDays() < currentLength.getMaDays();
+                                    }
+                                })
                         .toList();
 
         int decreasingCount =
-                countDecreasingMovingAverages(lowerLengths, stockTechnicals, sortByValue);
-        int requiredCount = (lowerLengths.size() + 1) / 2;
+                countDecreasingMovingAverages(higherLengths, stockTechnicals, sortByValue);
+        int requiredCount = (higherLengths.size() + 1) / 2;
 
         return decreasingCount >= requiredCount;
     }

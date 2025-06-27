@@ -23,7 +23,7 @@ public class ResistanceValidationService {
     public boolean isOutsideHigherTimeframeResistanceZone(StockPrice stockPrice) {
         Timeframe current = stockPrice.getTimeframe();
         Stock stock = stockPrice.getStock();
-        double close = stockPrice.getClose();
+        double high = stockPrice.getHigh();
 
         Timeframe higher = current.getHigher();
         while (higher != current) {
@@ -40,13 +40,13 @@ public class ResistanceValidationService {
             double onePercentBelowStart =
                     resistanceStart - formulaService.calculateFraction(resistanceStart, 1.0);
 
-            boolean isOutside = close < onePercentBelowStart || close > resistanceEnd;
+            boolean isOutside = high < onePercentBelowStart || high > resistanceEnd;
 
             log.debug(
                     "{}: Close={} | Resistance Start={} End={} | 1% Below Start={} |"
                             + " OutsideZone={}",
                     higher.name(),
-                    close,
+                    high,
                     resistanceStart,
                     resistanceEnd,
                     onePercentBelowStart,
@@ -60,7 +60,7 @@ public class ResistanceValidationService {
                                 "{} Timeframe resistance alert Close={} | Resistance Start={}"
                                         + " End={} | 1% Below Start={} | OutsideZone={}",
                                 higher.name(),
-                                close,
+                                high,
                                 resistanceStart,
                                 resistanceEnd,
                                 onePercentBelowStart,

@@ -28,6 +28,7 @@ public class SignalEvaluatorHelperService {
 
     private final EvaluationLogService evaluationLogService;
 
+    private final SingleSessionCandleStickService singleSessionCandleStickService;
     private final ResistanceValidationService resistanceValidationService;
 
     public boolean isNearestMovingAverageDiffValidForBreakout(
@@ -37,10 +38,18 @@ public class SignalEvaluatorHelperService {
             boolean sortByValue) {
 
         MovingAverageLength currentLength = evaluationResult.getLength();
-        double nextNextHighThreshold = 5.0;
+
         double nextHighThreshold = 2.5;
-        double nextNextLowThreshold = 5.0;
         double nextLowThreshold = 2.5;
+
+        if (MovingAverageUtil.isLowerMovingAverageIncreasing(
+                currentLength, stockTechnicals, sortByValue)) {
+            nextHighThreshold = nextHighThreshold - 1.0;
+            nextLowThreshold = nextLowThreshold - 1.0;
+        }
+
+        double nextNextHighThreshold = 2 * nextHighThreshold;
+        double nextNextLowThreshold = 2 * nextLowThreshold;
 
         boolean isValid = false;
 
@@ -84,21 +93,25 @@ public class SignalEvaluatorHelperService {
 
             isValid =
                     nextHighDiff >= nextHighThreshold
-                            || (nextNextHighDiff
-                                    >= (nextHighThreshold + (nextHighThreshold - nextHighDiff)));
+                            || (nextNextHighDiff >= nextNextHighThreshold);
 
             evaluationLogService.add(
                     stockTechnicals,
                     isValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
                     StringUtils.format(
-                            "{} LOWEST MA → nextHighDiff:{} nextNextHighDiff:{} threshold:{} → {}",
+                            "{} {} → nextHighDiff:{} (≥ {}) OR nextNextHighDiff:{} (≥ {}) → {}",
                             timeframe.name(),
+                            (sortByValue)
+                                    ? currentLength + " MA"
+                                    : "MA" + currentLength.getMaDays(),
                             nextHighDiff,
+                            nextHighThreshold,
                             nextNextHighDiff,
-                            nextHighThreshold + nextHighDiff,
+                            nextNextHighThreshold,
                             isValid));
+
         } else if (isHighest) {
-            // Check only nextLowDiff or nextNextLowDiff
+
             MovingAverageLength nextNextLowLength = nextLowLength.getLower(sortByValue);
             MovingAverageResult nextNextLowMA =
                     MovingAverageUtil.getMovingAverage(
@@ -108,20 +121,21 @@ public class SignalEvaluatorHelperService {
                             formulaService.calculateAbsChangePercentage(
                                     evaluationResult.getPrevValue(), nextNextLowMA.getPrevValue()));
 
-            isValid =
-                    nextLowDiff >= nextLowThreshold
-                            || (nextNextLowDiff
-                                    >= (nextLowThreshold + (nextLowThreshold - nextLowDiff)));
+            isValid = nextLowDiff >= nextLowThreshold || (nextNextLowDiff >= nextNextLowThreshold);
 
             evaluationLogService.add(
                     stockTechnicals,
                     isValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
                     StringUtils.format(
-                            "{} HIGHEST MA → nextLowDiff:{} nextNextLowDiff:{} threshold:{} → {}",
+                            "{} {} → nextLowDiff:{} (≥ {}) OR nextNextLowDiff:{} (≥ {}) → {}",
                             timeframe.name(),
+                            (sortByValue)
+                                    ? currentLength + " MA"
+                                    : "MA" + currentLength.getMaDays(),
                             nextLowDiff,
+                            nextLowThreshold,
                             nextNextLowDiff,
-                            nextLowThreshold + nextLowDiff,
+                            nextNextLowThreshold,
                             isValid));
         } else {
             // MID MAs — both high and low must satisfy
@@ -146,28 +160,31 @@ public class SignalEvaluatorHelperService {
 
             boolean highValid =
                     nextHighDiff >= nextHighThreshold
-                            || (nextNextHighDiff
-                                    >= (nextHighThreshold + (nextHighThreshold - nextHighDiff)));
+                            || (nextNextHighDiff >= nextNextHighThreshold);
 
             boolean lowValid =
-                    nextLowDiff >= nextLowThreshold
-                            || (nextNextLowDiff
-                                    >= (nextLowThreshold + (nextLowThreshold - nextLowDiff)));
+                    nextLowDiff >= nextLowThreshold || (nextNextLowDiff >= nextNextLowThreshold);
 
-            isValid = highValid || lowValid;
+            isValid = highValid && lowValid;
 
             evaluationLogService.add(
                     stockTechnicals,
                     isValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
                     StringUtils.format(
-                            "{} {} MA — nextHighDiff {} nextNextHighDiff {} nextLowDiff {}"
-                                    + " nextNextLowDiff {}  highValid:{} lowValid:{} → {}",
+                            "{} {} MA → "
+                                    + "nextHighDiff:{} (≥ {}) OR nextNextHighDiff:{} (≥ {}) | "
+                                    + "nextLowDiff:{} (≥ {}) OR nextNextLowDiff:{} (≥ {}) → "
+                                    + "highValid:{} lowValid:{} → {}",
                             timeframe.name(),
                             currentLength,
                             nextHighDiff,
+                            nextHighThreshold,
                             nextNextHighDiff,
+                            nextNextHighThreshold,
                             nextLowDiff,
+                            nextLowThreshold,
                             nextNextLowDiff,
+                            nextNextLowThreshold,
                             highValid,
                             lowValid,
                             isValid));
@@ -183,10 +200,17 @@ public class SignalEvaluatorHelperService {
             boolean sortByValue) {
 
         MovingAverageLength currentLength = evaluationResult.getLength();
-        double nextNextHighThreshold = 4.0;
-        double nextHighThreshold = 2.0;
-        double nextNextLowThreshold = 4.0;
-        double nextLowThreshold = 2.0;
+        double nextHighThreshold = 2.5;
+        double nextLowThreshold = 2.5;
+
+        if (MovingAverageUtil.isLowerMovingAverageIncreasing(
+                currentLength, stockTechnicals, sortByValue)) {
+            nextHighThreshold = nextHighThreshold - 1.0;
+            nextLowThreshold = nextLowThreshold - 1.0;
+        }
+
+        double nextNextHighThreshold = 2 * nextHighThreshold;
+        double nextNextLowThreshold = 2 * nextLowThreshold;
 
         boolean isValid = false;
 
@@ -200,6 +224,7 @@ public class SignalEvaluatorHelperService {
                                 evaluationResult.getPrevValue(), nextHighMA.getPrevValue()));
 
         MovingAverageLength nextLowLength = currentLength.getLower(sortByValue);
+
         MovingAverageResult nextLowMA =
                 MovingAverageUtil.getMovingAverage(
                         nextLowLength, timeframe, stockTechnicals, sortByValue);
@@ -229,21 +254,25 @@ public class SignalEvaluatorHelperService {
 
             isValid =
                     nextHighDiff >= nextHighThreshold
-                            || (nextNextHighDiff
-                                    >= (nextHighThreshold + (nextHighThreshold - nextHighDiff)));
+                            || (nextNextHighDiff >= nextNextHighThreshold);
 
             evaluationLogService.add(
                     stockTechnicals,
-                    isValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
+                    isValid ? EvaluationLog.Type.NEGATIVE : EvaluationLog.Type.NEUTRAL,
                     StringUtils.format(
-                            "{} LOWEST MA → nextHighDiff:{} nextNextHighDiff:{} threshold:{} → {}",
+                            "{} {} → nextHighDiff:{} (≥ {}) OR nextNextHighDiff:{} (≥ {}) → {}",
                             timeframe.name(),
+                            (sortByValue)
+                                    ? currentLength + " MA"
+                                    : "MA" + currentLength.getMaDays(),
                             nextHighDiff,
+                            nextHighThreshold,
                             nextNextHighDiff,
-                            nextHighThreshold + nextHighDiff,
+                            nextNextHighThreshold,
                             isValid));
+
         } else if (isHighest) {
-            // Check only nextLowDiff or nextNextLowDiff
+
             MovingAverageLength nextNextLowLength = nextLowLength.getLower(sortByValue);
             MovingAverageResult nextNextLowMA =
                     MovingAverageUtil.getMovingAverage(
@@ -253,20 +282,21 @@ public class SignalEvaluatorHelperService {
                             formulaService.calculateAbsChangePercentage(
                                     evaluationResult.getPrevValue(), nextNextLowMA.getPrevValue()));
 
-            isValid =
-                    nextLowDiff >= nextLowThreshold
-                            || (nextNextLowDiff
-                                    >= (nextLowThreshold + (nextLowThreshold - nextLowDiff)));
+            isValid = nextLowDiff >= nextLowThreshold || (nextNextLowDiff >= nextNextLowThreshold);
 
             evaluationLogService.add(
                     stockTechnicals,
-                    isValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
+                    isValid ? EvaluationLog.Type.NEGATIVE : EvaluationLog.Type.NEUTRAL,
                     StringUtils.format(
-                            "{} HIGHEST MA → nextLowDiff:{} nextNextLowDiff:{} threshold:{} → {}",
+                            "{} {} → nextLowDiff:{} (≥ {}) OR nextNextLowDiff:{} (≥ {}) → {}",
                             timeframe.name(),
+                            (sortByValue)
+                                    ? currentLength + " MA"
+                                    : "MA" + currentLength.getMaDays(),
                             nextLowDiff,
+                            nextLowThreshold,
                             nextNextLowDiff,
-                            nextLowThreshold + nextLowDiff,
+                            nextNextLowThreshold,
                             isValid));
         } else {
             // MID MAs — both high and low must satisfy
@@ -291,28 +321,31 @@ public class SignalEvaluatorHelperService {
 
             boolean highValid =
                     nextHighDiff >= nextHighThreshold
-                            || (nextNextHighDiff
-                                    >= (nextHighThreshold + (nextHighThreshold - nextHighDiff)));
+                            || (nextNextHighDiff >= nextNextHighThreshold);
 
             boolean lowValid =
-                    nextLowDiff >= nextLowThreshold
-                            || (nextNextLowDiff
-                                    >= (nextLowThreshold + (nextLowThreshold - nextLowDiff)));
+                    nextLowDiff >= nextLowThreshold || (nextNextLowDiff >= nextNextLowThreshold);
 
-            isValid = highValid || lowValid;
+            isValid = highValid && lowValid;
 
             evaluationLogService.add(
                     stockTechnicals,
-                    isValid ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
+                    isValid ? EvaluationLog.Type.NEGATIVE : EvaluationLog.Type.NEUTRAL,
                     StringUtils.format(
-                            "{} {} MA — nextHighDiff {} nextNextHighDiff {} nextLowDiff {}"
-                                    + " nextNextLowDiff {}  highValid:{} lowValid:{} → {}",
+                            "{} {} MA → "
+                                    + "nextHighDiff:{} (≥ {}) OR nextNextHighDiff:{} (≥ {}) | "
+                                    + "nextLowDiff:{} (≥ {}) OR nextNextLowDiff:{} (≥ {}) → "
+                                    + "highValid:{} lowValid:{} → {}",
                             timeframe.name(),
                             currentLength,
                             nextHighDiff,
+                            nextHighThreshold,
                             nextNextHighDiff,
+                            nextNextHighThreshold,
                             nextLowDiff,
+                            nextLowThreshold,
                             nextNextLowDiff,
+                            nextNextLowThreshold,
                             highValid,
                             lowValid,
                             isValid));
@@ -642,31 +675,68 @@ public class SignalEvaluatorHelperService {
         double low = stockPrice.getLow();
 
         double entryPrice = (open + high + low + close) / 4.0;
-
         entryPrice = entryPrice * 1.00382;
 
-        // 1. Clean upper wick and RSI above 60
-        if (isUpperWickClean && Math.ceil(stockTechnicals.getRsi()) >= 60.0) {
+        boolean isBodyAboveBreakoutLevel = open > breakoutValue && close > breakoutValue;
+        // Additional logic for breakout body % and RSI
+        double bodySize = Math.abs(close - open);
+        double bodyAboveBreakout = close > breakoutValue ? close - breakoutValue : 0;
+        boolean isBreakoutCrossedHalfBody = bodySize > 0 && (bodyAboveBreakout / bodySize) > 0.5;
+
+        if (singleSessionCandleStickService.isBullishMarubozu(
+                        timeframe, stockPrice, stockTechnicals)
+                || CandleStickUtils.isCloseHighEqual(stockPrice)) {
+            entryPrice = formulaService.applyPercentChange(close, 1);
+        } else if (stockTechnicals.getRsi() > 50
+                && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
+            double percentAboveBreakout =
+                    formulaService.calculatePercentage(bodySize, bodyAboveBreakout);
+            double highMinusClose = high - close;
+
+            if (percentAboveBreakout > 0 && percentAboveBreakout < 100) {
+                double adjustment =
+                        formulaService.calculateFraction(highMinusClose, percentAboveBreakout);
+
+                entryPrice = close + adjustment;
+            } else {
+                entryPrice = (high + close) / 2.0;
+            }
+
+        } else if (isUpperWickClean && Math.ceil(stockTechnicals.getRsi()) >= 60.0) {
             entryPrice = high;
-        }
-
-        // 2. Clean upper wick and Body above breakout level
-        else if (open > breakoutValue && close > breakoutValue && isUpperWickClean) {
+        } else if (isUpperWickClean
+                && (isBodyAboveBreakoutLevel || Math.ceil(stockTechnicals.getRsi()) >= 50.0)) {
             entryPrice = (high + close) / 2.0;
-        }
-
-        // 3. Body above breakout level
-        else if (open > breakoutValue && close > breakoutValue) {
+        } else if (isBodyAboveBreakoutLevel) {
             entryPrice = (open + close) / 2.0;
             entryPrice = entryPrice * 1.00382;
-        }
-
-        // 4. Clean upper wick and bullish momentum
-        else if (isUpperWickClean && isHistogramAboveZero) {
+        } else if (isUpperWickClean && isHistogramAboveZero) {
+            entryPrice = (high + close) / 2.0;
+        } else if (CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)
+                && CandleStickUtils.bodySize(stockPrice)
+                        >= CandleStickUtils.prevSessionBodySize(stockPrice)) {
+            entryPrice = (high + close) / 2.0;
+        } else if (CandleStickUtils.isStrongRange(timeframe, stockPrice, stockTechnicals)
+                && CandleStickUtils.range(stockPrice)
+                        >= CandleStickUtils.prevSessionRange(stockPrice)) {
             entryPrice = (high + close) / 2.0;
         }
 
-        // 5. Default to average price
+        if (macdIndicatorService.isMacdCrossedSignal(stockTechnicals)
+                || MovingAverageUtil.isAllMAsIncreasing(stockTechnicals)) {
+            entryPrice = formulaService.ceilToNearestHalf(entryPrice);
+            entryPrice =
+                    Math.max(formulaService.applyPercentChange(entryPrice, 0.05), entryPrice + 0.5);
+            return formulaService.ceilToNearestFive(entryPrice);
+        } else if (macdIndicatorService.isHistogramGreen(stockTechnicals)) {
+            entryPrice = formulaService.ceilToNearestHalf(entryPrice);
+            entryPrice =
+                    Math.max(
+                            formulaService.applyPercentChange(entryPrice, 0.025),
+                            entryPrice + 0.25);
+            return formulaService.ceilToNearestFive(entryPrice);
+        }
+
         return formulaService.ceilToNearestHalf(entryPrice);
     }
 }

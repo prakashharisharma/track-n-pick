@@ -428,6 +428,10 @@ public class FormulaService {
         return Math.ceil(value * 4) / 4.0;
     }
 
+    public double ceilToNearestFive(double value) {
+        return Math.ceil(value * 20) / 20.0;
+    }
+
     public double roundToNearestHalf(double value) {
         return Math.round(value * 2) / 2.0;
     }
