@@ -8,6 +8,7 @@ import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.SignalEvaluatorHelperService;
 import com.example.service.utils.SubStrategyHelper;
 import com.example.util.FormulaService;
+import com.example.util.StringUtils;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -136,7 +137,9 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         // (timeframe == Timeframe.DAILY && isMa5Highest)
         if (rsiIndicatorService.isOverBought(stockTechnicals)
-                || CandleStickUtils.isUpperWickDominant(stockPrice)) {
+                || (CandleStickUtils.isUpperWickDominant(stockPrice)
+                        && CandleStickUtils.isStrongRange(
+                                timeframe, stockPrice, stockTechnicals))) {
             return Optional.empty();
         }
 
@@ -148,16 +151,32 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                 signalEvaluatorHelperService.isNearestMovingAverageDiffValidForBreakout(
                         timeframe, stockTechnicals, evaluationResult, false);
         boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
+        boolean isMaAlignBullish = MovingAverageUtil.isAlignedBullish(timeframe, stockTechnicals);
 
         boolean isLowerMovingAverageIncreasing =
                 MovingAverageUtil.isLowerMovingAverageIncreasing(
                         evaluationResult.getLength(), stockTechnicals, false);
 
         // We will not consider breakout for HIGHEST MA for DAILY
-        if (isAllMAsIncreasing
+        if ((isAllMAsIncreasing && isMaAlignBullish)
                 || (isLowestAndHighestMovingAverageDiffValid
-                        && (isNearestMovingAverageDiffValidForBreakout
-                                || isLowerMovingAverageIncreasing))) {
+                        && (isLowerMovingAverageIncreasing
+                                || isNearestMovingAverageDiffValidForBreakout))) {
+
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            "Entry condition passed: (isAllMAsIncreasing:{} && isMaAlignBullish:{})"
+                                    + " || (isLowestAndHighestMovingAverageDiffValid:{} &&"
+                                    + " (isLowerMovingAverageIncreasing:{} ||"
+                                    + " isNearestMovingAverageDiffValidForBreakout:{})) → true",
+                            isAllMAsIncreasing,
+                            isMaAlignBullish,
+                            isLowestAndHighestMovingAverageDiffValid,
+                            isLowerMovingAverageIncreasing,
+                            isNearestMovingAverageDiffValidForBreakout));
+
             boolean isCurrentBreakoutConfirmation =
                     signalEvaluatorHelperService.currentBreakoutConfirmation(
                             stockPrice, stockTechnicals);

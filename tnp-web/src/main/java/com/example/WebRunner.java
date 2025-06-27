@@ -268,7 +268,7 @@ public class WebRunner implements CommandLineRunner {
          */
         // this.testmcap();
         // this.testSignalEvaluator();
-        //  this.testDynamicSR();
+        // this.testDynamicSR();
         // this.updateScore();
         // this.testResearch360();
         // this.updatePivotLevels();
@@ -427,11 +427,13 @@ public class WebRunner implements CommandLineRunner {
         // List<Stock> stockList = stockService.getActiveStocks();
 
         List<Stock> stockList = new ArrayList<>();
-        stockList.add(stockService.getStockByNseSymbol("DOMS"));
-        // stockList.add(stockService.getStockByNseSymbol("DCMSRIND"));
-        // stockList.add(stockService.getStockByNseSymbol("NBIFIN"));
-        // stockList.add(stockService.getStockByNseSymbol("WEIZMANIND"));
-
+        stockList.add(stockService.getStockByNseSymbol("MPSLTD"));
+        stockList.add(stockService.getStockByNseSymbol("KRBL"));
+        stockList.add(stockService.getStockByNseSymbol("KITEX"));
+        stockList.add(stockService.getStockByNseSymbol("ANANTRAJ"));
+        stockList.add(stockService.getStockByNseSymbol("JMFINANCIL"));
+        stockList.add(stockService.getStockByNseSymbol("MANINFRA"));
+        stockList.add(stockService.getStockByNseSymbol("INDIAGLYCO"));
         for (Stock stock : stockList) {
             System.out.println("Evaluation...." + stock.getNseSymbol());
             StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
@@ -439,7 +441,7 @@ public class WebRunner implements CommandLineRunner {
 
             List<MAEvaluationResult> maEvaluationResults =
                     dynamicMovingAverageSupportResolverService.evaluateInteractions(
-                            Timeframe.DAILY, stockPrice, stockTechnicals, true);
+                            Timeframe.DAILY, stockPrice, stockTechnicals, false);
 
             maEvaluationResults.forEach(
                     mae -> {
@@ -449,7 +451,7 @@ public class WebRunner implements CommandLineRunner {
 
             Optional<MAEvaluationResult> evaluationResultOptional =
                     dynamicMovingAverageSupportResolverService.evaluateSingleInteractionSmart(
-                            Timeframe.DAILY, stockPrice, stockTechnicals, true);
+                            Timeframe.DAILY, stockPrice, stockTechnicals, false);
 
             if (evaluationResultOptional.isPresent()) {
                 MAEvaluationResult evaluationResult = evaluationResultOptional.get();
@@ -463,6 +465,8 @@ public class WebRunner implements CommandLineRunner {
                                     + " : "
                                     + evaluationResult);
                 } else if (evaluationResult.isBreakout()) {
+                    System.out.println(
+                            "MA" + evaluationResult.getLength().getMaDays() + "_BREAKOUT");
                     System.out.println(
                             "BREAKOUT : "
                                     + stock.getNseSymbol()
@@ -1018,10 +1022,6 @@ public class WebRunner implements CommandLineRunner {
         for (Stock stock : stockList) {
             if (stock.getSeries() != null && stock.getSeries().equalsIgnoreCase("EQ")) {
                 if (fundamentalResearchService.isMcapInRange(stock)) {
-                    /*
-                    if(researchLedgerTechnicalService.isActive(stock, ResearchIO.ResearchTrigger.BUY)){
-                    	System.out.println("RESEARCH " + stock.getNseSymbol());
-                    }*/
 
                     if (calendarService.isLastTradingSessionOfMonth(miscUtil.currentDate())) {
                         System.out.println("******* MONTHLY :" + stock.getNseSymbol() + " *******");

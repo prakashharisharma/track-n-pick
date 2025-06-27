@@ -133,13 +133,11 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
         if (rsiIndicatorService.isOverBought(stockTechnicals)
-                || CandleStickUtils.isUpperWickDominant(stockPrice)) {
+                || (CandleStickUtils.isUpperWickDominant(stockPrice)
+                        && CandleStickUtils.isStrongRange(
+                                timeframe, stockPrice, stockTechnicals))) {
             return Optional.empty();
         }
-
-        boolean isCurrentBreakoutConfirmation =
-                signalEvaluatorHelperService.currentBreakoutConfirmation(
-                        stockPrice, stockTechnicals);
 
         boolean isLowestAndHighestMovingAverageDiffValid =
                 signalEvaluatorHelperService.isLowestAndHighestMovingAverageDiffValid(
@@ -149,9 +147,12 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 signalEvaluatorHelperService.isNearestMovingAverageDiffValidForBreakout(
                         timeframe, stockTechnicals, evaluationResult, true);
 
-        // We will not consider breakout for HIGHEST MA for DAILY
         if (isLowestAndHighestMovingAverageDiffValid
                 && isNearestMovingAverageDiffValidForBreakout) {
+
+            boolean isCurrentBreakoutConfirmation =
+                    signalEvaluatorHelperService.currentBreakoutConfirmation(
+                            stockPrice, stockTechnicals);
 
             if (isCurrentBreakoutConfirmation) {
 

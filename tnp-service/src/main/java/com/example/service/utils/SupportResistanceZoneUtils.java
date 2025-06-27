@@ -41,8 +41,6 @@ public class SupportResistanceZoneUtils {
                         stockPrice.getPrev4Open(),
                         stockPrice.getPrev5Open());
 
-        System.out.println("open: " + opens);
-
         List<Double> highs =
                 List.of(
                         stockPrice.getHigh(),
@@ -52,8 +50,6 @@ public class SupportResistanceZoneUtils {
                         stockPrice.getPrev4High(),
                         stockPrice.getPrev5High());
 
-        System.out.println("high: " + highs);
-
         List<Double> lows =
                 List.of(
                         stockPrice.getLow(),
@@ -62,7 +58,6 @@ public class SupportResistanceZoneUtils {
                         stockPrice.getPrev3Low(),
                         stockPrice.getPrev4Low(),
                         stockPrice.getPrev5Low());
-        System.out.println("low: " + lows);
 
         List<Double> closes =
                 List.of(
@@ -73,14 +68,8 @@ public class SupportResistanceZoneUtils {
                         stockPrice.getPrev4Close(),
                         stockPrice.getPrev5Close());
 
-        System.out.println("close: " + closes);
-
         Zone resistanceZone = getClusteredZone(highs);
         Zone supportZone = getClusteredZone(lows);
-
-        System.out.println("supportZone: " + supportZone);
-
-        System.out.println("resistanceZone: " + resistanceZone);
 
         return SupportResistanceZones.builder()
                 .support(supportZone)

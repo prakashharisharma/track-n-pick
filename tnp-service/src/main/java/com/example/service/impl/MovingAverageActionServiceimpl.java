@@ -65,7 +65,7 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
             return TradeSetup.builder()
                     .active(Boolean.TRUE)
                     .strategy(ResearchTechnical.Strategy.SIMPLE)
-                    .subStrategy(ResearchTechnical.SubStrategy.BREAKDOWN)
+                    .subStrategy(ResearchTechnical.SubStrategy.MA20_BREAKDOWN)
                     .build();
         }
 
