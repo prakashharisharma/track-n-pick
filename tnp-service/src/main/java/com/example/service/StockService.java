@@ -138,6 +138,7 @@ public class StockService {
             Exchange exchange,
             String series,
             String isinCode,
+            String instrument,
             String companyName,
             String nseSymbol,
             String bseCode,
@@ -152,6 +153,7 @@ public class StockService {
         }
 
         stock.setSeries(series);
+        stock.setInstrument(instrument);
         stock.setActive(Boolean.TRUE);
 
         stock = stockRepository.save(stock);

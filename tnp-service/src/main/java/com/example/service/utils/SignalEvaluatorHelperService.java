@@ -1,10 +1,12 @@
 package com.example.service.utils;
 
+import com.example.data.common.type.MarketCapCategory;
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.EvaluationLog;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
+import com.example.service.impl.FundamentalResearchService;
 import com.example.util.FormulaService;
 import com.example.util.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,8 @@ public class SignalEvaluatorHelperService {
     private final SingleSessionCandleStickService singleSessionCandleStickService;
     private final ResistanceValidationService resistanceValidationService;
 
+    private final FundamentalResearchService fundamentalResearchService;
+
     public boolean isNearestMovingAverageDiffValidForBreakout(
             Timeframe timeframe,
             StockTechnicals stockTechnicals,
@@ -39,17 +43,17 @@ public class SignalEvaluatorHelperService {
 
         MovingAverageLength currentLength = evaluationResult.getLength();
 
-        double nextHighThreshold = 2.5;
-        double nextLowThreshold = 2.5;
+        double nextHighThreshold = 3.5;
+        double nextLowThreshold = 3.5;
 
-        if (MovingAverageUtil.isLowerMovingAverageIncreasing(
-                currentLength, stockTechnicals, sortByValue)) {
-            nextHighThreshold = nextHighThreshold - 1.0;
-            nextLowThreshold = nextLowThreshold - 1.0;
+        MarketCapCategory marketCapCategory =  MarketCapCategory.classify(fundamentalResearchService.marketCap(stockTechnicals.getStock()));
+
+        boolean isLargeOrMegaCap = marketCapCategory == MarketCapCategory.MEGACAP || marketCapCategory == MarketCapCategory.LARGECAP;
+
+        if(isLargeOrMegaCap){
+             nextHighThreshold = 2.5;
+             nextLowThreshold = 2.5;
         }
-
-        double nextNextHighThreshold = 2 * nextHighThreshold;
-        double nextNextLowThreshold = 2 * nextLowThreshold;
 
         boolean isValid = false;
 
@@ -72,6 +76,32 @@ public class SignalEvaluatorHelperService {
                         formulaService.calculateAbsChangePercentage(
                                 nextLowMA.getPrevValue(), evaluationResult.getPrevValue()));
 
+
+        int increasingMaCount = MovingAverageUtil.increasingMaCount(stockTechnicals);
+
+
+        if(increasingMaCount ==4){
+
+            nextHighThreshold = nextHighThreshold - 1.0;
+            nextLowThreshold = nextLowThreshold - 1.0;
+
+        }
+       else  if(increasingMaCount ==3){
+
+            nextHighThreshold = nextHighThreshold - 0.5;
+            nextLowThreshold = nextLowThreshold - 0.5;
+
+        }
+        if(nextHighDiff < 1.0 ){
+            nextHighThreshold = nextHighThreshold + 0.5;
+        }
+        if(nextLowDiff < 1.0){
+            nextLowThreshold = nextLowThreshold + 0.5;
+        }
+
+        double nextNextHighThreshold = 2 * nextHighThreshold;
+        double nextNextLowThreshold = 2 * nextLowThreshold;
+
         /*
         boolean isHighest = (sortByValue ? currentLength == MovingAverageLength.HIGHEST : currentLength == MovingAverageLength.LOWEST);
         boolean isLowest = (sortByValue ? currentLength == MovingAverageLength.LOWEST : currentLength == MovingAverageLength.HIGHEST);
@@ -91,9 +121,17 @@ public class SignalEvaluatorHelperService {
                                     evaluationResult.getPrevValue(),
                                     nextNextHighMA.getPrevValue()));
 
+            /*
             isValid =
                     nextHighDiff >= nextHighThreshold
                             || (nextNextHighDiff >= nextNextHighThreshold);
+             */
+
+            if (nextHighDiff < 1.0) {
+                isValid = nextNextHighDiff >= nextHighThreshold;
+            } else {
+                isValid = nextHighDiff >= nextHighThreshold;
+            }
 
             evaluationLogService.add(
                     stockTechnicals,
@@ -107,7 +145,7 @@ public class SignalEvaluatorHelperService {
                             nextHighDiff,
                             nextHighThreshold,
                             nextNextHighDiff,
-                            nextNextHighThreshold,
+                            nextHighThreshold,
                             isValid));
 
         } else if (isHighest) {
@@ -121,7 +159,14 @@ public class SignalEvaluatorHelperService {
                             formulaService.calculateAbsChangePercentage(
                                     evaluationResult.getPrevValue(), nextNextLowMA.getPrevValue()));
 
-            isValid = nextLowDiff >= nextLowThreshold || (nextNextLowDiff >= nextNextLowThreshold);
+            // isValid = nextLowDiff >= nextLowThreshold || (nextNextLowDiff >= nextNextLowThreshold);
+
+
+            if (nextLowDiff < 1.0) {
+                isValid = nextNextLowDiff >= nextLowThreshold;
+            } else {
+                isValid = nextLowDiff >= nextLowThreshold;
+            }
 
             evaluationLogService.add(
                     stockTechnicals,
@@ -135,7 +180,7 @@ public class SignalEvaluatorHelperService {
                             nextLowDiff,
                             nextLowThreshold,
                             nextNextLowDiff,
-                            nextNextLowThreshold,
+                            nextLowThreshold,
                             isValid));
         } else {
             // MID MAs — both high and low must satisfy
@@ -162,10 +207,31 @@ public class SignalEvaluatorHelperService {
                     nextHighDiff >= nextHighThreshold
                             || (nextNextHighDiff >= nextNextHighThreshold);
 
+            if (nextHighDiff < 1.0) {
+                highValid = nextNextHighDiff >= nextHighThreshold;
+            } else {
+                highValid = nextHighDiff >= nextHighThreshold;
+            }
+
             boolean lowValid =
                     nextLowDiff >= nextLowThreshold || (nextNextLowDiff >= nextNextLowThreshold);
 
-            isValid = highValid && lowValid;
+            if (nextLowDiff < 1.0) {
+                lowValid = nextNextLowDiff >= nextLowThreshold;
+            } else {
+                lowValid = nextLowDiff >= nextLowThreshold;
+            }
+
+            isValid = highValid || lowValid;
+
+            if(currentLength == MovingAverageLength.MEDIUM){
+                isValid = highValid && lowValid;
+               boolean isLowerMovingAverageIncreasing =  MovingAverageUtil.isLowerMovingAverageIncreasing(currentLength, stockTechnicals, sortByValue);
+
+               if(isLowerMovingAverageIncreasing){
+                   isValid = highValid || lowValid;
+               }
+            }
 
             evaluationLogService.add(
                     stockTechnicals,
@@ -361,44 +427,130 @@ public class SignalEvaluatorHelperService {
             MAInteractionType maInteractionType,
             boolean sortByValue) {
 
+        double threashold = 15.0;
+
+        MarketCapCategory marketCapCategory =  MarketCapCategory.classify(fundamentalResearchService.marketCap(stockTechnicals.getStock()));
+
+        boolean isLargeOrMegaCap = marketCapCategory == MarketCapCategory.MEGACAP || marketCapCategory == MarketCapCategory.LARGECAP;
+
+        if(isLargeOrMegaCap){
+            threashold = 10.0;
+        }
+
+        int increasingMaCount = MovingAverageUtil.increasingMaCount(stockTechnicals);
+
+        if(increasingMaCount == 4){
+            if(isLargeOrMegaCap){
+                threashold = threashold - 2.0;
+            }else {
+                threashold = threashold - 5.0;
+            }
+        }else if(increasingMaCount == 3){
+            if(isLargeOrMegaCap){
+                threashold = threashold - 1.0;
+            }else {
+                threashold = threashold - 2.5;
+            }
+        }
+
         MovingAverageResult highestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
                         MovingAverageLength.HIGHEST, timeframe, stockTechnicals, sortByValue);
 
+        if(highestMovingAverageResult.getPrevValue() == 0.0){
+            highestMovingAverageResult =
+                    MovingAverageUtil.getMovingAverage(
+                            MovingAverageLength.HIGH, timeframe, stockTechnicals, sortByValue);
+        }
+
         MovingAverageResult lowestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
                         MovingAverageLength.LOWEST, timeframe, stockTechnicals, sortByValue);
+
+        if(lowestMovingAverageResult.getPrevValue() == 0.0){
+            lowestMovingAverageResult =
+                    MovingAverageUtil.getMovingAverage(
+                            MovingAverageLength.LOW, timeframe, stockTechnicals, sortByValue);
+        }
 
         double lowestToHighestPercentageDiff =
                 formulaService.calculateAbsChangePercentage(
                         lowestMovingAverageResult.getPrevValue(),
                         highestMovingAverageResult.getPrevValue());
 
+         /*
         MovingAverageLength thresholdLookupLength = getThresholdLookupLength(maInteractionType);
-
         boolean result =
                 MAThresholdsConfig.getThreshold(maInteractionType, thresholdLookupLength)
                         .map(threshold -> lowestToHighestPercentageDiff >= threshold)
                         .orElse(true);
+        */
+        boolean result = lowestToHighestPercentageDiff > threashold;
+
 
         evaluationLogService.add(
                 stockPrice,
                 (maInteractionType == MAInteractionType.BREAKOUT
-                                        || maInteractionType == MAInteractionType.SUPPORT)
-                                && result
+                        || maInteractionType == MAInteractionType.SUPPORT)
+                        && result
                         ? EvaluationLog.Type.POSITIVE
                         : EvaluationLog.Type.NEUTRAL,
                 StringUtils.format(
-                        "{} Valid {} LowestToHighestPercentageDiff {} for LOWEST {} HIGHEST {} and"
-                                + " difference is {} ",
+                        "{} {} {} → LowestToHighestPercentageDiff isValid:{} | Threshold:{} | LOWEST:{} HIGHEST:{} | Diff:{}",
                         timeframe.name(),
+                        marketCapCategory,
                         maInteractionType,
                         result,
+                        threashold,
                         lowestMovingAverageResult.getPrevValue(),
                         highestMovingAverageResult.getPrevValue(),
                         lowestToHighestPercentageDiff));
 
         return result;
+    }
+
+    public boolean isHighestAlsoBreached(Timeframe timeframe,
+                                         StockPrice stockPrice,
+                                         StockTechnicals stockTechnicals,
+                                         MovingAverageLength movingAverageLength,
+                                         double value,
+                                         boolean sortByValue){
+
+        if( sortByValue && movingAverageLength == MovingAverageLength.HIGHEST){
+            return false;
+        } else if (!sortByValue && movingAverageLength.getMaDays() == 5) {
+            return false;
+        }
+
+        MovingAverageResult highestMovingAverageResult =
+                MovingAverageUtil.getMovingAverage(
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, sortByValue);
+
+
+        double lowestToHighestPercentageDiff =
+                formulaService.calculateAbsChangePercentage(
+                        highestMovingAverageResult.getValue(),
+                        value);
+
+        if(lowestToHighestPercentageDiff < 1.0){
+            return false;
+        }
+
+        if(stockPrice.getClose() > highestMovingAverageResult.getValue()){
+            evaluationLogService.add(
+                    stockPrice,
+                    EvaluationLog.Type.NEUTRAL,
+                    StringUtils.format(
+                            "{} {} {} → highestMovingAverage: {} | close :{} is also breached",
+                            timeframe.name(),
+                            highestMovingAverageResult.getValue(),
+                            stockPrice.getClose()
+                                ));
+
+            return true;
+        }
+
+        return false;
     }
 
     public MovingAverageLength getThresholdLookupLength(MAInteractionType maInteractionType) {
@@ -578,9 +730,10 @@ public class SignalEvaluatorHelperService {
         double signal = stockTechnicals.getSignal();
 
         // Case 1: MACD still below signal or in negative zone — check momentum shift
-        if (macd < signal && macdIndicatorService.isHistogramBelowZero(stockTechnicals)) {
+        if (macd < signal || macd < 0.0 ) {
 
-            return macdIndicatorService.isMacdIncreased(stockTechnicals)
+            return macdIndicatorService.isHistogramBelowZero(stockTechnicals)
+                    && macdIndicatorService.isMacdIncreased(stockTechnicals)
                     && macdIndicatorService.isSignalDecreased(stockTechnicals)
                     && macdIndicatorService.isHistogramIncreased(stockTechnicals);
         }
@@ -591,10 +744,17 @@ public class SignalEvaluatorHelperService {
 
     private boolean isMacdTurningUp(StockTechnicals stockTechnicals) {
 
+        if (stockTechnicals == null) {
+            return false;
+        }
+
+        double macd = stockTechnicals.getMacd();
+        double signal = stockTechnicals.getSignal();
+
         return macdIndicatorService.isMacdIncreased(stockTechnicals)
                 && macdIndicatorService.isSignalIncreased(stockTechnicals)
-                && macdIndicatorService.isHistogramIncreased(stockTechnicals)
-                && macdIndicatorService.isMacdBelowZero(stockTechnicals);
+                && macdIndicatorService.isHistogramIncreased(stockTechnicals);
+               // && (macdIndicatorService.isMacdBelowZero(stockTechnicals) || macd < signal);
     }
 
     public boolean isMacdConfirmingBreakout(StockTechnicals stockTechnicals) {
@@ -624,11 +784,32 @@ public class SignalEvaluatorHelperService {
 
         boolean isMacdConfirmingBreakout = this.isMacdConfirmingBreakout(stockTechnicals);
 
+        boolean isRsiBullish = rsiIndicatorService.isBullish(stockTechnicals) || (stockTechnicals.getPrevRsi() < 30 && stockTechnicals.getRsi() > 38);
+
+        boolean isBullishConfirmed =
+                candleStickConfirmationService.isBullishConfirmed(
+                        stockPrice.getTimeframe(), stockPrice, stockTechnicals, true);
+
+        boolean isUpperWickSizeConfirmed = candleStickConfirmationService.isUpperWickSizeConfirmed(stockPrice.getTimeframe(),  stockPrice, stockTechnicals);
+
+        boolean checkHigherTimeFrameResistance = (isBullishConfirmed || isUpperWickSizeConfirmed) ? false : true;
+
+        boolean isHigherTimeframeResistanceCheckPassed = (checkHigherTimeFrameResistance ? resistanceValidationService.isOutsideHigherTimeframeResistanceZone(stockPrice) : true);
+
+        if(isHigherTimeframeResistanceCheckPassed) {
+            evaluationLogService.add(
+                    stockPrice,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            "Timeframe resistance check passed"
+                    ));
+        }
+
         return isBullishCandle
                 && isMacdConfirmingBreakout
-                && rsiIndicatorService.isBullish(stockTechnicals)
+                && isRsiBullish
                 && volumeIndicatorService.isVolumeSurge(stockTechnicals)
-                && resistanceValidationService.isOutsideHigherTimeframeResistanceZone(stockPrice);
+                && isHigherTimeframeResistanceCheckPassed;
     }
 
     public boolean higherTimeframeBreakoutConfirmation(
@@ -697,7 +878,7 @@ public class SignalEvaluatorHelperService {
                 double adjustment =
                         formulaService.calculateFraction(highMinusClose, percentAboveBreakout);
 
-                entryPrice = close + adjustment;
+                entryPrice = Math.max((close + adjustment),(high + close) / 2.0) ;
             } else {
                 entryPrice = (high + close) / 2.0;
             }

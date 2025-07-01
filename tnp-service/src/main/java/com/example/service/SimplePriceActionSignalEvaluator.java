@@ -142,6 +142,15 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                                 timeframe, stockPrice, stockTechnicals))) {
             return Optional.empty();
         }
+        boolean isLongerMaAlignedBullish = MovingAverageUtil.isLongerMaAlignedBullish(timeframe, stockTechnicals);
+
+        if(isLongerMaAlignedBullish){
+            return Optional.empty();
+        }
+
+        if(signalEvaluatorHelperService.isHighestAlsoBreached(timeframe, stockPrice, stockTechnicals, evaluationResult.getLength(), evaluationResult.getValue(), false)){
+            return Optional.empty();
+        }
 
         boolean isLowestAndHighestMovingAverageDiffValid =
                 signalEvaluatorHelperService.isLowestAndHighestMovingAverageDiffValid(
@@ -151,17 +160,12 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                 signalEvaluatorHelperService.isNearestMovingAverageDiffValidForBreakout(
                         timeframe, stockTechnicals, evaluationResult, false);
         boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
-        boolean isMaAlignBullish = MovingAverageUtil.isAlignedBullish(timeframe, stockTechnicals);
-
-        boolean isLowerMovingAverageIncreasing =
-                MovingAverageUtil.isLowerMovingAverageIncreasing(
-                        evaluationResult.getLength(), stockTechnicals, false);
+        boolean isMaAlignBullish = MovingAverageUtil.isAllMaAlignedBullish(timeframe, stockTechnicals);
 
         // We will not consider breakout for HIGHEST MA for DAILY
         if ((isAllMAsIncreasing && isMaAlignBullish)
                 || (isLowestAndHighestMovingAverageDiffValid
-                        && (isLowerMovingAverageIncreasing
-                                || isNearestMovingAverageDiffValidForBreakout))) {
+                        && (isNearestMovingAverageDiffValidForBreakout))) {
 
             evaluationLogService.add(
                     stockTechnicals,
@@ -169,12 +173,10 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                     StringUtils.format(
                             "Entry condition passed: (isAllMAsIncreasing:{} && isMaAlignBullish:{})"
                                     + " || (isLowestAndHighestMovingAverageDiffValid:{} &&"
-                                    + " (isLowerMovingAverageIncreasing:{} ||"
-                                    + " isNearestMovingAverageDiffValidForBreakout:{})) → true",
+                                    + " isNearestMovingAverageDiffValidForBreakout:{}) → true",
                             isAllMAsIncreasing,
                             isMaAlignBullish,
                             isLowestAndHighestMovingAverageDiffValid,
-                            isLowerMovingAverageIncreasing,
                             isNearestMovingAverageDiffValidForBreakout));
 
             boolean isCurrentBreakoutConfirmation =

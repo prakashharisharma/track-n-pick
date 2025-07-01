@@ -12,6 +12,7 @@ import com.example.data.transactional.repo.StockRepository;
 import com.example.data.transactional.repo.StockTechnicalsRepository;
 import com.example.service.StockTechnicalsService;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -188,6 +189,7 @@ public class StockTechnicalsServiceImpl implements StockTechnicalsService {
         newStockTechnicals.setAtr(atr);
 
         newStockTechnicals.setSessionDate(sessionDate);
+        newStockTechnicals.setLastModified(LocalDateTime.now());
 
         log.info("Creating new {} StockTechnicals for stockId: {}", timeframe, stock.getStockId());
         return stockTechnicalsRepository.save(newStockTechnicals);
@@ -341,6 +343,7 @@ public class StockTechnicalsServiceImpl implements StockTechnicalsService {
         stockTechnicals.setMinusDi(minusDi != null ? minusDi : 0.0);
         stockTechnicals.setAtr(atr != null ? atr : 0.0);
         stockTechnicals.setSessionDate(sessionDate);
+        stockTechnicals.setLastModified(LocalDateTime.now());
 
         log.info("Updating {} StockTechnicals for stockId: {}", timeframe, stock.getStockId());
         return stockTechnicalsRepository.save(stockTechnicals);

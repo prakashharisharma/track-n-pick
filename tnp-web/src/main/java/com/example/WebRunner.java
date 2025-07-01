@@ -186,7 +186,7 @@ public class WebRunner implements CommandLineRunner {
 
         log.info("Application started....");
 
-        bhavProcessor.processAndResearchTechnicals();
+       bhavProcessor.processAndResearchTechnicals();
 
         // testdetectMArketConfition();
         // testSupportResistanceZones();
@@ -207,22 +207,24 @@ public class WebRunner implements CommandLineRunner {
 
         // this.allocatePositions();
 
-        // this.updateRemainigSectorsActivityFromNSE();
+
 
         // this.scanBullishCandleStickPattern();
         // this.scanBearishCandleStickPattern();
         // this.testTrend();
 
-        // this.updateFinaicials();
+       // this.updateFinaicials();
         // this.testScore();
         // this.updatePriceHistory();
         // this.updateTechnicals();
         // this.processBhavFromApi();
+     // this.processPriceUpdate(false);
+        // this.processTechnicalsUpdate();
 
         // this.updateSectorsActivity();
+       // this.updateRemainigSectorsActivityFromNSE();
         // this.updateFinancialsForStocks();
-        // this.processPriceUpdate();
-        // this.processTechnicalsUpdate();
+
 
         // this.updateSupportAndResistance();
         // updateTechnicalsService.updateTechnicals();
@@ -870,11 +872,13 @@ public class WebRunner implements CommandLineRunner {
         int countTotal = stockList.size();
 
         for (Stock stock : stockList) {
+
             try {
-                miscUtil.delay();
+                miscUtil.delay(500);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
+
             try {
                 long startTime = System.currentTimeMillis();
                 System.out.println("Starting activity for " + stock.getNseSymbol());
@@ -1363,7 +1367,7 @@ public class WebRunner implements CommandLineRunner {
             System.out.println("Starting activity for " + stock.getNseSymbol());
 
             try {
-                List<OHLCV> ohlcvList = mcService.getMCOHLP(stock.getNseSymbol(), 25, 6137);
+                List<OHLCV> ohlcvList = mcService.getMCOHLP(stock.getNseSymbol(), 30, 7350);
 
                 if (ohlcvList != null && !ohlcvList.isEmpty()) {
                     System.out.println("Deleting existing bhav " + stock.getNseSymbol());
@@ -1399,7 +1403,7 @@ public class WebRunner implements CommandLineRunner {
                                                 .toLocalDate()
                                                 .format(DateTimeFormatter.ofPattern("dd/MM/yy")),
                                         1,
-                                        stock.getIsinCode());
+                                        stock.getIsinCode(), stock.getInstrument());
                         // System.out.println("Debug1 " + stock.getNseSymbol());
                         stockPriceIO.setBhavDate(ohlcv.getBhavDate());
                         // System.out.println("Debug2 " + stock.getNseSymbol());
@@ -1419,13 +1423,13 @@ public class WebRunner implements CommandLineRunner {
                         stockPriceList.add(stockPrice);
                     }
                 }
-                System.out.println("Debug5 " + stock.getNseSymbol());
+                //System.out.println("Debug5 " + stock.getNseSymbol());
                 priceTemplate.create(stockPriceList);
-                System.out.println("Debug6 " + stock.getNseSymbol());
+                //System.out.println("Debug6 " + stock.getNseSymbol());
                 stock.setActivityCompleted(true);
-                System.out.println("Debug7 " + stock.getNseSymbol());
+                //System.out.println("Debug7 " + stock.getNseSymbol());
                 stockRepository.save(stock);
-                System.out.println("Debug8 " + stock.getNseSymbol());
+                //System.out.println("Debug8 " + stock.getNseSymbol());
                 --countTotal;
                 long endTime = System.currentTimeMillis();
 
@@ -1443,25 +1447,48 @@ public class WebRunner implements CommandLineRunner {
         }
     }
 
-    public void processPriceUpdate() {
+    public void processPriceUpdate(boolean updateHistory) {
         List<Stock> stockList = stockRepository.findByActivityCompleted(false);
         int threadCount = Runtime.getRuntime().availableProcessors(); // Use CPU cores
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
 
         AtomicInteger countTotal = new AtomicInteger(stockList.size());
 
+        int yearsBack = 9;
+        int quartersBack = 9;
+        int monthsBack = 9;
+        int weeksBack = 9;
+        int daysBack = 9;
+
+        if(updateHistory) {
+            yearsBack = 30;
+            quartersBack = 30;
+            monthsBack = 240;
+            weeksBack = 700;
+            daysBack = 700;
+        }
+
+        final LocalDate yearlyInitialDate = LocalDate.now().minusYears(yearsBack);
+        final LocalDate quarterlyInitialDate = LocalDate.now().minusYears(quartersBack);
+        final LocalDate monthlyInitialDate = LocalDate.now().minusMonths(monthsBack);
+        final LocalDate weeklyInitialDate = LocalDate.now().minusWeeks(weeksBack);
+        final LocalDate dailyInitialDate = LocalDate.now().minusDays(daysBack);
+
         for (Stock stock : stockList) {
             executorService.submit(
                     () -> {
                         try {
-                            // processYearlyPriceUpdate(stock);
-                            // processQuarterlyPriceUpdate(stock);
-                            // processMonthlyPriceUpdate(stock);
-                            // processWeeklyPriceUpdate(stock);
-                            processDailyPriceUpdate(stock);
+                             processYearlyPriceUpdate(stock,yearlyInitialDate, updateHistory);
+                             processQuarterlyPriceUpdate(stock, quarterlyInitialDate, updateHistory);
+                             processMonthlyPriceUpdate(stock, monthlyInitialDate, updateHistory);
+                             processWeeklyPriceUpdate(stock, weeklyInitialDate, updateHistory);
+                             if(!updateHistory) {
+                                 processDailyPriceUpdate(stock, dailyInitialDate);
+                             }
 
                             stock.setActivityCompleted(true);
                             stockRepository.save(stock);
+                            miscUtil.delay();
 
                             System.out.println("Remaining: " + countTotal.decrementAndGet());
                         } catch (Exception e) {
@@ -1473,13 +1500,12 @@ public class WebRunner implements CommandLineRunner {
         executorService.shutdown(); // No new tasks will be accepted
     }
 
-    private void processYearlyPriceUpdate(Stock stock) {
+    private void processYearlyPriceUpdate(Stock stock, LocalDate initialDate, boolean updateHistory) {
 
         long startTime = System.currentTimeMillis();
         System.out.println("Starting yearly price update for " + stock.getNseSymbol());
 
         try {
-            LocalDate initialDate = LocalDate.of(2019, 01, 01);
 
             LocalDate from = miscUtil.yearFirstDay(initialDate);
             LocalDate to = miscUtil.yearLastDay(from);
@@ -1514,7 +1540,7 @@ public class WebRunner implements CommandLineRunner {
                                             .toLocalDate()
                                             .format(DateTimeFormatter.ofPattern("dd/MM/yy")),
                                     1,
-                                    stock.getIsinCode());
+                                    stock.getIsinCode(), stock.getInstrument());
 
                     stockPriceIO.setBhavDate(ohlcv.getBhavDate());
 
@@ -1531,18 +1557,28 @@ public class WebRunner implements CommandLineRunner {
                                     stockPriceIO.getLow(),
                                     stockPriceIO.getClose(),
                                     stockPriceIO.getTottrdqty());
-
-                    updatePriceService.updatePrice(Timeframe.YEARLY, stock, stockPrice);
-
+                    if(!updateHistory) {
+                        updatePriceService.updatePrice(Timeframe.YEARLY, stock, stockPrice);
+                    }
                     stockPriceList.add(stockPrice);
                 }
 
                 from = to.plusDays(1);
                 to = miscUtil.yearLastDay(from);
 
-            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
+            } while (to.isBefore(miscUtil.currentDate()));
 
-            // priceTemplate.create(Timeframe.YEARLY, stockPriceList);
+            if(updateHistory) {
+
+                if (stockPriceList != null && !stockPriceList.isEmpty()) {
+                    System.out.println("Deleting existing bhav " + stock.getNseSymbol());
+                    long count = priceTemplate.delete(Timeframe.YEARLY, stock.getNseSymbol());
+                    miscUtil.delay(25);
+                    System.out.println("Deleted existing bhav " + count + " " + stock.getNseSymbol());
+                 }
+
+                priceTemplate.create(Timeframe.YEARLY, stockPriceList);
+            }
 
             long endTime = System.currentTimeMillis();
 
@@ -1559,14 +1595,12 @@ public class WebRunner implements CommandLineRunner {
         }
     }
 
-    private void processQuarterlyPriceUpdate(Stock stock) {
+    private void processQuarterlyPriceUpdate(Stock stock, LocalDate initialDate, boolean updateHistory ) {
 
         long startTime = System.currentTimeMillis();
         System.out.println("Starting quarterly activity for " + stock.getNseSymbol());
 
         try {
-
-            LocalDate initialDate = LocalDate.of(2023, 01, 01);
 
             LocalDate from = miscUtil.quarterFirstDay(initialDate);
             LocalDate to = miscUtil.quarterLastDay(from);
@@ -1601,7 +1635,7 @@ public class WebRunner implements CommandLineRunner {
                                             .toLocalDate()
                                             .format(DateTimeFormatter.ofPattern("dd/MM/yy")),
                                     1,
-                                    stock.getIsinCode());
+                                    stock.getIsinCode(), stock.getInstrument());
 
                     stockPriceIO.setBhavDate(ohlcv.getBhavDate());
 
@@ -1618,17 +1652,27 @@ public class WebRunner implements CommandLineRunner {
                                     stockPriceIO.getLow(),
                                     stockPriceIO.getClose(),
                                     stockPriceIO.getTottrdqty());
+                    if(!updateHistory) {
 
-                    updatePriceService.updatePrice(Timeframe.QUARTERLY, stock, stockPrice);
+                        updatePriceService.updatePrice(Timeframe.QUARTERLY, stock, stockPrice);
+                    }
                     stockPriceList.add(stockPrice);
                 }
 
                 from = to.plusDays(1);
                 to = miscUtil.quarterLastDay(from);
 
-            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
+            } while (to.isBefore(miscUtil.currentDate()));
 
-            // priceTemplate.create(Timeframe.QUARTERLY, stockPriceList);
+            if(updateHistory) {
+                if (stockPriceList != null && !stockPriceList.isEmpty()) {
+                    System.out.println("Deleting existing bhav " + stock.getNseSymbol());
+                    long count = priceTemplate.delete(Timeframe.QUARTERLY, stock.getNseSymbol());
+                    miscUtil.delay(25);
+                    System.out.println("Deleted existing bhav " + count + " " + stock.getNseSymbol());
+                }
+                priceTemplate.create(Timeframe.QUARTERLY, stockPriceList);
+            }
 
             long endTime = System.currentTimeMillis();
 
@@ -1645,14 +1689,12 @@ public class WebRunner implements CommandLineRunner {
         }
     }
 
-    private void processMonthlyPriceUpdate(Stock stock) {
+    private void processMonthlyPriceUpdate(Stock stock,LocalDate initialDate, boolean updateHistory) {
 
         long startTime = System.currentTimeMillis();
         System.out.println("Starting monthly activity for " + stock.getNseSymbol());
 
         try {
-
-            LocalDate initialDate = LocalDate.of(2024, 10, 01);
 
             LocalDate from = initialDate.with(TemporalAdjusters.firstDayOfMonth());
             LocalDate to = from.with(TemporalAdjusters.lastDayOfMonth());
@@ -1686,7 +1728,7 @@ public class WebRunner implements CommandLineRunner {
                                             .toLocalDate()
                                             .format(DateTimeFormatter.ofPattern("dd/MM/yy")),
                                     1,
-                                    stock.getIsinCode());
+                                    stock.getIsinCode(), stock.getInstrument());
 
                     stockPriceIO.setBhavDate(ohlcv.getBhavDate());
 
@@ -1703,17 +1745,27 @@ public class WebRunner implements CommandLineRunner {
                                     stockPriceIO.getLow(),
                                     stockPriceIO.getClose(),
                                     stockPriceIO.getTottrdqty());
+                    if(!updateHistory) {
 
-                    updatePriceService.updatePrice(Timeframe.MONTHLY, stock, stockPrice);
+                        updatePriceService.updatePrice(Timeframe.MONTHLY, stock, stockPrice);
+                    }
                     stockPriceList.add(stockPrice);
                 }
 
                 from = to.plusDays(1);
                 to = from.with(TemporalAdjusters.lastDayOfMonth());
 
-            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
+            } while (to.isBefore(miscUtil.currentDate()));
 
-            // priceTemplate.create(Timeframe.MONTHLY,stockPriceList);
+            if(updateHistory) {
+                if (stockPriceList != null && !stockPriceList.isEmpty()) {
+                    System.out.println("Deleting existing bhav " + stock.getNseSymbol());
+                    long count = priceTemplate.delete(Timeframe.MONTHLY, stock.getNseSymbol());
+                    miscUtil.delay(25);
+                    System.out.println("Deleted existing bhav " + count + " " + stock.getNseSymbol());
+                }
+                priceTemplate.create(Timeframe.MONTHLY, stockPriceList);
+            }
 
             long endTime = System.currentTimeMillis();
 
@@ -1730,14 +1782,12 @@ public class WebRunner implements CommandLineRunner {
         }
     }
 
-    private void processWeeklyPriceUpdate(Stock stock) {
+    private void processWeeklyPriceUpdate(Stock stock,LocalDate initialDate, boolean updateHistory) {
 
         long startTime = System.currentTimeMillis();
         System.out.println("Starting weekly activity for " + stock.getNseSymbol());
 
         try {
-
-            LocalDate initialDate = LocalDate.of(2025, 01, 01);
 
             LocalDate from = initialDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
             LocalDate to = from.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
@@ -1772,7 +1822,7 @@ public class WebRunner implements CommandLineRunner {
                                             .toLocalDate()
                                             .format(DateTimeFormatter.ofPattern("dd/MM/yy")),
                                     1,
-                                    stock.getIsinCode());
+                                    stock.getIsinCode(), stock.getInstrument());
 
                     stockPriceIO.setBhavDate(ohlcv.getBhavDate());
 
@@ -1789,17 +1839,27 @@ public class WebRunner implements CommandLineRunner {
                                     stockPriceIO.getLow(),
                                     stockPriceIO.getClose(),
                                     stockPriceIO.getTottrdqty());
+                    if(!updateHistory) {
 
-                    updatePriceService.updatePrice(Timeframe.WEEKLY, stock, stockPrice);
+                        updatePriceService.updatePrice(Timeframe.WEEKLY, stock, stockPrice);
+                    }
                     stockPriceList.add(stockPrice);
                 }
 
                 from = to.plusDays(1);
                 to = from.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-            } while (to.isBefore(LocalDate.of(2025, 05, 8)));
+            } while (to.isBefore(miscUtil.currentDate().plusDays(3)));
 
-            // priceTemplate.create(Timeframe.WEEKLY, stockPriceList);
+            if(updateHistory) {
+                if (stockPriceList != null && !stockPriceList.isEmpty()) {
+                    System.out.println("Deleting existing bhav " + stock.getNseSymbol());
+                    long count = priceTemplate.delete(Timeframe.WEEKLY, stock.getNseSymbol());
+                    miscUtil.delay(25);
+                    System.out.println("Deleted existing bhav " + count + " " + stock.getNseSymbol());
+                }
+                priceTemplate.create(Timeframe.WEEKLY, stockPriceList);
+            }
 
             long endTime = System.currentTimeMillis();
 
@@ -1816,14 +1876,12 @@ public class WebRunner implements CommandLineRunner {
         }
     }
 
-    private void processDailyPriceUpdate(Stock stock) {
+    private void processDailyPriceUpdate(Stock stock, LocalDate initialDate) {
 
         long startTime = System.currentTimeMillis();
         System.out.println("Starting daily activity for " + stock.getNseSymbol());
 
         try {
-
-            LocalDate initialDate = LocalDate.of(2025, 06, 16);
 
             LocalDate from = initialDate;
             LocalDate to = initialDate;
@@ -1858,7 +1916,7 @@ public class WebRunner implements CommandLineRunner {
                                             .toLocalDate()
                                             .format(DateTimeFormatter.ofPattern("dd/MM/yy")),
                                     1,
-                                    stock.getIsinCode());
+                                    stock.getIsinCode(), stock.getInstrument());
 
                     stockPriceIO.setBhavDate(ohlcv.getBhavDate());
 
@@ -1883,7 +1941,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = from;
 
-            } while (to.isBefore(LocalDate.of(2025, 06, 21)));
+            } while (to.isBefore(miscUtil.currentDate().plusDays(1)));
 
             long endTime = System.currentTimeMillis();
 
@@ -1907,17 +1965,30 @@ public class WebRunner implements CommandLineRunner {
 
         AtomicInteger countTotal = new AtomicInteger(stockList.size());
 
+        int yearsBack = 9;
+        int quartersBack = 9;
+        int monthsBack = 9;
+        int weeksBack = 9;
+        int daysBack = 9;
+
+
+        final LocalDate monthlyInitialDate = LocalDate.now().minusMonths(monthsBack);
+        final LocalDate weeklyInitialDate = LocalDate.now().minusWeeks(weeksBack);
+        final LocalDate dailyInitialDate = LocalDate.now().minusDays(daysBack);
+
+
         for (Stock stock : stockList) {
             executorService.submit(
                     () -> {
                         try {
 
-                            // processMonthlyTechnicalsUpdate(stock);
-                            // processWeeklyTechnicalsUpdate(stock);
-                            processDailyTechnicalsUpdate(stock);
+                            processMonthlyTechnicalsUpdate(stock, monthlyInitialDate);
+                            processWeeklyTechnicalsUpdate(stock, weeklyInitialDate);
+                            processDailyTechnicalsUpdate(stock, dailyInitialDate);
 
                             stock.setActivityCompleted(true);
                             stockRepository.save(stock);
+                            miscUtil.delay();
 
                             System.out.println("Remaining: " + countTotal.decrementAndGet());
                         } catch (Exception e) {
@@ -1929,14 +2000,12 @@ public class WebRunner implements CommandLineRunner {
         executorService.shutdown(); // No new tasks will be accepted
     }
 
-    private void processMonthlyTechnicalsUpdate(Stock stock) {
+    private void processMonthlyTechnicalsUpdate(Stock stock , LocalDate initialDate) {
 
         long startTime = System.currentTimeMillis();
         System.out.println("Starting monthly activity for " + stock.getNseSymbol());
 
         try {
-
-            LocalDate initialDate = LocalDate.of(2024, 9, 01);
 
             LocalDate from = initialDate.with(TemporalAdjusters.firstDayOfMonth());
             LocalDate to = from.with(TemporalAdjusters.lastDayOfMonth());
@@ -1952,7 +2021,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = from.with(TemporalAdjusters.lastDayOfMonth());
 
-            } while (to.isBefore(LocalDate.now()));
+            } while (to.isBefore(miscUtil.currentDate()));
 
             long endTime = System.currentTimeMillis();
 
@@ -1969,14 +2038,12 @@ public class WebRunner implements CommandLineRunner {
         }
     }
 
-    private void processWeeklyTechnicalsUpdate(Stock stock) {
+    private void processWeeklyTechnicalsUpdate(Stock stock, LocalDate initialDate) {
 
         long startTime = System.currentTimeMillis();
         System.out.println("Starting weekly activity for " + stock.getNseSymbol());
 
         try {
-
-            LocalDate initialDate = LocalDate.of(2025, 02, 07);
 
             LocalDate from = initialDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
             LocalDate to = from.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
@@ -1988,12 +2055,14 @@ public class WebRunner implements CommandLineRunner {
 
                 stockTechnicals = updateTechnicalsService.build(Timeframe.WEEKLY, stock, to);
 
+                System.out.println("Sessiom date: " + stockTechnicals.getBhavDate());
+
                 updateTechnicalsService.updateTechnicals(Timeframe.WEEKLY, stock, stockTechnicals);
 
                 from = to.plusDays(1);
                 to = from.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-            } while (to.isBefore(LocalDate.now()));
+            } while (to.isBefore(miscUtil.currentDate().plusDays(3)));
 
             long endTime = System.currentTimeMillis();
 
@@ -2010,14 +2079,12 @@ public class WebRunner implements CommandLineRunner {
         }
     }
 
-    private void processDailyTechnicalsUpdate(Stock stock) {
+    private void processDailyTechnicalsUpdate(Stock stock, LocalDate initialDate) {
 
         long startTime = System.currentTimeMillis();
         System.out.println("Starting daily activity for " + stock.getNseSymbol());
 
         try {
-
-            LocalDate initialDate = LocalDate.of(2025, 06, 16);
 
             LocalDate from = initialDate;
             LocalDate to = initialDate;
@@ -2035,7 +2102,7 @@ public class WebRunner implements CommandLineRunner {
                 from = to.plusDays(1);
                 to = from;
 
-            } while (to.isBefore(LocalDate.of(2025, 06, 21)));
+            } while (to.isBefore(miscUtil.currentDate().plusDays(1)));
 
             long endTime = System.currentTimeMillis();
 

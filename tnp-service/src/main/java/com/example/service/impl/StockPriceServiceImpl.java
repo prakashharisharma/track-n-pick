@@ -13,6 +13,7 @@ import com.example.data.transactional.repo.StockRepository;
 import com.example.service.StockPriceService;
 import com.example.service.utils.PivotPointUtils;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.persistence.EntityNotFoundException;
@@ -93,6 +94,7 @@ public class StockPriceServiceImpl implements StockPriceService {
         newStockPrice.setLow(low);
         newStockPrice.setClose(close);
         newStockPrice.setSessionDate(sessionDate);
+        newStockPrice.setLastModified(LocalDateTime.now());
 
         log.info("Creating new {} StockPrice for stockId: {}", timeframe, stock.getStockId());
         return stockPriceRepository.save(newStockPrice);
@@ -155,6 +157,7 @@ public class StockPriceServiceImpl implements StockPriceService {
         setPivotLevels(stockPrice);
 
         stockPrice.setSessionDate(sessionDate);
+        stockPrice.setLastModified(LocalDateTime.now());
 
         log.info("Updating {} StockPrice for stockId: {}", timeframe, stock.getStockId());
         return stockPriceRepository.save(stockPrice);

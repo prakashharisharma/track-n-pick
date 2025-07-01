@@ -50,6 +50,8 @@ public class StockPriceIO implements Serializable {
 
     private String isin;
 
+    private String instrument;
+
     private double change;
     private double yearLow;
 
@@ -90,7 +92,8 @@ public class StockPriceIO implements Serializable {
             double tottrdval,
             String timestamp,
             long totaltrades,
-            String isin) {
+            String isin,
+            String instrument) {
         super();
         this.exchange = exchange;
         this.companyName = companyName;
@@ -126,6 +129,7 @@ public class StockPriceIO implements Serializable {
 
         this.totaltrades = totaltrades;
         this.isin = isin;
+        this.instrument = instrument;
         this.change = prevClose - close;
     }
 
@@ -301,6 +305,14 @@ public class StockPriceIO implements Serializable {
 
     public void setIsin(String isin) {
         this.isin = isin;
+    }
+
+    public String getInstrument() {
+        return instrument;
+    }
+
+    public void setInstrument(String instrument) {
+        this.instrument = instrument;
     }
 
     public double getChange() {

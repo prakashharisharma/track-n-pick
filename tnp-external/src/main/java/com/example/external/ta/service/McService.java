@@ -20,7 +20,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class McService {
 
     public List<OHLCV> getMCOHLP(String nseSymbol, int years, int countback) {
-        LocalDateTime to = LocalDateTime.of(2025, 3, 20, 00, 00, 00, 000);
+
+        LocalDateTime to = LocalDateTime.of(2025, 6, 26, 00, 00, 00, 000);
         // LocalDateTime to = LocalDateTime.now();
 
         LocalDateTime from = to.minusYears(years);
