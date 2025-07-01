@@ -19,8 +19,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class MiscUtil {
 
-    private static int min = 2837;
-    private static int max = 8897;
+    private static int min = 848;
+    private static int max = 1839;
 
     public double roundToTwoDecimals(double value) {
         return Math.round(value * 100.0) / 100.0;
@@ -95,7 +95,7 @@ public class MiscUtil {
     }
 
     public LocalDate currentDate() {
-        // return LocalDate.of(2025, 06, 27);
+        // return LocalDate.of(2025, 06, 30);
         return LocalDate.now();
     }
 

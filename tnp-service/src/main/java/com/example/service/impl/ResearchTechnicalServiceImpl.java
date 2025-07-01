@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.persistence.EntityNotFoundException;
+
+import com.example.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,6 +38,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
     private final ResearchTechnicalRepository<ResearchTechnical> researchTechnicalRepository;
 
+    private final EvaluationLogService evaluationLogService;
     private final FormulaService formulaService;
 
     private final StockPriceHelperService stockPriceHelperService;
@@ -151,10 +154,23 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         stockTechnicals,
                         newResearchTechnical.getEntrySubStrategy(),
                         newResearchTechnical.getRisk());
+        evaluationLogService.add(
+                stockPrice,
+                EvaluationLog.Type.POSITIVE,
+                StringUtils.format(
+                        "isRiskWithinLimit: {}", isRiskWithinLimit
+                ));
 
         boolean isTargetValid =
                 targetService.isTargetValid(
                         newResearchTechnical.getEntryPrice(), newResearchTechnical.getTarget());
+
+        evaluationLogService.add(
+                stockPrice,
+                EvaluationLog.Type.POSITIVE,
+                StringUtils.format(
+                        "isTargetValid: {}", isTargetValid
+                ));
 
         if (isRiskWithinLimit
                 && isTargetValid
@@ -165,7 +181,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         return newResearchTechnical;
     }
 
-    public static boolean isRiskWithinLimit(
+    public boolean isRiskWithinLimit(
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
@@ -173,35 +189,53 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
             double risk) {
 
         double weight = subStrategy.getPriority();
-
-        double riskBuffer = -2.0;
+        double riskBuffer = 0.0;
 
         if (weight >= 10) {
-            riskBuffer = 2.0;
+            riskBuffer = (timeframe == Timeframe.DAILY) ? 3.0 : 1.5;
         } else if (weight >= 9) {
-            riskBuffer = 1.5;
+            riskBuffer = (timeframe == Timeframe.DAILY) ? 2.0 : 1.0;
         } else if (weight >= 8) {
-            riskBuffer = 1.0;
+            riskBuffer = (timeframe == Timeframe.DAILY) ? 1.0 : 0.5;
         }
 
+        double limit = 0.0;
+        boolean result = false;
+
         if (subStrategy.isBreakout()) {
-            return switch (timeframe) {
-                case DAILY -> risk <= (7.0 + riskBuffer);
-                case WEEKLY -> risk <= (8.5 + riskBuffer);
-                case MONTHLY -> risk <= (10.0 + riskBuffer);
-                default -> false;
-            };
+            switch (timeframe) {
+                case DAILY -> limit = 7.0 + riskBuffer;
+                case WEEKLY -> limit = 8.5 + riskBuffer;
+                case MONTHLY -> limit = 10.0 + riskBuffer;
+            }
         } else if (subStrategy.isSupport()) {
-            return switch (timeframe) {
-                case DAILY -> risk <= (5.0 + riskBuffer);
-                case WEEKLY -> risk <= (7.5 + riskBuffer);
-                case MONTHLY -> risk <= (10.0 + riskBuffer);
-                default -> false;
-            };
-        } else {
-            return false;
+            switch (timeframe) {
+                case DAILY -> limit = 5.0 + riskBuffer;
+                case WEEKLY -> limit = 7.5 + riskBuffer;
+                case MONTHLY -> limit = 10.0 + riskBuffer;
+            }
         }
+
+        result = risk <= limit;
+
+        evaluationLogService.add(
+                stockTechnicals,
+                result ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
+                StringUtils.format(
+                        "{} {} RISK → risk:{} weight:{} buffer:{} limit:{} → isValid:{}",
+                        timeframe.name(),
+                        subStrategy,
+                        risk,
+                        weight,
+                        riskBuffer,
+                        limit,
+                        result
+                )
+        );
+
+        return result;
     }
+
 
     @Override
     public ResearchTechnical exit(

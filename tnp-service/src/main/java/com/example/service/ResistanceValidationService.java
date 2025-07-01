@@ -24,6 +24,7 @@ public class ResistanceValidationService {
         Timeframe current = stockPrice.getTimeframe();
         Stock stock = stockPrice.getStock();
         double high = stockPrice.getHigh();
+        double close = stockPrice.getClose();
 
         Timeframe higher = current.getHigher();
         while (higher != current) {
@@ -40,17 +41,7 @@ public class ResistanceValidationService {
             double onePercentBelowStart =
                     resistanceStart - formulaService.calculateFraction(resistanceStart, 1.0);
 
-            boolean isOutside = high < onePercentBelowStart || high > resistanceEnd;
-
-            log.debug(
-                    "{}: Close={} | Resistance Start={} End={} | 1% Below Start={} |"
-                            + " OutsideZone={}",
-                    higher.name(),
-                    high,
-                    resistanceStart,
-                    resistanceEnd,
-                    onePercentBelowStart,
-                    isOutside);
+            boolean isOutside = high < resistanceStart || close > resistanceEnd;
 
             if (!isOutside) {
                 evaluationLogService.add(
@@ -58,15 +49,22 @@ public class ResistanceValidationService {
                         EvaluationLog.Type.NEUTRAL,
                         StringUtils.format(
                                 "{} Timeframe resistance alert Close={} | Resistance Start={}"
-                                        + " End={} | 1% Below Start={} | OutsideZone={}",
+                                        + " End={} | 1% Below Start={} ",
                                 higher.name(),
                                 high,
                                 resistanceStart,
                                 resistanceEnd,
-                                onePercentBelowStart,
-                                isOutside));
+                                onePercentBelowStart
+                                ));
                 return false;
             } // still within resistance zone
+
+            evaluationLogService.add(
+                    stockPrice,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            "Passing {} Timeframe resistance", higher.name()
+                    ));
 
             Timeframe nextHigher = higher.getHigher();
             if (nextHigher == higher) break; // Reached top

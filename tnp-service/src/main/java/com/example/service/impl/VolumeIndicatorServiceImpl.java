@@ -451,30 +451,54 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
 
         long currentVolume = stockTechnicals.getVolume();
         long prevVolume = stockTechnicals.getPrevVolume();
-        long avgVolume20 = stockTechnicals.getVolumeAvg20();
-        long prevAvgVolume20 = stockTechnicals.getPrevVolumeAvg20();
+        long avgVolume = stockTechnicals.getVolumeAvg20();
+        long prevAvgVolume = stockTechnicals.getPrevVolumeAvg20();
+
+        if(stockTechnicals.getTimeframe() == Timeframe.WEEKLY){
+            avgVolume = stockTechnicals.getVolumeAvg10();
+            prevAvgVolume = stockTechnicals.getPrevVolumeAvg10();
+        }
+
+        if(stockTechnicals.getTimeframe() == Timeframe.MONTHLY){
+            avgVolume = stockTechnicals.getVolumeAvg5();
+            prevAvgVolume = stockTechnicals.getPrevVolumeAvg5();
+        }
+
         Timeframe timeframe = stockTechnicals.getTimeframe();
         double multiplier =
                 volumeMultipleFactor.getOrDefault(timeframe, 1.5); // fallback multiplier
 
         long avgCurrentVolume = (currentVolume + prevVolume) / 2;
-        long avgAverageVolume = (avgVolume20 + prevAvgVolume20) / 2;
-        boolean isAvgIncreasing = avgVolume20 > prevAvgVolume20;
+        long avgAverageVolume = (avgVolume + prevAvgVolume) / 2;
+        boolean isAvgIncreasing = avgVolume > prevAvgVolume;
         boolean isVolumeIncreasing = currentVolume > prevVolume;
-        boolean isVolumeAboveAverage =
-                (currentVolume > avgVolume20) || (avgCurrentVolume > avgAverageVolume);
+        boolean isVolumeAboveAverage = currentVolume > avgVolume;
 
-        if (isAvgIncreasing && isVolumeAboveAverage) {
+        if (isAvgIncreasing && currentVolume > 1.5 * avgVolume) {
             evaluationLogService.add(
                     stockTechnicals,
                     EvaluationLog.Type.POSITIVE,
-                    StringUtils.format("Volume Surge: AvgIncreasing && VolumeAboveAverage"));
+                    StringUtils.format("Volume Surge: AvgIncreasing && currentVolume > 1.5 * avgVolume"));
             return true;
-        } else if (isAvgIncreasing && isVolumeIncreasing) {
+        }else if (isAvgIncreasing && currentVolume > 2 * prevVolume) {
             evaluationLogService.add(
                     stockTechnicals,
                     EvaluationLog.Type.POSITIVE,
-                    StringUtils.format("Volume Surge: AvgIncreasing && VolumeIncreasing"));
+                    StringUtils.format("Volume Surge: AvgIncreasing && currentVolume > 2 * prevVolume"));
+            return true;
+        }
+        else if (isAvgIncreasing && (currentVolume > 1.25 * avgVolume) && (prevVolume > 1.25 * prevAvgVolume)) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format("Volume Surge: AvgIncreasing && currentVolume > 1.25 * avgVolume && prevVolume > 1.25 * prevAvgVolume"));
+            return true;
+        }
+        else if (isAvgIncreasing && isVolumeIncreasing && isVolumeAboveAverage) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format("Volume Surge: AvgIncreasing && VolumeIncreasing && VolumeAboveAverage"));
             return true;
         }
 
@@ -526,8 +550,8 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
                                 + " multiplier:{}",
                         currentVolume,
                         prevVolume,
-                        avgVolume20,
-                        prevAvgVolume20,
+                        avgVolume,
+                        prevAvgVolume,
                         multiplier));
 
         return false;

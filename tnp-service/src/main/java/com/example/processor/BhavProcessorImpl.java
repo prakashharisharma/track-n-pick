@@ -122,7 +122,8 @@ public class BhavProcessorImpl implements BhavProcessor {
                             stockPriceIN.getTottrdval(),
                             stockPriceIN.getTimestamp(),
                             stockPriceIN.getTotaltrades(),
-                            stockPriceIN.getIsin());
+                            stockPriceIN.getIsin(),
+                            stockPriceIN.getExchangeCode());
             stockPriceIOList.add(stockPriceIO);
         }
 
@@ -138,6 +139,15 @@ public class BhavProcessorImpl implements BhavProcessor {
         }
     }
 
+    private void updateInstrument(Stock stock, StockPriceIO stockPriceIO) {
+        if (stock.getInstrument() == null
+                || !stock.getInstrument()
+                        .equalsIgnoreCase(stockPriceIO.getInstrument().trim().toUpperCase())) {
+            stock.setInstrument(stockPriceIO.getInstrument().trim().toUpperCase());
+            stockService.save(stock);
+        }
+    }
+
     private Stock addStockToMaster(StockPriceIO stockPriceIO) {
 
         log.info("{} Adding to master", stockPriceIO.getNseSymbol());
@@ -149,6 +159,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                         stockPriceIO.getNseSymbol().trim().toUpperCase(),
                         stockPriceIO.getSeries(),
                         stockPriceIO.getIsin(),
+                        stockPriceIO.getInstrument(),
                         IndiceType.NSE);
 
         if (stockPriceIO.getExchange().equalsIgnoreCase("NSE")) {
@@ -162,6 +173,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                 stockIO.getExchange(),
                 stockIO.getSeries().trim().toUpperCase(),
                 stockIO.getIsin(),
+                stockIO.getInstrument(),
                 stockIO.getCompanyName(),
                 stockIO.getNseSymbol(),
                 stockIO.getBseCode(),
@@ -243,7 +255,8 @@ public class BhavProcessorImpl implements BhavProcessor {
                     stock = this.addStockToMaster(stockPriceIO);
                 }
 
-                this.updateSeries(stock, stockPriceIO);
+                //this.updateSeries(stock, stockPriceIO);
+                //this.updateInstrument(stock, stockPriceIO);
                 updatePriceService.updatePrice(Timeframe.DAILY, stock, stockPrice);
                 researchExecutorService.executeFundamental(stock);
                 stockPriceList.add(stockPrice);

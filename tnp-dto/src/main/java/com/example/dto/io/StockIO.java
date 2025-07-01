@@ -21,6 +21,8 @@ public class StockIO implements Serializable {
 
     private String isin;
 
+    private String instrument;
+
     private IndiceType indice;
 
     private Exchange exchange;
@@ -31,6 +33,7 @@ public class StockIO implements Serializable {
             String nseSymbol,
             String series,
             String isin,
+            String instrument,
             IndiceType indice) {
         super();
         this.companyName = companyName;
@@ -38,6 +41,7 @@ public class StockIO implements Serializable {
         this.nseSymbol = nseSymbol;
         this.series = series;
         this.isin = isin;
+        this.instrument = instrument;
         this.indice = indice;
     }
 
@@ -87,6 +91,14 @@ public class StockIO implements Serializable {
 
     public void setIsin(String isin) {
         this.isin = isin;
+    }
+
+    public String getInstrument() {
+        return instrument;
+    }
+
+    public void setInstrument(String instrument) {
+        this.instrument = instrument;
     }
 
     public IndiceType getIndice() {

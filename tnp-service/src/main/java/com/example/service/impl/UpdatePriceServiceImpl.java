@@ -13,7 +13,6 @@ import com.example.util.MiscUtil;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -180,37 +179,5 @@ public class UpdatePriceServiceImpl implements UpdatePriceService {
 
         // throw new IllegalArgumentException(stock.getNseSymbol() + "OHLCV does not exist for"+
         // timeframe +" " + to);
-    }
-
-    private StockPriceIO build(
-            Timeframe timeframe, Stock stock, OHLCV ohlcv, LocalDate sessionDate) {
-
-        StockPriceIO newStockPriceIO =
-                new StockPriceIO(
-                        "NSE",
-                        stock.getCompanyName(),
-                        stock.getNseSymbol(),
-                        stock.getSeries(),
-                        ohlcv.getOpen(),
-                        ohlcv.getHigh(),
-                        ohlcv.getLow(),
-                        ohlcv.getClose(),
-                        ohlcv.getClose(),
-                        ohlcv.getOpen(),
-                        ohlcv.getVolume(),
-                        0.00,
-                        ohlcv.getBhavDate()
-                                .atOffset(ZoneOffset.UTC)
-                                .toLocalDate()
-                                .format(DateTimeFormatter.ofPattern("dd/MM/yy")),
-                        1,
-                        stock.getIsinCode());
-
-        newStockPriceIO.setBhavDate(ohlcv.getBhavDate());
-
-        newStockPriceIO.setTimestamp(ohlcv.getBhavDate().atOffset(ZoneOffset.UTC).toLocalDate());
-        newStockPriceIO.setTimeFrame(timeframe);
-
-        return newStockPriceIO;
     }
 }

@@ -1,11 +1,14 @@
 package com.example.service;
 
+import com.example.data.common.type.MarketCapCategory;
 import com.example.data.transactional.entities.EvaluationLog;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.dto.integration.StockOverviewResponse;
 import com.example.dto.type.SentimentColor;
 import com.example.external.Research360Client;
+import com.example.model.type.IndiceType;
+import com.example.service.impl.FundamentalResearchService;
 import com.example.util.StringUtils;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +25,8 @@ public class ResearchInsightService {
     private final Research360Client research360Client;
 
     private final EvaluationLogService evaluationLogService;
+
+    private final FundamentalResearchService fundamentalResearchService;
 
     public boolean isStrongInsights(StockPrice stockPrice) {
         Stock stock = stockPrice.getStock();
@@ -67,6 +72,8 @@ public class ResearchInsightService {
 
             int score = this.calculateScore(qualityColor, valuationColor, technicalColor);
 
+
+
             boolean result = (valuationColor == SentimentColor.NEGATIVE) ? score >= 6 : score >= 5;
 
             evaluationLogService.add(
@@ -81,6 +88,12 @@ public class ResearchInsightService {
                             score,
                             (valuationColor == SentimentColor.NEGATIVE ? 6 : 5),
                             result));
+
+            MarketCapCategory marketCapCategory = MarketCapCategory.classify(fundamentalResearchService.marketCap(stock));
+
+            if(marketCapCategory == MarketCapCategory.MEGACAP || marketCapCategory == MarketCapCategory.LARGECAP){
+                return qualityColor != SentimentColor.NEGATIVE && score >= 5;
+            }
 
             return result;
 

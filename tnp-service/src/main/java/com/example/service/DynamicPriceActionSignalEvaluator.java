@@ -4,6 +4,7 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.*;
 import com.example.dto.common.TradeSetup;
 import com.example.service.utils.CandleStickUtils;
+import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.SignalEvaluatorHelperService;
 import com.example.service.utils.SubStrategyHelper;
 import com.example.util.FormulaService;
@@ -139,6 +140,10 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             return Optional.empty();
         }
 
+        if(signalEvaluatorHelperService.isHighestAlsoBreached(timeframe, stockPrice, stockTechnicals, evaluationResult.getLength(), evaluationResult.getValue(), true)){
+            return Optional.empty();
+        }
+
         boolean isLowestAndHighestMovingAverageDiffValid =
                 signalEvaluatorHelperService.isLowestAndHighestMovingAverageDiffValid(
                         timeframe, stockPrice, stockTechnicals, MAInteractionType.BREAKOUT, true);
@@ -146,9 +151,9 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
         boolean isNearestMovingAverageDiffValidForBreakout =
                 signalEvaluatorHelperService.isNearestMovingAverageDiffValidForBreakout(
                         timeframe, stockTechnicals, evaluationResult, true);
-
-        if (isLowestAndHighestMovingAverageDiffValid
-                && isNearestMovingAverageDiffValidForBreakout) {
+        boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
+        if (isAllMAsIncreasing || (isLowestAndHighestMovingAverageDiffValid
+                && isNearestMovingAverageDiffValidForBreakout)) {
 
             boolean isCurrentBreakoutConfirmation =
                     signalEvaluatorHelperService.currentBreakoutConfirmation(
