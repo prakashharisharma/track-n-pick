@@ -5,6 +5,7 @@ import com.example.data.transactional.entities.type.FundTransactionType;
 import com.example.data.transactional.repo.FundsLedgerRepository;
 import com.example.data.transactional.view.FundsLedgerResult;
 import com.example.dto.request.FundsLedgerRequest;
+import com.example.service.dhan.DhanOrchestratorService;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,8 @@ import org.springframework.stereotype.Service;
 public class FundsLedgerService {
 
     private final FundsLedgerRepository fundsLedgerRepository;
+
+    private final DhanOrchestratorService dhanOrchestratorService;
 
     public BigDecimal getTotalFundsValue(Long userId) {
         return fundsLedgerRepository.findTotalValueByUserId(userId);

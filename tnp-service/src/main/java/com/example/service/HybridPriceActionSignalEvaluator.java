@@ -7,7 +7,6 @@ import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.SignalEvaluatorHelperService;
 import com.example.service.utils.SubStrategyHelper;
-import com.example.util.FormulaService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,15 +20,10 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
     private final DynamicMovingAverageSupportResolverService
             dynamicMovingAverageSupportResolverService;
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
-
-    private final StockPriceService<StockPrice> stockPriceService;
     private final SignalEvaluatorHelperService signalEvaluatorHelperService;
-    private final CandleStickConfirmationService candleStickConfirmationService;
-    private final VolumeIndicatorService volumeIndicatorService;
-    private final RsiIndicatorService rsiIndicatorService;
-    private final FormulaService formulaService;
-
+    private final StockPriceService<StockPrice> stockPriceService;
     private final EvaluationLogService evaluationLogService;
+    private final RsiIndicatorService rsiIndicatorService;
 
     @Override
     public TradeSetup evaluateEntry(
@@ -138,9 +132,25 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         if (rsiIndicatorService.isOverBought(stockTechnicals)
                 || (CandleStickUtils.isUpperWickDominant(stockPrice)
-                && CandleStickUtils.isStrongRange(
-                timeframe, stockPrice, stockTechnicals))) {
+                                && CandleStickUtils.isStrongRange(
+                                        timeframe, stockPrice, stockTechnicals)
+                        || (CandleStickUtils.upperWickSize(stockPrice)
+                                >= CandleStickUtils.bodySize(stockPrice) * 2))) {
             return Optional.empty();
+        }
+
+        if (timeframe.getPriority() > 1) {
+            StockPrice dailyStockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+            StockTechnicals dailyStockTechnicals =
+                    stockTechnicalsService.get(stock, Timeframe.DAILY);
+            if (rsiIndicatorService.isOverBought(dailyStockTechnicals)
+                    || (CandleStickUtils.isUpperWickDominant(dailyStockPrice)
+                            && (CandleStickUtils.isStrongRange(
+                                            Timeframe.DAILY, dailyStockPrice, dailyStockTechnicals)
+                                    || (CandleStickUtils.upperWickSize(dailyStockPrice)
+                                            >= 2 * CandleStickUtils.bodySize(dailyStockPrice))))) {
+                return Optional.empty();
+            }
         }
 
         StockPrice htStockPrice =
@@ -161,9 +171,11 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 signalEvaluatorHelperService.isNearestMovingAverageDiffValidForBreakout(
                         timeframe, stockTechnicals, evaluationResult, true);
 
-        boolean isAHtllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(htStockTechnicals);
+        boolean isLongerMAsAlignBullish =
+                MovingAverageUtil.isLongerMaAlignedBullish(
+                        evaluationResult.getLength(), timeframe, stockTechnicals);
 
-        if ((isHtLowestAndHighestMovingAverageDiffValid || isAHtllMAsIncreasing)
+        if ((isHtLowestAndHighestMovingAverageDiffValid || isLongerMAsAlignBullish)
                 && isNearestMovingAverageDiffValidForBreakout) {
             if (stockPrice.getClose() > htStockPrice.getHigh()) {
                 boolean currentConfirmation =
@@ -173,55 +185,6 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
                     return SubStrategyHelper.resolveByName(
                             timeframe.getHigher().name() + "_breakout");
                 }
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    private Optional<ResearchTechnical.SubStrategy> confirmSupportBounce(
-            Timeframe timeframe,
-            Stock stock,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals,
-            MAEvaluationResult evaluationResult) {
-        log.debug(
-                "Confirming support bounce for stock={} timeframe={}",
-                stock.getNseSymbol(),
-                timeframe);
-
-        MovingAverageResult highestMovingAverageResult =
-                MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
-
-        double maPercentageDiff =
-                formulaService.calculateChangePercentage(
-                        evaluationResult.getPrevValue(), highestMovingAverageResult.getPrevValue());
-
-        boolean isValid =
-                MAThresholdsConfig.getThreshold(
-                                MAInteractionType.SUPPORT, evaluationResult.getLength())
-                        .map(threshold -> maPercentageDiff >= threshold)
-                        .orElse(true);
-
-        if (isValid) {
-            boolean isUpperWickSizeConfirmed =
-                    candleStickConfirmationService.isUpperWickSizeConfirmed(
-                            timeframe, stockPrice, stockTechnicals);
-
-            boolean isBullishCandleStick =
-                    candleStickConfirmationService.isBullishConfirmed(
-                            timeframe, stockPrice, stockTechnicals, true);
-
-            boolean isVolumeSurge =
-                    volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
-
-            // TODO: prevBullishCandleStick
-
-            if (isUpperWickSizeConfirmed && isBullishCandleStick && isVolumeSurge) {
-                // return Optional.of(ResearchTechnical.SubStrategy.SUPPORT);
-                return SubStrategyHelper.resolveByName(
-                        evaluationResult.getLength().name() + "_support");
             }
         }
 
@@ -238,74 +201,45 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 "Confirming breakdown for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
         if (rsiIndicatorService.isOverSold(stockTechnicals)
-                || CandleStickUtils.isLowerWickDominant(stockPrice)) {
+                || (CandleStickUtils.isLowerWickDominant(stockPrice)
+                                && (CandleStickUtils.isStrongRange(
+                                        timeframe, stockPrice, stockTechnicals))
+                        || CandleStickUtils.lowerWickSize(stockPrice)
+                                >= 2 * CandleStickUtils.bodySize(stockPrice))) {
             return Optional.empty();
         }
 
+        StockPrice htStockPrice =
+                stockPriceService.get(stock, stockPrice.getTimeframe().getHigher());
+
+        StockTechnicals htStockTechnicals =
+                stockTechnicalsService.get(stock, stockPrice.getTimeframe().getHigher());
         boolean isLowestMovingAverageDiffValid =
-                signalEvaluatorHelperService.isLowestMovingAverageDiffValid(
-                        timeframe, stockPrice, stockTechnicals, evaluationResult);
+                signalEvaluatorHelperService.isHighestAndLowestMovingAverageDiffValid(
+                        timeframe,
+                        htStockPrice,
+                        htStockTechnicals,
+                        MAInteractionType.BREAKDOWN,
+                        true);
 
         boolean isNearestMovingAverageDiffValidForBreakdown =
                 signalEvaluatorHelperService.isNearestMovingAverageDiffValidForBreakdown(
                         timeframe, stockTechnicals, evaluationResult, true);
+        boolean isLongerMAsAlignBearish =
+                MovingAverageUtil.isLongerMaAlignedBearish(
+                        evaluationResult.getLength(), timeframe, stockTechnicals);
 
-        if (isLowestMovingAverageDiffValid && isNearestMovingAverageDiffValidForBreakdown) {
+        if ((isLowestMovingAverageDiffValid || isLongerMAsAlignBearish)
+                && isNearestMovingAverageDiffValidForBreakdown) {
+            if (stockPrice.getClose() < htStockPrice.getLow()) {
+                boolean isCurrentBreakdownConfirmation =
+                        signalEvaluatorHelperService.currentBreakdownConfirmation(
+                                stockPrice, stockTechnicals);
 
-            boolean isCurrentBreakdownConfirmation =
-                    signalEvaluatorHelperService.currentBreakdownConfirmation(
-                            stockPrice, stockTechnicals);
-
-            if (isCurrentBreakdownConfirmation) {
-                return SubStrategyHelper.resolveByName(
-                        evaluationResult.getLength().name() + "_breakdown");
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    private Optional<ResearchTechnical.SubStrategy> confirmResistanceRejection(
-            Timeframe timeframe,
-            Stock stock,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals,
-            MAEvaluationResult evaluationResult) {
-        log.debug(
-                "Confirming resistance rejection for stock={} timeframe={}",
-                stock.getNseSymbol(),
-                timeframe);
-        MovingAverageResult lowestMovingAverageResult =
-                MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.LOWEST, timeframe, stockTechnicals, true);
-
-        double maPercentageDiff =
-                formulaService.calculateChangePercentage(
-                        lowestMovingAverageResult.getPrevValue(), evaluationResult.getPrevValue());
-
-        boolean isValid =
-                MAThresholdsConfig.getThreshold(
-                                MAInteractionType.RESISTANCE, evaluationResult.getLength())
-                        .map(threshold -> maPercentageDiff >= threshold)
-                        .orElse(true);
-
-        if (isValid) {
-            boolean isLowerWickSizeConfirmed =
-                    candleStickConfirmationService.isLowerWickSizeConfirmed(
-                            timeframe, stockPrice, stockTechnicals);
-
-            boolean isBearishCandleStick =
-                    candleStickConfirmationService.isBearishConfirmed(
-                            timeframe, stockPrice, stockTechnicals, true);
-
-            boolean isVolumeSurge =
-                    volumeIndicatorService.isBullish(stockPrice, stockTechnicals, timeframe);
-
-            // TODO: prevBearishCandleStick
-            if (isLowerWickSizeConfirmed && isBearishCandleStick && isVolumeSurge) {
-                // return Optional.of(ResearchTechnical.SubStrategy.RESISTANCE);
-                return SubStrategyHelper.resolveByName(
-                        evaluationResult.getLength().name() + "_resistance");
+                if (isCurrentBreakdownConfirmation) {
+                    return SubStrategyHelper.resolveByName(
+                            evaluationResult.getLength().name() + "_breakdown");
+                }
             }
         }
 

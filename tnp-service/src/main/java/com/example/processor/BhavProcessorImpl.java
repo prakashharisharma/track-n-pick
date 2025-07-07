@@ -255,8 +255,8 @@ public class BhavProcessorImpl implements BhavProcessor {
                     stock = this.addStockToMaster(stockPriceIO);
                 }
 
-                //this.updateSeries(stock, stockPriceIO);
-                //this.updateInstrument(stock, stockPriceIO);
+                // this.updateSeries(stock, stockPriceIO);
+                // this.updateInstrument(stock, stockPriceIO);
                 updatePriceService.updatePrice(Timeframe.DAILY, stock, stockPrice);
                 researchExecutorService.executeFundamental(stock);
                 stockPriceList.add(stockPrice);

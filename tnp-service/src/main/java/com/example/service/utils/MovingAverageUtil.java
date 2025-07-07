@@ -228,7 +228,8 @@ public class MovingAverageUtil {
         };
     }
 
-    public static boolean isAllMaAlignedBullish(Timeframe timeframe, StockTechnicals stockTechnicals) {
+    public static boolean isAllMaAlignedBullish(
+            Timeframe timeframe, StockTechnicals stockTechnicals) {
         double ma5 = getMovingAverage5(timeframe, stockTechnicals);
         double ma20 = getMovingAverage20(timeframe, stockTechnicals);
         double ma50 = getMovingAverage50(timeframe, stockTechnicals);
@@ -238,12 +239,80 @@ public class MovingAverageUtil {
         return ma5 > ma20 && ma20 > ma50 && ma50 > ma100 && ma100 > ma200;
     }
 
-    public static boolean isLongerMaAlignedBullish(Timeframe timeframe, StockTechnicals stockTechnicals) {
+    public static boolean isAllMaAlignedBearish(
+            Timeframe timeframe, StockTechnicals stockTechnicals) {
+        double ma5 = getMovingAverage5(timeframe, stockTechnicals);
+        double ma20 = getMovingAverage20(timeframe, stockTechnicals);
         double ma50 = getMovingAverage50(timeframe, stockTechnicals);
         double ma100 = getMovingAverage100(timeframe, stockTechnicals);
         double ma200 = getMovingAverage200(timeframe, stockTechnicals);
 
-        return ma50 > ma100 && ma100 > ma200;
+        return ma5 < ma20 && ma20 < ma50 && ma50 < ma100 && ma100 < ma200;
+    }
+
+    public static boolean isLongerMaAlignedBullish(
+            MovingAverageLength movingAverageLength,
+            Timeframe timeframe,
+            StockTechnicals stockTechnicals) {
+
+        List<MovingAverageLength> longerMAs =
+                Arrays.stream(MovingAverageLength.values())
+                        .filter(ma -> ma.getMaDays() > movingAverageLength.getMaDays())
+                        .sorted(Comparator.comparingInt(MovingAverageLength::getMaDays))
+                        .toList();
+
+        if (longerMAs.size() < 2) return false; // At least 2 MAs needed to compare order
+
+        for (int i = 1; i < longerMAs.size(); i++) {
+            double prev =
+                    MovingAverageUtil.getMovingAverage(
+                                    longerMAs.get(i - 1), timeframe, stockTechnicals, false)
+                            .getValue();
+            double curr =
+                    MovingAverageUtil.getMovingAverage(
+                                    longerMAs.get(i), timeframe, stockTechnicals, false)
+                            .getValue();
+
+            if (prev >= curr) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean isLongerMaAlignedBearish(
+            MovingAverageLength movingAverageLength,
+            Timeframe timeframe,
+            StockTechnicals stockTechnicals) {
+
+        // Start with MA50 as base
+        int baseMaDays = 50;
+
+        List<MovingAverageLength> longerMAs =
+                Arrays.stream(MovingAverageLength.values())
+                        .filter(ma -> ma.getMaDays() > movingAverageLength.getMaDays())
+                        .sorted(Comparator.comparingInt(MovingAverageLength::getMaDays))
+                        .toList();
+
+        if (longerMAs.size() < 2) return false; // Need at least 2 to compare
+
+        for (int i = 1; i < longerMAs.size(); i++) {
+            double prev =
+                    MovingAverageUtil.getMovingAverage(
+                                    longerMAs.get(i - 1), timeframe, stockTechnicals, false)
+                            .getValue();
+            double curr =
+                    MovingAverageUtil.getMovingAverage(
+                                    longerMAs.get(i), timeframe, stockTechnicals, false)
+                            .getValue();
+
+            if (prev <= curr) {
+                return false; // Not strictly decreasing
+            }
+        }
+
+        return true;
     }
 
     public static boolean isAllMAsIncreasing(StockTechnicals stockTechnicals) {
@@ -278,6 +347,24 @@ public class MovingAverageUtil {
                 > getPrevMovingAverage100(timeframe, stockTechnicals)) count++;
         if (getMovingAverage200(timeframe, stockTechnicals)
                 > getPrevMovingAverage200(timeframe, stockTechnicals)) count++;
+
+        return count;
+    }
+
+    public static int decreasingMaCount(StockTechnicals stockTechnicals) {
+        Timeframe timeframe = stockTechnicals.getTimeframe();
+        int count = 0;
+
+        if (getMovingAverage5(timeframe, stockTechnicals)
+                < getPrevMovingAverage5(timeframe, stockTechnicals)) count++;
+        if (getMovingAverage20(timeframe, stockTechnicals)
+                < getPrevMovingAverage20(timeframe, stockTechnicals)) count++;
+        if (getMovingAverage50(timeframe, stockTechnicals)
+                < getPrevMovingAverage50(timeframe, stockTechnicals)) count++;
+        if (getMovingAverage100(timeframe, stockTechnicals)
+                < getPrevMovingAverage100(timeframe, stockTechnicals)) count++;
+        if (getMovingAverage200(timeframe, stockTechnicals)
+                < getPrevMovingAverage200(timeframe, stockTechnicals)) count++;
 
         return count;
     }

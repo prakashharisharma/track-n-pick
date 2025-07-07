@@ -14,6 +14,7 @@ import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.VolumeAverageUtil;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
+import com.example.util.StringUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -21,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.persistence.EntityNotFoundException;
-
-import com.example.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -47,6 +46,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     private final CalendarService calendarService;
 
     private final TargetService targetService;
+
+    private final UserService userService;
 
     private final StockPriceService<StockPrice> stockPriceService;
 
@@ -157,9 +158,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         evaluationLogService.add(
                 stockPrice,
                 EvaluationLog.Type.POSITIVE,
-                StringUtils.format(
-                        "isRiskWithinLimit: {}", isRiskWithinLimit
-                ));
+                StringUtils.format("isRiskWithinLimit: {}", isRiskWithinLimit));
 
         boolean isTargetValid =
                 targetService.isTargetValid(
@@ -168,9 +167,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         evaluationLogService.add(
                 stockPrice,
                 EvaluationLog.Type.POSITIVE,
-                StringUtils.format(
-                        "isTargetValid: {}", isTargetValid
-                ));
+                StringUtils.format("isTargetValid: {}", isTargetValid));
 
         if (isRiskWithinLimit
                 && isTargetValid
@@ -216,6 +213,17 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
             }
         }
 
+        if (subStrategy == ResearchTechnical.SubStrategy.MA200_BREAKOUT
+                || subStrategy == ResearchTechnical.SubStrategy.LOWEST_BREAKOUT) {
+            limit = limit + 3.0;
+        } else if (subStrategy == ResearchTechnical.SubStrategy.MA100_BREAKOUT
+                || subStrategy == ResearchTechnical.SubStrategy.LOW_BREAKOUT) {
+            limit = limit + 2.0;
+        } else if (subStrategy == ResearchTechnical.SubStrategy.MA50_BREAKOUT
+                || subStrategy == ResearchTechnical.SubStrategy.MEDIUM_BREAKOUT) {
+            limit = limit + 1.0;
+        }
+
         result = risk <= limit;
 
         evaluationLogService.add(
@@ -229,13 +237,10 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         weight,
                         riskBuffer,
                         limit,
-                        result
-                )
-        );
+                        result));
 
         return result;
     }
-
 
     @Override
     public ResearchTechnical exit(
@@ -278,23 +283,27 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         return researchTechnicalRepository.findAllByType(type);
     }
 
+    @Override
+    public List<ResearchTechnical> getLatestBuyResearch(LocalDate sessionDate) {
+        return researchTechnicalRepository.findAllByResearchDateAndTypeOrderByScoreDesc(
+                sessionDate, Trade.Type.BUY);
+    }
+
+    @Override
+    public List<ResearchTechnical> getLatestSellResearch(LocalDate sessionDate) {
+        return researchTechnicalRepository.findAllByExitDateAndType(sessionDate, Trade.Type.SELL);
+    }
+
     private double calculateStopLoss(
             TradeSetup tradeSetup, StockPrice stockPrice, ResearchTechnical researchTechnical) {
 
-        double buffer = 0.005 * stockPrice.getLow(); // 0.5% buffer
+        double stopLoss = stockPrice.getLow();
 
-        ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
-
-        double stopLoss =
-                researchTechnical.getEntryPrice() > stockPrice.getLow()
-                        ? stockPrice.getLow()
-                        : stockPrice.getLow() - buffer;
-
-        if (subStrategy.isBreakout()) {
-            stopLoss = stockPriceHelperService.findLowestLow(stockPrice);
+        if (CandleStickUtils.isPrevSessionRed(stockPrice)) {
+            stopLoss = Math.min(stopLoss, stockPrice.getPrevLow());
         }
 
-        return Math.max(stopLoss, 0.01); // prevent negative or 0 SL
+        return formulaService.applyPercentChange(stopLoss, -1 * 0.05);
     }
 
     private double calculateResearchPrice(TradeSetup tradeSetup, StockPrice stockPrice) {
@@ -442,6 +451,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     public ResearchTechnicalDetailsCurrentResponse getCurrentDetails(
             Long userId, Long researchTechnicalId) {
 
+        User user = userService.get(userId);
+
         ResearchTechnical researchTechnical =
                 researchTechnicalRepository
                         .findById(researchTechnicalId)
@@ -452,11 +463,11 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                                                         + " researchTechnicalId: "
                                                         + researchTechnicalId));
 
-        return this.mapToCurrentDetails(userId, researchTechnical);
+        return this.mapToCurrentDetails(user, researchTechnical);
     }
 
     private ResearchTechnicalDetailsCurrentResponse mapToCurrentDetails(
-            Long userId, ResearchTechnical researchTechnical) {
+            User user, ResearchTechnical researchTechnical) {
         Double price = null;
         LocalDate date = null;
 
@@ -478,11 +489,11 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         StockTechnicals stockTechnicals =
                 stockTechnicalsService.get(stock, researchTechnical.getTimeframe());
-        long positionSize = positionService.calculate(userId, researchTechnical);
+        long positionSize = positionService.calculate(user, researchTechnical);
 
         long adjustedPositionSize =
                 positionService.calculateAdjustedPositionSize(
-                        userId, researchTechnical, positionSize);
+                        user, researchTechnical, positionSize);
 
         return ResearchTechnicalDetailsCurrentResponse.builder()
                 .id(researchTechnical.getResearchTechnicalsId())

@@ -4,10 +4,10 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
+import com.example.data.transactional.entities.User;
 import com.example.service.*;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.util.FormulaService;
-import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,17 +18,12 @@ import org.springframework.stereotype.Service;
 public class PositionServiceImpl implements PositionService {
 
     private final FormulaService formulaService;
-    private final FundsLedgerService fundsLedgerService;
-
     private final PortfolioService portfolioService;
-    private final TradeService tradeService;
-
     private final StockPriceService<StockPrice> stockPriceService;
-
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
     @Override
-    public long calculate(Long userId, ResearchTechnical researchTechnical) {
+    public long calculate(User user, ResearchTechnical researchTechnical) {
 
         StockPrice stockPrice =
                 stockPriceService.get(
@@ -38,7 +33,7 @@ public class PositionServiceImpl implements PositionService {
                 stockTechnicalsService.get(
                         researchTechnical.getStock(), researchTechnical.getTimeframe());
 
-        double totalCapital = this.totalCapital(userId);
+        double totalCapital = portfolioService.calculateNetWorth(user);
 
         double riskFactor =
                 this.getRiskFactor(
@@ -64,34 +59,31 @@ public class PositionServiceImpl implements PositionService {
 
     @Override
     public long calculateAdjustedPositionSize(
-            Long userId, ResearchTechnical researchTechnical, long positionSize) {
+            User user, ResearchTechnical researchTechnical, long positionSize) {
 
-        double totalCapital = this.totalCapital(userId);
-        BigDecimal totalInvestmentValue = portfolioService.getTotalInvestmentValue(userId);
-        double availableFunds = totalCapital - totalInvestmentValue.doubleValue();
+        double totalCapital = portfolioService.calculateNetWorth(user);
+
+        double availableFunds = portfolioService.availableFundLimit(user);
 
         double entryPrice = researchTechnical.getEntryPrice();
         double originalPositionValue = positionSize * entryPrice;
 
-        // Calculate what percentage of total capital this position represents
+        // What % of total capital is this position worth?
         double positionPercent =
                 formulaService.calculatePercentage(totalCapital, originalPositionValue);
 
-        // Adjusted capital for the same percentage, but on available funds
+        // Adjust position value for available funds
         double adjustedPositionValue =
                 formulaService.calculateFraction(availableFunds, positionPercent);
+
+        // NEW: Boost adjusted value based on how much availableFunds you have vs totalCapital
+        double availablePercentOfCapital =
+                formulaService.calculatePercentage(totalCapital, availableFunds);
+        adjustedPositionValue = adjustedPositionValue * (1 + (availablePercentOfCapital / 100));
 
         long adjustedPositionSize = (long) (adjustedPositionValue / entryPrice);
 
         return Math.max(adjustedPositionSize, 0);
-    }
-
-    private double totalCapital(Long userId) {
-        BigDecimal investmentValue = fundsLedgerService.getTotalFundsValue(userId);
-
-        BigDecimal netProfit = tradeService.getTotalRealizedPnl(userId);
-
-        return investmentValue.doubleValue() + netProfit.doubleValue();
     }
 
     private double getRiskFactor(

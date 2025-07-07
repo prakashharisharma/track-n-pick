@@ -424,8 +424,24 @@ public class FormulaService {
         return Math.ceil(value * 2) / 2.0;
     }
 
+    public double floorToNearestHalf(double value) {
+        return Math.floor(value * 2) / 2.0;
+    }
+
     public double ceilToNearestQuarter(double value) {
         return Math.ceil(value * 4) / 4.0;
+    }
+
+    public double floorToNearestQuarter(double value) {
+        return Math.floor(value * 4) / 4.0;
+    }
+
+    public double ceilToNearestTen(double value) {
+        return Math.ceil(value * 10) / 10.0;
+    }
+
+    public double floorToNearestTen(double value) {
+        return Math.floor(value * 10) / 10.0;
     }
 
     public double ceilToNearestFive(double value) {
@@ -434,5 +450,13 @@ public class FormulaService {
 
     public double roundToNearestHalf(double value) {
         return Math.round(value * 2) / 2.0;
+    }
+
+    public long[] splitIn40_30_20_10(long value) {
+        long part1 = Math.round(value * 0.40);
+        long part2 = Math.round(value * 0.30);
+        long part3 = Math.round(value * 0.20);
+        long part4 = value - part1 - part2 - part3; // Ensure total sum remains accurate
+        return new long[] {part1, part2, part3, part4};
     }
 }
