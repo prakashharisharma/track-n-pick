@@ -7,7 +7,6 @@ import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.SignalEvaluatorHelperService;
 import com.example.service.utils.SubStrategyHelper;
-import com.example.util.FormulaService;
 import com.example.util.StringUtils;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +21,10 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
     private final DynamicMovingAverageSupportResolverService
             dynamicMovingAverageSupportResolverService;
     private final SignalEvaluatorHelperService signalEvaluatorHelperService;
-    private final CandleStickConfirmationService candleStickConfirmationService;
-    private final VolumeIndicatorService volumeIndicatorService;
-    private final RsiIndicatorService rsiIndicatorService;
-    private final FormulaService formulaService;
-
     private final EvaluationLogService evaluationLogService;
+    private final RsiIndicatorService rsiIndicatorService;
+    private final StockPriceService<StockPrice> stockPriceService;
+    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
     @Override
     public TradeSetup evaluateEntry(
@@ -138,17 +135,53 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
         // (timeframe == Timeframe.DAILY && isMa5Highest)
         if (rsiIndicatorService.isOverBought(stockTechnicals)
                 || (CandleStickUtils.isUpperWickDominant(stockPrice)
-                        && CandleStickUtils.isStrongRange(
-                                timeframe, stockPrice, stockTechnicals))) {
-            return Optional.empty();
-        }
-        boolean isLongerMaAlignedBullish = MovingAverageUtil.isLongerMaAlignedBullish(timeframe, stockTechnicals);
-
-        if(isLongerMaAlignedBullish){
+                                && CandleStickUtils.isStrongRange(
+                                        timeframe, stockPrice, stockTechnicals)
+                        || (CandleStickUtils.upperWickSize(stockPrice)
+                                >= CandleStickUtils.bodySize(stockPrice) * 2))) {
             return Optional.empty();
         }
 
-        if(signalEvaluatorHelperService.isHighestAlsoBreached(timeframe, stockPrice, stockTechnicals, evaluationResult.getLength(), evaluationResult.getValue(), false)){
+        if (timeframe.getPriority() > 1) {
+            StockPrice dailyStockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+            StockTechnicals dailyStockTechnicals =
+                    stockTechnicalsService.get(stock, Timeframe.DAILY);
+            if (rsiIndicatorService.isOverBought(dailyStockTechnicals)
+                    || (CandleStickUtils.isUpperWickDominant(dailyStockPrice)
+                            && (CandleStickUtils.isStrongRange(
+                                            Timeframe.DAILY, dailyStockPrice, dailyStockTechnicals)
+                                    || (CandleStickUtils.upperWickSize(dailyStockPrice)
+                                            >= 2 * CandleStickUtils.bodySize(dailyStockPrice))))) {
+                return Optional.empty();
+            }
+        }
+
+        if (!CandleStickUtils.isHigherHigh(stockPrice)) {
+            return Optional.empty();
+        }
+
+        boolean isLongerMaAlignedBullish =
+                MovingAverageUtil.isLongerMaAlignedBullish(
+                        evaluationResult.getLength(), timeframe, stockTechnicals);
+
+        if (!isLongerMaAlignedBullish) {
+            return Optional.empty();
+        }
+        boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
+
+        if (evaluationResult.getLength().getMaDays() == 5) {
+            if (timeframe == Timeframe.DAILY) {
+                return Optional.empty();
+            }
+        }
+
+        if (signalEvaluatorHelperService.isHighestAlsoBreached(
+                timeframe,
+                stockPrice,
+                stockTechnicals,
+                evaluationResult.getLength(),
+                evaluationResult.getValue(),
+                false)) {
             return Optional.empty();
         }
 
@@ -159,13 +192,13 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
         boolean isNearestMovingAverageDiffValidForBreakout =
                 signalEvaluatorHelperService.isNearestMovingAverageDiffValidForBreakout(
                         timeframe, stockTechnicals, evaluationResult, false);
-        boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
-        boolean isMaAlignBullish = MovingAverageUtil.isAllMaAlignedBullish(timeframe, stockTechnicals);
+
+        boolean isMaAlignBullish =
+                MovingAverageUtil.isAllMaAlignedBullish(timeframe, stockTechnicals);
 
         // We will not consider breakout for HIGHEST MA for DAILY
-        if ((isAllMAsIncreasing && isMaAlignBullish)
-                || (isLowestAndHighestMovingAverageDiffValid
-                        && (isNearestMovingAverageDiffValidForBreakout))) {
+        if (isLowestAndHighestMovingAverageDiffValid
+                && isNearestMovingAverageDiffValidForBreakout) {
 
             evaluationLogService.add(
                     stockTechnicals,
@@ -202,27 +235,39 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                 "Confirming breakdown for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
         if (rsiIndicatorService.isOverSold(stockTechnicals)
-                || CandleStickUtils.isLowerWickDominant(stockPrice)) {
+                || (CandleStickUtils.isLowerWickDominant(stockPrice)
+                                && (CandleStickUtils.isStrongRange(
+                                        timeframe, stockPrice, stockTechnicals))
+                        || CandleStickUtils.lowerWickSize(stockPrice)
+                                >= 2 * CandleStickUtils.bodySize(stockPrice))) {
+            return Optional.empty();
+        }
+
+        if (!CandleStickUtils.isLowerLow(stockPrice)) {
+            return Optional.empty();
+        }
+
+        boolean isLongerMaAlignedBearish =
+                MovingAverageUtil.isLongerMaAlignedBearish(
+                        evaluationResult.getLength(), timeframe, stockTechnicals);
+
+        if (!isLongerMaAlignedBearish) {
             return Optional.empty();
         }
 
         boolean isLowestAndHighestMovingAverageDiffValid =
-                signalEvaluatorHelperService.isLowestAndHighestMovingAverageDiffValid(
+                signalEvaluatorHelperService.isHighestAndLowestMovingAverageDiffValid(
                         timeframe, stockPrice, stockTechnicals, MAInteractionType.BREAKDOWN, false);
 
         boolean isNearestMovingAverageDiffValidForBreakdown =
                 signalEvaluatorHelperService.isNearestMovingAverageDiffValidForBreakdown(
                         timeframe, stockTechnicals, evaluationResult, false);
         boolean isAllMAsDecreasing = MovingAverageUtil.isAllMAsDecreasing(stockTechnicals);
+        boolean isMaAlignBearish =
+                MovingAverageUtil.isAllMaAlignedBearish(timeframe, stockTechnicals);
 
-        boolean isHigherMovingAverageDecreasing =
-                MovingAverageUtil.isHigherMovingAverageDecreasing(
-                        evaluationResult.getLength(), stockTechnicals, false);
-
-        if (isAllMAsDecreasing
-                || (isLowestAndHighestMovingAverageDiffValid
-                        && (isNearestMovingAverageDiffValidForBreakdown
-                                || isHigherMovingAverageDecreasing))) {
+        if (isLowestAndHighestMovingAverageDiffValid
+                && isNearestMovingAverageDiffValidForBreakdown) {
             boolean isCurrentBreakdownConfirmation =
                     signalEvaluatorHelperService.currentBreakdownConfirmation(
                             stockPrice, stockTechnicals);

@@ -7,7 +7,6 @@ import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.SignalEvaluatorHelperService;
 import com.example.service.utils.SubStrategyHelper;
-import com.example.util.FormulaService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,12 +20,10 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
     private final DynamicMovingAverageSupportResolverService
             dynamicMovingAverageSupportResolverService;
     private final SignalEvaluatorHelperService signalEvaluatorHelperService;
-    private final CandleStickConfirmationService candleStickConfirmationService;
-    private final VolumeIndicatorService volumeIndicatorService;
-    private final RsiIndicatorService rsiIndicatorService;
-    private final FormulaService formulaService;
-
     private final EvaluationLogService evaluationLogService;
+    private final RsiIndicatorService rsiIndicatorService;
+    private final StockPriceService<StockPrice> stockPriceService;
+    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
     @Override
     public TradeSetup evaluateEntry(
@@ -135,13 +132,46 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         if (rsiIndicatorService.isOverBought(stockTechnicals)
                 || (CandleStickUtils.isUpperWickDominant(stockPrice)
-                        && CandleStickUtils.isStrongRange(
-                                timeframe, stockPrice, stockTechnicals))) {
+                        && (CandleStickUtils.isStrongRange(timeframe, stockPrice, stockTechnicals)
+                                || (CandleStickUtils.upperWickSize(stockPrice)
+                                        >= 2 * CandleStickUtils.bodySize(stockPrice))))) {
             return Optional.empty();
         }
 
-        if(signalEvaluatorHelperService.isHighestAlsoBreached(timeframe, stockPrice, stockTechnicals, evaluationResult.getLength(), evaluationResult.getValue(), true)){
+        if (timeframe.getPriority() > 1) {
+            StockPrice dailyStockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+            StockTechnicals dailyStockTechnicals =
+                    stockTechnicalsService.get(stock, Timeframe.DAILY);
+            if (rsiIndicatorService.isOverBought(dailyStockTechnicals)
+                    || (CandleStickUtils.isUpperWickDominant(dailyStockPrice)
+                            && (CandleStickUtils.isStrongRange(
+                                            Timeframe.DAILY, dailyStockPrice, dailyStockTechnicals)
+                                    || (CandleStickUtils.upperWickSize(dailyStockPrice)
+                                            >= 2 * CandleStickUtils.bodySize(dailyStockPrice))))) {
+                return Optional.empty();
+            }
+        }
+
+        if (!CandleStickUtils.isHigherHigh(stockPrice)) {
             return Optional.empty();
+        }
+
+        if (signalEvaluatorHelperService.isHighestAlsoBreached(
+                timeframe,
+                stockPrice,
+                stockTechnicals,
+                evaluationResult.getLength(),
+                evaluationResult.getValue(),
+                true)) {
+            return Optional.empty();
+        }
+        boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
+
+        if (evaluationResult.getLength() == MovingAverageLength.HIGHEST
+                && evaluationResult.getLength().getMaDays() == 5) {
+            if (timeframe == Timeframe.DAILY) {
+                return Optional.empty();
+            }
         }
 
         boolean isLowestAndHighestMovingAverageDiffValid =
@@ -151,9 +181,9 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
         boolean isNearestMovingAverageDiffValidForBreakout =
                 signalEvaluatorHelperService.isNearestMovingAverageDiffValidForBreakout(
                         timeframe, stockTechnicals, evaluationResult, true);
-        boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
-        if (isAllMAsIncreasing || (isLowestAndHighestMovingAverageDiffValid
-                && isNearestMovingAverageDiffValidForBreakout)) {
+
+        if (isLowestAndHighestMovingAverageDiffValid
+                && isNearestMovingAverageDiffValidForBreakout) {
 
             boolean isCurrentBreakoutConfirmation =
                     signalEvaluatorHelperService.currentBreakoutConfirmation(
@@ -179,18 +209,26 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 "Confirming breakdown for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
         if (rsiIndicatorService.isOverSold(stockTechnicals)
-                || CandleStickUtils.isLowerWickDominant(stockPrice)) {
+                || (CandleStickUtils.isLowerWickDominant(stockPrice)
+                                && (CandleStickUtils.isStrongRange(
+                                        timeframe, stockPrice, stockTechnicals))
+                        || CandleStickUtils.lowerWickSize(stockPrice)
+                                >= 2 * CandleStickUtils.bodySize(stockPrice))) {
+            return Optional.empty();
+        }
+
+        if (!CandleStickUtils.isLowerLow(stockPrice)) {
             return Optional.empty();
         }
 
         boolean isLowestAndHighestMovingAverageDiffValid =
-                signalEvaluatorHelperService.isLowestAndHighestMovingAverageDiffValid(
+                signalEvaluatorHelperService.isHighestAndLowestMovingAverageDiffValid(
                         timeframe, stockPrice, stockTechnicals, MAInteractionType.BREAKDOWN, true);
 
         boolean isNearestMovingAverageDiffValidForBreakdown =
                 signalEvaluatorHelperService.isNearestMovingAverageDiffValidForBreakdown(
                         timeframe, stockTechnicals, evaluationResult, true);
-
+        boolean isAllMAsDecreasing = MovingAverageUtil.isAllMAsDecreasing(stockTechnicals);
         if (isLowestAndHighestMovingAverageDiffValid
                 && isNearestMovingAverageDiffValidForBreakdown) {
 

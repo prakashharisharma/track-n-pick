@@ -54,17 +54,14 @@ public class ResistanceValidationService {
                                 high,
                                 resistanceStart,
                                 resistanceEnd,
-                                onePercentBelowStart
-                                ));
+                                onePercentBelowStart));
                 return false;
             } // still within resistance zone
 
             evaluationLogService.add(
                     stockPrice,
                     EvaluationLog.Type.POSITIVE,
-                    StringUtils.format(
-                            "Passing {} Timeframe resistance", higher.name()
-                    ));
+                    StringUtils.format("Passing {} Timeframe resistance", higher.name()));
 
             Timeframe nextHigher = higher.getHigher();
             if (nextHigher == higher) break; // Reached top

@@ -1,5 +1,6 @@
 package com.example.service;
 
+import com.example.data.transactional.entities.User;
 import com.example.data.transactional.view.PortfolioResult;
 import java.math.BigDecimal;
 import org.springframework.data.domain.Page;
@@ -16,4 +17,8 @@ public interface PortfolioService {
             Long userId, int page, int size, String sortBy, String direction);
 
     public PortfolioResult stats(Long userId);
+
+    public double calculateNetWorth(User user);
+
+    public double availableFundLimit(User user);
 }

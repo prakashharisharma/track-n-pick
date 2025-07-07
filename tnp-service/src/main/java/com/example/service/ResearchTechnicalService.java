@@ -36,6 +36,10 @@ public interface ResearchTechnicalService<T extends ResearchTechnical> {
 
     List<ResearchTechnical> getAll(Trade.Type type);
 
+    public List<ResearchTechnical> getLatestBuyResearch(LocalDate sessionDate);
+
+    public List<ResearchTechnical> getLatestSellResearch(LocalDate sessionDate);
+
     Page<ResearchTechnicalResult> searchHistory(
             int page,
             int size,

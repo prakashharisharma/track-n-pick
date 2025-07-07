@@ -43,8 +43,15 @@ public class TargetService {
         rangeTarget =
                 rangeTarget > researchTechnical.getEntryPrice() ? rangeTarget : riskRewardTarget;
 
-        return formulaService.roundToNearestHalf(
-                Math.min(riskRewardTarget, Math.min(pivotTarget, rangeTarget)));
+        double target = riskRewardTarget;
+
+        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.PIVOT) {
+            target = pivotTarget;
+        } else if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.RANGE) {
+            target = rangeTarget;
+        }
+
+        return formulaService.roundToNearestHalf(target);
     }
 
     private double getPivotTarget(StockPrice htStockPrice, StockPrice stockPrice) {

@@ -31,7 +31,6 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     private static final double MAX_RISK = 10.0;
 
     @Autowired private MiscUtil miscUtil;
-
     @Autowired private ResearchLedgerFundamentalService researchLedgerFundamentalService;
     @Autowired private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
     @Autowired private FundamentalResearchService fundamentalResearchService;
@@ -40,15 +39,10 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     @Autowired private StockPriceService<StockPrice> stockPriceService;
     @Autowired private ValuationLedgerService valuationLedgerService;
     @Autowired private EvaluationLogService evaluationLogService;
-
     @Autowired private CandleStickService candleStickService;
-
     @Autowired private ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
-
     @Autowired private CalendarService calendarService;
-
     @Autowired private FormulaService formulaService;
-
     @Autowired private VolumeIndicatorService volumeIndicatorService;
 
     @Autowired
@@ -165,7 +159,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                             hybridPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
-
+                /*
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
                             rangePriceActionSignalEvaluator.evaluateEntry(
@@ -177,7 +171,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                             pivotPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
-
+                */
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
                             basicPriceActionSignalEvaluator.evaluateEntry(
@@ -231,18 +225,18 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
         } else if (researchTechnical.getEntryPrice() >= stockPrice.getClose()) {
 
             tradeSetup =
-                    dynamicPriceActionSignalEvaluator.evaluateExit(
+                    simplePriceActionSignalEvaluator.evaluateExit(
                             timeframe, stock, stockPrice, stockTechnicals);
 
             if (!tradeSetup.isActive()) {
                 tradeSetup =
-                        simplePriceActionSignalEvaluator.evaluateExit(
+                        dynamicPriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
             }
 
             if (!tradeSetup.isActive()) {
                 tradeSetup =
-                        rangePriceActionSignalEvaluator.evaluateExit(
+                        hybridPriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
             }
 
@@ -251,28 +245,6 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                         basicPriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
             }
-
-            /*
-            tradeSetup = dynamicPriceActionService.breakDown(stock, timeframe);
-
-
-            if (!tradeSetup.isActive()) {
-                tradeSetup = priceActionService.breakDown(stock, timeframe);
-            }
-
-            if (!tradeSetup.isActive()) {
-                tradeSetup = swingActionService.breakDown(stock, timeframe);
-            }
-
-            if (!tradeSetup.isActive()) {
-                tradeSetup = movingAverageActionService.breakDown(stock, timeframe);
-                double close = stockPrice.getClose();
-                if (researchTechnical.getEntryPrice() >= close
-                        && researchTechnical.getTarget() >= close) {
-                    tradeSetup.setActive(false);
-                }
-            }
-            */
 
             if (tradeSetup.isActive()) {
                 isUpdation = Boolean.TRUE;
