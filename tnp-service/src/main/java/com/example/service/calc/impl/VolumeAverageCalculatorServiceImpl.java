@@ -1,6 +1,6 @@
 package com.example.service.calc.impl;
 
-import com.example.dto.OHLCV;
+import com.example.dto.common.OHLCV;
 import com.example.service.calc.VolumeAverageCalculatorService;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;

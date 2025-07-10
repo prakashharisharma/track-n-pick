@@ -1,7 +1,7 @@
 server:
   port: 8080
   servlet:
-    context-path: /api
+    context-path: /
 
 spring:
   main:
@@ -23,7 +23,7 @@ spring:
   data:
     mongodb:
       database: tnpDB
-      uri: mongodb://localhost:27017/?connectTimeoutMS=300000&minPoolSize=32&maxPoolSize=512&maxIdleTimeMS=900000
+      uri: mongodb://localhost:27017/?connectTimeoutMS=300000&minPoolSize=8&maxPoolSize=32&maxIdleTimeMS=900000
   mail:
     host: smtp.gmail.com
     username: tracknpick@gmail.com
@@ -62,13 +62,13 @@ logging:
   file:
     path: /Users/phs/mydrive/repo/tnp/logs
   level:
-    root: INFO
+    root: info
     com.example: debug
-    org.springframework: INFO
-    com.mongodb: WARN
-    org.hibernate: WARN
-    org.hibernate.SQL: INFO
-    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+    org.springframework: info
+    com.mongodb: info
+    org.hibernate: info
+    org.hibernate.SQL: info
+    org.hibernate.type.descriptor.sql.BasicBinder: info
 
 jwt:
   secret: ${JWT_SECRET}

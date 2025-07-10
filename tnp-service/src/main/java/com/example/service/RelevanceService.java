@@ -6,6 +6,31 @@ import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 
 public interface RelevanceService {
+
+    public boolean isNearSupport(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals);
+
+    public boolean isNearResistance(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals);
+
+    public boolean isBreakout(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals);
+
+    public boolean isBreakdown(
+            Trend trend,
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals);
+
     public boolean isBullishTimeFrame(
             Trend trend,
             Timeframe timeframe,

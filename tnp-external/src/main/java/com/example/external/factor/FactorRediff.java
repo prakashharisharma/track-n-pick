@@ -1,27 +1,24 @@
 package com.example.external.factor;
 
 import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockFactor;
+import com.example.data.transactional.entities.StockFinancials;
 import com.example.external.common.FactorProvider;
-import com.example.util.MiscUtil;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.net.MalformedURLException;
 import org.springframework.stereotype.Service;
 
 @Service
 public class FactorRediff implements FactorBaseService {
+    @Override
+    public FactorProvider getServiceProvider() {
+        return null;
+    }
+
+    @Override
+    public StockFinancials getFactor(Stock stock) throws MalformedURLException, IOException {
+        return null;
+    }
+    /*
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FactorRediff.class);
 
@@ -65,7 +62,8 @@ public class FactorRediff implements FactorBaseService {
 
     private String ratioURL;
 
-    private StockFactor getMcapFaceValue(Stock stock, StockFactor stockFactor) throws IOException {
+    private StockFinancials getMcapFaceValue(Stock stock, StockFinancials stockFinancials)
+            throws IOException {
 
         String rediffURL = this.buildURL(stock);
 
@@ -76,17 +74,16 @@ public class FactorRediff implements FactorBaseService {
 
             Element body = doc.body();
 
-            // Element allElement = body.getElementsByClass("zoom-container").first();
 
-            stockFactor.setMarketCap(this.parseMarketCap(body, stock));
-            stockFactor.setFaceValue(this.parseFaceValue(body, stock));
+            stockFinancials.setMarketCap(this.parseMarketCap(body, stock));
+            stockFinancials.setFaceValue(this.parseFaceValue(body, stock));
 
             Element zoomDiv = body.getElementsByClass("zoom-container").get(0);
 
             String zoomUrl = zoomDiv.select("a").first().absUrl("href");
 
             if (zoomUrl == null || zoomUrl.isEmpty()) {
-                return stockFactor;
+                return stockFinancials;
             }
 
             String ratioUrlPre = zoomUrl.replace("/bse/day/chart", "");
@@ -100,7 +97,7 @@ public class FactorRediff implements FactorBaseService {
             LOGGER.info("Ratio Url {}", ratioURL);
         }
 
-        return stockFactor;
+        return stockFinancials;
     }
 
     private Double parseMarketCap(Element body, Stock stock) {
@@ -142,7 +139,7 @@ public class FactorRediff implements FactorBaseService {
             int i = 0;
             for (Element element : allElement.getAllElements()) {
 
-                if (i == 11) {
+                if (i == 1) {
                     return this.parseDouble(element.text().trim(), ",", "");
                 }
                 i++;
@@ -164,12 +161,13 @@ public class FactorRediff implements FactorBaseService {
         return 0.0;
     }
 
-    private StockFactor getRatios(Stock stock, StockFactor stockFactor) throws IOException {
+    private StockFinancials getRatios(Stock stock, StockFinancials stockFinancials)
+            throws IOException {
 
         String ratioUrl = this.getRatioURL();
 
         if (ratioUrl == null || ratioUrl.isEmpty()) {
-            return stockFactor;
+            return stockFinancials;
         }
 
         Document doc = Jsoup.connect(ratioUrl).get();
@@ -177,7 +175,7 @@ public class FactorRediff implements FactorBaseService {
         Elements allElement = doc.getElementsByClass("dataTable");
 
         if (allElement == null) {
-            return stockFactor;
+            return stockFinancials;
         }
 
         int i = 0;
@@ -223,7 +221,7 @@ public class FactorRediff implements FactorBaseService {
 
                             LocalDate quarterEnded = LocalDate.parse(dateStr, formatter);
 
-                            stockFactor.setQuarterEnded(quarterEnded);
+                            stockFinancials.setQuarterEnded(quarterEnded);
                             // Store Quarter
                         }
                     }
@@ -247,7 +245,7 @@ public class FactorRediff implements FactorBaseService {
 
                                 eps = Double.parseDouble(td.text().replace(",", "").trim());
                             }
-                            stockFactor.setEps(eps);
+                            stockFinancials.setEps(eps);
                         }
                     }
 
@@ -267,7 +265,7 @@ public class FactorRediff implements FactorBaseService {
 
                                 dividend = Double.parseDouble(td.text().replace(",", "").trim());
                             }
-                            stockFactor.setDividend(dividend);
+                            stockFinancials.setDividend(dividend);
                         }
                     }
 
@@ -286,7 +284,7 @@ public class FactorRediff implements FactorBaseService {
                             } else {
                                 bookValue = Double.parseDouble(td.text().replace(",", "").trim());
                             }
-                            stockFactor.setBookValue(bookValue);
+                            stockFinancials.setBookValue(bookValue);
                         }
                     }
 
@@ -305,7 +303,7 @@ public class FactorRediff implements FactorBaseService {
 
                                 roe = Double.parseDouble(td.text().replace(",", "").trim());
                             }
-                            stockFactor.setReturnOnEquity(roe);
+                            stockFinancials.setReturnOnEquity(roe);
                         }
                     }
 
@@ -323,7 +321,7 @@ public class FactorRediff implements FactorBaseService {
                             } else {
                                 roce = Double.parseDouble(td.text().replace(",", "").trim());
                             }
-                            stockFactor.setReturnOnCapital(roce);
+                            stockFinancials.setReturnOnCapital(roce);
                         }
                     }
 
@@ -342,7 +340,7 @@ public class FactorRediff implements FactorBaseService {
                                 debtEquity = Double.parseDouble(td.text().replace(",", "").trim());
                             }
 
-                            stockFactor.setDebtEquity(debtEquity);
+                            stockFinancials.setDebtEquity(debtEquity);
                         }
                     }
 
@@ -362,7 +360,7 @@ public class FactorRediff implements FactorBaseService {
                                         Double.parseDouble(td.text().replace(",", "").trim());
                             }
 
-                            stockFactor.setCurrentRatio(currentRatio);
+                            stockFinancials.setCurrentRatio(currentRatio);
                         }
                     }
 
@@ -381,7 +379,7 @@ public class FactorRediff implements FactorBaseService {
                                 quickRatio = Double.parseDouble(td.text().replace(",", "").trim());
                             }
 
-                            stockFactor.setQuickRatio(quickRatio);
+                            stockFinancials.setQuickRatio(quickRatio);
                         }
                     }
 
@@ -390,7 +388,7 @@ public class FactorRediff implements FactorBaseService {
                 }
             }
         }
-        return stockFactor;
+        return stockFinancials;
     }
 
     private String buildURL(Stock stock) {
@@ -424,35 +422,35 @@ public class FactorRediff implements FactorBaseService {
     }
 
     @Override
-    public StockFactor getFactor(Stock stock) {
+    public StockFinancials getFactor(Stock stock) {
 
-        StockFactor stockFactor = null;
+        StockFinancials stockFinancials = null;
 
         if (stock.getFactor() == null) {
 
-            stockFactor = new StockFactor();
+            stockFinancials = new StockFinancials();
 
         } else {
 
-            stockFactor = stock.getFactor();
+            stockFinancials = stock.getFactor();
         }
 
         // if (stock.getStockFactor() == null || remoteCallCounter <= 20) {
 
         try {
-            stockFactor.setLastModified(LocalDate.now());
-            stockFactor = this.getMcapFaceValue(stock, stockFactor);
-            stockFactor = this.getRatios(stock, stockFactor);
+            stockFinancials.setLastModified(LocalDate.now());
+            stockFinancials = this.getMcapFaceValue(stock, stockFinancials);
+            stockFinancials = this.getRatios(stock, stockFinancials);
 
-            LOGGER.info("Quarter {}", stockFactor.getQuarterEnded());
-            LOGGER.info("EPS {}", stockFactor.getEps());
-            LOGGER.info("Dividend {}", stockFactor.getDividend());
-            LOGGER.info("BookValue {}", stockFactor.getBookValue());
-            LOGGER.info("ROE {}", stockFactor.getReturnOnEquity());
-            LOGGER.info("ROCE {}", stockFactor.getReturnOnCapital());
-            LOGGER.info("Debt Equity {}", stockFactor.getDebtEquity());
-            LOGGER.info("Current Ratio {}", stockFactor.getCurrentRatio());
-            LOGGER.info("Quick  Ratio {}", stockFactor.getQuickRatio());
+            LOGGER.info("Quarter {}", stockFinancials.getQuarterEnded());
+            LOGGER.info("EPS {}", stockFinancials.getEps());
+            LOGGER.info("Dividend {}", stockFinancials.getDividend());
+            LOGGER.info("BookValue {}", stockFinancials.getBookValue());
+            LOGGER.info("ROE {}", stockFinancials.getReturnOnEquity());
+            LOGGER.info("ROCE {}", stockFinancials.getReturnOnCapital());
+            LOGGER.info("Debt Equity {}", stockFinancials.getDebtEquity());
+            LOGGER.info("Current Ratio {}", stockFinancials.getCurrentRatio());
+            LOGGER.info("Quick  Ratio {}", stockFinancials.getQuickRatio());
 
             // increment thye remoteCallCounter
             // remoteCallCounter++;
@@ -464,9 +462,10 @@ public class FactorRediff implements FactorBaseService {
             e.printStackTrace();
         }
 
-        stockFactor.setStock(stock);
+        stockFinancials.setStock(stock);
         // }
 
-        return stockFactor;
+        return stockFinancials;
     }
+    */
 }

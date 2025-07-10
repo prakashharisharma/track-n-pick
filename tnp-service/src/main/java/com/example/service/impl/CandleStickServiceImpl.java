@@ -18,6 +18,13 @@ public class CandleStickServiceImpl implements CandleStickService {
 
     @Override
     public boolean isDead(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getHigh() == null
+                || stockPrice.getLow() == null
+                || stockPrice.getClose() == null) {
+            return false; // or throw an exception based on requirements
+        }
         return stockPrice.getOpen().equals(stockPrice.getHigh())
                 && stockPrice.getOpen().equals(stockPrice.getLow())
                 && stockPrice.getOpen().equals(stockPrice.getClose());

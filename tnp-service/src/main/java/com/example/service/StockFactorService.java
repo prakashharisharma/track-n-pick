@@ -1,8 +1,8 @@
 package com.example.service;
 
 import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockFactor;
-import com.example.data.transactional.repo.StockFactorRepository;
+import com.example.data.transactional.entities.StockFinancials;
+import com.example.data.transactional.repo.StockFinancialsRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
@@ -17,11 +17,12 @@ public class StockFactorService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StockFactorService.class);
 
-    @Autowired private StockFactorRepository stockFactorRepository;
+    @Autowired private StockFinancialsRepository stockFinancialsRepository;
 
     public List<Stock> stocksToUpdateFactor() {
 
-        List<StockFactor> factorList = stockFactorRepository.findAllByOrderByLastModifiedAsc();
+        List<StockFinancials> factorList =
+                stockFinancialsRepository.findAllByOrderByLastModifiedAsc();
 
         List<Stock> stockList =
                 factorList.stream()

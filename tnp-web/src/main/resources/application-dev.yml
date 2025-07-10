@@ -4,6 +4,12 @@ spring:
     username: riphco
     password: password
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 16
+      maximum-pool-size: 64
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-timeout: 60000
   jpa:
     properties:
       hibernate:
@@ -25,5 +31,4 @@ spring:
       max-redirects: 3
   data:
     mongodb:
-      database: tnpDB
-      uri: mongodb://localhost:27017/?connectTimeoutMS=300000&minPoolSize=32&maxPoolSize=512&maxIdleTimeMS=900000
+      uri: mongodb://localhost:27017/tnpDB?retryWrites=true&maxPoolSize=32&minPoolSize=0&maxIdleTimeMS=300000&waitQueueTimeoutMS=10000&connectTimeoutMS=10000&socketTimeoutMS=60000

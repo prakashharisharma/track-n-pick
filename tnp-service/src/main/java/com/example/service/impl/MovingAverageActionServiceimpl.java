@@ -2,15 +2,16 @@ package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
-import com.example.data.transactional.entities.BreakoutLedger;
+import com.example.data.transactional.entities.EvaluationLog;
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
-import com.example.dto.TradeSetup;
+import com.example.dto.common.TradeSetup;
 import com.example.service.*;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
+import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
     private static double MA_ACTION_RISK_REWARD = 2.0;
 
     @Autowired private CandleStickService candleStickService;
-    @Autowired private BreakoutLedgerService breakoutLedgerService;
+    @Autowired private EvaluationLogService evaluationLogService;
 
     @Autowired private SupportResistanceUtilService supportResistanceService;
 
@@ -33,7 +34,10 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
 
     @Autowired private FormulaService formulaService;
 
-    @Autowired private TrendService trendService;
+    @Autowired private DynamicTrendService trendService;
+
+    @Autowired
+    private DynamicMovingAverageSupportResolverService dynamicMovingAverageSupportResolverService;
 
     @Override
     public TradeSetup breakDown(Stock stock, Timeframe timeframe) {
@@ -45,56 +49,23 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
 
         boolean isBreakDown = Boolean.FALSE;
 
-        if (trend.getMomentum() == Trend.Momentum.TOP) {
-            if (this.isBreakDown(
-                    stock,
-                    timeframe,
-                    stockTechnicals.getEma50(),
-                    stockTechnicals.getEma100(),
-                    stockTechnicals.getPrevEma50(),
-                    stockTechnicals.getPrevEma100())) {
-                isBreakDown = Boolean.TRUE;
-            } else if (this.isBreakDown(
-                    stock,
-                    timeframe,
-                    stockTechnicals.getEma50(),
-                    stockTechnicals.getEma100(),
-                    stockTechnicals.getPrevEma50(),
-                    stockTechnicals.getPrevEma100())) {
-                isBreakDown = Boolean.TRUE;
-            }
-        }
-        if (trend.getMomentum() == Trend.Momentum.ADVANCE) {
-            if (this.isBreakDown(
-                    stock,
-                    timeframe,
-                    stockTechnicals.getEma20(),
-                    stockTechnicals.getEma50(),
-                    stockTechnicals.getPrevEma20(),
-                    stockTechnicals.getPrevEma50())) {
-                isBreakDown = Boolean.TRUE;
-            }
-        }
-        if (trend.getMomentum() == Trend.Momentum.RECOVERY) {
-            if (this.isBreakDown(
-                    stock,
-                    timeframe,
-                    stockTechnicals.getEma10(),
-                    stockTechnicals.getEma20(),
-                    stockTechnicals.getPrevEma10(),
-                    stockTechnicals.getPrevEma20())) {
+        if (trend.getMomentum() == Trend.Phase.TOP) {
+            if (this.isBreakDown(timeframe, stockPrice, stockTechnicals)) {
                 isBreakDown = Boolean.TRUE;
             }
         }
 
         if (isBreakDown) {
-            breakoutLedgerService.addNegative(
-                    stock, timeframe, BreakoutLedger.BreakoutCategory.BREAKDOWN_EMA20);
+
+            evaluationLogService.add(
+                    stockPrice,
+                    EvaluationLog.Type.NEGATIVE,
+                    EvaluationLog.BreakoutCategory.BREAKDOWN_EMA20.name());
 
             return TradeSetup.builder()
                     .active(Boolean.TRUE)
-                    .strategy(ResearchTechnical.Strategy.PRICE)
-                    .subStrategy(ResearchTechnical.SubStrategy.SRMA)
+                    .strategy(ResearchTechnical.Strategy.SIMPLE)
+                    .subStrategy(ResearchTechnical.SubStrategy.MA20_BREAKDOWN)
                     .build();
         }
 
@@ -102,27 +73,22 @@ public class MovingAverageActionServiceimpl implements MovingAverageActionServic
     }
 
     private boolean isBreakDown(
-            Stock stock,
-            Timeframe timeframe,
-            double immediateLow,
-            double average,
-            double prevImmediateLow,
-            double prevAverage) {
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
-        StockPrice stockPrice = stockPriceService.get(stock, timeframe);
+        boolean isCurrentRed = CandleStickUtils.isRed(stockPrice);
+        boolean isPrevRed = CandleStickUtils.isPrevSessionRed(stockPrice);
+        MovingAverageSupportResistanceService movingAverageSupportResistanceService =
+                dynamicMovingAverageSupportResolverService.resolve(
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, false);
 
-        if (average > prevAverage) {
-            if (immediateLow < prevImmediateLow) {
-                if (!supportResistanceService.isNearSupport(
-                        stockPrice.getOpen(),
-                        stockPrice.getHigh(),
-                        stockPrice.getLow(),
-                        stockPrice.getClose(),
-                        average)) {
-                    return Boolean.TRUE;
-                }
-            }
+        if (isCurrentRed && isPrevRed) {
+            return movingAverageSupportResistanceService.isBreakdown(
+                    timeframe, stockPrice, stockTechnicals, false);
+        } else if (!isCurrentRed && !isPrevRed) {
+            return movingAverageSupportResistanceService.isNearResistance(
+                    timeframe, stockPrice, stockTechnicals, false);
         }
+
         return Boolean.FALSE;
     }
 }

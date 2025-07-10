@@ -4,6 +4,7 @@ import com.example.data.transactional.entities.TradingHoliday;
 import com.example.data.transactional.repo.TradingHolidayRepository;
 import com.example.service.TradingHolidayService;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,5 +59,12 @@ public class TradingHolidayServiceImpl implements TradingHolidayService {
     @Override
     public Optional<TradingHoliday> getHolidayByDate(LocalDate date) {
         return tradingHolidayRepository.findBySessionDate(date);
+    }
+
+    @Override
+    public List<TradingHoliday> getUpcomingHolidays() {
+        LocalDate today = LocalDate.now();
+        LocalDate threeDaysLater = today.plusDays(3);
+        return tradingHolidayRepository.findUpcomingHolidays(today, threeDaysLater);
     }
 }

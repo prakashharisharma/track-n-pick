@@ -100,29 +100,74 @@ public class FormulaService {
         return pb;
     }
 
+    /**
+     * Calculates the percentage that a given fraction represents of a base number.
+     *
+     * @param baseNumber the total or reference value (denominator)
+     * @param fraction the part of the base number to be expressed as a percentage (numerator)
+     * @return the percentage value representing (fraction / baseNumber) * 100
+     * @throws IllegalArgumentException if baseNumber is zero
+     */
     public double calculatePercentage(double baseNumber, double fraction) {
-
-        double rate = (fraction / baseNumber) * 100;
-
-        return rate;
+        if (baseNumber == 0) {
+            throw new IllegalArgumentException(
+                    "Base number cannot be zero to avoid division by zero.");
+        }
+        return (fraction / baseNumber) * 100;
     }
 
+    /**
+     * Calculates the fraction (part) of a given base number based on a percentage rate.
+     *
+     * @param baseNumber the total or reference value
+     * @param rate the percentage rate (e.g., 25 for 25%)
+     * @return the fraction representing (rate / 100) * baseNumber
+     */
     public double calculateFraction(double baseNumber, double rate) {
-
-        double percentage = (rate / 100) * baseNumber;
-
-        return percentage;
+        if (rate < 0 || rate > 100) {
+            throw new IllegalArgumentException("Rate should be between 0 and 100.");
+        }
+        return (rate / 100) * baseNumber;
     }
 
+    /**
+     * Calculates the percentage change from num1 to num2.
+     *
+     * <p>The formula used is: ((num2 - num1) / num1) * 100. If num1 is zero, the method returns 0.0
+     * to avoid division by zero.
+     *
+     * @param num1 the initial value (base value)
+     * @param num2 the new value
+     * @return the percentage change from num1 to num2, or 0.0 if num1 is zero
+     */
     public double calculateChangePercentage(double num1, double num2) {
-
-        if (num2 == 0.0) {
+        if (num1 == 0.0) {
             return 0.0;
+        }
+        return ((num2 - num1) / num1) * 100;
+    }
+
+    public double calculateAbsChangePercentage(double num1, double num2) {
+        if (num1 == 0.0) {
+            return 0.0;
+        }
+        if (num1 > num2) {
+            return ((num1 - num2) / num2) * 100;
         }
 
         return ((num2 - num1) / num1) * 100;
     }
 
+    /**
+     * Applies a percentage change to the given number.
+     *
+     * <p>For example, if num = 100 and percentChange = 10, the result will be 110 (100 increased by
+     * 10%).
+     *
+     * @param num the original number
+     * @param percentChange the percentage change to apply (can be positive or negative)
+     * @return the new value after applying the percentage change
+     */
     public double applyPercentChange(double num, double percentChange) {
         return num * (1 + percentChange / 100);
     }
@@ -373,5 +418,45 @@ public class FormulaService {
 
     public boolean inRange(double min, double max, double num) {
         return Math.max(min, num) == Math.min(num, max);
+    }
+
+    public double ceilToNearestHalf(double value) {
+        return Math.ceil(value * 2) / 2.0;
+    }
+
+    public double floorToNearestHalf(double value) {
+        return Math.floor(value * 2) / 2.0;
+    }
+
+    public double ceilToNearestQuarter(double value) {
+        return Math.ceil(value * 4) / 4.0;
+    }
+
+    public double floorToNearestQuarter(double value) {
+        return Math.floor(value * 4) / 4.0;
+    }
+
+    public double ceilToNearestTen(double value) {
+        return Math.ceil(value * 10) / 10.0;
+    }
+
+    public double floorToNearestTen(double value) {
+        return Math.floor(value * 10) / 10.0;
+    }
+
+    public double ceilToNearestFive(double value) {
+        return Math.ceil(value * 20) / 20.0;
+    }
+
+    public double roundToNearestHalf(double value) {
+        return Math.round(value * 2) / 2.0;
+    }
+
+    public long[] splitIn40_30_20_10(long value) {
+        long part1 = Math.round(value * 0.40);
+        long part2 = Math.round(value * 0.30);
+        long part3 = Math.round(value * 0.20);
+        long part4 = value - part1 - part2 - part3; // Ensure total sum remains accurate
+        return new long[] {part1, part2, part3, part4};
     }
 }

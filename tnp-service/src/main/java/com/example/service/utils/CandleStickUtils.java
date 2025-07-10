@@ -28,18 +28,18 @@ public class CandleStickUtils {
                 atrMultiplier = 1.1;
                 break;
             case WEEKLY:
-                minBodyPercentage = 0.70;
+                minBodyPercentage = 0.65;
                 atrMultiplier = 1.3;
                 break;
             case MONTHLY:
-                minBodyPercentage = 0.75;
+                minBodyPercentage = 0.65;
                 atrMultiplier = 1.5;
                 break;
             default:
                 return false;
         }
 
-        return (bodySize >= minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
+        return (bodySize > minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
     }
 
     public static boolean isPrevSessionStrongBody(
@@ -60,18 +60,18 @@ public class CandleStickUtils {
                 atrMultiplier = 1.1;
                 break;
             case WEEKLY:
-                minBodyPercentage = 0.70;
+                minBodyPercentage = 0.65;
                 atrMultiplier = 1.3;
                 break;
             case MONTHLY:
-                minBodyPercentage = 0.75;
+                minBodyPercentage = 0.65;
                 atrMultiplier = 1.5;
                 break;
             default:
                 return false;
         }
 
-        return (bodySize >= minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
+        return (bodySize > minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
     }
 
     public static boolean isPrev2SessionStrongBody(
@@ -92,18 +92,18 @@ public class CandleStickUtils {
                 atrMultiplier = 1.1;
                 break;
             case WEEKLY:
-                minBodyPercentage = 0.70;
+                minBodyPercentage = 0.65;
                 atrMultiplier = 1.3;
                 break;
             case MONTHLY:
-                minBodyPercentage = 0.75;
+                minBodyPercentage = 0.65;
                 atrMultiplier = 1.5;
                 break;
             default:
                 return false;
         }
 
-        return (bodySize >= minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
+        return (bodySize > minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
     }
 
     public static boolean isStrongRange(
@@ -124,11 +124,11 @@ public class CandleStickUtils {
                 atrMultiplier = 1.1;
                 break;
             case WEEKLY:
-                minRangeMultiplier = 1.3;
+                minRangeMultiplier = 1.2;
                 atrMultiplier = 1.3;
                 break;
             case MONTHLY:
-                minRangeMultiplier = 1.5;
+                minRangeMultiplier = 1.2;
                 atrMultiplier = 1.5;
                 break;
             default:
@@ -163,43 +163,104 @@ public class CandleStickUtils {
     }
 
     public static double bodySize(StockPrice stockPrice) {
+        if (stockPrice == null || stockPrice.getClose() == null || stockPrice.getOpen() == null) {
+            return 0.0;
+        }
         return Math.abs(stockPrice.getClose() - stockPrice.getOpen());
     }
 
     public static double prevSessionBodySize(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getPrevClose() == null
+                || stockPrice.getPrevOpen() == null) {
+            return 0.0;
+        }
         return Math.abs(stockPrice.getPrevClose() - stockPrice.getPrevOpen());
     }
 
     public static double prev2SessionBodySize(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getPrev2Close() == null
+                || stockPrice.getPrev2Open() == null) {
+            return 0.0;
+        }
         return Math.abs(stockPrice.getPrev2Close() - stockPrice.getPrev2Open());
     }
 
     public static double range(StockPrice stockPrice) {
+        if (stockPrice == null || stockPrice.getHigh() == null || stockPrice.getLow() == null) {
+            return 0.0;
+        }
         return stockPrice.getHigh() - stockPrice.getLow();
     }
 
     public static double prevSessionRange(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getPrevHigh() == null
+                || stockPrice.getPrevLow() == null) {
+            return 0.0;
+        }
         return stockPrice.getPrevHigh() - stockPrice.getPrevLow();
     }
 
     public static double prev2SessionRange(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getPrev2High() == null
+                || stockPrice.getPrev2Low() == null) {
+            return 0.0;
+        }
         return stockPrice.getPrev2High() - stockPrice.getPrev2Low();
     }
 
     public static double upperWickSize(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getHigh() == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getClose() == null) {
+            return 0.0;
+        }
         return stockPrice.getHigh() - Math.max(stockPrice.getOpen(), stockPrice.getClose());
     }
 
+    public static double prevUpperWickSize(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getHigh() == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getClose() == null) {
+            return 0.0;
+        }
+        return stockPrice.getPrevHigh()
+                - Math.max(stockPrice.getPrevOpen(), stockPrice.getPrevClose());
+    }
+
     public static double lowerWickSize(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getLow() == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getClose() == null) {
+            return 0.0;
+        }
         return Math.min(stockPrice.getOpen(), stockPrice.getClose()) - stockPrice.getLow();
     }
 
     public static double prevLowerWickSize(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getPrevLow() == null
+                || stockPrice.getPrevOpen() == null
+                || stockPrice.getPrevClose() == null) {
+            return 0.0;
+        }
         return Math.min(stockPrice.getPrevOpen(), stockPrice.getPrevClose())
                 - stockPrice.getPrevLow();
     }
 
     public static double prev2LowerWickSize(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getPrev2Open() == null
+                || stockPrice.getPrev2Close() == null
+                || stockPrice.getPrev2Low() == null) {
+            return 0.0;
+        }
         return Math.min(stockPrice.getPrev2Open(), stockPrice.getPrev2Close())
                 - stockPrice.getPrev2Low();
     }
@@ -213,7 +274,11 @@ public class CandleStickUtils {
         return Math.abs(value1 - value2) < tolerance;
     }
 
-    public static boolean isWickDominantCandle(StockPrice stockPrice, boolean checkUpperWick) {
+    public static boolean isWickDominantCandle(
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean checkUpperWick,
+            boolean checkVerySmallBody) {
         if (stockPrice == null) return false;
 
         double bodySize = bodySize(stockPrice);
@@ -223,7 +288,11 @@ public class CandleStickUtils {
 
         if (totalRange == 0) return false; // Avoid division errors
 
-        boolean smallBody = bodySize <= 0.35 * totalRange;
+        boolean smallBody =
+                checkVerySmallBody
+                        ? isVerySmallBody(stockPrice)
+                        : isSmallBody(stockPrice, stockTechnicals);
+
         boolean longWick =
                 checkUpperWick ? (upperWick >= 2 * bodySize) : (lowerWick >= 2 * bodySize);
         boolean smallOppositeWick =
@@ -316,6 +385,21 @@ public class CandleStickUtils {
         return (close != null && prevOpen != null) && close < prevOpen;
     }
 
+    public static boolean isLowerHigh(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        Double high = stockPrice.getHigh();
+        Double prevHigh = stockPrice.getPrevHigh();
+
+        if (high == null || prevHigh == null) {
+            return false;
+        }
+
+        return high < prevHigh;
+    }
+
     public static boolean isLowerLow(StockPrice stockPrice) {
         if (stockPrice == null) {
             return false;
@@ -331,6 +415,14 @@ public class CandleStickUtils {
         return low < prevLow;
     }
 
+    public static boolean isLowerLow(double low, double prevLow) {
+        return low < prevLow;
+    }
+
+    public static boolean isHigherLow(double low, double prevLow) {
+        return low > prevLow;
+    }
+
     public static boolean isHigherHigh(StockPrice stockPrice) {
         if (stockPrice == null) {
             return false;
@@ -340,6 +432,72 @@ public class CandleStickUtils {
         Double prevHigh = stockPrice.getPrevHigh();
 
         return (high != null && prevHigh != null) && high > prevHigh;
+    }
+
+    public static boolean isHigherHighAndHigherLow(StockPrice stockPrice) {
+        if (stockPrice == null) return false;
+
+        Double high = stockPrice.getHigh();
+        Double prevHigh = stockPrice.getPrevHigh();
+        Double prev2High = stockPrice.getPrev2High();
+        Double prev3High = stockPrice.getPrev3High();
+        Double low = stockPrice.getLow();
+        Double prevLow = stockPrice.getPrevLow();
+        Double prev2Low = stockPrice.getPrev2Low();
+        Double prev3Low = stockPrice.getPrev3Low();
+
+        return high != null
+                && prevHigh != null
+                && prev2High != null
+                && prev3High != null
+                && low != null
+                && prevLow != null
+                && prev2Low != null
+                && prev3Low != null
+                && isHigherHigh(high, prevHigh)
+                && isHigherHigh(prevHigh, prev2High)
+                && isHigherHigh(prev2High, prev3High)
+                && isHigherLow(low, prevLow)
+                && isHigherLow(prevLow, prev2Low)
+                && isHigherLow(prev2Low, prev3Low);
+    }
+
+    public static boolean isLowerHighAndLowerLow(StockPrice stockPrice) {
+        if (stockPrice == null) return false;
+
+        Double high = stockPrice.getHigh();
+        Double prevHigh = stockPrice.getPrevHigh();
+        Double prev2High = stockPrice.getPrev2High();
+        Double prev3High = stockPrice.getPrev3High();
+        Double low = stockPrice.getLow();
+        Double prevLow = stockPrice.getPrevLow();
+        Double prev2Low = stockPrice.getPrev2Low();
+        Double prev3Low = stockPrice.getPrev3Low();
+
+        return high != null
+                && prevHigh != null
+                && prev2High != null
+                && prev3High != null
+                && low != null
+                && prevLow != null
+                && prev2Low != null
+                && prev3Low != null
+                && isLowerHigh(high, prevHigh)
+                && isLowerHigh(prevHigh, prev2High)
+                && isLowerHigh(prev2High, prev3High)
+                && isLowerLow(low, prevLow)
+                && isLowerLow(prevLow, prev2Low)
+                && isLowerLow(prev2Low, prev3Low);
+    }
+
+    public static boolean isHigherHigh(double high, double prevHigh) {
+
+        return high > prevHigh;
+    }
+
+    public static boolean isLowerHigh(double high, double prevHigh) {
+
+        return high < prevHigh;
     }
 
     public static boolean isGapUp(StockPrice stockPrice) {
@@ -356,6 +514,13 @@ public class CandleStickUtils {
         return stockPrice.getPrevOpen() > stockPrice.getPrev2High();
     }
 
+    public static boolean isProGapUp(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+        return stockPrice.getOpen() > stockPrice.getPrevClose();
+    }
+
     public static boolean isGapDown(StockPrice stockPrice) {
         if (stockPrice == null) {
             return false;
@@ -370,7 +535,35 @@ public class CandleStickUtils {
         return stockPrice.getPrevOpen() < stockPrice.getPrev2Low();
     }
 
+    public static boolean isProGapDown(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+        return stockPrice.getOpen() < stockPrice.getPrevClose();
+    }
+
+    public static boolean isRisingWindow(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+        return stockPrice.getLow() > stockPrice.getPrevHigh();
+    }
+
+    public static boolean isFallingWindow(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+        return stockPrice.getHigh() < stockPrice.getPrevLow();
+    }
+
     public static boolean isOpenInsidePrevBody(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getPrevLow() == null
+                || stockPrice.getPrevHigh() == null) {
+            return false;
+        }
+
         return stockPrice.getOpen() > stockPrice.getPrevLow()
                 && stockPrice.getOpen() < stockPrice.getPrevHigh();
     }
@@ -396,25 +589,49 @@ public class CandleStickUtils {
     }
 
     public static boolean hasLongUpperWick(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getHigh() == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getClose() == null) {
+            return false;
+        }
+
         double upperWick =
                 stockPrice.getHigh() - Math.max(stockPrice.getOpen(), stockPrice.getClose());
         double bodySize = Math.abs(stockPrice.getClose() - stockPrice.getOpen());
+
         return upperWick > (bodySize * 0.5); // Wick should be more than 50% of the body size
     }
 
     public static boolean hasPrevLongUpperWick(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getPrevHigh() == null
+                || stockPrice.getPrevOpen() == null
+                || stockPrice.getPrevClose() == null) {
+            return false;
+        }
+
         double upperWick =
                 stockPrice.getPrevHigh()
                         - Math.max(stockPrice.getPrevOpen(), stockPrice.getPrevClose());
         double bodySize = Math.abs(stockPrice.getPrevClose() - stockPrice.getPrevOpen());
+
         return upperWick > (bodySize * 0.5); // Wick should be more than 50% of the body size
     }
 
     public static boolean hasPrev2LongUpperWick(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getPrev2High() == null
+                || stockPrice.getPrev2Open() == null
+                || stockPrice.getPrev2Close() == null) {
+            return false;
+        }
+
         double upperWick =
                 stockPrice.getPrev2High()
                         - Math.max(stockPrice.getPrev2Open(), stockPrice.getPrev2Close());
         double bodySize = Math.abs(stockPrice.getPrev2Close() - stockPrice.getPrev2Open());
+
         return upperWick > (bodySize * 0.5); // Wick should be more than 50% of the body size
     }
 
@@ -427,37 +644,183 @@ public class CandleStickUtils {
     }
 
     public static boolean hasLongLowerWick(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getClose() == null
+                || stockPrice.getLow() == null) {
+            return false;
+        }
+
         double bodySize = CandleStickUtils.bodySize(stockPrice);
         double lowerWick = CandleStickUtils.lowerWickSize(stockPrice);
 
-        return lowerWick >= (bodySize * 1.5); // Lower wick should be at least 1.5x the body size
+        return lowerWick >= (bodySize * 1.5);
     }
 
     public static boolean hasPrevLongLowerWick(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getPrevOpen() == null
+                || stockPrice.getPrevClose() == null
+                || stockPrice.getPrevLow() == null) {
+            return false;
+        }
+
         double bodySize = CandleStickUtils.prevSessionBodySize(stockPrice);
         double lowerWick = CandleStickUtils.prevLowerWickSize(stockPrice);
 
-        return lowerWick >= (bodySize * 1.5); // Lower wick should be at least 1.5x the body size
+        return lowerWick >= (bodySize * 1.5);
     }
 
     public static boolean hasPrev2LongLowerWick(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getPrev2Open() == null
+                || stockPrice.getPrev2Close() == null
+                || stockPrice.getPrev2Low() == null) {
+            return false;
+        }
+
         double bodySize = CandleStickUtils.prev2SessionBodySize(stockPrice);
         double lowerWick = CandleStickUtils.prev2LowerWickSize(stockPrice);
 
-        return lowerWick >= (bodySize * 1.5); // Lower wick should be at least 1.5x the body size
+        return lowerWick >= (bodySize * 1.5);
     }
 
-    public static boolean isSmallBody(StockPrice stockPrice) {
+    public static boolean isSmallBody(StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
+        if (stockPrice == null
+                || stockTechnicals == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getClose() == null
+                || stockPrice.getHigh() == null
+                || stockPrice.getLow() == null
+                || stockTechnicals.getAtr() == null) {
+            return false;
+        }
+
         double bodySize = Math.abs(stockPrice.getClose() - stockPrice.getOpen());
         double candleRange = stockPrice.getHigh() - stockPrice.getLow();
+        double atr = stockTechnicals.getAtr();
 
-        return bodySize <= (0.3 * candleRange); // Small body if <= 30% of the total range
+        if (candleRange == 0 || atr == 0) return false;
+
+        boolean smallByRange = bodySize <= (0.35 * candleRange) && bodySize > (0.1 * candleRange);
+        boolean smallByAtr = bodySize <= (0.4 * atr); // You can tweak this threshold
+
+        return smallByRange || smallByAtr;
     }
 
-    public static boolean isPrevSmallBody(StockPrice stockPrice) {
-        double bodySize = Math.abs(stockPrice.getPrevClose() - stockPrice.getPrevOpen());
-        double candleRange = stockPrice.getPrevHigh() - stockPrice.getPrevLow();
+    public static boolean isCloseHighEqual(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getPrevOpen() == null
+                || stockPrice.getPrevClose() == null
+                || stockPrice.getPrevHigh() == null
+                || stockPrice.getPrevLow() == null) {
+            return false;
+        }
 
-        return bodySize <= (0.3 * candleRange); // Small body if <= 30% of the total range
+        if (stockPrice.getClose().equals(stockPrice.getHigh())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static boolean isPrevSmallBody(StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        if (stockPrice == null
+                || stockPrice.getPrevOpen() == null
+                || stockPrice.getPrevClose() == null
+                || stockPrice.getPrevHigh() == null
+                || stockPrice.getPrevLow() == null) {
+            return false;
+        }
+
+        double bodySize = prevSessionBodySize(stockPrice);
+        double candleRange = prevSessionRange(stockPrice);
+        double atr = stockTechnicals.getPrevAtr();
+
+        boolean smallByRange = bodySize <= (0.35 * candleRange) && bodySize > (0.1 * candleRange);
+        ;
+        boolean smallByAtr = bodySize <= (0.35 * atr); // You can tweak this threshold
+
+        return smallByRange || smallByAtr;
+    }
+
+    public static boolean isVerySmallBody(StockPrice stockPrice) {
+        if (stockPrice == null) return false;
+        double bodySize = bodySize(stockPrice);
+        double range = range(stockPrice);
+        return range > 0 && bodySize <= 0.1 * range;
+    }
+
+    public static boolean isPrevVerySmallBody(StockPrice stockPrice) {
+        if (stockPrice == null) return false;
+        double bodySize = prevSessionBodySize(stockPrice);
+        double range = prevSessionRange(stockPrice);
+        return range > 0 && bodySize <= 0.1 * range;
+    }
+
+    public static boolean isStrongLowerWick(StockPrice stockPrice) {
+
+        double bodySize = bodySize(stockPrice);
+        double lowerWickSize = lowerWickSize(stockPrice);
+        double upperWickSize = upperWickSize(stockPrice);
+
+        boolean isLowerWickSignificant =
+                lowerWickSize > (0.50 * bodySize) && lowerWickSize > upperWickSize * 2;
+
+        return isLowerWickSignificant;
+    }
+
+    public static boolean isPrevStrongLowerWick(StockPrice stockPrice) {
+
+        double bodySize = prevSessionBodySize(stockPrice);
+        double lowerWickSize = prevLowerWickSize(stockPrice);
+        double upperWickSize = prevUpperWickSize(stockPrice);
+
+        boolean isLowerWickSignificant =
+                lowerWickSize > (0.50 * bodySize) && lowerWickSize > upperWickSize * 2;
+
+        return isLowerWickSignificant;
+    }
+
+    public static boolean isStrongUpperWick(StockPrice stockPrice) {
+
+        double bodySize = bodySize(stockPrice);
+        double lowerWickSize = lowerWickSize(stockPrice);
+        double upperWickSize = upperWickSize(stockPrice);
+
+        boolean isUpperWickSignificant =
+                upperWickSize > (0.50 * bodySize) && upperWickSize > lowerWickSize * 2;
+
+        return isUpperWickSignificant;
+    }
+
+    public static boolean isPrevStrongUpperWick(StockPrice stockPrice) {
+
+        double bodySize = prevSessionBodySize(stockPrice);
+        double lowerWickSize = prevLowerWickSize(stockPrice);
+        double upperWickSize = prevUpperWickSize(stockPrice);
+
+        boolean isUpperWickSignificant =
+                upperWickSize > (0.50 * bodySize) && upperWickSize > lowerWickSize * 2;
+
+        return isUpperWickSignificant;
+    }
+
+    public static boolean isUpperWickDominant(StockPrice stockPrice) {
+
+        double bodySize = bodySize(stockPrice);
+        double lowerWickSize = lowerWickSize(stockPrice);
+        double upperWickSize = upperWickSize(stockPrice);
+
+        return upperWickSize > lowerWickSize && upperWickSize > bodySize;
+    }
+
+    public static boolean isLowerWickDominant(StockPrice stockPrice) {
+        double bodySize = bodySize(stockPrice);
+        double lowerWickSize = lowerWickSize(stockPrice);
+        double upperWickSize = upperWickSize(stockPrice);
+
+        return lowerWickSize > upperWickSize && lowerWickSize > bodySize;
     }
 }

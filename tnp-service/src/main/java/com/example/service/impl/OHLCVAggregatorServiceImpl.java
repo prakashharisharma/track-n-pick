@@ -1,6 +1,6 @@
 package com.example.service.impl;
 
-import com.example.dto.OHLCV;
+import com.example.dto.common.OHLCV;
 import com.example.service.CalendarService;
 import com.example.service.OHLCVAggregatorService;
 import java.time.*;

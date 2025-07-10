@@ -1,8 +1,8 @@
 package com.example.service.impl;
 
 import com.example.data.transactional.entities.StockTechnicals;
-import com.example.service.BreakoutLedgerService;
 import com.example.service.CrossOverUtil;
+import com.example.service.EvaluationLogService;
 import com.example.service.MacdIndicatorService;
 import com.example.util.FormulaService;
 import lombok.extern.slf4j.Slf4j;
@@ -13,9 +13,33 @@ import org.springframework.stereotype.Service;
 @Service
 public class MacdIndicatorServiceImpl implements MacdIndicatorService {
 
-    @Autowired private BreakoutLedgerService breakoutLedgerService;
+    @Autowired private EvaluationLogService evaluationLogService;
 
     @Autowired private FormulaService formulaService;
+
+    @Override
+    public boolean isMacdBelowZero(StockTechnicals stockTechnicals) {
+        if (stockTechnicals != null) {
+
+            if (stockTechnicals.getMacd() <= 0.0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean isMacdBelowSignal(StockTechnicals stockTechnicals) {
+        if (stockTechnicals != null) {
+
+            if (stockTechnicals.getMacd() < stockTechnicals.getSignal()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     @Override
     public boolean isMacdCrossedSignal(StockTechnicals stockTechnicals) {
@@ -28,6 +52,13 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
                         stockTechnicals.getSignal());
 
         return isMAcdCrossedSignal;
+    }
+
+    @Override
+    public boolean isSignalCrossedMacd(StockTechnicals st) {
+        return CrossOverUtil.isSlowCrossesBelowFast(
+                st.getPrevMacd(), st.getPrevSignal(),
+                st.getMacd(), st.getSignal());
     }
 
     @Override
@@ -44,6 +75,38 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
             } else if (stockTechnicals.getSignal() <= histogram) {
                 // breakoutLedgerService.addPositive(stock, timeframe,
                 // BreakoutLedger.BreakoutCategory.SIGNAL_NEAR_HISTOGRAM);
+                return Boolean.TRUE;
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isHistogramBelowZero(StockTechnicals stockTechnicals) {
+        if (stockTechnicals != null) {
+
+            double histogram =
+                    formulaService.calculateHistogram(
+                            stockTechnicals.getMacd(), stockTechnicals.getSignal());
+
+            if (histogram < 0.0) {
+                return Boolean.TRUE;
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isHistogramAboveZero(StockTechnicals stockTechnicals) {
+        if (stockTechnicals != null) {
+
+            double histogram =
+                    formulaService.calculateHistogram(
+                            stockTechnicals.getMacd(), stockTechnicals.getSignal());
+
+            if (histogram > 0.0) {
                 return Boolean.TRUE;
             }
         }
@@ -99,5 +162,29 @@ public class MacdIndicatorServiceImpl implements MacdIndicatorService {
             return Boolean.TRUE;
         }
         return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isMacdIncreased(StockTechnicals stockTechnicals) {
+        if (stockTechnicals == null) return false;
+        return stockTechnicals.getMacd() > stockTechnicals.getPrevMacd();
+    }
+
+    @Override
+    public boolean isMacdDecreased(StockTechnicals stockTechnicals) {
+        if (stockTechnicals == null) return false;
+        return stockTechnicals.getMacd() < stockTechnicals.getPrevMacd();
+    }
+
+    @Override
+    public boolean isSignalIncreased(StockTechnicals stockTechnicals) {
+        if (stockTechnicals == null) return false;
+        return stockTechnicals.getSignal() > stockTechnicals.getPrevSignal();
+    }
+
+    @Override
+    public boolean isSignalDecreased(StockTechnicals stockTechnicals) {
+        if (stockTechnicals == null) return false;
+        return stockTechnicals.getSignal() < stockTechnicals.getPrevSignal();
     }
 }

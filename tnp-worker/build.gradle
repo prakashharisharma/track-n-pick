@@ -37,6 +37,8 @@ dependencies {
 
 bootJar {
     enabled = true
+    mainClass = 'com.example.WorkerApplication'
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
     archiveFileName = 'tnp-worker.jar'
 }
 

@@ -1,6 +1,6 @@
 package com.example.service.calc;
 
-import com.example.dto.OHLCV;
+import com.example.dto.common.OHLCV;
 import java.util.List;
 
 public interface SimpleMovingAverageCalculatorService {
