@@ -12,7 +12,7 @@ public class ConfidenceScoreCalculator {
      * Calculates the confidence score (0 to 10) based on strategy score, raw risk, market cap,
      * research price, volume, and MACD.
      *
-     * @param strategyScore value between 0 and 10 (higher is better)
+     * @param subStrategyScore value between 0 and 10 (higher is better)
      * @param rawRisk value between 2 and 20 (higher is worse)
      * @param marketCapInCrores market capitalization in crores
      * @param researchPrice current research price of the stock
@@ -22,6 +22,7 @@ public class ConfidenceScoreCalculator {
      */
     public static double calculateConfidenceScore(
             double strategyScore,
+            double subStrategyScore,
             double rawRisk,
             double marketCapInCrores,
             double researchPrice,
@@ -31,19 +32,22 @@ public class ConfidenceScoreCalculator {
 
         double riskWeight = 0.40;
         double strategyWeight = 0.15;
+        double subStrategyWeight = 0.10;
         double macdWeight = 0.10;
-        double volumeWeight = 0.10;
+        double volumeWeight = 0.0;
         double mcapWeight = 0.10;
         double priceWeight = 0.05;
         double valuationWeight = 0.10;
 
-        if (strategyScore >= 9) {
-            macdWeight = 0.08;
-            volumeWeight = 0.12;
-        }
+        /*
+        if (subStrategyScore >= 9) {
+            macdWeight = 0.05;
+            volumeWeight = 0.20;
+        }*/
 
         // Clamp scores to [0–10]
         strategyScore = clamp(strategyScore);
+        subStrategyScore = clamp(subStrategyScore);
         volumeScore = clamp(volumeScore);
         macdScore = clamp(macdScore);
 
@@ -57,9 +61,9 @@ public class ConfidenceScoreCalculator {
         // Logging each component
         log.info(
                 "Strategy Score: {} (Weight: {}) => {}",
-                strategyScore,
-                strategyWeight,
-                strategyScore * strategyWeight);
+                subStrategyScore,
+                subStrategyWeight,
+                subStrategyScore * subStrategyWeight);
         log.info(
                 "Risk Score: {} (Weight: {}) => {}", riskScore, riskWeight, riskScore * riskWeight);
         log.info(
@@ -85,13 +89,35 @@ public class ConfidenceScoreCalculator {
                 valuationWeight,
                 valuationScoreClamped * valuationWeight);
 
-        return (strategyScore * strategyWeight)
-                + (riskScore * riskWeight)
-                + (marketCapScore * mcapWeight)
-                + (researchPriceScore * priceWeight)
-                + (volumeScore * volumeWeight)
-                + (macdScore * macdWeight)
-                + (valuationScoreClamped * valuationWeight);
+        double score =
+                (strategyScore * strategyWeight)
+                        + (subStrategyScore * subStrategyWeight)
+                        + (riskScore * riskWeight)
+                        + (marketCapScore * mcapWeight)
+                        + (researchPriceScore * priceWeight)
+                        + (volumeScore * volumeWeight)
+                        + (macdScore * macdWeight)
+                        + (valuationScoreClamped * valuationWeight);
+
+        /*
+        System.out.println(score);
+        System.out.println(roundToTwoDecimals(score));
+        System.out.println(ceilBeyondOneDecimal(score));
+        score = roundToTwoDecimals(score);
+        System.out.println(ceilBeyondOneDecimal(score));
+        */
+
+        return ceilBeyondOneDecimal(roundToTwoDecimals(score));
+        // return score;
+    }
+
+    public static double roundToTwoDecimals(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
+
+    public static double ceilBeyondOneDecimal(double value) {
+        double rounded = Math.floor(value * 10) / 10.0;
+        return value > rounded ? rounded + 0.1 : rounded;
     }
 
     /**

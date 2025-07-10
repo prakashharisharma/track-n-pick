@@ -145,8 +145,14 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                 log.info("{} Found EQ stock ", stock.getNseSymbol());
 
                 TradeSetup tradeSetup =
-                        simplePriceActionSignalEvaluator.evaluateEntry(
+                        basicPriceActionSignalEvaluator.evaluateEntry(
                                 timeframe, stock, stockPrice, stockTechnicals);
+
+                if (!tradeSetup.isActive()) {
+                    tradeSetup =
+                            simplePriceActionSignalEvaluator.evaluateEntry(
+                                    timeframe, stock, stockPrice, stockTechnicals);
+                }
 
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
@@ -154,11 +160,6 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
 
-                if (!tradeSetup.isActive()) {
-                    tradeSetup =
-                            hybridPriceActionSignalEvaluator.evaluateEntry(
-                                    timeframe, stock, stockPrice, stockTechnicals);
-                }
                 /*
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
@@ -174,7 +175,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                 */
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
-                            basicPriceActionSignalEvaluator.evaluateEntry(
+                            hybridPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
 
@@ -236,13 +237,13 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
             if (!tradeSetup.isActive()) {
                 tradeSetup =
-                        hybridPriceActionSignalEvaluator.evaluateExit(
+                        basicPriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
             }
 
             if (!tradeSetup.isActive()) {
                 tradeSetup =
-                        basicPriceActionSignalEvaluator.evaluateExit(
+                        hybridPriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
             }
 

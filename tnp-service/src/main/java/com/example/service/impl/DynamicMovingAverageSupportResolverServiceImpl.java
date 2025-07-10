@@ -5,6 +5,7 @@ import com.example.data.common.type.Trend;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
+import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.TrendDirectionUtil;
 import com.example.util.FormulaService;
@@ -353,13 +354,30 @@ public class DynamicMovingAverageSupportResolverServiceImpl
                                 r -> r.getLength().getWeight()); // Lower MA gets higher score
 
         // 1. Breakdown + Support → Support with lower MA (if sortByValue), else higher MA
+        /*
         if (!breakdowns.isEmpty() && !supports.isEmpty()) {
             return supports.stream().min(weightComparator);
         }
+        */
+        if (!breakdowns.isEmpty() && !supports.isEmpty()) {
+            if (CandleStickUtils.isLowerWickDominant(stockPrice)
+                    || CandleStickUtils.isStrongLowerWick(stockPrice)) {
+                return supports.stream().min(weightComparator);
+            }
+        }
 
         // 2. Breakout + Resistance → Resistance with higher MA (if sortByValue), else lower MA
+        /*
         if (!breakouts.isEmpty() && !resistances.isEmpty()) {
             return resistances.stream().max(weightComparator);
+        }
+        */
+
+        if (!breakouts.isEmpty() && !resistances.isEmpty()) {
+            if (CandleStickUtils.isUpperWickDominant(stockPrice)
+                    || CandleStickUtils.isStrongUpperWick(stockPrice)) {
+                return resistances.stream().max(weightComparator);
+            }
         }
 
         // 3. Breakout + Breakout → Lower MA breakout (higher weight)

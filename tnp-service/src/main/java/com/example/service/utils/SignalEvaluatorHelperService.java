@@ -1244,10 +1244,12 @@ public class SignalEvaluatorHelperService {
         double bodySize = Math.abs(close - open);
         double bodyAboveBreakout = close > breakoutValue ? close - breakoutValue : 0;
         boolean isBreakoutCrossedHalfBody = bodySize > 0 && (bodyAboveBreakout / bodySize) > 0.5;
-
         if (breakoutValue >= highestMovingAverageResult.getValue()) {
-            entryPrice = (open + close) / 2;
-            entryPrice = formulaService.applyPercentChange(entryPrice, 0.1);
+            entryPrice = formulaService.applyPercentChange(breakoutValue, 0.02);
+            if (isBreakoutCrossedHalfBody) {
+                entryPrice = (breakoutValue + high) / 2;
+            }
+            entryPrice = formulaService.applyPercentChange(entryPrice, 0.03);
         } else if (singleSessionCandleStickService.isBullishMarubozu(
                         timeframe, stockPrice, stockTechnicals)
                 || CandleStickUtils.isCloseHighEqual(stockPrice)) {
@@ -1292,14 +1294,14 @@ public class SignalEvaluatorHelperService {
             entryPrice = formulaService.ceilToNearestHalf(entryPrice);
             entryPrice =
                     Math.max(formulaService.applyPercentChange(entryPrice, 0.05), entryPrice + 0.5);
-            return formulaService.ceilToNearestFive(entryPrice);
+            return formulaService.ceilToNearestTen(entryPrice);
         } else if (macdIndicatorService.isHistogramGreen(stockTechnicals)) {
             entryPrice = formulaService.ceilToNearestHalf(entryPrice);
             entryPrice =
                     Math.max(
                             formulaService.applyPercentChange(entryPrice, 0.025),
                             entryPrice + 0.25);
-            return formulaService.ceilToNearestFive(entryPrice);
+            return formulaService.ceilToNearestTen(entryPrice);
         }
 
         return formulaService.ceilToNearestHalf(entryPrice);

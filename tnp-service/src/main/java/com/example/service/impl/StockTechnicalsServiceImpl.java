@@ -1,15 +1,10 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
-import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockTechnicals;
-import com.example.data.transactional.entities.StockTechnicalsDaily;
-import com.example.data.transactional.entities.StockTechnicalsMonthly;
-import com.example.data.transactional.entities.StockTechnicalsQuarterly;
-import com.example.data.transactional.entities.StockTechnicalsWeekly;
-import com.example.data.transactional.entities.StockTechnicalsYearly;
+import com.example.data.transactional.entities.*;
 import com.example.data.transactional.repo.StockRepository;
 import com.example.data.transactional.repo.StockTechnicalsRepository;
+import com.example.service.CalendarService;
 import com.example.service.StockTechnicalsService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +23,8 @@ public class StockTechnicalsServiceImpl implements StockTechnicalsService {
 
     private final StockTechnicalsRepository<StockTechnicals> stockTechnicalsRepository;
     private final StockRepository stockRepository;
+
+    private final CalendarService calendarService;
 
     // Map to create instances dynamically based on timeframe
     private static final Map<Timeframe, Supplier<StockTechnicals>> STOCK_TECHNICALS_CREATORS =
@@ -673,5 +670,87 @@ public class StockTechnicalsServiceImpl implements StockTechnicalsService {
         stockTechnicals.setPrevPlusDi(stockTechnicals.getPlusDi());
         stockTechnicals.setPrevMinusDi(stockTechnicals.getMinusDi());
         stockTechnicals.setPrevAtr(stockTechnicals.getAtr());
+    }
+
+    @Override
+    public StockTechnicals buildPrevSessionStockTechnicals(StockTechnicals current) {
+        StockTechnicals prev =
+                STOCK_TECHNICALS_CREATORS
+                        .getOrDefault(
+                                current.getTimeframe(),
+                                () -> {
+                                    throw new IllegalArgumentException(
+                                            "Unsupported timeframe: " + current.getTimeframe());
+                                })
+                        .get();
+
+        prev.setStock(current.getStock());
+        prev.setTimeframe(current.getTimeframe());
+        prev.setSessionDate(calendarService.previousTradingSession(current.getSessionDate()));
+        prev.setLastModified(LocalDateTime.now());
+
+        // Assign prev = current.prev
+        prev.setSma5(current.getPrevSma5());
+        prev.setSma10(current.getPrevSma10());
+        prev.setSma20(current.getPrevSma20());
+        prev.setSma50(current.getPrevSma50());
+        prev.setSma100(current.getPrevSma100());
+        prev.setSma200(current.getPrevSma200());
+
+        prev.setEma5(current.getPrevEma5());
+        prev.setEma10(current.getPrevEma10());
+        prev.setEma20(current.getPrevEma20());
+        prev.setEma50(current.getPrevEma50());
+        prev.setEma100(current.getPrevEma100());
+        prev.setEma200(current.getPrevEma200());
+
+        prev.setRsi(current.getPrevRsi());
+        prev.setMacd(current.getPrevMacd());
+        prev.setSignal(current.getPrevSignal());
+
+        prev.setObv(current.getPrevObv());
+        prev.setObvAvg(current.getPrevObvAvg());
+        prev.setVolume(current.getPrevVolume());
+        prev.setVolumeAvg5(current.getPrevVolumeAvg5());
+        prev.setVolumeAvg10(current.getPrevVolumeAvg10());
+        prev.setVolumeAvg20(current.getPrevVolumeAvg20());
+
+        prev.setAdx(current.getPrevAdx());
+        prev.setPlusDi(current.getPrevPlusDi());
+        prev.setMinusDi(current.getPrevMinusDi());
+        prev.setAtr(current.getPrevAtr());
+
+        // Set new prev = current.prev2
+        prev.setPrevSma5(current.getPrev2Sma5());
+        prev.setPrevSma10(current.getPrev2Sma10());
+        prev.setPrevSma20(current.getPrev2Sma20());
+        prev.setPrevSma50(current.getPrev2Sma50());
+        prev.setPrevSma100(current.getPrev2Sma100());
+        prev.setPrevSma200(current.getPrev2Sma200());
+
+        prev.setPrevEma5(current.getPrev2Ema5());
+        prev.setPrevEma10(current.getPrev2Ema10());
+        prev.setPrevEma20(current.getPrev2Ema20());
+        prev.setPrevEma50(current.getPrev2Ema50());
+        prev.setPrevEma100(current.getPrev2Ema100());
+        prev.setPrevEma200(current.getPrev2Ema200());
+
+        prev.setPrevRsi(current.getPrev2Rsi());
+        prev.setPrevMacd(current.getPrev2Macd());
+        prev.setPrevSignal(current.getPrev2Signal());
+
+        prev.setPrevObv(current.getPrev2Obv());
+        prev.setPrevObvAvg(current.getPrev2ObvAvg());
+        prev.setPrevVolume(current.getPrev2Volume());
+        prev.setPrevVolumeAvg5(current.getPrev2VolumeAvg5());
+        prev.setPrevVolumeAvg10(current.getPrev2VolumeAvg10());
+        prev.setPrevVolumeAvg20(current.getPrev2VolumeAvg20());
+
+        prev.setPrevAdx(current.getPrev2Adx());
+        prev.setPrevPlusDi(current.getPrev2PlusDi());
+        prev.setPrevMinusDi(current.getPrev2MinusDi());
+        prev.setPrevAtr(current.getPrev2Atr());
+
+        return prev;
     }
 }

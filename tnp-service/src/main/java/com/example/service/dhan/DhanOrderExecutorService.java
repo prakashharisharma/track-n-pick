@@ -36,7 +36,8 @@ public class DhanOrderExecutorService {
                 user.getUsername(),
                 researchTechnicals.size());
 
-        PortfolioLimits limits = getPortfolioLimits(user);
+        // PortfolioLimits limits = getPortfolioLimits(user);
+        PortfolioLimits limits = getPortfolioLimits(user, researchTechnicals.size());
         double availableFunds = limits.availableFunds();
 
         if (availableFunds <= 0.0) {
@@ -84,15 +85,77 @@ public class DhanOrderExecutorService {
             double maxValuePerStock,
             double mimValuePerStock,
             double originalFunds) {}
-
+    /*
     private PortfolioLimits getPortfolioLimits(User user) {
         double availableFunds = portfolioService.availableFundLimit(user);
         double totalCapital = portfolioService.calculateNetWorth(user);
         return new PortfolioLimits(
                 availableFunds,
-                totalCapital * 0.15, // 15% cap per stock
-                totalCapital * 0.05, // 5% min
+                totalCapital * 0.08, // 15% cap per stock
+                totalCapital * 0.04, // 4% min
                 availableFunds);
+    }*/
+
+    private PortfolioLimits getPortfolioLimits(User user) {
+        double availableFunds = portfolioService.availableFundLimit(user);
+        double totalCapital = portfolioService.calculateNetWorth(user);
+
+        double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
+
+        final double MIN_CAP = 0.05;
+        final double MAX_CAP = 0.15;
+        final double EXPONENT = 2.0;
+
+        double capPercent = MIN_CAP + (MAX_CAP - MIN_CAP) * Math.pow(1 - ratio, EXPONENT);
+        double rawMaxPerStock = totalCapital * capPercent;
+
+        // Ceil to nearest rupee
+        double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
+
+        final double rawMinPerStock = totalCapital * 0.04;
+
+        // floor to nearest rupee
+        double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
+
+        return new PortfolioLimits(availableFunds, maxPerStock, minPerStock, availableFunds);
+    }
+
+    private DhanOrderExecutorService.PortfolioLimits getPortfolioLimits(User user, int stockCount) {
+        double availableFunds = portfolioService.availableFundLimit(user);
+        double totalCapital = portfolioService.calculateNetWorth(user);
+
+        if (stockCount <= 0 || totalCapital == 0) {
+            return new DhanOrderExecutorService.PortfolioLimits(
+                    availableFunds, 0, 0, availableFunds);
+        }
+
+        double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
+
+        final double MIN_CAP = 0.05;
+        final double MAX_CAP = 0.15;
+        final double EXPONENT = 2.0;
+
+        // 1. Base cap % depending on funds availability
+        double capPercent = MIN_CAP + (MAX_CAP - MIN_CAP) * Math.pow(1 - ratio, EXPONENT);
+
+        // 2. Adjust for stock count (stockCount: 1–10)
+        // Fewer stocks => higher multiplier, More stocks => lower multiplier
+        // Map stockCount = 1 → 1.6x, 10 → 0.8x
+        double stockCountAdjustment = Math.max(0.8, Math.min(1.6, 1.6 - 0.08 * stockCount));
+        capPercent *= stockCountAdjustment;
+
+        // 3. Cap the final value to max 15%
+        capPercent = Math.min(capPercent, MAX_CAP);
+
+        // 3. Calculate max and min per stock
+        double rawMaxPerStock = totalCapital * capPercent;
+        double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
+
+        double rawMinPerStock = totalCapital * 0.04;
+        double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
+
+        return new DhanOrderExecutorService.PortfolioLimits(
+                availableFunds, maxPerStock, minPerStock, availableFunds);
     }
 
     private boolean validateResearchTechnical(ResearchTechnical researchTechnical) {
@@ -146,7 +209,7 @@ public class DhanOrderExecutorService {
         return new PositionDetails(
                 finalQuantity,
                 finalValue,
-                (long) (finalQuantity * 0.40), // 40% disclosed quantity
+                (long) (finalQuantity * 0.35), // 40% disclosed quantity
                 availableFunds);
     }
 
@@ -215,7 +278,7 @@ public class DhanOrderExecutorService {
                 }
 
                 long quantityToSell = holding.getTotalQty().longValue();
-                long disclosedQuantity = (long) (quantityToSell * 0.40);
+                long disclosedQuantity = (long) (quantityToSell * 0.35);
 
                 logOrderDetails(
                         stock,

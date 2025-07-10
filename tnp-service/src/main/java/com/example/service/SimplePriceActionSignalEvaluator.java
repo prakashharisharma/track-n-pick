@@ -170,7 +170,7 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
         boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
 
         if (evaluationResult.getLength().getMaDays() == 5) {
-            if (timeframe == Timeframe.DAILY) {
+            if (!isAllMAsIncreasing) {
                 return Optional.empty();
             }
         }

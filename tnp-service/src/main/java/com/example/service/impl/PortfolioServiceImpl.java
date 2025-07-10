@@ -1,5 +1,6 @@
 package com.example.service.impl;
 
+import com.example.common.config.CacheManagerNameConstants;
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.*;
 import com.example.data.transactional.repo.PortfolioRepository;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -389,6 +391,10 @@ public class PortfolioServiceImpl implements PortfolioService {
     }
 
     @Override
+    @Cacheable(
+            value = "netWorthCache", // your cache name here
+            key = "#user.id", // cache per user ID
+            cacheManager = CacheManagerNameConstants.CACHE_12_HOUR)
     public double calculateNetWorth(User user) {
 
         if (user.isDhanApiEnabled()) {
