@@ -5,6 +5,7 @@ import com.example.data.transactional.entities.User;
 import com.example.data.transactional.entities.type.dhan.TransactionType;
 import com.example.external.dhan.model.Trade;
 import com.example.service.CalendarService;
+import com.example.service.PortfolioService;
 import com.example.service.StockService;
 import com.example.service.UserService;
 import com.example.service.dhan.DhanOrchestratorService;
@@ -42,14 +43,25 @@ public class DhanTradeScheduler {
 
     private final FormulaService formulaService;
 
-    @Scheduled(cron = "0 19 9 * * *") // 9:20 AM
-    @Scheduled(cron = "0 24 9 * * *") // 9:25 AM
-    @Scheduled(cron = "0 29 9 * * *") // 9:30 AM
-    @Scheduled(cron = "0 34 9 * * *") // 9:35 AM
-    @Scheduled(cron = "0 39 9 * * *") // 9:40 AM
-    @Scheduled(cron = "0 44 9 * * *") // 9:45 AM
-    @Scheduled(cron = "0 59 14 * * *") // 3:00 PM
-    @Scheduled(cron = "0 24 15 * * *") // 3:20 PM
+    private final PortfolioService portfolioService;
+
+    @Scheduled(cron = "0 16 9 * * *") // 9:16 AM
+    @Scheduled(cron = "0 20 9 * * *") // 9:20 AM
+    @Scheduled(cron = "0 25 9 * * *") // 9:25 AM
+    @Scheduled(cron = "0 30 9 * * *") // 9:30 AM
+    @Scheduled(cron = "0 35 9 * * *") // 9:35 AM
+    @Scheduled(cron = "0 40 9 * * *") // 9:40 AM
+    @Scheduled(cron = "0 45 9 * * *") // 9:45 AM
+    @Scheduled(cron = "0 50 9 * * *") // 9:50 AM
+    @Scheduled(cron = "0 55 9 * * *") // 9:55 AM
+    @Scheduled(cron = "0 00 10 * * *") // 10:00 AM
+    @Scheduled(cron = "0 15 10 * * *") // 10:15 AM
+    @Scheduled(cron = "0 30 10 * * *") // 10:30 AM
+    @Scheduled(cron = "0 45 10 * * *") // 10:45 AM
+    @Scheduled(cron = "0 00 11 * * *") // 11:00 AM
+    @Scheduled(cron = "0 30 11 * * *") // 11:30 AM
+    @Scheduled(cron = "0 00 15 * * *") // 3:00 PM
+    @Scheduled(cron = "0 20 15 * * *") // 3:20 PM
     public void fetchTrades() {
         log.info("Starting trade fetch at {}", LocalDateTime.now());
         try {
@@ -167,44 +179,62 @@ public class DhanTradeScheduler {
                 aggregation.quantity,
                 aggregation.averagePrice);
 
-        long[] splitQuantities = formulaService.splitIn40_30_20_10(aggregation.quantity);
+        double netWorth = portfolioService.calculateNetWorth(user);
+
+        boolean isSmallOrder =
+                (aggregation.quantity * aggregation.averagePrice) <= (netWorth * 0.05);
+
         double[] profitTargets = {2.0, 3.0, 4.0, 5.0};
 
-        // First order (40%) - Nearest 10
-        placeSellOrder(
-                user,
-                stock,
-                splitQuantities[0],
-                formulaService.floorToNearestTen(
-                        formulaService.applyPercentChange(
-                                aggregation.averagePrice, profitTargets[0])));
+        // If small order create a single order with 2% profit Margin
+        if (isSmallOrder) {
+            placeSellOrder(
+                    user,
+                    stock,
+                    aggregation.quantity,
+                    formulaService.floorToNearestTen(
+                            formulaService.applyPercentChange(
+                                    aggregation.averagePrice, profitTargets[0])));
+        } else {
 
-        // Second order (30%) - Nearest 10
-        placeSellOrder(
-                user,
-                stock,
-                splitQuantities[1],
-                formulaService.floorToNearestTen(
-                        formulaService.applyPercentChange(
-                                aggregation.averagePrice, profitTargets[1])));
+            long[] splitQuantities = formulaService.splitIn40_30_20_10(aggregation.quantity);
 
-        // Third order (20%) - Nearest Quarter
-        placeSellOrder(
-                user,
-                stock,
-                splitQuantities[2],
-                formulaService.floorToNearestQuarter(
-                        formulaService.applyPercentChange(
-                                aggregation.averagePrice, profitTargets[2])));
+            // First order (40%) - Nearest 10
+            placeSellOrder(
+                    user,
+                    stock,
+                    splitQuantities[0],
+                    formulaService.floorToNearestTen(
+                            formulaService.applyPercentChange(
+                                    aggregation.averagePrice, profitTargets[0])));
 
-        // Fourth order (10%) - Nearest Half
-        placeSellOrder(
-                user,
-                stock,
-                splitQuantities[3],
-                formulaService.floorToNearestHalf(
-                        formulaService.applyPercentChange(
-                                aggregation.averagePrice, profitTargets[3])));
+            // Second order (30%) - Nearest 10
+            placeSellOrder(
+                    user,
+                    stock,
+                    splitQuantities[1],
+                    formulaService.floorToNearestTen(
+                            formulaService.applyPercentChange(
+                                    aggregation.averagePrice, profitTargets[1])));
+
+            // Third order (20%) - Nearest Quarter
+            placeSellOrder(
+                    user,
+                    stock,
+                    splitQuantities[2],
+                    formulaService.floorToNearestTen(
+                            formulaService.applyPercentChange(
+                                    aggregation.averagePrice, profitTargets[2])));
+
+            // Fourth order (10%) - Nearest Half
+            placeSellOrder(
+                    user,
+                    stock,
+                    splitQuantities[3],
+                    formulaService.floorToNearestTen(
+                            formulaService.applyPercentChange(
+                                    aggregation.averagePrice, profitTargets[3])));
+        }
     }
 
     private void placeSellOrder(User user, Stock stock, long quantity, double price) {

@@ -34,7 +34,7 @@ public class DhanOrderScheduler {
     private final CalendarService calendarService;
     private final MiscUtil miscUtil;
 
-    @Scheduled(cron = "0 34 9 * * *") // Runs at 9:00 AM daily
+    @Scheduled(cron = "0 15 9 * * *") // Runs at 9:00 AM daily
     public void processBuy() {
         log.info("Starting daily buy order processing at {}", LocalDateTime.now());
         try {
@@ -51,7 +51,7 @@ public class DhanOrderScheduler {
         }
     }
 
-    @Scheduled(cron = "0 0 9 * * *") // Runs at 9:00 AM daily
+    @Scheduled(cron = "0 15 9 * * *") // Runs at 9:00 AM daily
     public void processSell() {
         log.info("Starting daily sell order processing at {}", LocalDateTime.now());
         try {

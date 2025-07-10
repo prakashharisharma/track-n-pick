@@ -10,6 +10,7 @@ import com.example.data.transactional.entities.StockPriceWeekly;
 import com.example.data.transactional.entities.StockPriceYearly;
 import com.example.data.transactional.repo.StockPriceRepository;
 import com.example.data.transactional.repo.StockRepository;
+import com.example.service.CalendarService;
 import com.example.service.StockPriceService;
 import com.example.service.utils.PivotPointUtils;
 import java.time.LocalDate;
@@ -28,6 +29,8 @@ public class StockPriceServiceImpl implements StockPriceService {
 
     private final StockPriceRepository<StockPrice> stockPriceRepository;
     private final StockRepository stockRepository;
+
+    private final CalendarService calendarService;
 
     // Map to create instances dynamically based on timeframe
     private static final Map<Timeframe, Supplier<StockPrice>> STOCK_PRICE_CREATORS =
@@ -347,6 +350,10 @@ public class StockPriceServiceImpl implements StockPriceService {
 
         newStockPrice.setTimeframe(stockPrice.getTimeframe());
         newStockPrice.setStock(stockPrice.getStock());
+        newStockPrice.setSessionDate(
+                calendarService.previousTradingSession(stockPrice.getSessionDate()));
+        newStockPrice.setLastModified(LocalDateTime.now());
+
         newStockPrice.setOpen(stockPrice.getPrevOpen());
         newStockPrice.setHigh(stockPrice.getPrevHigh());
         newStockPrice.setLow(stockPrice.getPrevLow());

@@ -273,7 +273,7 @@ public class MovingAverageUtil {
                                     longerMAs.get(i), timeframe, stockTechnicals, false)
                             .getValue();
 
-            if (prev >= curr) {
+            if (prev <= curr) {
                 return false;
             }
         }
@@ -307,7 +307,7 @@ public class MovingAverageUtil {
                                     longerMAs.get(i), timeframe, stockTechnicals, false)
                             .getValue();
 
-            if (prev <= curr) {
+            if (prev >= curr) {
                 return false; // Not strictly decreasing
             }
         }

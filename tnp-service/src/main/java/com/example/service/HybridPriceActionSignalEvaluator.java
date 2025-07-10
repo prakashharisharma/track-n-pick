@@ -153,6 +153,29 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
             }
         }
 
+        if (!CandleStickUtils.isHigherHigh(stockPrice)) {
+            return Optional.empty();
+        }
+
+        if (signalEvaluatorHelperService.isHighestAlsoBreached(
+                timeframe,
+                stockPrice,
+                stockTechnicals,
+                evaluationResult.getLength(),
+                evaluationResult.getValue(),
+                true)) {
+            return Optional.empty();
+        }
+
+        if (evaluationResult.getLength() == MovingAverageLength.HIGHEST
+                && evaluationResult.getLength().getMaDays() == 5) {
+            boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
+
+            if (!isAllMAsIncreasing) {
+                return Optional.empty();
+            }
+        }
+
         StockPrice htStockPrice =
                 stockPriceService.get(stock, stockPrice.getTimeframe().getHigher());
 

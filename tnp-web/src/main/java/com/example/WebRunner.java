@@ -6,7 +6,6 @@ import com.example.data.storage.repo.PriceTemplate;
 import com.example.data.storage.repo.TechnicalsTemplate;
 import com.example.data.transactional.entities.*;
 import com.example.data.transactional.entities.User;
-import com.example.data.transactional.entities.type.dhan.TransactionType;
 import com.example.data.transactional.repo.*;
 import com.example.data.transactional.repo.TradingHolidayRepository;
 import com.example.dto.assembler.StockPriceOHLCVAssembler;
@@ -23,6 +22,7 @@ import com.example.processor.BhavProcessor;
 import com.example.service.*;
 import com.example.service.calc.*;
 import com.example.service.dhan.DhanOrchestratorService;
+import com.example.service.dhan.model.PositionDetails;
 import com.example.service.impl.FundamentalResearchService;
 import com.example.service.utils.MArketConditionUtils;
 import com.example.service.utils.MovingAverageUtil;
@@ -405,7 +405,7 @@ public class WebRunner implements CommandLineRunner {
                 researchTechnicalService.getAll(Trade.Type.BUY);
 
         for (ResearchTechnical researchTechnical : researchTechnicalList) {
-            if (researchTechnical.getResearchDate().isAfter(LocalDate.of(2025, 5, 18))) {
+            if (researchTechnical.getResearchDate().isAfter(LocalDate.of(2025, 6, 30))) {
                 researchTechnicalService.updateScore(researchTechnical);
             }
         }
@@ -429,21 +429,25 @@ public class WebRunner implements CommandLineRunner {
         // List<Stock> stockList = stockService.getActiveStocks();
 
         List<Stock> stockList = new ArrayList<>();
-        stockList.add(stockService.getStockByNseSymbol("MPSLTD"));
-        stockList.add(stockService.getStockByNseSymbol("KRBL"));
-        stockList.add(stockService.getStockByNseSymbol("KITEX"));
-        stockList.add(stockService.getStockByNseSymbol("ANANTRAJ"));
-        stockList.add(stockService.getStockByNseSymbol("JMFINANCIL"));
-        stockList.add(stockService.getStockByNseSymbol("MANINFRA"));
-        stockList.add(stockService.getStockByNseSymbol("INDIAGLYCO"));
+        stockList.add(stockService.getStockByNseSymbol("AETHER"));
+        // stockList.add(stockService.getStockByNseSymbol("KRBL"));
+        // stockList.add(stockService.getStockByNseSymbol("KITEX"));
+        // stockList.add(stockService.getStockByNseSymbol("ANANTRAJ"));
+        // stockList.add(stockService.getStockByNseSymbol("JMFINANCIL"));
+        // stockList.add(stockService.getStockByNseSymbol("MANINFRA"));
+        // stockList.add(stockService.getStockByNseSymbol("INDIAGLYCO"));
         for (Stock stock : stockList) {
             System.out.println("Evaluation...." + stock.getNseSymbol());
-            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
-            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
+            StockPrice stockPrice1 = stockPriceService.get(stock, Timeframe.DAILY);
+            StockTechnicals stockTechnicals1 = stockTechnicalsService.get(stock, Timeframe.DAILY);
+
+            StockPrice stockPrice = stockPriceService.buildPrevSessionStockPrice(stockPrice1);
+            StockTechnicals stockTechnicals =
+                    stockTechnicalsService.buildPrevSessionStockTechnicals(stockTechnicals1);
 
             List<MAEvaluationResult> maEvaluationResults =
                     dynamicMovingAverageSupportResolverService.evaluateInteractions(
-                            Timeframe.DAILY, stockPrice, stockTechnicals, false);
+                            Timeframe.DAILY, stockPrice, stockTechnicals, true);
 
             maEvaluationResults.forEach(
                     mae -> {
@@ -451,9 +455,15 @@ public class WebRunner implements CommandLineRunner {
                                 stock.getNseSymbol() + " : " + stockPrice.getClose() + " : " + mae);
                     });
 
+            boolean upperWickSize =
+                    candleStickHelperService.isUpperWickSizeConfirmed(
+                            stockPrice.getTimeframe(), stockPrice, stockTechnicals);
+
+            System.out.println("upperWickSize " + upperWickSize);
+
             Optional<MAEvaluationResult> evaluationResultOptional =
                     dynamicMovingAverageSupportResolverService.evaluateSingleInteractionSmart(
-                            Timeframe.DAILY, stockPrice, stockTechnicals, false);
+                            Timeframe.DAILY, stockPrice, stockTechnicals, true);
 
             if (evaluationResultOptional.isPresent()) {
                 MAEvaluationResult evaluationResult = evaluationResultOptional.get();
@@ -699,11 +709,80 @@ public class WebRunner implements CommandLineRunner {
 
         List<ResearchTechnical> researchTechnicalList =
                 researchTechnicalService.getLatestBuyResearch(miscUtil.currentDate());
+
+        // researchTechnicalList = researchTechnicalList.subList(0,1);
+        WebRunner.PortfolioLimits limits = getPortfolioLimits(user, researchTechnicalList.size());
+        double availableFunds = limits.availableFunds();
+
+        if (availableFunds <= 0.0) {
+            log.info("Skipping buy orders for user {} - no available funds", user.getUsername());
+            return;
+        }
+
+        for (ResearchTechnical researchTechnical : researchTechnicalList) {
+            try {
+
+                Stock stock = researchTechnical.getStock();
+                double entryPrice = researchTechnical.getEntryPrice();
+                long positionSize = positionService.calculate(user, researchTechnical);
+
+                PositionDetails position =
+                        calculatePosition(
+                                availableFunds,
+                                limits.maxValuePerStock(),
+                                limits.mimValuePerStock(),
+                                limits.originalFunds(),
+                                positionSize,
+                                entryPrice);
+
+                System.out.println(
+                        researchTechnical.getStock().getNseSymbol()
+                                + " SecurityId: "
+                                + researchTechnical.getStock().getInstrument()
+                                + " PositionSize: "
+                                + positionSize
+                                + " AdjustedPosition: "
+                                + positionSize
+                                + " FinalQty: "
+                                + position.finalQuantity()
+                                + " DisclosedQty: "
+                                + position.disclosedQuantity()
+                                + " Price: "
+                                + entryPrice
+                                + " FinalValue: "
+                                + position.finalValue()
+                                + " RemainingFunds: "
+                                + availableFunds);
+
+                if (position.finalQuantity() > 0) {
+                    String payload =
+                            this.formatPayload(
+                                    user.getDhanClientId(),
+                                    researchTechnical.getStock().getIsinCode(),
+                                    researchTechnical.getStock().getInstrument(),
+                                    String.valueOf(position.finalQuantity()),
+                                    String.valueOf(position.disclosedQuantity()),
+                                    String.valueOf(entryPrice));
+
+                    System.out.println(payload);
+
+                    availableFunds = position.remainingFunds();
+                }
+            } catch (Exception e) {
+                log.error(
+                        "Error processing buy order for stock {}: {}",
+                        researchTechnical.getStock().getNseSymbol(),
+                        e.getMessage(),
+                        e);
+            }
+        }
+
+        /*
         double availableFunds = portfolioService.availableFundLimit(user);
         double totalCapital = portfolioService.calculateNetWorth(user);
 
         double originalFunds = availableFunds;
-        double maxFinalValuePerStock = totalCapital * 0.15; // cap
+        double maxFinalValuePerStock = totalCapital * 0.08; // cap
 
         for (ResearchTechnical researchTechnical : researchTechnicalList) {
 
@@ -713,10 +792,10 @@ public class WebRunner implements CommandLineRunner {
 
             long finalQuantity = 0;
             double finalValue = 0.0;
-
+            double minOrderValue = totalCapital * 0.04;
             if (adjustedPositionValue <= availableFunds) {
                 double cappedValue = Math.min(adjustedPositionValue, maxFinalValuePerStock);
-                if (cappedValue >= totalCapital * 0.05) {
+                if (cappedValue >= minOrderValue) {
                     // if (cappedValue >= originalFunds * 0.10) {
                     finalValue = cappedValue;
                     finalQuantity = (long) Math.floor(finalValue / entryPrice);
@@ -727,7 +806,7 @@ public class WebRunner implements CommandLineRunner {
                 long partialQty = (long) Math.floor(availableFunds / entryPrice);
                 double partialValue = partialQty * entryPrice;
                 double cappedValue = Math.min(partialValue, maxFinalValuePerStock);
-                if (cappedValue >= totalCapital * 0.05) {
+                if (cappedValue >= minOrderValue) {
                     // if (cappedValue >= originalFunds * 0.10) {
                     finalQuantity = (long) Math.floor(cappedValue / entryPrice);
                     finalValue = finalQuantity * entryPrice;
@@ -753,6 +832,8 @@ public class WebRunner implements CommandLineRunner {
                             + entryPrice
                             + " FinalValue: "
                             + finalValue
+                            + " MinOrderValue: "
+                            + minOrderValue
                             + " RemainingFunds: "
                             + availableFunds);
 
@@ -768,14 +849,96 @@ public class WebRunner implements CommandLineRunner {
 
                 System.out.println(payload);
 
-                orchestratorService.placeOrder(
-                        TransactionType.BUY,
-                        user,
-                        researchTechnical.getStock(),
-                        finalQuantity,
-                        entryPrice);
+            }
+        }*/
+    }
+
+    private PositionDetails calculatePosition(
+            double availableFunds,
+            double maxValuePerStock,
+            double minValuePerStock,
+            double originalFunds,
+            long positionSize,
+            double entryPrice) {
+
+        double adjustedPositionValue = positionSize * entryPrice;
+        long finalQuantity = 0;
+        double finalValue = 0.0;
+
+        if (adjustedPositionValue <= availableFunds) {
+            double cappedValue = Math.min(adjustedPositionValue, maxValuePerStock);
+            if (cappedValue >= minValuePerStock) {
+                finalValue = cappedValue;
+                finalQuantity = (long) Math.floor(finalValue / entryPrice);
+                finalValue = finalQuantity * entryPrice;
+                availableFunds -= finalValue;
+            }
+        } else if (availableFunds > 0) {
+            long partialQty = (long) Math.floor(availableFunds / entryPrice);
+            double partialValue = partialQty * entryPrice;
+            double cappedValue = Math.min(partialValue, maxValuePerStock);
+
+            if (cappedValue >= minValuePerStock) {
+                finalQuantity = (long) Math.floor(cappedValue / entryPrice);
+                finalValue = finalQuantity * entryPrice;
+                availableFunds -= finalValue;
             }
         }
+
+        return new PositionDetails(
+                finalQuantity,
+                finalValue,
+                (long) (finalQuantity * 0.35), // 40% disclosed quantity
+                availableFunds);
+    }
+
+    private record PortfolioLimits(
+            double availableFunds,
+            double maxValuePerStock,
+            double mimValuePerStock,
+            double originalFunds) {}
+
+    private WebRunner.PortfolioLimits getPortfolioLimits(User user, int stockCount) {
+        double availableFunds = portfolioService.availableFundLimit(user);
+        double totalCapital = portfolioService.calculateNetWorth(user);
+
+        // double availableFunds = 350000;
+        // double totalCapital = 1100000;
+
+        if (stockCount <= 0 || totalCapital == 0) {
+            return new WebRunner.PortfolioLimits(availableFunds, 0, 0, availableFunds);
+        }
+
+        double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
+
+        final double MIN_CAP = 0.05;
+        final double MAX_CAP = 0.15;
+        final double EXPONENT = 2.0;
+
+        // 1. Base cap % depending on funds availability
+        double capPercent = MIN_CAP + (MAX_CAP - MIN_CAP) * Math.pow(1 - ratio, EXPONENT);
+
+        // 2. Adjust for stock count (stockCount: 1–10)
+        // Fewer stocks => higher multiplier, More stocks => lower multiplier
+        // Map stockCount = 1 → 1.2x, 10 → 0.8x
+        double stockCountAdjustment = Math.max(0.8, Math.min(1.6, 1.6 - 0.08 * stockCount));
+        capPercent *= stockCountAdjustment;
+
+        // 3. Cap the final value to max 15%
+        capPercent = Math.min(capPercent, MAX_CAP);
+
+        System.out.println("capPercent " + capPercent);
+        // 3. Calculate max and min per stock
+        double rawMaxPerStock = totalCapital * capPercent;
+        double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
+
+        System.out.println("maxPerStock " + maxPerStock);
+
+        double rawMinPerStock = totalCapital * 0.04;
+        double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
+        System.out.println("minPerStock " + minPerStock);
+        return new WebRunner.PortfolioLimits(
+                availableFunds, maxPerStock, minPerStock, availableFunds);
     }
 
     private String formatPayload(

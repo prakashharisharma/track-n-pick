@@ -6,6 +6,8 @@ public class CacheManagerNameConstants {
 
     public static final String DEFAULT = "cacheManager";
 
+    public static final String CACHE_12_HOUR = "cacheManager12Hour";
+
     public static final String CACHE_24_HOUR = "cacheManager24Hour";
 
     public static final String CACHE_48_HOUR = "cacheManager48Hour";

@@ -126,6 +126,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         double confidenceScore =
                 ConfidenceScoreCalculator.calculateConfidenceScore(
+                        newResearchTechnical.getEntryStrategy().getPriority(),
                         newResearchTechnical.getEntrySubStrategy().getPriority(),
                         newResearchTechnical.getRisk(),
                         fundamentalResearchService.marketCap(newResearchTechnical.getStock()),
@@ -582,6 +583,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         double confidenceScore =
                 ConfidenceScoreCalculator.calculateConfidenceScore(
+                        researchTechnical.getEntryStrategy().getPriority(),
                         researchTechnical.getEntrySubStrategy().getPriority(),
                         risk,
                         mcapInCr,

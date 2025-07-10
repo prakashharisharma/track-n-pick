@@ -165,11 +165,12 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 true)) {
             return Optional.empty();
         }
-        boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
 
         if (evaluationResult.getLength() == MovingAverageLength.HIGHEST
                 && evaluationResult.getLength().getMaDays() == 5) {
-            if (timeframe == Timeframe.DAILY) {
+            boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
+
+            if (!isAllMAsIncreasing) {
                 return Optional.empty();
             }
         }
