@@ -1,13 +1,11 @@
 package com.example.worker.scheduler;
 
+import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.User;
 import com.example.data.transactional.entities.type.dhan.TransactionType;
 import com.example.external.dhan.model.Trade;
-import com.example.service.CalendarService;
-import com.example.service.PortfolioService;
-import com.example.service.StockService;
-import com.example.service.UserService;
+import com.example.service.*;
 import com.example.service.dhan.DhanOrchestratorService;
 import com.example.service.dhan.DhanTradeService;
 import com.example.util.FormulaService;
@@ -16,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,6 +44,8 @@ public class DhanTradeScheduler {
 
     private final PortfolioService portfolioService;
 
+    private final ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
+
     @Scheduled(cron = "0 16 9 * * *") // 9:16 AM
     @Scheduled(cron = "0 20 9 * * *") // 9:20 AM
     @Scheduled(cron = "0 25 9 * * *") // 9:25 AM
@@ -58,10 +59,12 @@ public class DhanTradeScheduler {
     @Scheduled(cron = "0 15 10 * * *") // 10:15 AM
     @Scheduled(cron = "0 30 10 * * *") // 10:30 AM
     @Scheduled(cron = "0 45 10 * * *") // 10:45 AM
-    @Scheduled(cron = "0 00 11 * * *") // 11:00 AM
+    @Scheduled(cron = "0 32 11 * * *") // 11:00 AM
     @Scheduled(cron = "0 30 11 * * *") // 11:30 AM
     @Scheduled(cron = "0 00 15 * * *") // 3:00 PM
-    @Scheduled(cron = "0 20 15 * * *") // 3:20 PM
+    @Scheduled(cron = "0 15 15 * * *") // 3:15 PM
+    @Scheduled(cron = "0 30 15 * * *") // 3:30 PM
+    @Scheduled(cron = "0 00 16 * * *") // 4:00 PM
     public void fetchTrades() {
         log.info("Starting trade fetch at {}", LocalDateTime.now());
         try {
@@ -87,11 +90,20 @@ public class DhanTradeScheduler {
         return CompletableFuture.runAsync(
                 () -> {
                     try {
-                        List<Trade> buyTrades = fetchAndFilterBuyTrades(user);
-                        List<Trade> processedTrades = processBuyTrades(buyTrades, user);
+                        List<Trade> trades = this.fetchTrades(user);
+                        // Persist Sell Trades
+                        List<Trade> sellTrades = filterTrades(user, TransactionType.SELL, trades);
+                        List<Trade> processedSellTrades =
+                                processTrades(sellTrades, user, TransactionType.SELL);
+
+                        // Persist Buy Trades and place Sell Orders
+                        List<Trade> buyTrades = filterTrades(user, TransactionType.BUY, trades);
+                        List<Trade> processedBuyTrades =
+                                processTrades(buyTrades, user, TransactionType.BUY);
                         Map<String, TradeAggregation> aggregatedTrades =
-                                aggregateTradesBySymbol(processedTrades);
+                                aggregateTradesBySymbol(processedBuyTrades);
                         placeSplitSellOrders(aggregatedTrades, user);
+
                     } catch (Exception e) {
                         log.error("Error fetching trades for user: {}", user.getUsername(), e);
                     }
@@ -99,30 +111,37 @@ public class DhanTradeScheduler {
                 executorService);
     }
 
-    private List<Trade> fetchAndFilterBuyTrades(User user) {
+    private List<Trade> fetchTrades(User user) {
         log.info("Fetching trades for user: {}", user.getUsername());
-        List<Trade> trades = dhanOrchestratorService.getTrades(user);
+        return dhanOrchestratorService.getTrades(user);
+    }
 
-        List<Trade> buyTrades =
+    private List<Trade> filterTrades(
+            User user, TransactionType transactionType, List<Trade> trades) {
+        log.info("Filtering trades for user: {}", user.getUsername());
+        List<Trade> filteredTrades =
                 trades.stream()
-                        .filter(trade -> trade.getTransactionType() == TransactionType.BUY)
+                        .filter(trade -> trade.getTransactionType() == transactionType)
                         .collect(Collectors.toList());
 
         log.info(
-                "Fetched {} BUY trades out of {} total trades for user: {}",
-                buyTrades.size(),
+                "Filtered {} {} trades out of {} total trades for user: {}",
+                filteredTrades.size(),
+                transactionType,
                 trades.size(),
                 user.getUsername());
 
-        return buyTrades;
+        return filteredTrades;
     }
 
-    private List<Trade> processBuyTrades(List<Trade> buyTrades, User user) {
+    private List<Trade> processTrades(
+            List<Trade> buyTrades, User user, TransactionType transactionType) {
         List<Trade> processedTrades = new ArrayList<>();
         buyTrades.forEach(
                 trade -> {
                     log.info(
-                            "Processing BUY trade - Symbol: {}, Quantity: {}, Price: {}",
+                            "Processing {} trade - Symbol: {}, Quantity: {}, Price: {}",
+                            transactionType,
                             trade.getTradingSymbol(),
                             trade.getTradedQuantity(),
                             trade.getTradedPrice());
@@ -184,7 +203,29 @@ public class DhanTradeScheduler {
         boolean isSmallOrder =
                 (aggregation.quantity * aggregation.averagePrice) <= (netWorth * 0.05);
 
-        double[] profitTargets = {2.0, 3.0, 4.0, 5.0};
+        double tickSize = researchTechnicalService.getTickSize(stock);
+
+        double[] profitTargetsDefault = {2.0, 3.0, 4.0, 5.0};
+
+        double[] profitTargetsPriceBand5 = {2.0, 3.0, 4.0, 4.9};
+        double[] profitTargetsPriceBand10 = {2.0, 4.0, 6.0, 7.9};
+        double[] profitTargetsPriceBand20 = {2.0, 5.0, 7.5, 9.9};
+
+        double[] profitTargets = profitTargetsDefault;
+
+        Optional<ResearchTechnical> researchTechnicalOptional =
+                researchTechnicalService.getLatest(stock);
+
+        if (researchTechnicalOptional.isPresent()) {
+            ResearchTechnical researchTechnical = researchTechnicalOptional.get();
+            if (researchTechnical.getPriceBand() == 20.0) {
+                profitTargets = profitTargetsPriceBand20;
+            } else if (researchTechnical.getPriceBand() == 10.0) {
+                profitTargets = profitTargetsPriceBand10;
+            } else if (researchTechnical.getPriceBand() == 5.0) {
+                profitTargets = profitTargetsPriceBand5;
+            }
+        }
 
         // If small order create a single order with 2% profit Margin
         if (isSmallOrder) {
@@ -192,9 +233,10 @@ public class DhanTradeScheduler {
                     user,
                     stock,
                     aggregation.quantity,
-                    formulaService.floorToNearestTen(
+                    formulaService.floorToNearestTick(
                             formulaService.applyPercentChange(
-                                    aggregation.averagePrice, profitTargets[0])));
+                                    aggregation.averagePrice, profitTargets[0]),
+                            tickSize));
         } else {
 
             long[] splitQuantities = formulaService.splitIn40_30_20_10(aggregation.quantity);
@@ -204,36 +246,40 @@ public class DhanTradeScheduler {
                     user,
                     stock,
                     splitQuantities[0],
-                    formulaService.floorToNearestTen(
+                    formulaService.floorToNearestTick(
                             formulaService.applyPercentChange(
-                                    aggregation.averagePrice, profitTargets[0])));
+                                    aggregation.averagePrice, profitTargets[0]),
+                            tickSize));
 
             // Second order (30%) - Nearest 10
             placeSellOrder(
                     user,
                     stock,
                     splitQuantities[1],
-                    formulaService.floorToNearestTen(
+                    formulaService.floorToNearestTick(
                             formulaService.applyPercentChange(
-                                    aggregation.averagePrice, profitTargets[1])));
+                                    aggregation.averagePrice, profitTargets[1]),
+                            tickSize));
 
             // Third order (20%) - Nearest Quarter
             placeSellOrder(
                     user,
                     stock,
                     splitQuantities[2],
-                    formulaService.floorToNearestTen(
+                    formulaService.floorToNearestTick(
                             formulaService.applyPercentChange(
-                                    aggregation.averagePrice, profitTargets[2])));
+                                    aggregation.averagePrice, profitTargets[2]),
+                            tickSize));
 
             // Fourth order (10%) - Nearest Half
             placeSellOrder(
                     user,
                     stock,
                     splitQuantities[3],
-                    formulaService.floorToNearestTen(
+                    formulaService.floorToNearestTick(
                             formulaService.applyPercentChange(
-                                    aggregation.averagePrice, profitTargets[3])));
+                                    aggregation.averagePrice, profitTargets[3]),
+                            tickSize));
         }
     }
 

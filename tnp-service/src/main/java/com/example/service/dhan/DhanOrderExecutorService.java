@@ -8,6 +8,7 @@ import com.example.external.dhan.model.Holding;
 import com.example.service.PortfolioService;
 import com.example.service.PositionService;
 import com.example.service.dhan.model.PositionDetails;
+import com.example.util.FibonacciRatio;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -103,7 +104,7 @@ public class DhanOrderExecutorService {
         double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
 
         final double MIN_CAP = 0.05;
-        final double MAX_CAP = 0.15;
+        final double MAX_CAP = 0.125;
         final double EXPONENT = 2.0;
 
         double capPercent = MIN_CAP + (MAX_CAP - MIN_CAP) * Math.pow(1 - ratio, EXPONENT);
@@ -112,7 +113,7 @@ public class DhanOrderExecutorService {
         // Ceil to nearest rupee
         double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
 
-        final double rawMinPerStock = totalCapital * 0.04;
+        final double rawMinPerStock = totalCapital * FibonacciRatio.RATIO_38_2;
 
         // floor to nearest rupee
         double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
@@ -132,7 +133,7 @@ public class DhanOrderExecutorService {
         double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
 
         final double MIN_CAP = 0.05;
-        final double MAX_CAP = 0.15;
+        final double MAX_CAP = 0.125;
         final double EXPONENT = 2.0;
 
         // 1. Base cap % depending on funds availability
@@ -151,7 +152,7 @@ public class DhanOrderExecutorService {
         double rawMaxPerStock = totalCapital * capPercent;
         double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
 
-        double rawMinPerStock = totalCapital * 0.04;
+        double rawMinPerStock = totalCapital * FibonacciRatio.RATIO_38_2;
         double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
 
         return new DhanOrderExecutorService.PortfolioLimits(

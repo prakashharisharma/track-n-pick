@@ -12,6 +12,7 @@ import com.example.dto.response.ResearchTechnicalDetailsCurrentResponse;
 import com.example.dto.response.ResearchTechnicalDetailsHistoryResponse;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 
 public interface ResearchTechnicalService<T extends ResearchTechnical> {
@@ -62,4 +63,8 @@ public interface ResearchTechnicalService<T extends ResearchTechnical> {
     ResearchTechnicalDetailsHistoryResponse getHistoryDetails(Long reserachTechnicalId);
 
     public void updateScore(ResearchTechnical researchTechnical);
+
+    public Optional<ResearchTechnical> getLatest(Stock stock);
+
+    public double getTickSize(Stock stock);
 }

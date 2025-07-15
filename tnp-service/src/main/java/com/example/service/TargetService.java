@@ -51,7 +51,7 @@ public class TargetService {
             target = rangeTarget;
         }
 
-        return formulaService.roundToNearestHalf(target);
+        return formulaService.roundToNearestTick(target, researchTechnical.getTickSize());
     }
 
     private double getPivotTarget(StockPrice htStockPrice, StockPrice stockPrice) {
@@ -67,7 +67,7 @@ public class TargetService {
 
     private double calculateRiskRewardRatio(ResearchTechnical.SubStrategy subStrategy) {
 
-        return 2.0;
+        return subStrategy.targetPercentage();
     }
 
     public boolean isTargetValid(double entryPrice, double targetPrice) {

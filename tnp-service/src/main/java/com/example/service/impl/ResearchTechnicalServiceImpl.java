@@ -1,17 +1,19 @@
 package com.example.service.impl;
 
+import com.example.common.config.CacheManagerNameConstants;
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.*;
 import com.example.data.transactional.repo.ResearchTechnicalRepository;
 import com.example.data.transactional.view.ResearchTechnicalResult;
 import com.example.dto.common.TradeSetup;
+import com.example.dto.io.PriceInfoDto;
 import com.example.dto.mapper.StockTechnicalsMapper;
 import com.example.dto.response.ResearchTechnicalDetailsCurrentResponse;
 import com.example.dto.response.ResearchTechnicalDetailsHistoryResponse;
+import com.example.external.NSEPriceInfoFetcher;
 import com.example.service.*;
 import com.example.service.ConfidenceScoreCalculator;
 import com.example.service.utils.CandleStickUtils;
-import com.example.service.utils.VolumeAverageUtil;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.util.StringUtils;
@@ -20,10 +22,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +49,10 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     private final MiscUtil miscUtil;
     private final CalendarService calendarService;
 
+    private final MacdIndicatorService macdIndicatorService;
+
+    private final VolumeIndicatorService volumeIndicatorService;
+
     private final TargetService targetService;
 
     private final UserService userService;
@@ -58,6 +66,8 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     private final PositionService positionService;
 
     private final ResearchInsightService researchInsightService;
+
+    private final NSEPriceInfoFetcher nsePriceInfoFetcher;
 
     private static final Map<Timeframe, Supplier<ResearchTechnical>> STOCK_PRICE_CREATORS =
             Map.of(
@@ -103,14 +113,21 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         newResearchTechnical.setEntryStrategy(tradeSetup.getStrategy());
         newResearchTechnical.setEntrySubStrategy(tradeSetup.getSubStrategy());
 
+        /*
         newResearchTechnical.setVolume(stockTechnicals.getVolume());
         newResearchTechnical.setPrevVolume(stockTechnicals.getPrevVolume());
         newResearchTechnical.setVolumeAvg(
                 VolumeAverageUtil.getAverageVolume(timeframe, stockTechnicals));
         newResearchTechnical.setPrevVolumeAvg(
                 VolumeAverageUtil.getPrevAverageVolume(timeframe, stockTechnicals));
+        */
 
-        newResearchTechnical.setEntryPrice(this.calculateResearchPrice(tradeSetup, stockPrice));
+        PriceInfoDto priceInfoDto = nsePriceInfoFetcher.getPriceInfo(stock.getNseSymbol());
+        newResearchTechnical.setTickSize(priceInfoDto.getTickSize());
+        newResearchTechnical.setPriceBand(priceInfoDto.getPriceBand());
+
+        newResearchTechnical.setEntryPrice(
+                this.calculateResearchPrice(tradeSetup, stockPrice, newResearchTechnical));
 
         newResearchTechnical.setStopLoss(
                 this.calculateStopLoss(tradeSetup, stockPrice, newResearchTechnical));
@@ -131,17 +148,9 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         newResearchTechnical.getRisk(),
                         fundamentalResearchService.marketCap(newResearchTechnical.getStock()),
                         newResearchTechnical.getEntryPrice(),
-                        ConfidenceScoreCalculator.calculateVolumeScore(
-                                stockTechnicals.getVolume(),
-                                stockTechnicals.getPrevVolume(),
-                                VolumeAverageUtil.getAverageVolume(timeframe, stockTechnicals),
-                                VolumeAverageUtil.getPrevAverageVolume(timeframe, stockTechnicals)),
+                        ConfidenceScoreCalculator.calculateVolumeScore(stockTechnicals),
                         ConfidenceScoreCalculator.calculateMacdScore(
-                                stockTechnicals.getMacd(),
-                                stockTechnicals.getSignal(),
-                                (stockTechnicals.getPrevMacd() - stockTechnicals.getPrevSignal()),
-                                stockTechnicals.getPrevMacd(),
-                                stockTechnicals.getPrevSignal()),
+                                stockTechnicals, macdIndicatorService),
                         researchInsightService.valuationScore(stock));
 
         newResearchTechnical.setScore(miscUtil.roundToTwoDecimals(confidenceScore));
@@ -173,6 +182,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         if (isRiskWithinLimit
                 && isTargetValid
                 && researchInsightService.isStrongInsights(stockPrice)) {
+
             newResearchTechnical = researchTechnicalRepository.save(newResearchTechnical);
         }
 
@@ -262,9 +272,18 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
             throw new IllegalStateException(
                     "No BUY research entry found for this stock and timeframe.");
         }
+        PriceInfoDto priceInfoDto = nsePriceInfoFetcher.getPriceInfo(stock.getNseSymbol());
+        existingResearch.setTickSize(priceInfoDto.getTickSize());
+        existingResearch.setPriceBand(priceInfoDto.getPriceBand());
 
         existingResearch.setExitDate(sessionDate);
-        existingResearch.setExitPrice(stockPrice.getClose());
+
+        double exitPrice =
+                (Math.min(stockPrice.getOpen(), stockPrice.getClose()) + stockPrice.getLow()) / 2;
+
+        existingResearch.setExitPrice(
+                formulaService.floorToNearestTick(exitPrice, existingResearch.getTickSize()));
+
         existingResearch.setType(Trade.Type.SELL);
         existingResearch.setExitStrategy(tradeSetup.getStrategy());
         existingResearch.setExitSubStrategy(tradeSetup.getSubStrategy());
@@ -304,13 +323,17 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
             stopLoss = Math.min(stopLoss, stockPrice.getPrevLow());
         }
 
-        return formulaService.applyPercentChange(stopLoss, -1 * 0.05);
+        return formulaService.floorToNearestTick(
+                formulaService.applyPercentChange(stopLoss, -1 * 0.05),
+                researchTechnical.getTickSize());
     }
 
-    private double calculateResearchPrice(TradeSetup tradeSetup, StockPrice stockPrice) {
+    private double calculateResearchPrice(
+            TradeSetup tradeSetup, StockPrice stockPrice, ResearchTechnical researchTechnical) {
 
         if (tradeSetup.getResearchPrice() > 0.0) {
-            return tradeSetup.getResearchPrice();
+            return formulaService.ceilToNearestTick(
+                    tradeSetup.getResearchPrice(), researchTechnical.getTickSize());
         }
 
         ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
@@ -326,7 +349,9 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         : (stockPrice.getClose()
                                 + (stockPrice.getHigh() - stockPrice.getClose()) * 0.50);
 
-        return Math.min(formulaService.ceilToNearestQuarter(researchPrice), stockPrice.getHigh());
+        return Math.min(
+                formulaService.ceilToNearestTick(researchPrice, researchTechnical.getTickSize()),
+                stockPrice.getHigh());
     }
 
     @Override
@@ -588,17 +613,9 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         risk,
                         mcapInCr,
                         researchTechnical.getEntryPrice(),
-                        ConfidenceScoreCalculator.calculateVolumeScore(
-                                researchTechnical.getVolume(),
-                                researchTechnical.getPrevVolume(),
-                                researchTechnical.getVolumeAvg(),
-                                researchTechnical.getPrevVolumeAvg()),
+                        ConfidenceScoreCalculator.calculateVolumeScore(stockTechnicals),
                         ConfidenceScoreCalculator.calculateMacdScore(
-                                stockTechnicals.getMacd(),
-                                stockTechnicals.getSignal(),
-                                (stockTechnicals.getPrevMacd() - stockTechnicals.getPrevSignal()),
-                                stockTechnicals.getPrevMacd(),
-                                stockTechnicals.getPrevSignal()),
+                                stockTechnicals, macdIndicatorService),
                         researchInsightService.valuationScore(researchTechnical.getStock()));
 
         System.out.println(
@@ -615,5 +632,32 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         + miscUtil.roundToTwoDecimals(confidenceScore));
         researchTechnical.setScore(confidenceScore);
         researchTechnicalRepository.save(researchTechnical);
+    }
+
+    @Override
+    @Cacheable(
+            value = "getLatest", // your cache name here
+            key = "#stock.stockId", // cache per user ID
+            cacheManager = CacheManagerNameConstants.CACHE_12_HOUR)
+    public Optional<ResearchTechnical> getLatest(Stock stock) {
+
+        return researchTechnicalRepository.findTopByStockOrderByResearchTechnicalsIdDesc(stock);
+    }
+
+    @Override
+    @Cacheable(
+            value = "getTickSize", // your cache name here
+            key = "#stock.stockId", // cache per user ID
+            cacheManager = CacheManagerNameConstants.CACHE_12_HOUR)
+    public double getTickSize(Stock stock) {
+
+        Optional<ResearchTechnical> researchTechnicalOptional = this.getLatest(stock);
+
+        if (researchTechnicalOptional.isPresent()
+                && researchTechnicalOptional.get().getTickSize() != 0.0) {
+            researchTechnicalOptional.get().getTickSize();
+        }
+
+        return 0.1;
     }
 }

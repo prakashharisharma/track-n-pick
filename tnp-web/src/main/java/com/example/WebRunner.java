@@ -11,10 +11,7 @@ import com.example.data.transactional.repo.TradingHolidayRepository;
 import com.example.dto.assembler.StockPriceOHLCVAssembler;
 import com.example.dto.common.OHLCV;
 import com.example.dto.integration.StockOverviewResponse;
-import com.example.dto.io.BseSectorListResponse;
-import com.example.dto.io.FinancialsSummaryDto;
-import com.example.dto.io.SectorIO;
-import com.example.dto.io.StockPriceIO;
+import com.example.dto.io.*;
 import com.example.external.*;
 import com.example.external.factor.FactorRediff;
 import com.example.external.ta.service.McService;
@@ -28,6 +25,7 @@ import com.example.service.utils.MArketConditionUtils;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.PivotPointUtils;
 import com.example.service.utils.SupportResistanceZoneUtils;
+import com.example.util.FibonacciRatio;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.util.ThreadsUtil;
@@ -137,6 +135,7 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private BreakoutService breakoutService;
 
+    @Autowired private NSEPriceInfoFetcher nsePriceInfoFetcher;
     @Autowired private ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
 
     @Autowired private CandleStickConfirmationService candleStickHelperService;
@@ -185,13 +184,30 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private DhanOrchestratorService orchestratorService;
 
+    @Autowired private ResearchTechnicalRepository researchTechnicalRepository;
+
     @Override
     public void run(String... arg0) throws InterruptedException, IOException {
 
         log.info("Application started....");
 
         // bhavProcessor.processAndResearchTechnicals();
-        this.allocatePositions();
+        // this.allocatePositions();
+
+        /*
+        List<ResearchTechnical> researchTechnicalList = researchTechnicalRepository.findAll();
+        for (ResearchTechnical researchTechnical : researchTechnicalList) {
+            PriceInfoDto priceInfoDto =
+                    nsePriceInfoFetcher.getPriceInfo(researchTechnical.getStock().getNseSymbol());
+            System.out.println(researchTechnical.getStock().getNseSymbol());
+            System.out.println(priceInfoDto.getPriceBand());
+            System.out.println(priceInfoDto.getTickSize());
+            researchTechnical.setTickSize(priceInfoDto.getTickSize());
+            researchTechnical.setPriceBand(priceInfoDto.getPriceBand());
+            researchTechnicalRepository.save(researchTechnical);
+        }
+
+         */
 
         // testdetectMArketConfition();
         // testSupportResistanceZones();
@@ -271,7 +287,7 @@ public class WebRunner implements CommandLineRunner {
         // this.testmcap();
         // this.testSignalEvaluator();
         // this.testDynamicSR();
-        // this.updateScore();
+        this.updateScore();
         // this.testResearch360();
         // this.updatePivotLevels();
         System.out.println("STARTED");
@@ -405,7 +421,7 @@ public class WebRunner implements CommandLineRunner {
                 researchTechnicalService.getAll(Trade.Type.BUY);
 
         for (ResearchTechnical researchTechnical : researchTechnicalList) {
-            if (researchTechnical.getResearchDate().isAfter(LocalDate.of(2025, 6, 30))) {
+            if (researchTechnical.getResearchDate().isAfter(LocalDate.of(2025, 07, 13))) {
                 researchTechnicalService.updateScore(researchTechnical);
             }
         }
@@ -703,9 +719,16 @@ public class WebRunner implements CommandLineRunner {
         }
     }
 
-    /** Position Size = (Total trading fund * Risk%)/SL% */
     private void allocatePositions() {
-        User user = userService.get(1L);
+        List<User> users = userService.getAllDhanApiEnabledUsers();
+        for (User user : users) {
+            System.out.println("Allocating for " + user.getUsername());
+            this.allocatePositions(user);
+        }
+    }
+
+    /** Position Size = (Total trading fund * Risk%)/SL% */
+    private void allocatePositions(User user) {
 
         List<ResearchTechnical> researchTechnicalList =
                 researchTechnicalService.getLatestBuyResearch(miscUtil.currentDate());
@@ -722,7 +745,6 @@ public class WebRunner implements CommandLineRunner {
         for (ResearchTechnical researchTechnical : researchTechnicalList) {
             try {
 
-                Stock stock = researchTechnical.getStock();
                 double entryPrice = researchTechnical.getEntryPrice();
                 long positionSize = positionService.calculate(user, researchTechnical);
 
@@ -776,81 +798,6 @@ public class WebRunner implements CommandLineRunner {
                         e);
             }
         }
-
-        /*
-        double availableFunds = portfolioService.availableFundLimit(user);
-        double totalCapital = portfolioService.calculateNetWorth(user);
-
-        double originalFunds = availableFunds;
-        double maxFinalValuePerStock = totalCapital * 0.08; // cap
-
-        for (ResearchTechnical researchTechnical : researchTechnicalList) {
-
-            long positionSize = positionService.calculate(user, researchTechnical);
-            double entryPrice = researchTechnical.getEntryPrice();
-            double adjustedPositionValue = positionSize * entryPrice;
-
-            long finalQuantity = 0;
-            double finalValue = 0.0;
-            double minOrderValue = totalCapital * 0.04;
-            if (adjustedPositionValue <= availableFunds) {
-                double cappedValue = Math.min(adjustedPositionValue, maxFinalValuePerStock);
-                if (cappedValue >= minOrderValue) {
-                    // if (cappedValue >= originalFunds * 0.10) {
-                    finalValue = cappedValue;
-                    finalQuantity = (long) Math.floor(finalValue / entryPrice);
-                    finalValue = finalQuantity * entryPrice;
-                    availableFunds -= finalValue;
-                }
-            } else if (availableFunds > 0) {
-                long partialQty = (long) Math.floor(availableFunds / entryPrice);
-                double partialValue = partialQty * entryPrice;
-                double cappedValue = Math.min(partialValue, maxFinalValuePerStock);
-                if (cappedValue >= minOrderValue) {
-                    // if (cappedValue >= originalFunds * 0.10) {
-                    finalQuantity = (long) Math.floor(cappedValue / entryPrice);
-                    finalValue = finalQuantity * entryPrice;
-                    availableFunds -= finalValue;
-                }
-            }
-
-            long disclosedQuantity = (long) (finalQuantity * 0.40);
-
-            System.out.println(
-                    researchTechnical.getStock().getNseSymbol()
-                            + " SecurityId: "
-                            + researchTechnical.getStock().getInstrument()
-                            + " PositionSize: "
-                            + positionSize
-                            + " AdjustedPosition: "
-                            + positionSize
-                            + " FinalQty: "
-                            + finalQuantity
-                            + " DisclosedQty: "
-                            + disclosedQuantity
-                            + " Price: "
-                            + entryPrice
-                            + " FinalValue: "
-                            + finalValue
-                            + " MinOrderValue: "
-                            + minOrderValue
-                            + " RemainingFunds: "
-                            + availableFunds);
-
-            if (finalQuantity > 0) {
-                String payload =
-                        this.formatPayload(
-                                user.getDhanClientId(),
-                                researchTechnical.getStock().getIsinCode(),
-                                researchTechnical.getStock().getInstrument(),
-                                String.valueOf(finalQuantity),
-                                String.valueOf(disclosedQuantity),
-                                String.valueOf(entryPrice));
-
-                System.out.println(payload);
-
-            }
-        }*/
     }
 
     private PositionDetails calculatePosition(
@@ -864,7 +811,7 @@ public class WebRunner implements CommandLineRunner {
         double adjustedPositionValue = positionSize * entryPrice;
         long finalQuantity = 0;
         double finalValue = 0.0;
-
+        System.out.println("adjustedPositionValue " + adjustedPositionValue);
         if (adjustedPositionValue <= availableFunds) {
             double cappedValue = Math.min(adjustedPositionValue, maxValuePerStock);
             if (cappedValue >= minValuePerStock) {
@@ -888,7 +835,7 @@ public class WebRunner implements CommandLineRunner {
         return new PositionDetails(
                 finalQuantity,
                 finalValue,
-                (long) (finalQuantity * 0.35), // 40% disclosed quantity
+                (long) (finalQuantity * 0.35), // 35% disclosed quantity
                 availableFunds);
     }
 
@@ -899,11 +846,11 @@ public class WebRunner implements CommandLineRunner {
             double originalFunds) {}
 
     private WebRunner.PortfolioLimits getPortfolioLimits(User user, int stockCount) {
-        double availableFunds = portfolioService.availableFundLimit(user);
-        double totalCapital = portfolioService.calculateNetWorth(user);
+        // double availableFunds = portfolioService.availableFundLimit(user);
+        // double totalCapital = portfolioService.calculateNetWorth(user);
 
-        // double availableFunds = 350000;
-        // double totalCapital = 1100000;
+        double availableFunds = 170000;
+        double totalCapital = 1172659;
 
         if (stockCount <= 0 || totalCapital == 0) {
             return new WebRunner.PortfolioLimits(availableFunds, 0, 0, availableFunds);
@@ -912,7 +859,7 @@ public class WebRunner implements CommandLineRunner {
         double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
 
         final double MIN_CAP = 0.05;
-        final double MAX_CAP = 0.15;
+        final double MAX_CAP = 0.125;
         final double EXPONENT = 2.0;
 
         // 1. Base cap % depending on funds availability
@@ -934,8 +881,9 @@ public class WebRunner implements CommandLineRunner {
 
         System.out.println("maxPerStock " + maxPerStock);
 
-        double rawMinPerStock = totalCapital * 0.04;
+        double rawMinPerStock = totalCapital * FibonacciRatio.RATIO_38_2;
         double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
+
         System.out.println("minPerStock " + minPerStock);
         return new WebRunner.PortfolioLimits(
                 availableFunds, maxPerStock, minPerStock, availableFunds);

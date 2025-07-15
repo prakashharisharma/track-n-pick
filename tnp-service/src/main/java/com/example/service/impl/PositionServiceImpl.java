@@ -101,15 +101,15 @@ public class PositionServiceImpl implements PositionService {
 
         if (subStrategy.isBreakout()) {
             if (close > ma200 && close > ma50) {
-                return 1.25;
+                return 1.50;
             } else if (close > ma200) {
-                return 1.0;
+                return 1.25;
             } else if (close > ma100) {
-                return 0.75;
+                return 1.0;
             } else if (close > ma50) {
-                return 0.50;
+                return 0.75;
             } else {
-                return 0.25;
+                return 0.50;
             }
         }
 

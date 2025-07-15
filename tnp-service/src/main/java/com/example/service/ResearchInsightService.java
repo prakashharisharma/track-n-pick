@@ -1,5 +1,6 @@
 package com.example.service;
 
+import com.example.common.config.CacheManagerNameConstants;
 import com.example.data.common.type.MarketCapCategory;
 import com.example.data.transactional.entities.EvaluationLog;
 import com.example.data.transactional.entities.Stock;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -122,11 +124,27 @@ public class ResearchInsightService {
         return qualityColor.getWeight() + valuationColor.getWeight() + technicalColor.getWeight();
     }
 
+    @Cacheable(
+            value = "valuationScoreCache", // your cache name here
+            key = "#stock.stockId", // cache per user ID
+            cacheManager = CacheManagerNameConstants.CACHE_12_HOUR)
     public double valuationScore(Stock stock) {
 
+        try {
+            StockOverviewResponse stockOverviewResponse =
+                    research360Client.fetchStockOverview(stock.getIsinCode());
+            return (stockOverviewResponse.getData().getValuationValue()
+                            + stockOverviewResponse.getData().getQualityValue())
+                    / 2;
+        } catch (Exception e) {
+            // return 0.0;
+        }
+
+        /*
         if (valuationMap.containsKey(stock.getNseSymbol())) {
             return valuationMap.get(stock.getNseSymbol());
         }
+        */
 
         return 0.0;
     }
