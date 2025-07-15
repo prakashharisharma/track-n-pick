@@ -223,21 +223,21 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             tradeSetup.setSubStrategy(ResearchTechnical.SubStrategy.STOP_LOSS_TRIGGERED);
             isUpdation = Boolean.TRUE;
 
-        } else if (researchTechnical.getEntryPrice() >= stockPrice.getClose()) {
+        } else if (researchTechnical.getEntryPrice() < stockPrice.getClose()) {
 
             tradeSetup =
-                    simplePriceActionSignalEvaluator.evaluateExit(
+                    basicPriceActionSignalEvaluator.evaluateExit(
                             timeframe, stock, stockPrice, stockTechnicals);
 
             if (!tradeSetup.isActive()) {
                 tradeSetup =
-                        dynamicPriceActionSignalEvaluator.evaluateExit(
+                        simplePriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
             }
 
             if (!tradeSetup.isActive()) {
                 tradeSetup =
-                        basicPriceActionSignalEvaluator.evaluateExit(
+                        dynamicPriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
             }
 

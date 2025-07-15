@@ -1,9 +1,13 @@
 package com.example.worker.scheduler;
 
+import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.ResearchTechnical;
+import com.example.data.transactional.entities.StockPrice;
+import com.example.data.transactional.entities.Trade;
 import com.example.data.transactional.entities.User;
 import com.example.service.CalendarService;
 import com.example.service.ResearchTechnicalService;
+import com.example.service.StockPriceService;
 import com.example.service.UserService;
 import com.example.service.dhan.DhanOrderExecutorService;
 import com.example.util.MiscUtil;
@@ -34,6 +38,8 @@ public class DhanOrderScheduler {
     private final CalendarService calendarService;
     private final MiscUtil miscUtil;
 
+    private final StockPriceService<StockPrice> stockPriceService;
+
     @Scheduled(cron = "0 15 9 * * *") // Runs at 9:00 AM daily
     public void processBuy() {
         log.info("Starting daily buy order processing at {}", LocalDateTime.now());
@@ -61,11 +67,40 @@ public class DhanOrderScheduler {
                 List<ResearchTechnical> researchTechnicals =
                         researchTechnicalService.getLatestSellResearch(
                                 calendarService.previousTradingSession(sessionDate));
+
+                researchTechnicals.addAll(this.getNearTargetResearches());
+
                 processOrdersInParallel(enabledUsers, researchTechnicals, OrderType.SELL);
             }
         } catch (Exception e) {
             log.error("Error in daily sell order processing", e);
         }
+    }
+
+    private List<ResearchTechnical> getNearTargetResearches() {
+        List<ResearchTechnical> researchTechnicals =
+                researchTechnicalService.getAll(Trade.Type.BUY);
+
+        return researchTechnicals.stream()
+                .filter(rt -> rt.getTarget() != null && rt.getStock() != null)
+                .filter(
+                        rt -> {
+                            StockPrice stockPrice =
+                                    stockPriceService.get(rt.getStock(), Timeframe.DAILY);
+                            if (stockPrice == null || stockPrice.getClose() == null) return false;
+
+                            double close = stockPrice.getClose();
+
+                            double target = rt.getTarget();
+
+                            boolean isWithin10Percent = close >= target * 0.90 && close <= target;
+
+                            if (isWithin10Percent) {
+                                rt.setExitPrice(target); // set exit price
+                            }
+                            return isWithin10Percent;
+                        })
+                .collect(Collectors.toList());
     }
 
     private void processOrdersInParallel(

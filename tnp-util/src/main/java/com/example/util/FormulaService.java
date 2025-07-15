@@ -452,6 +452,18 @@ public class FormulaService {
         return Math.round(value * 2) / 2.0;
     }
 
+    public double ceilToNearestTick(double value, double tickSize) {
+        return Math.ceil(value / tickSize) * tickSize;
+    }
+
+    public double floorToNearestTick(double value, double tickSize) {
+        return Math.floor(value / tickSize) * tickSize;
+    }
+
+    public double roundToNearestTick(double value, double tickSize) {
+        return Math.round(value / tickSize) * tickSize;
+    }
+
     public long[] splitIn40_30_20_10(long value) {
         long part1 = Math.round(value * 0.40);
         long part2 = Math.round(value * 0.30);

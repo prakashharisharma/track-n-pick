@@ -1249,6 +1249,12 @@ public class SignalEvaluatorHelperService {
             if (isBreakoutCrossedHalfBody) {
                 entryPrice = (breakoutValue + high) / 2;
             }
+            if (macdIndicatorService.isMacdCrossedSignal(stockTechnicals)) {
+                entryPrice = (Math.max(open, close) + high) / 2;
+                if (isUpperWickClean) {
+                    entryPrice = high;
+                }
+            }
             entryPrice = formulaService.applyPercentChange(entryPrice, 0.03);
         } else if (singleSessionCandleStickService.isBullishMarubozu(
                         timeframe, stockPrice, stockTechnicals)
@@ -1291,19 +1297,19 @@ public class SignalEvaluatorHelperService {
 
         if (macdIndicatorService.isMacdCrossedSignal(stockTechnicals)
                 || MovingAverageUtil.isAllMAsIncreasing(stockTechnicals)) {
-            entryPrice = formulaService.ceilToNearestHalf(entryPrice);
+            // entryPrice = formulaService.ceilToNearestHalf(entryPrice);
             entryPrice =
                     Math.max(formulaService.applyPercentChange(entryPrice, 0.05), entryPrice + 0.5);
-            return formulaService.ceilToNearestTen(entryPrice);
+            return entryPrice;
         } else if (macdIndicatorService.isHistogramGreen(stockTechnicals)) {
-            entryPrice = formulaService.ceilToNearestHalf(entryPrice);
+            // entryPrice = formulaService.ceilToNearestHalf(entryPrice);
             entryPrice =
                     Math.max(
                             formulaService.applyPercentChange(entryPrice, 0.025),
                             entryPrice + 0.25);
-            return formulaService.ceilToNearestTen(entryPrice);
+            return entryPrice;
         }
 
-        return formulaService.ceilToNearestHalf(entryPrice);
+        return entryPrice;
     }
 }

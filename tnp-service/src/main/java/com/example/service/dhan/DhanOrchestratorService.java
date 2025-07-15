@@ -6,9 +6,11 @@ import com.example.data.transactional.entities.type.dhan.*;
 import com.example.external.dhan.DhanIntegrationService;
 import com.example.external.dhan.model.*;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +44,7 @@ public class DhanOrchestratorService {
 
     public List<Holding> getHoldings(String accessToken) {
         ResponseEntity<List<Holding>> response = dhanIntegrationService.getHoldings(accessToken);
-        return response.getBody();
+        return response.getStatusCode() == HttpStatus.OK ? response.getBody() : new ArrayList<>();
     }
 
     public FundLimit getFundLimit(String accessToken) {
