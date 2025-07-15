@@ -3,6 +3,8 @@ package com.example.service;
 import static com.example.data.common.type.MarketCapCategory.*;
 
 import com.example.data.common.type.MarketCapCategory;
+import com.example.data.common.type.Timeframe;
+import com.example.data.transactional.entities.StockTechnicals;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -12,7 +14,7 @@ public class ConfidenceScoreCalculator {
      * Calculates the confidence score (0 to 10) based on strategy score, raw risk, market cap,
      * research price, volume, and MACD.
      *
-     * @param strategyScore value between 0 and 10 (higher is better)
+     * @param subStrategyScore value between 0 and 10 (higher is better)
      * @param rawRisk value between 2 and 20 (higher is worse)
      * @param marketCapInCrores market capitalization in crores
      * @param researchPrice current research price of the stock
@@ -22,26 +24,53 @@ public class ConfidenceScoreCalculator {
      */
     public static double calculateConfidenceScore(
             double strategyScore,
+            double subStrategyScore,
             double rawRisk,
             double marketCapInCrores,
             double researchPrice,
             double volumeScore,
-            double macdScore) {
+            double macdScore,
+            double valuationScore) {
 
-        double riskWeight = 0.50;
-        double strategyWeight = 0.10;
-        double macdWeight = 0.15;
-        double volumeWeight = 0.10;
-        double mcapWeight = 0.10;
+        double riskWeight = 0.25;
+        double strategyWeight = 0.25;
+        double subStrategyWeight = 0.20;
+        double valuationWeight = 0.10;
+
+        double macdWeight = 0.05;
+        double volumeWeight = 0.05;
+        double mcapWeight = 0.05;
         double priceWeight = 0.05;
 
-        if (strategyScore >= 9) {
-            macdWeight = 0.10;
-            volumeWeight = 0.15;
+        if (macdScore == 10.0 && volumeScore == 10.0) {
+            riskWeight = 0.20;
+            strategyWeight = 0.30;
+            if (subStrategyScore >= 8.0) {
+                riskWeight = 0.15;
+                subStrategyWeight = 0.25;
+            }
         }
+
+        /*
+        double riskWeight = 0.40;
+        double strategyWeight = 0.15;
+        double subStrategyWeight = 0.10;
+        double macdWeight = 0.10;
+        double volumeWeight = 0.0;
+        double mcapWeight = 0.10;
+        double priceWeight = 0.05;
+        double valuationWeight = 0.10;
+         */
+
+        /*
+        if (subStrategyScore >= 9) {
+            macdWeight = 0.05;
+            volumeWeight = 0.20;
+        }*/
 
         // Clamp scores to [0–10]
         strategyScore = clamp(strategyScore);
+        subStrategyScore = clamp(subStrategyScore);
         volumeScore = clamp(volumeScore);
         macdScore = clamp(macdScore);
 
@@ -50,13 +79,20 @@ public class ConfidenceScoreCalculator {
         double marketCapScore = getMarketCapScore(marketCapInCrores); // Score based on market cap
         double researchPriceScore =
                 getResearchPriceScore(researchPrice); // Score based on price deviation
+        double valuationScoreClamped = clamp(valuationScore / 10.0); // Normalize 0–100 to 0–10
 
         // Logging each component
+
         log.info(
                 "Strategy Score: {} (Weight: {}) => {}",
                 strategyScore,
                 strategyWeight,
                 strategyScore * strategyWeight);
+        log.info(
+                "Sub Strategy Score: {} (Weight: {}) => {}",
+                subStrategyScore,
+                subStrategyWeight,
+                subStrategyScore * subStrategyWeight);
         log.info(
                 "Risk Score: {} (Weight: {}) => {}", riskScore, riskWeight, riskScore * riskWeight);
         log.info(
@@ -76,13 +112,41 @@ public class ConfidenceScoreCalculator {
                 volumeScore * volumeWeight);
         log.info(
                 "MACD Score: {} (Weight: {}) => {}", macdScore, macdWeight, macdScore * macdWeight);
+        log.info(
+                "Valuation Score: {} (Weight: {}) => {}",
+                valuationScoreClamped,
+                valuationWeight,
+                valuationScoreClamped * valuationWeight);
 
-        return (strategyScore * strategyWeight)
-                + (riskScore * riskWeight)
-                + (marketCapScore * mcapWeight)
-                + (researchPriceScore * priceWeight)
-                + (volumeScore * volumeWeight)
-                + (macdScore * macdWeight);
+        double score =
+                (strategyScore * strategyWeight)
+                        + (subStrategyScore * subStrategyWeight)
+                        + (riskScore * riskWeight)
+                        + (marketCapScore * mcapWeight)
+                        + (researchPriceScore * priceWeight)
+                        + (volumeScore * volumeWeight)
+                        + (macdScore * macdWeight)
+                        + (valuationScoreClamped * valuationWeight);
+
+        /*
+        System.out.println(score);
+        System.out.println(roundToTwoDecimals(score));
+        System.out.println(ceilBeyondOneDecimal(score));
+        score = roundToTwoDecimals(score);
+        System.out.println(ceilBeyondOneDecimal(score));
+        */
+
+        return ceilBeyondOneDecimal(roundToTwoDecimals(score));
+        // return score;
+    }
+
+    public static double roundToTwoDecimals(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
+
+    public static double ceilBeyondOneDecimal(double value) {
+        double rounded = Math.floor(value * 10) / 10.0;
+        return value > rounded ? rounded + 0.1 : rounded;
     }
 
     /**
@@ -136,89 +200,71 @@ public class ConfidenceScoreCalculator {
         return 1;
     }
 
-    public static double calculateVolumeScore(
-            long currentVolume, long previousVolume, long averageVolume, long prevAverageVolume) {
-        if (currentVolume <= 0
-                || previousVolume <= 0
-                || averageVolume <= 0
-                || prevAverageVolume <= 0) {
-            return 2;
+    public static double calculateVolumeScore(StockTechnicals stockTechnicals) {
+
+        long currentVolume = stockTechnicals.getVolume();
+        long prevVolume = stockTechnicals.getPrevVolume();
+        long prevPrevVolume = stockTechnicals.getPrev2Volume();
+        long avgVolume = stockTechnicals.getVolumeAvg20();
+        long prevAvgVolume = stockTechnicals.getPrevVolumeAvg20();
+        long prevPrevAvgVolume = stockTechnicals.getPrev2VolumeAvg20();
+
+        if (stockTechnicals.getTimeframe() == Timeframe.WEEKLY) {
+            avgVolume = stockTechnicals.getVolumeAvg10();
+            prevAvgVolume = stockTechnicals.getPrevVolumeAvg10();
+            prevPrevAvgVolume = stockTechnicals.getPrev2VolumeAvg10();
         }
 
-        boolean volumeIncreasing = currentVolume > previousVolume;
-        boolean avgIncreasing = averageVolume > prevAverageVolume;
-        boolean volAboveAvg = currentVolume > averageVolume;
-        boolean prevVolAbovePrevAvg = previousVolume > prevAverageVolume;
-        boolean vol2xPrevVol = currentVolume > 2 * previousVolume;
+        if (stockTechnicals.getTimeframe() == Timeframe.MONTHLY) {
+            avgVolume = stockTechnicals.getVolumeAvg5();
+            prevAvgVolume = stockTechnicals.getPrevVolumeAvg5();
+            prevPrevAvgVolume = stockTechnicals.getPrev2VolumeAvg5();
+        }
 
-        // Rule 1: 10 - avg increasing && vol increasing && vol > avg && prevVol > prevAvg
-        if (avgIncreasing && volumeIncreasing && volAboveAvg && prevVolAbovePrevAvg) {
+        boolean isAvgIncreasing = avgVolume > prevAvgVolume;
+        boolean isVolumeIncreasing = currentVolume > prevVolume;
+        boolean isVolumeAboveAverage = currentVolume > avgVolume;
+
+        if (isAvgIncreasing && currentVolume > 1.5 * avgVolume) {
             return 10;
-        }
-
-        // Rule 2: 8 - avg increasing && vol > 2X prevVol && vol > avg
-        if (avgIncreasing && vol2xPrevVol && volAboveAvg) {
+        } else if (isAvgIncreasing && currentVolume > 2 * prevVolume) {
             return 9;
-        }
-
-        // Rule 3: 6 - avg increasing && vol increasing
-        if (avgIncreasing && volumeIncreasing) {
+        } else if (isAvgIncreasing
+                && (currentVolume > 1.25 * avgVolume)
+                && (prevVolume > 1.25 * prevAvgVolume)) {
             return 8;
-        }
-
-        // Rule 4: 4 - avg increasing
-        if (avgIncreasing) {
+        } else if (isAvgIncreasing && isVolumeIncreasing && isVolumeAboveAverage) {
             return 7;
+        } else if (isAvgIncreasing
+                && (prevVolume > 1.25 * prevAvgVolume)
+                && (prevPrevVolume > 1.25 * prevPrevAvgVolume)) {
+            return 6;
         }
 
-        // Rule 5: else 2
         return 5;
     }
 
     public static double calculateMacdScore(
-            double macd,
-            double signal,
-            double previousHistogram,
-            double previousMacd,
-            double previousSignal) {
-        double histogram = macd - signal;
+            StockTechnicals stockTechnicals, MacdIndicatorService macdIndicatorService) {
 
-        boolean macdIncreasing = macd > previousMacd;
-        boolean signalDecreasing = signal < previousSignal;
-        boolean histogramRising = histogram > previousHistogram;
-
-        // Case: Strong bullish crossover (MACD crossed above signal, rising histogram, MACD > 0)
-        if (macd > signal && histogramRising && macd > 0) {
+        if (macdIndicatorService.isMacdCrossedSignal(stockTechnicals)) {
             return 10;
-        }
+        } else if (stockTechnicals.getMacd() < stockTechnicals.getSignal()
+                || stockTechnicals.getMacd() < 0.0) {
 
-        // Case: Moderately strong bullish (histogram rising and MACD increasing or signal
-        // decreasing)
-        if (macd > signal && histogramRising && (macdIncreasing || signalDecreasing)) {
-            return 9;
-        }
-
-        // Case: Mild bullish (MACD > signal and histogram positive)
-        if (macd > signal && histogram > 0) {
+            if (macdIndicatorService.isHistogramBelowZero(stockTechnicals)
+                    && macdIndicatorService.isMacdIncreased(stockTechnicals)
+                    && macdIndicatorService.isSignalDecreased(stockTechnicals)
+                    && macdIndicatorService.isHistogramIncreased(stockTechnicals)) {
+                return 9;
+            }
+        } else if (macdIndicatorService.isMacdIncreased(stockTechnicals)
+                && macdIndicatorService.isSignalIncreased(stockTechnicals)
+                && macdIndicatorService.isHistogramIncreased(stockTechnicals)) {
             return 8;
         }
 
-        // Case: Neutral (MACD near signal)
-        if (Math.abs(macd - signal) < 0.1) {
-            return 5;
-        }
-
-        // Case: Bearish crossover (MACD < signal, falling histogram)
-        if (macd < signal && histogram < previousHistogram) {
-            return 2;
-        }
-
-        // Case: Strongly negative MACD
-        if (macd < 0 && macd < signal) {
-            return 1;
-        }
-
         // Default mild bearish
-        return 3;
+        return 5;
     }
 }

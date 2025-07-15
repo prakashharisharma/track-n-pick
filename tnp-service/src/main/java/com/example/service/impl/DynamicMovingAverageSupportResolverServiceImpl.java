@@ -5,10 +5,14 @@ import com.example.data.common.type.Trend;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
+import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
+import com.example.service.utils.TrendDirectionUtil;
 import com.example.util.FormulaService;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -92,8 +96,9 @@ public class DynamicMovingAverageSupportResolverServiceImpl
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
         MovingAverageLength length = resolveLength(trend.getMomentum());
-        MovingAverageSupportResistanceService service = resolve(length, timeframe, stockTechnicals);
-        return service.isNearSupport(timeframe, stockPrice, stockTechnicals);
+        MovingAverageSupportResistanceService service =
+                resolve(length, timeframe, stockTechnicals, false);
+        return service.isNearSupport(timeframe, stockPrice, stockTechnicals, true);
     }
 
     @Override
@@ -103,8 +108,9 @@ public class DynamicMovingAverageSupportResolverServiceImpl
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
         MovingAverageLength length = resolveLength(trend.getMomentum());
-        MovingAverageSupportResistanceService service = resolve(length, timeframe, stockTechnicals);
-        return service.isBreakout(timeframe, stockPrice, stockTechnicals);
+        MovingAverageSupportResistanceService service =
+                resolve(length, timeframe, stockTechnicals, false);
+        return service.isBreakout(timeframe, stockPrice, stockTechnicals, true);
     }
 
     @Override
@@ -114,8 +120,9 @@ public class DynamicMovingAverageSupportResolverServiceImpl
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
         MovingAverageLength length = resolveLength(trend.getMomentum());
-        MovingAverageSupportResistanceService service = resolve(length, timeframe, stockTechnicals);
-        return service.isBreakdown(timeframe, stockPrice, stockTechnicals);
+        MovingAverageSupportResistanceService service =
+                resolve(length, timeframe, stockTechnicals, false);
+        return service.isBreakdown(timeframe, stockPrice, stockTechnicals, true);
     }
 
     @Override
@@ -125,22 +132,24 @@ public class DynamicMovingAverageSupportResolverServiceImpl
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
         MovingAverageLength length = resolveLength(trend.getMomentum());
-        MovingAverageSupportResistanceService service = resolve(length, timeframe, stockTechnicals);
-        return service.isNearResistance(timeframe, stockPrice, stockTechnicals);
+        MovingAverageSupportResistanceService service =
+                resolve(length, timeframe, stockTechnicals, false);
+        return service.isNearResistance(timeframe, stockPrice, stockTechnicals, true);
     }
 
     public static MovingAverageLength resolveLength(Trend.Phase phase) {
         return switch (phase) {
-            case DEEP_CORRECTION, BOTTOM -> MovingAverageLength.LONGEST;
-            case CORRECTION -> MovingAverageLength.LONG;
+            case DEEP_CORRECTION, BOTTOM -> MovingAverageLength.LOWEST;
+            case CORRECTION -> MovingAverageLength.LOW;
             case PULLBACK -> MovingAverageLength.MEDIUM;
-            case DIP -> MovingAverageLength.SHORT;
-            default -> MovingAverageLength.SHORTEST;
+            case DIP -> MovingAverageLength.HIGH;
+            default -> MovingAverageLength.HIGHEST;
         };
     }
 
-    public MovingAverageSupportResistanceService resolve(
-            MovingAverageLength length, Timeframe timeframe, StockTechnicals stockTechnicals) {
+    private List<MAServiceEntry> getSortedMAEntries(
+            Timeframe timeframe, StockTechnicals stockTechnicals, boolean sortByValue) {
+
         List<MAServiceEntry> entries =
                 List.of(
                         new MAServiceEntry(
@@ -164,23 +173,36 @@ public class DynamicMovingAverageSupportResolverServiceImpl
                                 MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals),
                                 twoHundredDaysMovingAverageSupportResistanceService));
 
-        entries =
-                entries.stream()
-                        .sorted(
-                                Comparator.comparingDouble((MAServiceEntry e) -> e.value)
-                                        .reversed())
-                        .toList();
+        if (sortByValue) {
+            return entries.stream()
+                    .sorted(Comparator.comparingDouble((MAServiceEntry e) -> e.value).reversed())
+                    .toList();
+        }
+
+        return entries.stream()
+                .sorted(Comparator.comparingInt((MAServiceEntry e) -> e.period))
+                .toList();
+    }
+
+    @Override
+    public MovingAverageSupportResistanceService resolve(
+            MovingAverageLength length,
+            Timeframe timeframe,
+            StockTechnicals stockTechnicals,
+            boolean sortByValue) {
+
+        List<MAServiceEntry> sorted = getSortedMAEntries(timeframe, stockTechnicals, sortByValue);
 
         int index =
                 switch (length) {
-                    case SHORTEST -> 0;
-                    case SHORT -> 1;
+                    case HIGHEST -> 0;
+                    case HIGH -> 1;
                     case MEDIUM -> 2;
-                    case LONG -> 3;
-                    case LONGEST -> 4;
+                    case LOW -> 3;
+                    case LOWEST -> 4;
                 };
 
-        return entries.get(index).service;
+        return sorted.get(index).service;
     }
 
     private static class MAServiceEntry {
@@ -196,36 +218,231 @@ public class DynamicMovingAverageSupportResolverServiceImpl
     }
 
     @Override
-    public boolean isBottomBreakout(
-            Trend trend,
+    public List<MAInteraction> findMAInteractions(
             Timeframe timeframe,
             StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            StockTechnicals stockTechnicals,
+            boolean sortByValue) {
 
-        MovingAverageLength length = resolveLength(trend.getMomentum());
+        double low = stockPrice.getLow();
+        double high = stockPrice.getHigh();
 
-        if (length.getPeriod() >= 2) {
-            MovingAverageSupportResistanceService service =
-                    resolve(length, timeframe, stockTechnicals);
-            return service.isBreakout(timeframe, stockPrice, stockTechnicals);
-        }
+        boolean checkSupport = TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN;
 
-        return false;
+        List<MAServiceEntry> sorted = getSortedMAEntries(timeframe, stockTechnicals, sortByValue);
+
+        MovingAverageLength[] lengths = MovingAverageLength.values(); // HIGHEST to LOWEST
+
+        return IntStream.range(0, sorted.size())
+                .filter(
+                        i -> {
+                            double value = sorted.get(i).value;
+                            // return value >= low && value <= high;
+                            return high >= value * 0.999 && low <= value * 1.001;
+                        })
+                .mapToObj(
+                        i -> {
+                            double value = sorted.get(i).value;
+                            MovingAverageLength length = lengths[i];
+                            return MAInteraction.of(length, value, checkSupport);
+                        })
+                .toList();
+    }
+
+    public List<MAEvaluationResult> evaluateInteractions(
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean sortByValue) {
+
+        List<MAInteraction> interactions =
+                findMAInteractions(timeframe, stockPrice, stockTechnicals, sortByValue);
+
+        return interactions.stream()
+                .map(
+                        interaction -> {
+                            MovingAverageSupportResistanceService service =
+                                    resolve(
+                                            interaction.getLength(),
+                                            timeframe,
+                                            stockTechnicals,
+                                            sortByValue);
+
+                            boolean nearSupport = false;
+                            boolean breakout = false;
+                            boolean nearResistance = false;
+                            boolean breakdown = false;
+
+                            if (interaction.supportSide()) {
+                                // trend DOWN -> check support & breakdown
+                                breakdown =
+                                        service.isBreakdown(
+                                                timeframe, stockPrice, stockTechnicals, false);
+                                if (!breakdown) {
+                                    nearSupport =
+                                            service.isNearSupport(
+                                                    timeframe, stockPrice, stockTechnicals, false);
+                                }
+
+                            } else {
+                                // trend UP -> check resistance & breakout
+                                breakout =
+                                        service.isBreakout(
+                                                timeframe, stockPrice, stockTechnicals, false);
+                                if (!breakout) {
+                                    nearResistance =
+                                            service.isNearResistance(
+                                                    timeframe, stockPrice, stockTechnicals, false);
+                                }
+                            }
+
+                            return new MAEvaluationResult(
+                                    interaction.getLength(),
+                                    service.getValue(timeframe, stockTechnicals),
+                                    service.getPrevValue(timeframe, stockTechnicals),
+                                    interaction.supportSide(),
+                                    nearSupport,
+                                    breakout,
+                                    nearResistance,
+                                    breakdown);
+                        })
+                .toList();
     }
 
     @Override
-    public boolean isTopBreakdown(
-            Trend trend,
+    public Optional<MAEvaluationResult> evaluateSingleInteractionSmart(
             Timeframe timeframe,
             StockPrice stockPrice,
-            StockTechnicals stockTechnicals) {
+            StockTechnicals stockTechnicals,
+            boolean sortByValue) {
 
-        MovingAverageLength length = resolveLength(trend.getMomentum());
-        if (length == MovingAverageLength.SHORTEST) {
-            MovingAverageSupportResistanceService service =
-                    resolve(length, timeframe, stockTechnicals);
-            service.isBreakdown(timeframe, stockPrice, stockTechnicals);
+        List<MAEvaluationResult> results =
+                evaluateInteractions(timeframe, stockPrice, stockTechnicals, sortByValue);
+        List<MAEvaluationResult> breakouts =
+                results.stream().filter(MAEvaluationResult::isBreakout).toList();
+        List<MAEvaluationResult> breakdowns =
+                results.stream().filter(MAEvaluationResult::isBreakdown).toList();
+        List<MAEvaluationResult> supports =
+                results.stream().filter(MAEvaluationResult::isNearSupport).toList();
+        List<MAEvaluationResult> resistances =
+                results.stream().filter(MAEvaluationResult::isNearResistance).toList();
+
+        /*
+        Comparator<MAEvaluationResult> weightComparator =
+                sortByValue
+                        ? Comparator.comparingInt(
+                                r -> r.getLength().getWeight()) // Lower MA preferred
+                        : Comparator.comparingInt(
+                                r -> r.getLength().getReverseWeight()); // Higher MA preferred
+
+         */
+
+        Comparator<MAEvaluationResult> weightComparator =
+                sortByValue
+                        ? Comparator.comparingInt(
+                                (MAEvaluationResult r) -> r.getLength().getWeight())
+                        : Comparator.comparingDouble((MAEvaluationResult r) -> r.getPrevValue())
+                                .reversed();
+
+        Comparator<MAEvaluationResult> reverseComparator =
+                sortByValue
+                        ? Comparator.comparingInt(
+                                r ->
+                                        r.getLength()
+                                                .getReverseWeight()) // Higher MA gets higher score
+                        : Comparator.comparingInt(
+                                r -> r.getLength().getWeight()); // Lower MA gets higher score
+
+        // 1. Breakdown + Support → Support with lower MA (if sortByValue), else higher MA
+        /*
+        if (!breakdowns.isEmpty() && !supports.isEmpty()) {
+            return supports.stream().min(weightComparator);
         }
-        return false;
+        */
+        if (!breakdowns.isEmpty() && !supports.isEmpty()) {
+            if (CandleStickUtils.isLowerWickDominant(stockPrice)
+                    || CandleStickUtils.isStrongLowerWick(stockPrice)) {
+                return supports.stream().min(weightComparator);
+            }
+        }
+
+        // 2. Breakout + Resistance → Resistance with higher MA (if sortByValue), else lower MA
+        /*
+        if (!breakouts.isEmpty() && !resistances.isEmpty()) {
+            return resistances.stream().max(weightComparator);
+        }
+        */
+
+        if (!breakouts.isEmpty() && !resistances.isEmpty()) {
+            if (CandleStickUtils.isUpperWickDominant(stockPrice)
+                    || CandleStickUtils.isStrongUpperWick(stockPrice)) {
+                return resistances.stream().max(weightComparator);
+            }
+        }
+
+        // 3. Breakout + Breakout → Lower MA breakout (higher weight)
+        if (breakouts.size() > 1) {
+            return breakouts.stream().max(weightComparator);
+        }
+
+        // 4. Breakdown + Breakdown → Higher MA breakdown (lower weight)
+        if (breakdowns.size() > 1) {
+            return breakdowns.stream().min(weightComparator);
+        }
+
+        // 5. Support + Support → Support with higher MA (lower weight)
+        if (supports.size() > 1) {
+            return supports.stream().min(weightComparator);
+        }
+
+        // 6. Resistance + Resistance → Resistance with lower MA (higher weight)
+        if (resistances.size() > 1) {
+            return resistances.stream().max(weightComparator);
+        }
+
+        // 7. Fallback: best scored signal depending on sortByValue
+        return results.stream()
+                .filter(
+                        r ->
+                                r.isBreakout()
+                                        || r.isBreakdown()
+                                        || r.isNearResistance()
+                                        || r.isNearSupport())
+                .max(Comparator.comparingInt(r -> calculateSignalScore(r, sortByValue)));
+    }
+
+    int calculateSignalScore(MAEvaluationResult result, boolean sortByValue) {
+        int baseScore;
+
+        if (result.isBreakout()) {
+            baseScore = 100;
+            return baseScore
+                    + (sortByValue
+                            ? result.getLength().getWeight()
+                            : result.getLength().getReverseWeight());
+
+        } else if (result.isBreakdown()) {
+            baseScore = 90;
+            return baseScore
+                    + (sortByValue
+                            ? result.getLength().getWeight()
+                            : result.getLength().getReverseWeight());
+
+        } else if (result.isNearResistance()) {
+            baseScore = 70;
+            return baseScore
+                    + (sortByValue
+                            ? result.getLength().getReverseWeight()
+                            : result.getLength().getWeight());
+
+        } else if (result.isNearSupport()) {
+            baseScore = 60;
+            return baseScore
+                    + (sortByValue
+                            ? result.getLength().getReverseWeight()
+                            : result.getLength().getWeight());
+        }
+
+        return 0;
     }
 }

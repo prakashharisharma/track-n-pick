@@ -1,8 +1,10 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
+import com.example.data.transactional.entities.CandlestickPattern;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
+import com.example.service.CandlestickPatternService;
 import com.example.service.TwoSessionCandleStickService;
 import com.example.service.utils.CandleStickUtils;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickService {
+
+    private final CandlestickPatternService candlestickPatternService;
 
     @Override
     public boolean isBullishEngulfing(
@@ -42,6 +46,21 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                     "{}: Bullish Engulfing detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(
+                                    CandlestickPattern.SessionCount.TWO) // Engulfing uses 2 candles
+                            .name(CandlestickPattern.Name.ENGULFING)
+                            .sentiment(CandlestickPattern.Sentiment.BULLISH)
+                            .isStrongBody(isStrongBody)
+                            .bodySize(currentBody)
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBullishPattern;
@@ -82,6 +101,10 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isBullishOutsideBar(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        if (stockPrice == null || stockTechnicals == null) {
+            return false;
+        }
+
         if (!CandleStickUtils.isGreen(stockPrice)
                 || !CandleStickUtils.isPrevSessionRed(stockPrice)) {
             return false;
@@ -93,6 +116,10 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
         double prevBody = CandleStickUtils.prevSessionBodySize(stockPrice);
         double lowerWick = CandleStickUtils.lowerWickSize(stockPrice);
         double upperWick = CandleStickUtils.upperWickSize(stockPrice);
+
+        if (prevRange == 0) {
+            return false; // Avoid division by zero or invalid comparisons
+        }
 
         boolean isStrongRange =
                 CandleStickUtils.isStrongRange(timeframe, stockPrice, stockTechnicals);
@@ -115,6 +142,20 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                     "{}: Bullish Outside Bar detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.OUTSIDE_BAR)
+                            .sentiment(CandlestickPattern.Sentiment.BULLISH)
+                            .isStrongBody(isStrongBody)
+                            .bodySize(currentBody)
+                            .rangeSize(range)
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
             return true;
         }
 
@@ -148,9 +189,30 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
         boolean isBullishReversal = stockPrice.getClose() > stockPrice.getPrevOpen();
 
         if ((isEqualLows || isEqualBodyLows) && isBullishReversal) {
+
+            // Build the CandlestickPattern entity
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.TWEEZER_BOTTOM) // Add this enum if needed
+                            .sentiment(CandlestickPattern.Sentiment.BULLISH)
+                            .isStrongBody(false) // Tweezer bodies aren't necessarily strong
+                            .isSmallBody(false) // adjust if your definition differs
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+            candlestickPatternService.create(pattern); // <-- Call your service here
             log.info(
-                    "{}: Tweezer Bottom detected on {}",
+                    "{}: {} detected on {}",
                     stockPrice.getStock().getNseSymbol(),
+                    "Tweezer Bottom",
                     stockPrice.getSessionDate());
             return true;
         }
@@ -161,6 +223,7 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isPiercingPattern(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
         // Ensure we have previous session data
         if (stockPrice == null
                 || stockTechnicals == null
@@ -171,35 +234,55 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
             return false;
         }
 
-        // First candle (previous candle) - Bearish
+        // First candle (previous) must be bearish
         boolean firstBearish = CandleStickUtils.isPrevSessionRed(stockPrice);
         double midpointPrev = (stockPrice.getPrevOpen() + stockPrice.getPrevClose()) / 2;
 
-        // Second candle (current candle) - Bullish
+        // Second candle (current) must be bullish
         boolean secondBullish = CandleStickUtils.isGreen(stockPrice);
         boolean opensBelowPrevLow = stockPrice.getOpen() < stockPrice.getPrevLow();
         boolean closesAboveMidpoint = stockPrice.getClose() > midpointPrev;
 
-        // Validate strong body using ATR and percentage-based thresholds
-        boolean isPrevCandleStrong =
+        // Strong-body checks
+        boolean isPrevStrong =
                 CandleStickUtils.isPrevSessionStrongBody(timeframe, stockPrice, stockTechnicals);
-        boolean isCurrCandleStrong =
+        boolean isCurrStrong =
                 CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        // Validate piercing pattern conditions
+        // Piercing pattern criteria
         boolean isPiercing =
                 firstBearish
                         && secondBullish
                         && opensBelowPrevLow
                         && closesAboveMidpoint
-                        && isPrevCandleStrong
-                        && isCurrCandleStrong;
+                        && isPrevStrong
+                        && isCurrStrong;
 
         if (isPiercing) {
             log.info(
-                    "{} Piercing Pattern detected on {}",
+                    "{}: Piercing Pattern detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.PIERCING_LINE)
+                            .sentiment(CandlestickPattern.Sentiment.BULLISH)
+                            .isStrongBody(isCurrStrong)
+                            .isSmallBody(false) // typically not a small body
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isPiercing;
@@ -218,35 +301,55 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
             return false;
         }
 
-        // First candle (previous candle) - Bearish
+        // First candle (previous) must be bearish and strong
         boolean firstBearish = CandleStickUtils.isPrevSessionRed(stockPrice);
-        boolean isPrevCandleStrong =
+        boolean isPrevStrong =
                 CandleStickUtils.isPrevSessionStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        // Second candle (current candle) - Bullish
+        // Second candle (current) must be bullish and strong
         boolean secondBullish = CandleStickUtils.isGreen(stockPrice);
-        boolean isCurrCandleStrong =
+        boolean isCurrStrong =
                 CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        // Check for a gap up
-        boolean gapsUpAbovePrevHigh = CandleStickUtils.isGapUp(stockPrice);
+        // Gap up beyond previous high and no overlap
+        boolean gapsUp = CandleStickUtils.isGapUp(stockPrice);
+        boolean noOverlap = stockPrice.getLow() > stockPrice.getPrevHigh();
 
-        boolean noOverlapWithPrevCandle = stockPrice.getLow() > stockPrice.getPrevHigh();
-
-        // Validate bullish kicker pattern conditions
+        // Bullish Kicker criteria
         boolean isBullishKicker =
                 firstBearish
                         && secondBullish
-                        && gapsUpAbovePrevHigh
-                        && noOverlapWithPrevCandle
-                        && isPrevCandleStrong
-                        && isCurrCandleStrong;
+                        && isPrevStrong
+                        && isCurrStrong
+                        && gapsUp
+                        && noOverlap;
 
         if (isBullishKicker) {
             log.info(
-                    "{} Bullish Kicker detected on {}",
+                    "{}: Bullish Kicker detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            // Build and save the pattern
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.KICKER) // add to your enum
+                            .sentiment(CandlestickPattern.Sentiment.BULLISH)
+                            .isStrongBody(isCurrStrong)
+                            .isSmallBody(false)
+                            .isGapUp(true)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBullishKicker;
@@ -255,6 +358,7 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isBullishSash(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
         // Ensure we have previous session data
         if (stockPrice == null
                 || stockPrice.getPrevOpen() == null
@@ -264,29 +368,51 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
             return false;
         }
 
-        // First candle (previous candle) - Bearish
+        // First candle (previous) must be bearish
         boolean firstBearish = CandleStickUtils.isPrevSessionRed(stockPrice);
 
-        // Second candle (current candle) - Bullish
+        // Second candle (current) must be bullish
         boolean secondBullish = CandleStickUtils.isGreen(stockPrice);
 
-        // Open within previous candle’s body
+        // Current open lies within previous body (prevLow < open < prevClose)
         boolean opensWithinPrevBody =
                 stockPrice.getOpen() > stockPrice.getPrevLow()
                         && stockPrice.getOpen() < stockPrice.getPrevClose();
 
-        // Closes above previous open
+        // Current close is above previous open
         boolean closesAbovePrevOpen = stockPrice.getClose() > stockPrice.getPrevOpen();
 
-        // Validate Bullish Sash pattern conditions
         boolean isBullishSash =
                 firstBearish && secondBullish && opensWithinPrevBody && closesAbovePrevOpen;
 
         if (isBullishSash) {
             log.info(
-                    "{} Bullish Sash pattern detected on {}",
+                    "{}: Bullish Sash pattern detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.SASH) // add this enum value
+                            .sentiment(CandlestickPattern.Sentiment.BULLISH)
+                            .isStrongBody(false) // sash bodies are moderate
+                            .isSmallBody(false)
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(
+                                    stockTechnicals != null && stockTechnicals.getAtr() != null
+                                            ? stockTechnicals.getAtr()
+                                            : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBullishSash;
@@ -305,10 +431,10 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
             return false;
         }
 
-        // First candle (previous session) - Bearish
+        // First candle (previous) must be bearish
         boolean firstBearish = CandleStickUtils.isPrevSessionRed(stockPrice);
 
-        // Second candle (current session) - Bullish
+        // Second candle (current) must be bullish
         boolean secondBullish = CandleStickUtils.isGreen(stockPrice);
 
         // Opens exactly at previous open
@@ -317,15 +443,34 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
         // Closes higher than previous close
         boolean closesHigherThanPrevClose = stockPrice.getClose() > stockPrice.getPrevClose();
 
-        // Validate Bullish Separating Line pattern conditions
         boolean isBullishSeparatingLine =
                 firstBearish && secondBullish && opensAtPrevOpen && closesHigherThanPrevClose;
 
         if (isBullishSeparatingLine) {
             log.info(
-                    "{} Bullish Separating Line pattern detected on {}",
+                    "{}: Bullish Separating Line pattern detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.SEPARATING_LINE) // add this enum
+                            .sentiment(CandlestickPattern.Sentiment.BULLISH)
+                            .isStrongBody(false)
+                            .isSmallBody(false)
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBullishSeparatingLine;
@@ -334,6 +479,7 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isBullishHarami(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
         // Ensure we have previous session data
         if (stockPrice == null
                 || stockTechnicals == null
@@ -342,34 +488,49 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
             return false;
         }
 
-        // First candle (previous session) - Bearish
+        // First candle (previous) must be bearish and strong
         boolean firstBearish = CandleStickUtils.isPrevSessionRed(stockPrice);
-        boolean isPrevCandleStrong =
+        boolean isPrevStrong =
                 CandleStickUtils.isPrevSessionStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        // Second candle (current session) - Bullish
+        // Second candle (current) must be bullish and have a small body
         boolean secondBullish = CandleStickUtils.isGreen(stockPrice);
-        boolean isCurrCandleSmall =
+        boolean isCurrSmall =
                 !CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        // Second candle's body must be inside the previous candle's body
-        boolean bodyInsidePrevBody =
+        // Current candle's body must lie entirely within the previous candle's body
+        boolean bodyInsidePrev =
                 stockPrice.getOpen() > stockPrice.getPrevClose()
                         && stockPrice.getClose() < stockPrice.getPrevOpen();
 
-        // Validate Bullish Harami pattern conditions
         boolean isBullishHarami =
-                firstBearish
-                        && secondBullish
-                        && isPrevCandleStrong
-                        && isCurrCandleSmall
-                        && bodyInsidePrevBody;
+                firstBearish && secondBullish && isPrevStrong && isCurrSmall && bodyInsidePrev;
 
         if (isBullishHarami) {
             log.info(
-                    "{} Bullish Harami pattern detected on {}",
+                    "{}: Bullish Harami pattern detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.HARAMI)
+                            .sentiment(CandlestickPattern.Sentiment.BULLISH)
+                            .isStrongBody(false)
+                            .isSmallBody(true)
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBullishHarami;
@@ -420,32 +581,51 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
             return false;
         }
 
+        // Current must be green and previous red
         if (!CandleStickUtils.isGreen(stockPrice)
                 || !CandleStickUtils.isPrevSessionRed(stockPrice)) {
             return false;
         }
 
-        // First candle (previous session) - Can be bullish or bearish
-        boolean isPrevCandleStrong =
+        // Previous candle strong body
+        boolean isPrevStrong =
                 CandleStickUtils.isPrevSessionStrongBody(timeframe, stockPrice, stockTechnicals);
-
-        // Second candle (current session) - Can be bullish or bearish
-        boolean isCurrCandleSmall =
+        // Current candle small body
+        boolean isCurrSmall =
                 !CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        // Second candle must be fully inside the previous candle’s range
+        // Current entirely inside previous range
         boolean insideBar =
                 stockPrice.getHigh() < stockPrice.getPrevHigh()
                         && stockPrice.getLow() > stockPrice.getPrevLow();
 
-        // Validate Bullish Inside Bar pattern conditions
-        boolean isBullishInsideBar = isPrevCandleStrong && isCurrCandleSmall && insideBar;
+        boolean isBullishInsideBar = isPrevStrong && isCurrSmall && insideBar;
 
         if (isBullishInsideBar) {
             log.info(
-                    "{} Bullish Inside Bar detected on {}",
+                    "{}: Bullish Inside Bar detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.INSIDE_BAR) // add INSIDE_BAR to your enum
+                            .sentiment(CandlestickPattern.Sentiment.BULLISH)
+                            .isStrongBody(false)
+                            .isSmallBody(true)
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBullishInsideBar;
@@ -454,11 +634,12 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isBearishEngulfing(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
 
-        // First candle (previous session) - Bullish
+        // First candle (previous) must be bullish, current must be red
         if (!CandleStickUtils.isPrevSessionGreen(stockPrice)
                 || !CandleStickUtils.isRed(stockPrice)) {
             return false;
@@ -480,6 +661,26 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                     "{}: Bearish Engulfing detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.ENGULFING)
+                            .sentiment(CandlestickPattern.Sentiment.BEARISH)
+                            .isStrongBody(isStrongBody)
+                            .isSmallBody(false)
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(currentBody)
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBearishPattern;
@@ -522,22 +723,24 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isBearishOutsideBar(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
 
-        // First candle (previous session) - Bullish or Bearish
-        double prevHigh = stockPrice.getPrevHigh();
-        double prevLow = stockPrice.getPrevLow();
+        // Previous candle strength
         boolean isPrevCandleStrong =
                 CandleStickUtils.isPrevSessionStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        // Second candle (current session) - Bearish
+        // Current candle bearish and strong
         boolean secondBearish = CandleStickUtils.isRed(stockPrice);
         boolean isCurrCandleStrong =
                 CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        // Current candle fully engulfs previous candle
+        double prevHigh = stockPrice.getPrevHigh();
+        double prevLow = stockPrice.getPrevLow();
+
+        // Current fully engulfs previous
         boolean lowBreaksPrevLow = stockPrice.getLow() < prevLow;
         boolean highBreaksPrevHigh = stockPrice.getHigh() > prevHigh;
 
@@ -553,6 +756,26 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                     "{}: Bearish Outside Bar detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.OUTSIDE_BAR) // ensure enum value exists
+                            .sentiment(CandlestickPattern.Sentiment.BEARISH)
+                            .isStrongBody(isCurrCandleStrong)
+                            .isSmallBody(false)
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBearishOutsideBar;
@@ -589,6 +812,26 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                     "{}: Tweezer Top detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.TWEEZER_TOP) // ensure enum exists
+                            .sentiment(CandlestickPattern.Sentiment.BEARISH)
+                            .isStrongBody(false)
+                            .isSmallBody(false)
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
             return true;
         }
 
@@ -598,33 +841,34 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isDarkCloudCover(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
 
-        // First candle (previous session) - Strong Bullish
+        // First candle (previous session) – strong bullish
         boolean firstBullish = CandleStickUtils.isPrevSessionGreen(stockPrice);
-        boolean isPrevCandleStrong =
+        boolean isPrevStrong =
                 CandleStickUtils.isPrevSessionStrongBody(timeframe, stockPrice, stockTechnicals);
         double prevMidpoint = (stockPrice.getPrevOpen() + stockPrice.getPrevClose()) / 2;
 
-        // Second candle (current session) - Bearish
+        // Second candle (current session) – bearish
         boolean secondBearish = CandleStickUtils.isRed(stockPrice);
-        boolean isCurrCandleStrong =
+        boolean isCurrStrong =
                 CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        // Current candle opens above the previous high (gap up)
+        // Opens above previous high (gap up)
         boolean opensAbovePrevHigh = stockPrice.getOpen() > stockPrice.getPrevHigh();
 
-        // Current candle closes below previous midpoint but above previous open
+        // Closes below previous midpoint but above previous open
         boolean closesBelowPrevMid = stockPrice.getClose() < prevMidpoint;
         boolean closesAbovePrevOpen = stockPrice.getClose() > stockPrice.getPrevOpen();
 
         boolean isDarkCloudCover =
                 firstBullish
-                        && isPrevCandleStrong
+                        && isPrevStrong
                         && secondBearish
-                        && isCurrCandleStrong
+                        && isCurrStrong
                         && opensAbovePrevHigh
                         && closesBelowPrevMid
                         && closesAbovePrevOpen;
@@ -634,6 +878,26 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                     "{}: Dark Cloud Cover detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.DARK_CLOUD_COVER) // ensure enum exists
+                            .sentiment(CandlestickPattern.Sentiment.BEARISH)
+                            .isStrongBody(isCurrStrong)
+                            .isSmallBody(false)
+                            .isGapUp(true)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isDarkCloudCover;
@@ -642,40 +906,62 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isBearishKicker(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
 
-        // First candle (previous session) - Bullish
+        // First candle (previous session) – Bullish and strong
         boolean firstBullish = CandleStickUtils.isPrevSessionGreen(stockPrice);
-        boolean isPrevCandleStrong =
+        boolean isPrevStrong =
                 CandleStickUtils.isPrevSessionStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        // Second candle (current session) - Strong Bearish
+        // Second candle (current session) – Bearish and strong
         boolean secondBearish = CandleStickUtils.isRed(stockPrice);
-        boolean isCurrCandleStrong =
+        boolean isCurrStrong =
                 CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        // Check for a gap down
-        boolean gapsDownBelowPrevLow = CandleStickUtils.isGapDown(stockPrice);
+        // Check for a gap down below previous low
+        boolean gapsDown = CandleStickUtils.isGapDown(stockPrice);
 
-        // No overlap with the previous candle
-        boolean noOverlapWithPrevCandle = stockPrice.getHigh() < stockPrice.getPrevLow();
+        // Ensure no overlap with the previous candle
+        boolean noOverlap = stockPrice.getHigh() < stockPrice.getPrevLow();
 
-        // Validate Bearish Kicker pattern conditions
+        // Bearish Kicker criteria
         boolean isBearishKicker =
                 firstBullish
                         && secondBearish
-                        && gapsDownBelowPrevLow
-                        && noOverlapWithPrevCandle
-                        && isPrevCandleStrong
-                        && isCurrCandleStrong;
+                        && isPrevStrong
+                        && isCurrStrong
+                        && gapsDown
+                        && noOverlap;
 
         if (isBearishKicker) {
             log.info(
                     "{}: Bearish Kicker detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            // Build and persist the pattern
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.KICKER) // ensure enum exists
+                            .sentiment(CandlestickPattern.Sentiment.BEARISH)
+                            .isStrongBody(isCurrStrong)
+                            .isSmallBody(false)
+                            .isGapUp(false)
+                            .isGapDown(true)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBearishKicker;
@@ -684,20 +970,20 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isBearishSash(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
 
-        // Previous candle - Bullish (Green)
+        // Previous candle – bullish (green)
         boolean prevBullish = CandleStickUtils.isPrevSessionGreen(stockPrice);
-
-        // Current candle - Bearish (Red)
+        // Current candle – bearish (red)
         boolean currBearish = CandleStickUtils.isRed(stockPrice);
 
-        // Open near or slightly above previous close
+        // Open near or slightly above previous close (within 10% of ATR)
+        double atr = stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0;
         boolean opensNearPrevClose =
-                Math.abs(stockPrice.getOpen() - stockPrice.getPrevClose())
-                        <= stockTechnicals.getAtr() * 0.1;
+                Math.abs(stockPrice.getOpen() - stockPrice.getPrevClose()) <= (atr * 0.1);
 
         // Closes below previous open (strong downward move)
         boolean closesBelowPrevOpen = stockPrice.getClose() < stockPrice.getPrevOpen();
@@ -707,9 +993,29 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
 
         if (isBearishSash) {
             log.info(
-                    "{} Bearish Sash pattern detected on {}",
+                    "{}: Bearish Sash pattern detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.SASH) // ensure this exists in your enum
+                            .sentiment(CandlestickPattern.Sentiment.BEARISH)
+                            .isStrongBody(true) // typically a strong body in a sash
+                            .isSmallBody(false)
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(atr)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBearishSash;
@@ -718,20 +1024,19 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isBearishSeparatingLine(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
 
-        // Previous candle - Bullish (Green)
+        // Previous candle – bullish (green)
         boolean prevBullish = CandleStickUtils.isPrevSessionGreen(stockPrice);
-
-        // Current candle - Bearish (Red)
+        // Current candle – bearish (red)
         boolean currBearish = CandleStickUtils.isRed(stockPrice);
 
-        // Opens at the exact same price as the previous close
+        // Opens exactly at previous close
         boolean opensAtPrevClose = stockPrice.getOpen().equals(stockPrice.getPrevClose());
-
-        // Closes significantly lower (strong bearish move)
+        // Closes below previous low (strong bearish follow-through)
         boolean closesLower = stockPrice.getClose() < stockPrice.getPrevLow();
 
         boolean isBearishSeparatingLine =
@@ -739,9 +1044,31 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
 
         if (isBearishSeparatingLine) {
             log.info(
-                    "{} Bearish Separating Line pattern detected on {}",
+                    "{}: Bearish Separating Line detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(
+                                    CandlestickPattern.Name
+                                            .SEPARATING_LINE) // ensure this enum exists
+                            .sentiment(CandlestickPattern.Sentiment.BEARISH)
+                            .isStrongBody(true) // typically a strong body
+                            .isSmallBody(false)
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBearishSeparatingLine;
@@ -750,19 +1077,20 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isBearishHarami(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
 
-        // Previous candle - Bullish (Green) with a strong body
+        // Previous candle – bullish (green) and strong
         boolean prevBullish = CandleStickUtils.isPrevSessionGreen(stockPrice);
-        boolean isPrevCandleStrong =
+        boolean isPrevStrong =
                 CandleStickUtils.isPrevSessionStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        // Current candle - Bearish (Red)
+        // Current candle – bearish (red)
         boolean currBearish = CandleStickUtils.isRed(stockPrice);
 
-        // Current candle is completely inside the previous candle's body
+        // Current body must lie entirely within the previous body
         boolean opensWithinPrevBody =
                 stockPrice.getOpen() <= stockPrice.getPrevClose()
                         && stockPrice.getOpen() >= stockPrice.getPrevOpen();
@@ -772,16 +1100,36 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
 
         boolean isBearishHarami =
                 prevBullish
-                        && isPrevCandleStrong
+                        && isPrevStrong
                         && currBearish
                         && opensWithinPrevBody
                         && closesWithinPrevBody;
 
         if (isBearishHarami) {
             log.info(
-                    "{} Bearish Harami pattern detected on {}",
+                    "{}: Bearish Harami detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(CandlestickPattern.Name.HARAMI) // make sure this enum exists
+                            .sentiment(CandlestickPattern.Sentiment.BEARISH)
+                            .isStrongBody(false)
+                            .isSmallBody(true)
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBearishHarami;
@@ -820,29 +1168,55 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isBearishInsideBar(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        if (stockPrice == null || stockTechnicals == null) return false;
 
+        if (stockPrice == null || stockTechnicals == null) {
+            return false;
+        }
+
+        // Current must be red and previous must be green
         if (!CandleStickUtils.isRed(stockPrice)
                 || !CandleStickUtils.isPrevSessionGreen(stockPrice)) {
             return false;
         }
 
+        // Current entirely inside previous high/low range
         boolean insideBar =
                 stockPrice.getHigh() < stockPrice.getPrevHigh()
                         && stockPrice.getLow() > stockPrice.getPrevLow();
 
-        boolean isRedCandle = CandleStickUtils.isRed(stockPrice);
-
+        // Previous candle strong body
         boolean isPrevStrong =
                 CandleStickUtils.isPrevSessionStrongBody(timeframe, stockPrice, stockTechnicals);
 
-        boolean isBearishInsideBar = insideBar && isRedCandle && isPrevStrong;
+        boolean isBearishInsideBar = insideBar && isPrevStrong;
 
         if (isBearishInsideBar) {
             log.info(
-                    "{} Bearish Inside Bar pattern detected on {}",
+                    "{}: Bearish Inside Bar pattern detected on {}",
                     stockPrice.getStock().getNseSymbol(),
                     stockPrice.getSessionDate());
+
+            CandlestickPattern pattern =
+                    CandlestickPattern.builder()
+                            .stockPrice(stockPrice)
+                            .sessionCount(CandlestickPattern.SessionCount.TWO)
+                            .name(
+                                    CandlestickPattern.Name
+                                            .INSIDE_BAR) // or BEARISH_INSIDE_BAR if you prefer
+                            .sentiment(CandlestickPattern.Sentiment.BEARISH)
+                            .isStrongBody(false)
+                            .isSmallBody(true)
+                            .isGapUp(false)
+                            .isGapDown(false)
+                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
+                            .bodySize(CandleStickUtils.bodySize(stockPrice))
+                            .rangeSize(CandleStickUtils.range(stockPrice))
+                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
+                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
+                            .sessionDate(stockPrice.getSessionDate())
+                            .build();
+
+            candlestickPatternService.create(pattern);
         }
 
         return isBearishInsideBar;

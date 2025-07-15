@@ -1,14 +1,13 @@
 package com.example.service.impl;
 
+import com.example.common.config.CacheManagerNameConstants;
 import com.example.data.common.type.Timeframe;
-import com.example.data.transactional.entities.Portfolio;
-import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockPrice;
-import com.example.data.transactional.entities.Trade;
+import com.example.data.transactional.entities.*;
 import com.example.data.transactional.repo.PortfolioRepository;
 import com.example.data.transactional.repo.TradeRepository;
 import com.example.data.transactional.view.PortfolioResult;
 import com.example.service.*;
+import com.example.service.dhan.DhanOrchestratorService;
 import com.example.util.MiscUtil;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -20,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +38,12 @@ public class PortfolioServiceImpl implements PortfolioService {
     private final StockPriceService<StockPrice> stockPriceService;
 
     private final MiscUtil miscUtil;
+
+    private final DhanOrchestratorService dhanOrchestratorService;
+
+    private final FundsLedgerService fundsLedgerService;
+
+    private final TradeService tradeService;
 
     @Override
     public BigDecimal getTotalInvestmentValue(Long userId) {
@@ -382,5 +388,37 @@ public class PortfolioServiceImpl implements PortfolioService {
                 .pnlPercent(miscUtil.roundToTwoDecimals(pnlPercent))
                 .pnl(miscUtil.roundToTwoDecimals(pnl))
                 .build();
+    }
+
+    @Override
+    @Cacheable(
+            value = "netWorthCache", // your cache name here
+            key = "#user.id", // cache per user ID
+            cacheManager = CacheManagerNameConstants.CACHE_12_HOUR)
+    public double calculateNetWorth(User user) {
+
+        if (user.isDhanApiEnabled()) {
+            return dhanOrchestratorService.calculateNetWorth(user);
+        }
+
+        BigDecimal investmentValue = fundsLedgerService.getTotalFundsValue(user.getId());
+
+        BigDecimal netProfit = tradeService.getTotalRealizedPnl(user.getId());
+
+        return investmentValue.doubleValue() + netProfit.doubleValue();
+    }
+
+    @Override
+    public double availableFundLimit(User user) {
+
+        if (user.isDhanApiEnabled()) {
+            return dhanOrchestratorService.getFundLimit(user);
+        }
+
+        double totalCapital = this.calculateNetWorth(user);
+
+        BigDecimal totalInvestmentValue = this.getTotalInvestmentValue(user.getId());
+
+        return totalCapital - totalInvestmentValue.doubleValue();
     }
 }

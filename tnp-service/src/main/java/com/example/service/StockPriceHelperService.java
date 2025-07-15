@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class StockPriceHelperService {
 
-    @Autowired private BreakoutLedgerService breakoutLedgerService;
+    @Autowired private EvaluationLogService evaluationLogService;
     @Autowired private FormulaService formulaService;
 
     @Autowired private StockPriceService<StockPrice> stockPriceService;

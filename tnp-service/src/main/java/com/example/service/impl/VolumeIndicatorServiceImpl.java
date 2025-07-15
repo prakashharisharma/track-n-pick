@@ -1,13 +1,20 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
+import com.example.data.transactional.entities.EvaluationLog;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
+import com.example.service.EvaluationLogService;
 import com.example.service.VolumeIndicatorService;
+import com.example.util.StringUtils;
+import java.util.HashMap;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
 
@@ -24,6 +31,16 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     private static double THRESHOLD_MONTHLY = 0.5;
 
     private static double MIN_TRADING_VALUE = 3_00_00_000.0;
+
+    private final EvaluationLogService evaluationLogService;
+
+    private static Map<Timeframe, Double> volumeMultipleFactor = new HashMap<>();
+
+    static {
+        volumeMultipleFactor.put(Timeframe.DAILY, 1.5);
+        volumeMultipleFactor.put(Timeframe.WEEKLY, 1.25);
+        volumeMultipleFactor.put(Timeframe.MONTHLY, 1.0);
+    }
 
     @Override
     public boolean isBullish(
@@ -427,5 +444,94 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
                 avgTradingValue);
 
         return avgTradingValue >= MIN_TRADING_VALUE;
+    }
+
+    @Override
+    public boolean isVolumeSurge(StockTechnicals stockTechnicals) {
+
+        long currentVolume = stockTechnicals.getVolume();
+        long prevVolume = stockTechnicals.getPrevVolume();
+        long prevPrevVolume = stockTechnicals.getPrev2Volume();
+        long avgVolume = stockTechnicals.getVolumeAvg20();
+        long prevAvgVolume = stockTechnicals.getPrevVolumeAvg20();
+        long prevPrevAvgVolume = stockTechnicals.getPrev2VolumeAvg20();
+
+        if (stockTechnicals.getTimeframe() == Timeframe.WEEKLY) {
+            avgVolume = stockTechnicals.getVolumeAvg10();
+            prevAvgVolume = stockTechnicals.getPrevVolumeAvg10();
+            prevPrevAvgVolume = stockTechnicals.getPrev2VolumeAvg10();
+        }
+
+        if (stockTechnicals.getTimeframe() == Timeframe.MONTHLY) {
+            avgVolume = stockTechnicals.getVolumeAvg5();
+            prevAvgVolume = stockTechnicals.getPrevVolumeAvg5();
+            prevPrevAvgVolume = stockTechnicals.getPrev2VolumeAvg5();
+        }
+
+        Timeframe timeframe = stockTechnicals.getTimeframe();
+        double multiplier =
+                volumeMultipleFactor.getOrDefault(timeframe, 1.5); // fallback multiplier
+
+        boolean isAvgIncreasing = avgVolume > prevAvgVolume;
+        boolean isVolumeIncreasing = currentVolume > prevVolume;
+        boolean isVolumeAboveAverage = currentVolume > avgVolume;
+
+        if (isAvgIncreasing && currentVolume > 1.5 * avgVolume) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            "Volume Surge: AvgIncreasing && currentVolume > 1.5 * avgVolume"));
+            return true;
+        } else if (isAvgIncreasing && currentVolume > 2 * prevVolume) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            "Volume Surge: AvgIncreasing && currentVolume > 2 * prevVolume"));
+            return true;
+        } else if (isAvgIncreasing
+                && (currentVolume > 1.25 * avgVolume)
+                && (prevVolume > 1.25 * prevAvgVolume)) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            "Volume Surge: AvgIncreasing && currentVolume > 1.25 * avgVolume &&"
+                                    + " prevVolume > 1.25 * prevAvgVolume"));
+            return true;
+        } else if (isAvgIncreasing && isVolumeIncreasing && isVolumeAboveAverage) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            "Volume Surge: AvgIncreasing && VolumeIncreasing &&"
+                                    + " VolumeAboveAverage"));
+            return true;
+        } else if (isAvgIncreasing
+                && (prevVolume > 1.25 * prevAvgVolume)
+                && (prevPrevVolume > 1.25 * prevPrevAvgVolume)) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            "Volume Surge: AvgIncreasing && prevPrevVolume > 1.25 *"
+                                    + " prevPrevAvgVolume && prevVolume > 1.25 * prevAvgVolume"));
+            return true;
+        }
+
+        evaluationLogService.add(
+                stockTechnicals,
+                EvaluationLog.Type.NEUTRAL,
+                StringUtils.format(
+                        "No volume surge: volume:{} prevVolume:{} avg20:{} prevAvg20:{}"
+                                + " multiplier:{}",
+                        currentVolume,
+                        prevVolume,
+                        avgVolume,
+                        prevAvgVolume,
+                        multiplier));
+
+        return false;
     }
 }

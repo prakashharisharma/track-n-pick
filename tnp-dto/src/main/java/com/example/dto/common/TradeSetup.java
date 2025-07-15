@@ -10,6 +10,7 @@ import lombok.Data;
 public class TradeSetup implements Serializable {
 
     private boolean active;
+    private double researchPrice;
     private ResearchTechnical.Strategy strategy;
     private ResearchTechnical.SubStrategy subStrategy;
 }

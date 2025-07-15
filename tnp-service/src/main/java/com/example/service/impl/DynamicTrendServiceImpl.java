@@ -107,10 +107,6 @@ public class DynamicTrendServiceImpl implements DynamicTrendService {
             StockPrice stockPrice,
             MovingAverageResult movingAverageResult) {
 
-        // MovingAverageResult  movingAverageResult =
-        // MovingAverageUtil.getMovingAverage(MovingAverageLength.LONGEST, timeframe,
-        // stockTechnicals, true);
-
         double avg = movingAverageResult.getValue();
         double prevAvg = movingAverageResult.getPrevValue();
 
@@ -221,10 +217,6 @@ public class DynamicTrendServiceImpl implements DynamicTrendService {
             StockPrice stockPrice,
             MovingAverageResult movingAverageResult) {
 
-        // MovingAverageResult  movingAverageResult =
-        // MovingAverageUtil.getMovingAverage(MovingAverageLength.LONGEST, timeframe,
-        // stockTechnicals, true);
-
         double avg = movingAverageResult.getValue();
         double prevAvg = movingAverageResult.getPrevValue();
 
@@ -265,9 +257,10 @@ public class DynamicTrendServiceImpl implements DynamicTrendService {
             log.info("stockTechnicals or stockPrice not found");
             return new Trend(Trend.Direction.INVALID, phase);
         }
+
         MovingAverageResult shortestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.SHORTEST, timeframe, stockTechnicals, true);
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
 
         boolean shortestTermDown =
                 this.isShortestTermDownTrend(
@@ -277,7 +270,7 @@ public class DynamicTrendServiceImpl implements DynamicTrendService {
                         timeframe, stockTechnicals, stockPrice, shortestMovingAverageResult);
         MovingAverageResult shortMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.SHORT, timeframe, stockTechnicals, true);
+                        MovingAverageLength.HIGH, timeframe, stockTechnicals, true);
 
         boolean shortTermDown =
                 this.isShortTermDownTrend(
@@ -298,7 +291,7 @@ public class DynamicTrendServiceImpl implements DynamicTrendService {
                         timeframe, stockTechnicals, stockPrice, mediumMovingAverageResult);
         MovingAverageResult longMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.LONG, timeframe, stockTechnicals, true);
+                        MovingAverageLength.LOW, timeframe, stockTechnicals, true);
 
         boolean longTermDown =
                 this.isLongTermDownTrend(
@@ -308,7 +301,7 @@ public class DynamicTrendServiceImpl implements DynamicTrendService {
                         timeframe, stockTechnicals, stockPrice, longMovingAverageResult);
         MovingAverageResult longestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.LONGEST, timeframe, stockTechnicals, true);
+                        MovingAverageLength.LOWEST, timeframe, stockTechnicals, true);
 
         boolean longestTermDown =
                 this.isLongestTermDownTrend(

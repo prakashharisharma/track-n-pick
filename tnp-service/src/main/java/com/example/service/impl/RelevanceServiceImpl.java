@@ -2,10 +2,10 @@ package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
-import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
+import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class RelevanceServiceImpl implements RelevanceService {
 
-    @Autowired private TimeframeSupportResistanceService timeframeSupportResistanceService;
+    @Autowired
+    private MultiTimeframeSupportResistanceService multiTimeframeSupportResistanceService;
 
     @Autowired
     private MultiMovingAverageSupportResistanceService multiMovingAverageSupportResistanceService;
@@ -51,8 +52,8 @@ public class RelevanceServiceImpl implements RelevanceService {
                         trend.getMomentum());
                 return true;
             } else if (trend.getMomentum() == Trend.Phase.BOTTOM
-                    && timeframeSupportResistanceService.isNearSupport(
-                            trend, timeframe, stockPrice, stockTechnicals)
+                    && multiTimeframeSupportResistanceService.isNearSupport(
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverSold(stockTechnicals)) {
                 log.info(
                         "{} timeframe support active {} momentum {}",
@@ -73,8 +74,8 @@ public class RelevanceServiceImpl implements RelevanceService {
             StockTechnicals stockTechnicals) {
         if (trend.getDirection() == Trend.Direction.UP) {
             if (trend.getMomentum() == Trend.Phase.TOP
-                    && timeframeSupportResistanceService.isNearResistance(
-                            trend, timeframe, stockPrice, stockTechnicals)
+                    && multiTimeframeSupportResistanceService.isNearResistance(
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverBought(stockTechnicals)) {
                 log.info(
                         "{} timeframe resistance {} momentum {}",
@@ -102,10 +103,11 @@ public class RelevanceServiceImpl implements RelevanceService {
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
-        if (trend.getDirection() == Trend.Direction.UP) {
+        if (trend.getDirection() == Trend.Direction.UP
+                && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
             if (trend.getMomentum() == Trend.Phase.TOP
-                    && timeframeSupportResistanceService.isBreakout(
-                            trend, timeframe, stockPrice, stockTechnicals)
+                    && multiTimeframeSupportResistanceService.isBreakout(
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isBullish(stockTechnicals)) {
                 log.info(
                         "{} timeframe breakout active {} momentum {}}",
@@ -134,7 +136,8 @@ public class RelevanceServiceImpl implements RelevanceService {
             Timeframe timeframe,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
-        if (trend.getDirection() == Trend.Direction.DOWN) {
+        if (trend.getDirection() == Trend.Direction.DOWN
+                && CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals)) {
 
             if (multiMovingAverageSupportResistanceService.isBreakdown(
                             trend, timeframe, stockPrice, stockTechnicals)
@@ -146,8 +149,8 @@ public class RelevanceServiceImpl implements RelevanceService {
                         trend.getMomentum());
                 return true;
             } else if (trend.getMomentum() == Trend.Phase.BOTTOM
-                    && timeframeSupportResistanceService.isBreakdown(
-                            trend, timeframe, stockPrice, stockTechnicals)
+                    && multiTimeframeSupportResistanceService.isBreakdown(
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isBearish(stockTechnicals)) {
                 log.info(
                         "{} timeframe breakdown {} momentum {}",
@@ -174,8 +177,8 @@ public class RelevanceServiceImpl implements RelevanceService {
         // if(volumeIndicatorService.isBullish(stockTechnicals, timeframe)) {
 
         if (trend.getDirection() == Trend.Direction.DOWN) {
-            if (timeframeSupportResistanceService.isNearSupport(
-                            trend, timeframe, stockPrice, stockTechnicals)
+            if (multiTimeframeSupportResistanceService.isNearSupport(
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverSold(stockTechnicals)) {
                 log.info(
                         "{} timeframe support active {} momentum {}",
@@ -187,8 +190,8 @@ public class RelevanceServiceImpl implements RelevanceService {
         }
 
         if (trend.getDirection() == Trend.Direction.UP) {
-            if (timeframeSupportResistanceService.isBreakout(
-                            trend, timeframe, stockPrice, stockTechnicals)
+            if (multiTimeframeSupportResistanceService.isBreakout(
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isBullish(stockTechnicals)) {
                 log.info(
                         "{} timeframe breakout active {} momentum {}}",
@@ -289,13 +292,6 @@ public class RelevanceServiceImpl implements RelevanceService {
             return false;
         }
 
-        log.info(
-                "{} indicator support / breakout rejected as price is away from EMA20. Using"
-                        + " Strategy: {}, SubStrategy: {}",
-                stockPrice.getStock().getNseSymbol(),
-                ResearchTechnical.Strategy.PRICE,
-                ResearchTechnical.SubStrategy.RMAO);
-
         return true;
     }
 
@@ -311,8 +307,8 @@ public class RelevanceServiceImpl implements RelevanceService {
 
         // if(volumeIndicatorService.isBearish(stockTechnicals, timeframe)) {
         if (trend.getDirection() == Trend.Direction.DOWN) {
-            if (timeframeSupportResistanceService.isBreakdown(
-                            trend, timeframe, stockPrice, stockTechnicals)
+            if (multiTimeframeSupportResistanceService.isBreakdown(
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isBearish(stockTechnicals)) {
                 log.info(
                         "{} timeframe breakdown {} momentum {}",
@@ -323,8 +319,8 @@ public class RelevanceServiceImpl implements RelevanceService {
             }
         }
         if (trend.getDirection() == Trend.Direction.UP) {
-            if (timeframeSupportResistanceService.isNearResistance(
-                            trend, timeframe, stockPrice, stockTechnicals)
+            if (multiTimeframeSupportResistanceService.isNearResistance(
+                            timeframe, stockPrice, stockTechnicals)
                     && rsiIndicatorService.isOverBought(stockTechnicals)) {
                 log.info(
                         "{} timeframe resistance {} momentum {}",
@@ -418,13 +414,6 @@ public class RelevanceServiceImpl implements RelevanceService {
         if (!multiIndicatorService.isBearish(stockTechnicals)) {
             return false;
         }
-
-        log.info(
-                "{} indicator resistance / breakdown rejected as price is away from EMA20. Using"
-                        + " Strategy: {}, SubStrategy: {}",
-                stockPrice.getStock().getNseSymbol(),
-                ResearchTechnical.Strategy.PRICE,
-                ResearchTechnical.SubStrategy.RMAO);
 
         return true;
     }

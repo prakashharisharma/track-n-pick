@@ -190,4 +190,6 @@ public interface StockTechnicalsService<T extends StockTechnicals> {
     T get(Long stockId, Timeframe timeframe);
 
     T get(Stock stock, Timeframe timeframe);
+
+    T buildPrevSessionStockTechnicals(T t);
 }

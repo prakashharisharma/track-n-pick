@@ -138,6 +138,18 @@ public class RedisConfig {
                 .build();
     }
 
+    /** Cache manager with 12-hour expiration. */
+    @Bean(name = CacheManagerNameConstants.CACHE_12_HOUR)
+    public CacheManager cacheManager12Hour(RedisConnectionFactory redisConnectionFactory) {
+        Duration expiration = Duration.ofHours(12);
+        return RedisCacheManager.builder(redisConnectionFactory)
+                .cacheDefaults(
+                        RedisCacheConfiguration.defaultCacheConfig()
+                                .prefixCacheNameWith(redisPrefix)
+                                .entryTtl(expiration))
+                .build();
+    }
+
     /** Cache manager with 24-hour expiration. */
     @Bean(name = CacheManagerNameConstants.CACHE_24_HOUR)
     public CacheManager cacheManager24Hour(RedisConnectionFactory redisConnectionFactory) {

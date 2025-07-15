@@ -4,6 +4,8 @@ import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
+import java.util.List;
+import java.util.Optional;
 
 public interface DynamicMovingAverageSupportResolverService {
     public boolean isNearSupport(
@@ -30,15 +32,27 @@ public interface DynamicMovingAverageSupportResolverService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals);
 
-    public boolean isBottomBreakout(
-            Trend trend,
+    public MovingAverageSupportResistanceService resolve(
+            MovingAverageLength length,
             Timeframe timeframe,
-            StockPrice stockPrice,
-            StockTechnicals stockTechnicals);
+            StockTechnicals stockTechnicals,
+            boolean sortByValue);
 
-    public boolean isTopBreakdown(
-            Trend trend,
+    public List<MAInteraction> findMAInteractions(
             Timeframe timeframe,
             StockPrice stockPrice,
-            StockTechnicals stockTechnicals);
+            StockTechnicals stockTechnicals,
+            boolean sortByValue);
+
+    public List<MAEvaluationResult> evaluateInteractions(
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean sortByValue);
+
+    public Optional<MAEvaluationResult> evaluateSingleInteractionSmart(
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            boolean sortByValue);
 }

@@ -82,7 +82,11 @@ public class BhavProcessorImpl implements BhavProcessor {
             String series = record.getSeries();
 
             // Ignore Rights Issue (-RI) stocks
-            if (symbol.endsWith("-RI") || symbol.endsWith("-RE") || symbol.endsWith("-RE1")) {
+            if (symbol.endsWith("-RI")
+                    || symbol.endsWith("-RE")
+                    || symbol.endsWith("-RE1")
+                    || symbol.endsWith("-RE2")
+                    || symbol.endsWith("-RE3")) {
                 continue;
             }
 
@@ -118,7 +122,8 @@ public class BhavProcessorImpl implements BhavProcessor {
                             stockPriceIN.getTottrdval(),
                             stockPriceIN.getTimestamp(),
                             stockPriceIN.getTotaltrades(),
-                            stockPriceIN.getIsin());
+                            stockPriceIN.getIsin(),
+                            stockPriceIN.getExchangeCode());
             stockPriceIOList.add(stockPriceIO);
         }
 
@@ -134,6 +139,15 @@ public class BhavProcessorImpl implements BhavProcessor {
         }
     }
 
+    private void updateInstrument(Stock stock, StockPriceIO stockPriceIO) {
+        if (stock.getInstrument() == null
+                || !stock.getInstrument()
+                        .equalsIgnoreCase(stockPriceIO.getInstrument().trim().toUpperCase())) {
+            stock.setInstrument(stockPriceIO.getInstrument().trim().toUpperCase());
+            stockService.save(stock);
+        }
+    }
+
     private Stock addStockToMaster(StockPriceIO stockPriceIO) {
 
         log.info("{} Adding to master", stockPriceIO.getNseSymbol());
@@ -145,6 +159,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                         stockPriceIO.getNseSymbol().trim().toUpperCase(),
                         stockPriceIO.getSeries(),
                         stockPriceIO.getIsin(),
+                        stockPriceIO.getInstrument(),
                         IndiceType.NSE);
 
         if (stockPriceIO.getExchange().equalsIgnoreCase("NSE")) {
@@ -158,6 +173,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                 stockIO.getExchange(),
                 stockIO.getSeries().trim().toUpperCase(),
                 stockIO.getIsin(),
+                stockIO.getInstrument(),
                 stockIO.getCompanyName(),
                 stockIO.getNseSymbol(),
                 stockIO.getBseCode(),
@@ -239,11 +255,12 @@ public class BhavProcessorImpl implements BhavProcessor {
                     stock = this.addStockToMaster(stockPriceIO);
                 }
 
-                this.updateSeries(stock, stockPriceIO);
+                // this.updateSeries(stock, stockPriceIO);
+                // this.updateInstrument(stock, stockPriceIO);
                 updatePriceService.updatePrice(Timeframe.DAILY, stock, stockPrice);
                 researchExecutorService.executeFundamental(stock);
                 stockPriceList.add(stockPrice);
-                miscUtil.delay(ThreadsUtil.poolSize() * 8);
+                miscUtil.delay(ThreadsUtil.poolSize() * 75);
             } catch (Exception e) {
                 log.error(
                         "{} An error occurred while processing daily batch",
@@ -288,7 +305,7 @@ public class BhavProcessorImpl implements BhavProcessor {
             submitIfRequired(executor, futuresMap, Timeframe.WEEKLY, isLastWeek, batch);
 
             try {
-                ThreadsUtil.delay(numThreads * 128); // optional single delay per batch
+                ThreadsUtil.delay(numThreads * 75); // optional single delay per batch
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -400,7 +417,18 @@ public class BhavProcessorImpl implements BhavProcessor {
 
             // Delay *between* submissions to prevent MongoDB bursts
             try {
-                ThreadsUtil.delay(200);
+
+                LocalDate today = miscUtil.currentDate();
+
+                if (calendarService.isLastTradingSessionOfMonth(today)) {
+                    ThreadsUtil.delay(1000);
+                } else if (calendarService.isLastTradingSessionOfWeek(today)) {
+                    ThreadsUtil.delay(800);
+                } else {
+                    ThreadsUtil.delay(600);
+                }
+                // ThreadsUtil.delay(600);
+
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -425,9 +453,15 @@ public class BhavProcessorImpl implements BhavProcessor {
 
     private void processOne(Timeframe timeframe, Stock stock, LocalDate date) {
         try {
+
             StockTechnicals stockTechnicals = updateTechnicalsService.build(timeframe, stock, date);
+
             updateTechnicalsService.updateTechnicals(timeframe, stock, stockTechnicals);
+
+            // if(timeframe == Timeframe.DAILY) {
             researchExecutorService.executeTechnical(timeframe, stock, date);
+            // }
+
         } catch (Exception e) {
             log.error("{} Error processing {} batch", stock.getNseSymbol(), timeframe, e);
         }

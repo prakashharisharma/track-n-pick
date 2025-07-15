@@ -10,8 +10,11 @@ import com.example.data.transactional.entities.StockPriceWeekly;
 import com.example.data.transactional.entities.StockPriceYearly;
 import com.example.data.transactional.repo.StockPriceRepository;
 import com.example.data.transactional.repo.StockRepository;
+import com.example.service.CalendarService;
 import com.example.service.StockPriceService;
+import com.example.service.utils.PivotPointUtils;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.persistence.EntityNotFoundException;
@@ -26,6 +29,8 @@ public class StockPriceServiceImpl implements StockPriceService {
 
     private final StockPriceRepository<StockPrice> stockPriceRepository;
     private final StockRepository stockRepository;
+
+    private final CalendarService calendarService;
 
     // Map to create instances dynamically based on timeframe
     private static final Map<Timeframe, Supplier<StockPrice>> STOCK_PRICE_CREATORS =
@@ -92,6 +97,7 @@ public class StockPriceServiceImpl implements StockPriceService {
         newStockPrice.setLow(low);
         newStockPrice.setClose(close);
         newStockPrice.setSessionDate(sessionDate);
+        newStockPrice.setLastModified(LocalDateTime.now());
 
         log.info("Creating new {} StockPrice for stockId: {}", timeframe, stock.getStockId());
         return stockPriceRepository.save(newStockPrice);
@@ -149,7 +155,12 @@ public class StockPriceServiceImpl implements StockPriceService {
         stockPrice.setHigh(high);
         stockPrice.setLow(low);
         stockPrice.setClose(close);
+
+        // Calculate and set Pivot levels before updating
+        setPivotLevels(stockPrice);
+
         stockPrice.setSessionDate(sessionDate);
+        stockPrice.setLastModified(LocalDateTime.now());
 
         log.info("Updating {} StockPrice for stockId: {}", timeframe, stock.getStockId());
         return stockPriceRepository.save(stockPrice);
@@ -275,6 +286,17 @@ public class StockPriceServiceImpl implements StockPriceService {
     }
 
     private void shiftPreviousPrice(StockPrice stockPrice) {
+
+        stockPrice.setPrev6Open(stockPrice.getPrev5Open());
+        stockPrice.setPrev6High(stockPrice.getPrev5High());
+        stockPrice.setPrev6Low(stockPrice.getPrev5Low());
+        stockPrice.setPrev6Close(stockPrice.getPrev5Close());
+
+        stockPrice.setPrev5Open(stockPrice.getPrev4Open());
+        stockPrice.setPrev5High(stockPrice.getPrev4High());
+        stockPrice.setPrev5Low(stockPrice.getPrev4Low());
+        stockPrice.setPrev5Close(stockPrice.getPrev4Close());
+
         stockPrice.setPrev4Open(stockPrice.getPrev3Open());
         stockPrice.setPrev4High(stockPrice.getPrev3High());
         stockPrice.setPrev4Low(stockPrice.getPrev3Low());
@@ -294,5 +316,74 @@ public class StockPriceServiceImpl implements StockPriceService {
         stockPrice.setPrevHigh(stockPrice.getHigh());
         stockPrice.setPrevLow(stockPrice.getLow());
         stockPrice.setPrevClose(stockPrice.getClose());
+    }
+
+    private void setPivotLevels(StockPrice stockPrice) {
+
+        PivotPointUtils.PivotLevels pivotLevels =
+                PivotPointUtils.calculate(
+                        stockPrice.getHigh(), stockPrice.getLow(), stockPrice.getClose());
+
+        stockPrice.setPivot(pivotLevels.getPivot());
+
+        stockPrice.setResistance1(pivotLevels.getResistance1());
+        stockPrice.setResistance2(pivotLevels.getResistance2());
+        stockPrice.setResistance3(pivotLevels.getResistance3());
+
+        stockPrice.setSupport1(pivotLevels.getSupport1());
+        stockPrice.setSupport2(pivotLevels.getSupport2());
+        stockPrice.setSupport3(pivotLevels.getSupport3());
+    }
+
+    @Override
+    public StockPrice buildPrevSessionStockPrice(StockPrice stockPrice) {
+
+        StockPrice newStockPrice =
+                STOCK_PRICE_CREATORS
+                        .getOrDefault(
+                                stockPrice.getTimeframe(),
+                                () -> {
+                                    throw new IllegalArgumentException(
+                                            "Unsupported timeframe: " + stockPrice.getTimeframe());
+                                })
+                        .get();
+
+        newStockPrice.setTimeframe(stockPrice.getTimeframe());
+        newStockPrice.setStock(stockPrice.getStock());
+        newStockPrice.setSessionDate(
+                calendarService.previousTradingSession(stockPrice.getSessionDate()));
+        newStockPrice.setLastModified(LocalDateTime.now());
+
+        newStockPrice.setOpen(stockPrice.getPrevOpen());
+        newStockPrice.setHigh(stockPrice.getPrevHigh());
+        newStockPrice.setLow(stockPrice.getPrevLow());
+        newStockPrice.setClose(stockPrice.getPrevClose());
+
+        newStockPrice.setPrevOpen(stockPrice.getPrev2Open());
+        newStockPrice.setPrevHigh(stockPrice.getPrev2High());
+        newStockPrice.setPrevLow(stockPrice.getPrev2Low());
+        newStockPrice.setPrevClose(stockPrice.getPrev2Close());
+
+        newStockPrice.setPrev2Open(stockPrice.getPrev3Open());
+        newStockPrice.setPrev2High(stockPrice.getPrev3High());
+        newStockPrice.setPrev2Low(stockPrice.getPrev3Low());
+        newStockPrice.setPrev2Close(stockPrice.getPrev3Close());
+
+        newStockPrice.setPrev3Open(stockPrice.getPrev4Open());
+        newStockPrice.setPrev3High(stockPrice.getPrev4High());
+        newStockPrice.setPrev3Low(stockPrice.getPrev4Low());
+        newStockPrice.setPrev3Close(stockPrice.getPrev4Close());
+
+        newStockPrice.setPrev4Open(stockPrice.getPrev5Open());
+        newStockPrice.setPrev4High(stockPrice.getPrev5High());
+        newStockPrice.setPrev4Low(stockPrice.getPrev5Low());
+        newStockPrice.setPrev4Close(stockPrice.getPrev5Close());
+
+        newStockPrice.setPrev5Open(stockPrice.getPrev6Open());
+        newStockPrice.setPrev5High(stockPrice.getPrev6High());
+        newStockPrice.setPrev5Low(stockPrice.getPrev6Low());
+        newStockPrice.setPrev5Close(stockPrice.getPrev6Close());
+
+        return newStockPrice;
     }
 }
