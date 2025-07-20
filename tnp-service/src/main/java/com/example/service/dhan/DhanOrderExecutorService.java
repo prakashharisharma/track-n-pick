@@ -8,7 +8,6 @@ import com.example.external.dhan.model.Holding;
 import com.example.service.PortfolioService;
 import com.example.service.PositionService;
 import com.example.service.dhan.model.PositionDetails;
-import com.example.util.FibonacciRatio;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +52,8 @@ public class DhanOrderExecutorService {
                 }
 
                 Stock stock = researchTechnical.getStock();
-                double entryPrice = researchTechnical.getEntryPrice();
+                double entryPrice =
+                        researchTechnical.getEntryPrice() + researchTechnical.getTickSize();
                 long positionSize = positionService.calculate(user, researchTechnical);
 
                 PositionDetails position =
@@ -103,8 +103,10 @@ public class DhanOrderExecutorService {
 
         double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
 
-        final double MIN_CAP = 0.05;
-        final double MAX_CAP = 0.125;
+        // final double MIN_CAP = 0.05;
+        // final double MAX_CAP = 0.125;
+        final double MIN_CAP = totalCapital <= 500000.0 ? 0.050 : 0.025;
+        final double MAX_CAP = totalCapital <= 500000.0 ? 0.100 : 0.050;
         final double EXPONENT = 2.0;
 
         double capPercent = MIN_CAP + (MAX_CAP - MIN_CAP) * Math.pow(1 - ratio, EXPONENT);
@@ -113,7 +115,7 @@ public class DhanOrderExecutorService {
         // Ceil to nearest rupee
         double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
 
-        final double rawMinPerStock = totalCapital * FibonacciRatio.RATIO_38_2;
+        final double rawMinPerStock = totalCapital * MIN_CAP;
 
         // floor to nearest rupee
         double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
@@ -132,8 +134,12 @@ public class DhanOrderExecutorService {
 
         double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
 
-        final double MIN_CAP = 0.05;
-        final double MAX_CAP = 0.125;
+        // final double MIN_CAP = 0.05;
+        // final double MAX_CAP = 0.125;
+        // final double MIN_CAP = 0.025;
+        // final double MAX_CAP = 0.050;
+        final double MIN_CAP = totalCapital <= 500000.0 ? 0.050 : 0.025;
+        final double MAX_CAP = totalCapital <= 500000.0 ? 0.100 : 0.050;
         final double EXPONENT = 2.0;
 
         // 1. Base cap % depending on funds availability
@@ -152,7 +158,7 @@ public class DhanOrderExecutorService {
         double rawMaxPerStock = totalCapital * capPercent;
         double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
 
-        double rawMinPerStock = totalCapital * FibonacciRatio.RATIO_38_2;
+        double rawMinPerStock = totalCapital * MIN_CAP;
         double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
 
         return new DhanOrderExecutorService.PortfolioLimits(
@@ -210,7 +216,7 @@ public class DhanOrderExecutorService {
         return new PositionDetails(
                 finalQuantity,
                 finalValue,
-                (long) (finalQuantity * 0.35), // 40% disclosed quantity
+                (long) (finalQuantity * 0.31), // 40% disclosed quantity
                 availableFunds);
     }
 
@@ -272,14 +278,16 @@ public class DhanOrderExecutorService {
                     continue;
                 }
 
-                double exitPrice = researchTechnical.getExitPrice();
+                double exitPrice =
+                        researchTechnical.getExitPrice() - researchTechnical.getTickSize();
+
                 if (exitPrice <= 0) {
                     log.warn("Invalid exit price for stock: {}, skipping sell order", nseSymbol);
                     continue;
                 }
 
                 long quantityToSell = holding.getTotalQty().longValue();
-                long disclosedQuantity = (long) (quantityToSell * 0.35);
+                long disclosedQuantity = (long) (quantityToSell * 0.31);
 
                 logOrderDetails(
                         stock,

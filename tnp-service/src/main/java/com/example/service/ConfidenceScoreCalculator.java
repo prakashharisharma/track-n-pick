@@ -49,6 +49,14 @@ public class ConfidenceScoreCalculator {
                 riskWeight = 0.15;
                 subStrategyWeight = 0.25;
             }
+
+        } else if (volumeScore == 10.0) {
+            riskWeight = 0.175;
+            valuationWeight = 0.175;
+            macdWeight = 0.0;
+            volumeWeight = 0.15;
+            mcapWeight = 0.10;
+            priceWeight = 0.0;
         }
 
         /*
@@ -265,6 +273,6 @@ public class ConfidenceScoreCalculator {
         }
 
         // Default mild bearish
-        return 5;
+        return 7;
     }
 }

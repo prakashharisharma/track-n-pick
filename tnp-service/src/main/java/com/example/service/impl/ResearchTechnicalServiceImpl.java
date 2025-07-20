@@ -112,15 +112,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         newResearchTechnical.setType(Trade.Type.BUY);
         newResearchTechnical.setEntryStrategy(tradeSetup.getStrategy());
         newResearchTechnical.setEntrySubStrategy(tradeSetup.getSubStrategy());
-
-        /*
-        newResearchTechnical.setVolume(stockTechnicals.getVolume());
-        newResearchTechnical.setPrevVolume(stockTechnicals.getPrevVolume());
-        newResearchTechnical.setVolumeAvg(
-                VolumeAverageUtil.getAverageVolume(timeframe, stockTechnicals));
-        newResearchTechnical.setPrevVolumeAvg(
-                VolumeAverageUtil.getPrevAverageVolume(timeframe, stockTechnicals));
-        */
+        newResearchTechnical.setPriority(Double.valueOf(tradeSetup.getSubStrategy().getPriority()));
 
         PriceInfoDto priceInfoDto = nsePriceInfoFetcher.getPriceInfo(stock.getNseSymbol());
         newResearchTechnical.setTickSize(priceInfoDto.getTickSize());
@@ -305,7 +297,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
     @Override
     public List<ResearchTechnical> getLatestBuyResearch(LocalDate sessionDate) {
-        return researchTechnicalRepository.findAllByResearchDateAndTypeOrderByScoreDesc(
+        return researchTechnicalRepository.findAllByResearchDateAndTypeOrderByScoreDescPriorityDesc(
                 sessionDate, Trade.Type.BUY);
     }
 
@@ -316,6 +308,19 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
     private double calculateStopLoss(
             TradeSetup tradeSetup, StockPrice stockPrice, ResearchTechnical researchTechnical) {
+
+        if (researchTechnical.getEntrySubStrategy() == ResearchTechnical.SubStrategy.LOWEST_BREAKOUT
+                || researchTechnical.getEntrySubStrategy()
+                        == ResearchTechnical.SubStrategy.LOW_BREAKOUT
+                || researchTechnical.getEntrySubStrategy()
+                        == ResearchTechnical.SubStrategy.MA200_BREAKOUT
+                || researchTechnical.getEntrySubStrategy()
+                        == ResearchTechnical.SubStrategy.MA100_BREAKOUT) {
+            return formulaService.floorToNearestTick(
+                    formulaService.applyPercentChange(
+                            stockPriceHelperService.findLowestLow(stockPrice), -1 * 0.05),
+                    researchTechnical.getTickSize());
+        }
 
         double stopLoss = stockPrice.getLow();
 
@@ -655,7 +660,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         if (researchTechnicalOptional.isPresent()
                 && researchTechnicalOptional.get().getTickSize() != 0.0) {
-            researchTechnicalOptional.get().getTickSize();
+            return researchTechnicalOptional.get().getTickSize();
         }
 
         return 0.1;

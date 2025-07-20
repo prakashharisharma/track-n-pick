@@ -172,13 +172,13 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                             pivotPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
-                */
+
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
                             hybridPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
-
+                */
                 if (tradeSetup.isActive()) {
                     log.info(
                             "{} Bullish Trade active timeframe: {}, strategy:{}, subStrategy:{} ",
@@ -240,12 +240,13 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                         dynamicPriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
             }
-
+            /*
             if (!tradeSetup.isActive()) {
                 tradeSetup =
                         hybridPriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
             }
+             */
 
             if (tradeSetup.isActive()) {
                 isUpdation = Boolean.TRUE;

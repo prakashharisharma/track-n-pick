@@ -1,7 +1,9 @@
 package com.example.worker.scheduler;
 
+import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockTechnicals;
 import com.example.data.transactional.entities.User;
 import com.example.data.transactional.entities.type.dhan.TransactionType;
 import com.example.external.dhan.model.Trade;
@@ -37,12 +39,14 @@ public class DhanTradeScheduler {
     private final DhanOrchestratorService dhanOrchestratorService;
     private final DhanTradeService dhanTradeService;
     private final StockService stockService;
+
+    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
     private final CalendarService calendarService;
     private final MiscUtil miscUtil;
 
     private final FormulaService formulaService;
 
-    private final PortfolioService portfolioService;
+    private final MacdIndicatorService macdIndicatorService;
 
     private final ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
 
@@ -59,7 +63,7 @@ public class DhanTradeScheduler {
     @Scheduled(cron = "0 15 10 * * *") // 10:15 AM
     @Scheduled(cron = "0 30 10 * * *") // 10:30 AM
     @Scheduled(cron = "0 45 10 * * *") // 10:45 AM
-    @Scheduled(cron = "0 32 11 * * *") // 11:00 AM
+    @Scheduled(cron = "0 00 11 * * *") // 11:00 AM
     @Scheduled(cron = "0 30 11 * * *") // 11:30 AM
     @Scheduled(cron = "0 00 15 * * *") // 3:00 PM
     @Scheduled(cron = "0 15 15 * * *") // 3:15 PM
@@ -161,9 +165,9 @@ public class DhanTradeScheduler {
                                 Collectors.collectingAndThen(
                                         Collectors.toList(),
                                         tradeList -> {
-                                            int totalQuantity =
+                                            long totalQuantity =
                                                     tradeList.stream()
-                                                            .mapToInt(Trade::getTradedQuantity)
+                                                            .mapToLong(Trade::getTradedQuantity)
                                                             .sum();
                                             double avgPrice =
                                                     tradeList.stream()
@@ -193,94 +197,165 @@ public class DhanTradeScheduler {
     private void placeSellOrdersForStock(
             Stock stock, TradeAggregation aggregation, User user, String symbol) {
         log.info(
-                "Placing aggregated SELL orders - Symbol: {}, Total Quantity: {}, Avg Price: {}",
+                "Processing sell orders for stock {} with quantity {} and average price {}",
                 symbol,
                 aggregation.quantity,
                 aggregation.averagePrice);
 
-        double netWorth = portfolioService.calculateNetWorth(user);
+        OrderParameters params = createOrderParameters(stock, aggregation);
 
-        boolean isSmallOrder =
-                (aggregation.quantity * aggregation.averagePrice) <= (netWorth * 0.05);
+        if (params.isSmallOrder()) {
+            placeSmallOrder(user, stock, aggregation, params);
+        } else {
+            placeLargeOrder(user, stock, aggregation, params);
+        }
+    }
 
+    @lombok.Value
+    private static class OrderParameters {
+        double tickSize;
+        double[] profitTargets;
+        boolean smallOrder; // lombok will create isSmallOrder() for us
+    }
+
+    private OrderParameters createOrderParameters(Stock stock, TradeAggregation aggregation) {
         double tickSize = researchTechnicalService.getTickSize(stock);
+        boolean isSmallOrder =
+                aggregation.quantity <= 10
+                        || (aggregation.getQuantity() * aggregation.averagePrice) < 50000.0;
+        double[] profitTargets = determineProfitTargets(stock);
 
+        return new OrderParameters(tickSize, profitTargets, isSmallOrder);
+    }
+
+    private double[] determineProfitTargets(Stock stock) {
         double[] profitTargetsDefault = {2.0, 3.0, 4.0, 5.0};
-
+        double[] profitTargetsPriceBand20 = {2.0, 4.0, 6.0, 7.9};
+        double[] profitTargetsPriceBand10 = {2.0, 3.5, 5.0, 6.4};
         double[] profitTargetsPriceBand5 = {2.0, 3.0, 4.0, 4.9};
-        double[] profitTargetsPriceBand10 = {2.0, 4.0, 6.0, 7.9};
-        double[] profitTargetsPriceBand20 = {2.0, 5.0, 7.5, 9.9};
 
-        double[] profitTargets = profitTargetsDefault;
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
 
-        Optional<ResearchTechnical> researchTechnicalOptional =
-                researchTechnicalService.getLatest(stock);
+        if (ConfidenceScoreCalculator.calculateMacdScore(stockTechnicals, macdIndicatorService)
+                        == 10.0
+                && ConfidenceScoreCalculator.calculateVolumeScore(stockTechnicals) == 10.0) {
 
-        if (researchTechnicalOptional.isPresent()) {
-            ResearchTechnical researchTechnical = researchTechnicalOptional.get();
-            if (researchTechnical.getPriceBand() == 20.0) {
-                profitTargets = profitTargetsPriceBand20;
-            } else if (researchTechnical.getPriceBand() == 10.0) {
-                profitTargets = profitTargetsPriceBand10;
-            } else if (researchTechnical.getPriceBand() == 5.0) {
-                profitTargets = profitTargetsPriceBand5;
+            Optional<ResearchTechnical> researchTechnicalOptional =
+                    researchTechnicalService.getLatest(stock);
+            if (researchTechnicalOptional.isPresent()) {
+                double priceBand = researchTechnicalOptional.get().getPriceBand();
+                if (priceBand == 20.0) return profitTargetsPriceBand20;
+                if (priceBand == 10.0) return profitTargetsPriceBand10;
+                if (priceBand == 5.0) return profitTargetsPriceBand5;
             }
         }
+        return profitTargetsDefault;
+    }
 
-        // If small order create a single order with 2% profit Margin
-        if (isSmallOrder) {
-            placeSellOrder(
-                    user,
-                    stock,
-                    aggregation.quantity,
-                    formulaService.floorToNearestTick(
-                            formulaService.applyPercentChange(
-                                    aggregation.averagePrice, profitTargets[0]),
-                            tickSize));
-        } else {
+    private void placeSmallOrder(
+            User user, Stock stock, TradeAggregation aggregation, OrderParameters params) {
+        placeSellOrder(
+                user,
+                stock,
+                aggregation.quantity,
+                calculateOrderPrice(
+                        aggregation.averagePrice, params.profitTargets[0], params.tickSize));
+    }
 
-            long[] splitQuantities = formulaService.splitIn40_30_20_10(aggregation.quantity);
+    private void placeLargeOrder(
+            User user, Stock stock, TradeAggregation aggregation, OrderParameters params) {
+        long[] splitQuantities = formulaService.splitIn40_30_20_10(aggregation.quantity);
 
-            // First order (40%) - Nearest 10
-            placeSellOrder(
-                    user,
-                    stock,
-                    splitQuantities[0],
-                    formulaService.floorToNearestTick(
-                            formulaService.applyPercentChange(
-                                    aggregation.averagePrice, profitTargets[0]),
-                            tickSize));
+        // First order (40%) - Immediate placement
+        placeSellOrder(
+                user,
+                stock,
+                splitQuantities[0],
+                calculateOrderPrice(
+                        aggregation.averagePrice, params.profitTargets[0], params.tickSize));
 
-            // Second order (30%) - Nearest 10
-            placeSellOrder(
-                    user,
-                    stock,
-                    splitQuantities[1],
-                    formulaService.floorToNearestTick(
-                            formulaService.applyPercentChange(
-                                    aggregation.averagePrice, profitTargets[1]),
-                            tickSize));
+        scheduleRemainingOrders(user, stock, aggregation, params, splitQuantities);
+    }
 
-            // Third order (20%) - Nearest Quarter
-            placeSellOrder(
-                    user,
-                    stock,
-                    splitQuantities[2],
-                    formulaService.floorToNearestTick(
-                            formulaService.applyPercentChange(
-                                    aggregation.averagePrice, profitTargets[2]),
-                            tickSize));
+    private void scheduleRemainingOrders(
+            User user,
+            Stock stock,
+            TradeAggregation aggregation,
+            OrderParameters params,
+            long[] splitQuantities) {
+        // Create final copies for lambda
+        final User finalUser = user;
+        final Stock finalStock = stock;
+        final double finalAveragePrice = aggregation.averagePrice;
+        final double finalTickSize = params.tickSize;
+        final double[] finalProfitTargets = params.profitTargets;
+        final long[] finalSplitQuantities = splitQuantities;
 
-            // Fourth order (10%) - Nearest Half
-            placeSellOrder(
-                    user,
-                    stock,
-                    splitQuantities[3],
-                    formulaService.floorToNearestTick(
-                            formulaService.applyPercentChange(
-                                    aggregation.averagePrice, profitTargets[3]),
-                            tickSize));
-        }
+        CompletableFuture.runAsync(
+                () -> {
+                    try {
+                        placeDelayedOrders(
+                                finalUser,
+                                finalStock,
+                                finalAveragePrice,
+                                finalTickSize,
+                                finalProfitTargets,
+                                finalSplitQuantities);
+                    } catch (InterruptedException e) {
+                        log.error(
+                                "Error in delayed order placement for user {} and stock {}: {}",
+                                finalUser.getUsername(),
+                                finalStock.getNseSymbol(),
+                                e.getMessage());
+                        Thread.currentThread().interrupt();
+                    } catch (Exception e) {
+                        log.error(
+                                "Unexpected error in delayed order placement for user {} and stock"
+                                        + " {}: {}",
+                                finalUser.getUsername(),
+                                finalStock.getNseSymbol(),
+                                e.getMessage());
+                    }
+                },
+                executorService);
+    }
+
+    private void placeDelayedOrders(
+            User user,
+            Stock stock,
+            double averagePrice,
+            double tickSize,
+            double[] profitTargets,
+            long[] splitQuantities)
+            throws InterruptedException {
+        // Second order (30%) - After 5 minutes
+        Thread.sleep(5 * 60 * 1000);
+        placeSellOrder(
+                user,
+                stock,
+                splitQuantities[1],
+                calculateOrderPrice(averagePrice, profitTargets[1], tickSize));
+
+        // Third order (20%) - After 10 minutes
+        Thread.sleep(5 * 60 * 1000);
+        placeSellOrder(
+                user,
+                stock,
+                splitQuantities[2],
+                calculateOrderPrice(averagePrice, profitTargets[2], tickSize));
+
+        // Fourth order (10%) - After 15 minutes
+        Thread.sleep(5 * 60 * 1000);
+        placeSellOrder(
+                user,
+                stock,
+                splitQuantities[3],
+                calculateOrderPrice(averagePrice, profitTargets[3], tickSize));
+    }
+
+    private double calculateOrderPrice(double averagePrice, double profitTarget, double tickSize) {
+        return formulaService.floorToNearestTick(
+                formulaService.applyPercentChange(averagePrice, profitTarget), tickSize);
     }
 
     private void placeSellOrder(User user, Stock stock, long quantity, double price) {
@@ -289,7 +364,7 @@ public class DhanTradeScheduler {
 
     @lombok.Value
     private static class TradeAggregation {
-        int quantity;
+        long quantity;
         double averagePrice;
     }
 

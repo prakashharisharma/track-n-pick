@@ -257,7 +257,7 @@ public class MovingAverageUtil {
 
         List<MovingAverageLength> longerMAs =
                 Arrays.stream(MovingAverageLength.values())
-                        .filter(ma -> ma.getMaDays() > movingAverageLength.getMaDays())
+                        .filter(ma -> ma.getMaDays() >= movingAverageLength.getMaDays())
                         .sorted(Comparator.comparingInt(MovingAverageLength::getMaDays))
                         .toList();
 
@@ -291,7 +291,7 @@ public class MovingAverageUtil {
 
         List<MovingAverageLength> longerMAs =
                 Arrays.stream(MovingAverageLength.values())
-                        .filter(ma -> ma.getMaDays() > movingAverageLength.getMaDays())
+                        .filter(ma -> ma.getMaDays() >= movingAverageLength.getMaDays())
                         .sorted(Comparator.comparingInt(MovingAverageLength::getMaDays))
                         .toList();
 
