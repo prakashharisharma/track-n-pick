@@ -18,7 +18,7 @@ public class Trade {
     private String tradingSymbol;
     private String customSymbol;
     private String securityId;
-    private int tradedQuantity;
+    private long tradedQuantity;
     private double tradedPrice;
     private String createTime;
     private String updateTime;

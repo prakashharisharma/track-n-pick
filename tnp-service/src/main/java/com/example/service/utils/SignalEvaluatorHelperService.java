@@ -1244,8 +1244,14 @@ public class SignalEvaluatorHelperService {
         double bodySize = Math.abs(close - open);
         double bodyAboveBreakout = close > breakoutValue ? close - breakoutValue : 0;
         boolean isBreakoutCrossedHalfBody = bodySize > 0 && (bodyAboveBreakout / bodySize) > 0.5;
-        if (breakoutValue >= highestMovingAverageResult.getValue()) {
-            entryPrice = formulaService.applyPercentChange(breakoutValue, 0.02);
+        if (open >= highestMovingAverageResult.getValue()
+                && close >= highestMovingAverageResult.getValue()) {
+            entryPrice = (open + high) / 2;
+            entryPrice =
+                    formulaService.applyPercentChange(
+                            Math.max(entryPrice, highestMovingAverageResult.getValue()), 0.2);
+        } else if (breakoutValue >= highestMovingAverageResult.getValue()) {
+
             if (isBreakoutCrossedHalfBody) {
                 entryPrice = (breakoutValue + high) / 2;
             }
@@ -1255,7 +1261,10 @@ public class SignalEvaluatorHelperService {
                     entryPrice = high;
                 }
             }
-            entryPrice = formulaService.applyPercentChange(entryPrice, 0.03);
+            entryPrice = formulaService.applyPercentChange(entryPrice, 0.2);
+
+            entryPrice = Math.max(entryPrice, highestMovingAverageResult.getValue());
+
         } else if (singleSessionCandleStickService.isBullishMarubozu(
                         timeframe, stockPrice, stockTechnicals)
                 || CandleStickUtils.isCloseHighEqual(stockPrice)) {
@@ -1299,14 +1308,12 @@ public class SignalEvaluatorHelperService {
                 || MovingAverageUtil.isAllMAsIncreasing(stockTechnicals)) {
             // entryPrice = formulaService.ceilToNearestHalf(entryPrice);
             entryPrice =
-                    Math.max(formulaService.applyPercentChange(entryPrice, 0.05), entryPrice + 0.5);
+                    Math.max(formulaService.applyPercentChange(entryPrice, 0.2), entryPrice + 0.5);
             return entryPrice;
         } else if (macdIndicatorService.isHistogramGreen(stockTechnicals)) {
             // entryPrice = formulaService.ceilToNearestHalf(entryPrice);
             entryPrice =
-                    Math.max(
-                            formulaService.applyPercentChange(entryPrice, 0.025),
-                            entryPrice + 0.25);
+                    Math.max(formulaService.applyPercentChange(entryPrice, 0.1), entryPrice + 0.5);
             return entryPrice;
         }
 

@@ -24,9 +24,11 @@ public class RsiIndicatorServiceImpl implements RsiIndicatorService {
 
     @Override
     public boolean isBullish(StockTechnicals stockTechnicals) {
-        if (stockTechnicals == null
-                || stockTechnicals.getRsi() == null
-                || stockTechnicals.getPrevRsi() == null) {
+        if (stockTechnicals == null) {
+            return false;
+        }
+
+        if (stockTechnicals.getRsi() == null || stockTechnicals.getPrevRsi() == null) {
 
             evaluationLogService.add(
                     stockTechnicals,
