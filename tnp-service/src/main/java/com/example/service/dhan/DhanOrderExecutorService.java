@@ -1,13 +1,19 @@
 package com.example.service.dhan;
 
+import com.example.data.common.type.MarketCapCategory;
+import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
+import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.User;
 import com.example.data.transactional.entities.type.dhan.TransactionType;
 import com.example.external.dhan.model.Holding;
 import com.example.service.PortfolioService;
 import com.example.service.PositionService;
+import com.example.service.StockPriceService;
 import com.example.service.dhan.model.PositionDetails;
+import com.example.service.impl.FundamentalResearchService;
+import com.example.util.FormulaService;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +28,19 @@ public class DhanOrderExecutorService {
 
     private final PortfolioService portfolioService;
 
+    private final StockPriceService<StockPrice> stockPriceService;
+
     private final PositionService positionService;
+
+    private final FormulaService formulaService;
 
     private final DhanOrchestratorService dhanOrchestratorService;
 
+    private final FundamentalResearchService fundamentalResearchService;
+
     @Transactional
     public void executeBuy(User user, List<ResearchTechnical> researchTechnicals) {
+
         Objects.requireNonNull(user, "User cannot be null");
         Objects.requireNonNull(researchTechnicals, "Research technicals cannot be null");
 
@@ -47,6 +60,7 @@ public class DhanOrderExecutorService {
 
         for (ResearchTechnical researchTechnical : researchTechnicals) {
             try {
+
                 if (!validateResearchTechnical(researchTechnical)) {
                     continue;
                 }
@@ -158,8 +172,14 @@ public class DhanOrderExecutorService {
         double rawMaxPerStock = totalCapital * capPercent;
         double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
 
+        // Order should not be less than 10000.0
+        // maxPerStock = Math.max(5000, maxPerStock);
+
         double rawMinPerStock = totalCapital * MIN_CAP;
         double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
+
+        // Order should not be less than 1000.0
+        // minPerStock = Math.max(5000, minPerStock);
 
         return new DhanOrderExecutorService.PortfolioLimits(
                 availableFunds, maxPerStock, minPerStock, availableFunds);
@@ -171,10 +191,37 @@ public class DhanOrderExecutorService {
             return false;
         }
 
+        if (!isValidScore(researchTechnical)) {
+            return false;
+        }
+
         if (researchTechnical.getEntryPrice() <= 0) {
             log.warn(
                     "Skipping order for {} due to invalid entry price",
                     researchTechnical.getStock().getNseSymbol());
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean isValidScore(ResearchTechnical researchTechnical) {
+        Double score = researchTechnical.getScore();
+        Stock stock = researchTechnical.getStock();
+
+        if (score == null) return false;
+
+        MarketCapCategory capCategory =
+                MarketCapCategory.classify(fundamentalResearchService.marketCap(stock));
+
+        double threshold = capCategory == MarketCapCategory.MEGACAP ? 7.0 : 7.5;
+
+        if (score <= threshold) {
+            log.warn(
+                    "Skipping order for {} due to low score {} (threshold: {})",
+                    stock.getNseSymbol(),
+                    score,
+                    threshold);
             return false;
         }
 
@@ -254,9 +301,11 @@ public class DhanOrderExecutorService {
 
         for (ResearchTechnical researchTechnical : researchTechnicals) {
             try {
+                /*
                 if (!validateResearchTechnical(researchTechnical)) {
                     continue;
                 }
+                */
 
                 Stock stock = researchTechnical.getStock();
                 String nseSymbol = stock.getNseSymbol();
@@ -283,6 +332,20 @@ public class DhanOrderExecutorService {
 
                 if (exitPrice <= 0) {
                     log.warn("Invalid exit price for stock: {}, skipping sell order", nseSymbol);
+                    continue;
+                }
+
+                StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+
+                double upperCircuit =
+                        formulaService.applyPercentChange(
+                                stockPrice.getClose(), researchTechnical.getPriceBand());
+
+                if (upperCircuit < exitPrice) {
+                    log.warn(
+                            "Exit price not within upper circuit for stock: {}, skipping sell"
+                                    + " order",
+                            nseSymbol);
                     continue;
                 }
 

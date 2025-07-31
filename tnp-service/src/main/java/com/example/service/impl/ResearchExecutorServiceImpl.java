@@ -33,6 +33,8 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     @Autowired private MiscUtil miscUtil;
     @Autowired private ResearchLedgerFundamentalService researchLedgerFundamentalService;
     @Autowired private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
+
+    @Autowired private ResistanceValidationService resistanceValidationService;
     @Autowired private FundamentalResearchService fundamentalResearchService;
 
     @Autowired private MovingAverageActionService movingAverageActionService;
@@ -93,13 +95,12 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
         ResearchTechnical researchTechnical =
                 researchTechnicalService.get(stock, timeframe, Trade.Type.BUY);
 
+        this.technicalBuy(timeframe, stock, stockPrice, stockTechnicals, sessionDate);
+
         if (researchTechnical != null) {
             this.technicalSell(
                     timeframe, stock, stockPrice, stockTechnicals, researchTechnical, sessionDate);
-        } else {
-            log.info("{} No existing research, executing buy", stock.getNseSymbol());
             this.technicalBuy(timeframe, stock, stockPrice, stockTechnicals, sessionDate);
-            log.info("{} executed buy", stock.getNseSymbol());
         }
 
         log.info("{} Executed technical research", stock.getNseSymbol());
@@ -278,7 +279,9 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                     "{} Stop loss triggered, stopLoss {}",
                     stock.getNseSymbol(),
                     researchTechnical.getStopLoss());
-            return Boolean.TRUE;
+            if (resistanceValidationService.isOutsideSupportZone(stockPrice)) {
+                return Boolean.TRUE;
+            }
         }
 
         return Boolean.FALSE;

@@ -25,6 +25,8 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
     private final StockPriceService<StockPrice> stockPriceService;
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
+    private final AdxIndicatorService adxIndicatorService;
+
     @Override
     public TradeSetup evaluateEntry(
             Timeframe timeframe,
@@ -168,9 +170,8 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         if (evaluationResult.getLength() == MovingAverageLength.HIGHEST
                 && evaluationResult.getLength().getMaDays() == 5) {
-            boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
-
-            if (!isAllMAsIncreasing) {
+            // boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
+            if (!adxIndicatorService.isBullish(stockTechnicals)) {
                 return Optional.empty();
             }
         }
