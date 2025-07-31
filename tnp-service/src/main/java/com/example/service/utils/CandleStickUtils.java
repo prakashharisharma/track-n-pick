@@ -823,4 +823,20 @@ public class CandleStickUtils {
 
         return lowerWickSize > upperWickSize && lowerWickSize > bodySize;
     }
+
+    public static boolean isUpperWickLongerThanLowerWick(StockPrice stockPrice) {
+
+        double lowerWickSize = lowerWickSize(stockPrice);
+        double upperWickSize = upperWickSize(stockPrice);
+
+        return upperWickSize > lowerWickSize;
+    }
+
+    public static boolean isLowerWickLongerThanUpperWick(StockPrice stockPrice) {
+
+        double lowerWickSize = lowerWickSize(stockPrice);
+        double upperWickSize = upperWickSize(stockPrice);
+
+        return upperWickSize < lowerWickSize;
+    }
 }

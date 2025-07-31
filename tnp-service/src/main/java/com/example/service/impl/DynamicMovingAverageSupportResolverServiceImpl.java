@@ -361,7 +361,8 @@ public class DynamicMovingAverageSupportResolverServiceImpl
         */
         if (!breakdowns.isEmpty() && !supports.isEmpty()) {
             if (CandleStickUtils.isLowerWickDominant(stockPrice)
-                    || CandleStickUtils.isStrongLowerWick(stockPrice)) {
+                    || CandleStickUtils.isStrongLowerWick(stockPrice)
+                    || CandleStickUtils.isLowerWickLongerThanUpperWick(stockPrice)) {
                 return supports.stream().min(weightComparator);
             }
         }
@@ -375,7 +376,8 @@ public class DynamicMovingAverageSupportResolverServiceImpl
 
         if (!breakouts.isEmpty() && !resistances.isEmpty()) {
             if (CandleStickUtils.isUpperWickDominant(stockPrice)
-                    || CandleStickUtils.isStrongUpperWick(stockPrice)) {
+                    || CandleStickUtils.isStrongUpperWick(stockPrice)
+                    || CandleStickUtils.isUpperWickLongerThanLowerWick(stockPrice)) {
                 return resistances.stream().max(weightComparator);
             }
         }

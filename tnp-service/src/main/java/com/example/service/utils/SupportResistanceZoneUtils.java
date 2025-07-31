@@ -2,7 +2,7 @@ package com.example.service.utils;
 
 import com.example.data.transactional.entities.StockPrice;
 import com.example.service.SupportResistanceZones;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class SupportResistanceZoneUtils {
@@ -31,87 +31,47 @@ public class SupportResistanceZoneUtils {
     }
 
     public static SupportResistanceZones calculateSupportResistanceZones(StockPrice stockPrice) {
-
-        List<Double> opens =
-                List.of(
-                        stockPrice.getOpen(),
-                        stockPrice.getPrevOpen(),
-                        stockPrice.getPrev2Open(),
-                        stockPrice.getPrev3Open(),
-                        stockPrice.getPrev4Open(),
-                        stockPrice.getPrev5Open());
-
         List<Double> highs =
                 List.of(
-                        stockPrice.getHigh(),
                         stockPrice.getPrevHigh(),
                         stockPrice.getPrev2High(),
                         stockPrice.getPrev3High(),
                         stockPrice.getPrev4High(),
-                        stockPrice.getPrev5High());
+                        stockPrice.getPrev5High(),
+                        stockPrice.getPrev6High());
 
         List<Double> lows =
                 List.of(
-                        stockPrice.getLow(),
                         stockPrice.getPrevLow(),
                         stockPrice.getPrev2Low(),
                         stockPrice.getPrev3Low(),
                         stockPrice.getPrev4Low(),
-                        stockPrice.getPrev5Low());
+                        stockPrice.getPrev5Low(),
+                        stockPrice.getPrev6Low());
 
-        List<Double> closes =
-                List.of(
-                        stockPrice.getClose(),
-                        stockPrice.getPrevClose(),
-                        stockPrice.getPrev2Close(),
-                        stockPrice.getPrev3Close(),
-                        stockPrice.getPrev4Close(),
-                        stockPrice.getPrev5Close());
-
-        Zone resistanceZone = getClusteredZone(highs);
-        Zone supportZone = getClusteredZone(lows);
+        Zone resistanceZone = getExtremeZone(highs, true); // true = upper extremes
+        Zone supportZone = getExtremeZone(lows, false); // false = lower extremes
 
         return SupportResistanceZones.builder()
-                .support(supportZone)
                 .resistance(resistanceZone)
+                .support(supportZone)
                 .build();
     }
 
-    private static Zone getClusteredZone(List<Double> levels) {
-        if (levels.isEmpty()) return new Zone(0, 0);
+    private static Zone getExtremeZone(List<Double> levels, boolean pickTop) {
+        List<Double> sorted =
+                levels.stream()
+                        .filter(v -> v != null && v > 0)
+                        .sorted(pickTop ? Comparator.reverseOrder() : Comparator.naturalOrder())
+                        .limit(3) // take top 3 or bottom 3
+                        .sorted()
+                        .toList();
 
-        List<Double> sorted = new ArrayList<>(levels);
-        sorted.sort(Double::compare);
+        if (sorted.isEmpty()) return new Zone(0, 0);
 
-        double avg = sorted.stream().mapToDouble(Double::doubleValue).average().orElse(0);
-        double zoneWidth = avg * 0.02; // 2% of average price
-
-        int maxCount = 0;
-        double bestStart = sorted.get(0);
-        double bestEnd = sorted.get(0);
-
-        for (int i = 0; i < sorted.size(); i++) {
-            double start = sorted.get(i);
-            List<Double> cluster = new ArrayList<>();
-            cluster.add(start);
-
-            for (int j = i + 1; j < sorted.size(); j++) {
-                double end = sorted.get(j);
-                if (end - start <= zoneWidth) {
-                    cluster.add(end);
-                } else {
-                    break;
-                }
-            }
-
-            if (cluster.size() > maxCount) {
-                maxCount = cluster.size();
-                bestStart = cluster.get(0);
-                bestEnd = cluster.get(cluster.size() - 1);
-            }
-        }
-
-        return new Zone(roundToHalf(bestStart), roundToHalf(bestEnd));
+        double start = roundToHalf(sorted.get(0));
+        double end = roundToHalf(sorted.get(sorted.size() - 1));
+        return new Zone(start, end);
     }
 
     private static double roundToHalf(double value) {

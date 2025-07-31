@@ -1152,8 +1152,7 @@ public class SignalEvaluatorHelperService {
 
         boolean isHigherTimeframeResistanceCheckPassed =
                 (checkHigherTimeFrameResistance
-                        ? resistanceValidationService.isOutsideHigherTimeframeResistanceZone(
-                                stockPrice)
+                        ? resistanceValidationService.isOutsideResistanceZone(stockPrice)
                         : true);
 
         if (isHigherTimeframeResistanceCheckPassed) {
@@ -1206,6 +1205,29 @@ public class SignalEvaluatorHelperService {
 
         boolean isBearishCandle = this.isBearishCandle(stockPrice, stockTechnicals);
 
+        boolean isBearishConfirmed =
+                candleStickConfirmationService.isBearishConfirmed(
+                        stockPrice.getTimeframe(), stockPrice, stockTechnicals, true);
+
+        boolean isLowerWickSizeConfirmed =
+                candleStickConfirmationService.isLowerWickSizeConfirmed(
+                        stockPrice.getTimeframe(), stockPrice, stockTechnicals);
+
+        boolean checkHigherTimeFrameSupport =
+                (isBearishConfirmed && isLowerWickSizeConfirmed) ? false : true;
+
+        boolean isHigherTimeframeSupportCheckPassed =
+                (checkHigherTimeFrameSupport
+                        ? resistanceValidationService.isOutsideSupportZone(stockPrice)
+                        : true);
+
+        if (isHigherTimeframeSupportCheckPassed) {
+            evaluationLogService.add(
+                    stockPrice,
+                    EvaluationLog.Type.NEGATIVE,
+                    StringUtils.format("Timeframe support check passed"));
+        }
+
         boolean isPrevRed = CandleStickUtils.isPrevSessionRed(stockPrice);
 
         boolean isPrevStrongUpperWick = CandleStickUtils.isPrevStrongUpperWick(stockPrice);
@@ -1213,7 +1235,9 @@ public class SignalEvaluatorHelperService {
         boolean isLowerHighAndLowerLow =
                 CandleStickUtils.isLowerHigh(stockPrice) && CandleStickUtils.isLowerLow(stockPrice);
 
-        return isBearishCandle && (isPrevRed || isPrevStrongUpperWick || isLowerHighAndLowerLow);
+        return isHigherTimeframeSupportCheckPassed
+                && isBearishCandle
+                && (isPrevRed || isPrevStrongUpperWick || isLowerHighAndLowerLow);
     }
 
     public double calculateEntryPrice(
@@ -1252,16 +1276,21 @@ public class SignalEvaluatorHelperService {
                             Math.max(entryPrice, highestMovingAverageResult.getValue()), 0.2);
         } else if (breakoutValue >= highestMovingAverageResult.getValue()) {
 
+            entryPrice = (highestMovingAverageResult.getValue() + high) / 2;
+
             if (isBreakoutCrossedHalfBody) {
                 entryPrice = (breakoutValue + high) / 2;
             }
+
             if (macdIndicatorService.isMacdCrossedSignal(stockTechnicals)) {
                 entryPrice = (Math.max(open, close) + high) / 2;
+
                 if (isUpperWickClean) {
                     entryPrice = high;
                 }
             }
-            entryPrice = formulaService.applyPercentChange(entryPrice, 0.2);
+
+            entryPrice = formulaService.applyPercentChange(entryPrice, 0.5);
 
             entryPrice = Math.max(entryPrice, highestMovingAverageResult.getValue());
 

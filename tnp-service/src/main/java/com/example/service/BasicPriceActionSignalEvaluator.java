@@ -24,6 +24,8 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
     private final SignalEvaluatorHelperService signalEvaluatorHelperService;
     private final RsiIndicatorService rsiIndicatorService;
 
+    private final AdxIndicatorService adxIndicatorService;
+
     @Override
     public TradeSetup evaluateEntry(
             Timeframe timeframe,
@@ -143,10 +145,10 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 MovingAverageUtil.getMovingAverage(
                         MovingAverageLength.HIGHEST, timeframe, stockTechnicals, false);
 
-        boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
+        // boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
 
         if (movingAverageResult.getValue() == fiveMamovingAverageResult.getValue()) {
-            if (!isAllMAsIncreasing) {
+            if (!adxIndicatorService.isBullish(stockTechnicals)) {
                 return Optional.empty();
             }
         }

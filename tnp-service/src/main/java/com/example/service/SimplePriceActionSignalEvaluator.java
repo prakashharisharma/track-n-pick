@@ -26,6 +26,8 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
     private final StockPriceService<StockPrice> stockPriceService;
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
+    private final AdxIndicatorService adxIndicatorService;
+
     @Override
     public TradeSetup evaluateEntry(
             Timeframe timeframe,
@@ -170,7 +172,7 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
         boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
 
         if (evaluationResult.getLength().getMaDays() == 5) {
-            if (!isAllMAsIncreasing) {
+            if (!adxIndicatorService.isBullish(stockTechnicals)) {
                 return Optional.empty();
             }
         }

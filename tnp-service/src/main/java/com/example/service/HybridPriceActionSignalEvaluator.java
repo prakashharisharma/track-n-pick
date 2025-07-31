@@ -25,6 +25,8 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
     private final EvaluationLogService evaluationLogService;
     private final RsiIndicatorService rsiIndicatorService;
 
+    private final AdxIndicatorService adxIndicatorService;
+
     @Override
     public TradeSetup evaluateEntry(
             Timeframe timeframe,
@@ -204,7 +206,8 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 boolean currentConfirmation =
                         signalEvaluatorHelperService.currentBreakoutConfirmation(
                                 stockPrice, stockTechnicals);
-                if (currentConfirmation) {
+                if (currentConfirmation && adxIndicatorService.isBullish(stockTechnicals)) {
+
                     return SubStrategyHelper.resolveByName(
                             timeframe.getHigher().name() + "_breakout");
                 }

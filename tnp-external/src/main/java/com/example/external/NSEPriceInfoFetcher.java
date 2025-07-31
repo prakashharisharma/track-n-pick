@@ -81,7 +81,7 @@ public class NSEPriceInfoFetcher {
                 if (json.has("priceInfo")) {
                     JSONObject securityInfo = json.getJSONObject("priceInfo");
 
-                    double priceBand = securityInfo.optDouble("pPriceBand", 20.0);
+                    double priceBand = securityInfo.optDouble("pPriceBand", 10.0);
                     double tickSize = securityInfo.optDouble("tickSize", 0.05);
 
                     // Return the FinancialsSummaryDto with issuedSize and faceValue

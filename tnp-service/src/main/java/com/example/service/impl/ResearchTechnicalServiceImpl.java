@@ -51,8 +51,6 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
     private final MacdIndicatorService macdIndicatorService;
 
-    private final VolumeIndicatorService volumeIndicatorService;
-
     private final TargetService targetService;
 
     private final UserService userService;
@@ -92,10 +90,6 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                                 stock.getStockId(), timeframe, Trade.Type.BUY)
                         .orElse(null);
 
-        if (existingResearchTechnical != null) {
-            return existingResearchTechnical;
-        }
-
         ResearchTechnical newResearchTechnical =
                 STOCK_PRICE_CREATORS
                         .getOrDefault(
@@ -105,6 +99,17 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                                             "Unsupported timeframe: " + timeframe);
                                 })
                         .get();
+
+        if (existingResearchTechnical != null) {
+            newResearchTechnical.setPrevResearchDate(existingResearchTechnical.getResearchDate());
+            newResearchTechnical.setPrevEntryStrategy(existingResearchTechnical.getEntryStrategy());
+            newResearchTechnical.setPrevEntrySubStrategy(
+                    existingResearchTechnical.getEntrySubStrategy());
+            newResearchTechnical.setPrevEntryPrice(existingResearchTechnical.getEntryPrice());
+            newResearchTechnical.setPrevTarget(existingResearchTechnical.getTarget());
+            newResearchTechnical.setPrevStopLoss(existingResearchTechnical.getStopLoss());
+            newResearchTechnical.setPrevScore(existingResearchTechnical.getScore());
+        }
 
         // Create new research entry
         newResearchTechnical.setStock(stock);

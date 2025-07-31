@@ -64,28 +64,23 @@ public class WebRunner implements CommandLineRunner {
     // @Autowired private DailySupportResistanceService dailySupportResistanceService;
 
     @Autowired private OHLCVAggregatorService ohlcvAggregatorService;
-
     @Autowired private UserService userService;
 
     @Autowired private ResearchLedgerFundamentalService researchLedgerFundamentalService;
-
     @Autowired private OhlcvService ohlcvService;
-
     @Autowired private StockService stockService;
-
     @Autowired private SectorService sectorService;
 
     @Autowired private FundsLedgerService fundsLedgerService;
+
     @Autowired private TradingHolidayRepository tradingHolidayRepository;
     @Autowired private CalendarService calendarService;
     @Autowired private MiscUtil miscUtil;
     @Autowired private BhavProcessor bhavProcessor;
-
     @Autowired private NSEIndustryFetcher sectorScrappingService;
     @Autowired private UpdatePriceService updatePriceService;
 
     @Autowired private TechnicalsTemplate technicalsTemplate;
-
     @Autowired private PriceTemplate priceTemplate;
 
     @Autowired private FormulaService formulaService;
@@ -101,6 +96,7 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private FundsLedgerRepository fundsLedgerRepository;
 
     @Autowired private ResearchExecutorService researchExecutorService;
+
     @Autowired private OnBalanceVolumeCalculatorService onBalanceVolumeCalculatorService;
 
     @Autowired private RelativeStrengthIndexCalculatorService rsiService;
@@ -129,7 +125,7 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private StockPriceHelperService stockPriceHelperService;
 
     @Autowired private StockPriceService<StockPrice> stockPriceService;
-
+    @Autowired private ResistanceValidationService resistanceValidationService;
     @Autowired private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
     @Autowired private BreakoutService breakoutService;
@@ -140,6 +136,7 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private CandleStickConfirmationService candleStickHelperService;
 
     @Autowired private FundamentalResearchService fundamentalResearchService;
+
     @Autowired private CandleStickService candleStickService;
 
     @Autowired private UpdateTechnicalsService updateTechnicalsService;
@@ -193,6 +190,46 @@ public class WebRunner implements CommandLineRunner {
         // bhavProcessor.processAndResearchTechnicals();
         this.allocatePositions();
 
+        // List<Stock> stocks = stockService.getActiveStocks();
+        /*
+        List<Stock> stocks = new ArrayList<>();
+        Stock testStock = stockService.getStockByNseSymbol("THEJO");
+        stocks.add(testStock);
+         testStock = stockService.getStockByNseSymbol("NDRAUTO");
+        stocks.add(testStock);
+        for(Stock stock : stocks) {
+
+            System.out.println(stock.getNseSymbol());
+
+            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+
+            System.out.println(stockPrice.getPrev6Open() + "," + stockPrice.getPrev6High() + "," + stockPrice.getPrev6Low() + "," + stockPrice.getPrev6Close());
+            System.out.println(stockPrice.getPrev5Open() + "," + stockPrice.getPrev5High() + "," + stockPrice.getPrev5Low() + "," + stockPrice.getPrev5Close());
+            System.out.println(stockPrice.getPrev4Open() + "," + stockPrice.getPrev4High() + "," + stockPrice.getPrev4Low() + "," + stockPrice.getPrev4Close());
+            System.out.println(stockPrice.getPrev3Open() + "," + stockPrice.getPrev3High() + "," + stockPrice.getPrev3Low() + "," + stockPrice.getPrev3Close());
+            System.out.println(stockPrice.getPrev2Open() + "," + stockPrice.getPrev2High() + "," + stockPrice.getPrev2Low() + "," + stockPrice.getPrev2Close());
+            System.out.println(stockPrice.getPrevOpen() + "," + stockPrice.getPrevHigh() + "," + stockPrice.getPrevLow() + "," + stockPrice.getPrevClose());
+
+            SupportResistanceZones supportResistanceZones = SupportResistanceZoneUtils.calculateSupportResistanceZones(stockPrice);
+
+            SupportResistanceZoneUtils.Zone zone = supportResistanceZones.getResistance();
+
+            System.out.println(zone.getStart() + "-" + zone.getEnd());
+
+            zone = supportResistanceZones.getSupport();
+
+            System.out.println(zone.getStart() + "-" + zone.getEnd());
+
+            System.out.println("Outside Resistance " +  resistanceValidationService.isOutsideResistanceZone(
+                    stockPrice));
+            System.out.println("Outside Support " +  resistanceValidationService.isOutsideSupportZone(
+                    stockPrice));
+            System.out.println("Inside Resistance " +  resistanceValidationService.isInsideResistanceZone(
+                    stockPrice));
+            System.out.println("Inside Support " +  resistanceValidationService.isInsideResistanceZone(
+                    stockPrice));
+        }
+        */
         /*
         List<ResearchTechnical> researchTechnicalList = researchTechnicalRepository.findAll();
         for (ResearchTechnical researchTechnical : researchTechnicalList) {
@@ -301,7 +338,6 @@ public class WebRunner implements CommandLineRunner {
     }
 
     private void testdetectMArketConfition() {
-
         /*
                List<Stock> stocks = new ArrayList<>();
                Stock stockToAdd = stockService.getStockByNseSymbol("SAPPHIRE");
@@ -420,7 +456,7 @@ public class WebRunner implements CommandLineRunner {
                 researchTechnicalService.getAll(Trade.Type.BUY);
 
         for (ResearchTechnical researchTechnical : researchTechnicalList) {
-            if (researchTechnical.getResearchDate().isAfter(LocalDate.of(2025, 07, 14))) {
+            if (researchTechnical.getResearchDate().isAfter(LocalDate.of(2025, 07, 28))) {
                 researchTechnicalService.updateScore(researchTechnical);
             }
         }
@@ -445,12 +481,28 @@ public class WebRunner implements CommandLineRunner {
 
         List<Stock> stockList = new ArrayList<>();
         stockList.add(stockService.getStockByNseSymbol("AETHER"));
+        stockList.add(stockService.getStockByNseSymbol("GMDCLTD"));
+        stockList.add(stockService.getStockByNseSymbol("HGINFRA"));
+        stockList.add(stockService.getStockByNseSymbol("CELLO"));
+        stockList.add(stockService.getStockByNseSymbol("OFSS"));
+        stockList.add(stockService.getStockByNseSymbol("GODREJPROP"));
+        stockList.add(stockService.getStockByNseSymbol("BBL"));
+        stockList.add(stockService.getStockByNseSymbol("GRINDWELL"));
+        stockList.add(stockService.getStockByNseSymbol("SWANENERGY"));
+        stockList.add(stockService.getStockByNseSymbol("DOLLAR"));
+        stockList.add(stockService.getStockByNseSymbol("RAMKY"));
+        stockList.add(stockService.getStockByNseSymbol("NDRAUTO"));
+        stockList.add(stockService.getStockByNseSymbol("ADANIGREEN"));
+        stockList.add(stockService.getStockByNseSymbol("ALEMBICLTD"));
+        stockList.add(stockService.getStockByNseSymbol("ALEMBICLTD"));
+
         // stockList.add(stockService.getStockByNseSymbol("KRBL"));
         // stockList.add(stockService.getStockByNseSymbol("KITEX"));
         // stockList.add(stockService.getStockByNseSymbol("ANANTRAJ"));
         // stockList.add(stockService.getStockByNseSymbol("JMFINANCIL"));
         // stockList.add(stockService.getStockByNseSymbol("MANINFRA"));
         // stockList.add(stockService.getStockByNseSymbol("INDIAGLYCO"));
+
         for (Stock stock : stockList) {
             System.out.println("Evaluation...." + stock.getNseSymbol());
             StockPrice stockPrice1 = stockPriceService.get(stock, Timeframe.DAILY);
@@ -469,12 +521,6 @@ public class WebRunner implements CommandLineRunner {
                         System.out.println(
                                 stock.getNseSymbol() + " : " + stockPrice.getClose() + " : " + mae);
                     });
-
-            boolean upperWickSize =
-                    candleStickHelperService.isUpperWickSizeConfirmed(
-                            stockPrice.getTimeframe(), stockPrice, stockTechnicals);
-
-            System.out.println("upperWickSize " + upperWickSize);
 
             Optional<MAEvaluationResult> evaluationResultOptional =
                     dynamicMovingAverageSupportResolverService.evaluateSingleInteractionSmart(
@@ -878,11 +924,15 @@ public class WebRunner implements CommandLineRunner {
         double rawMaxPerStock = totalCapital * capPercent;
         double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
 
+        // Order should not be less than 10000.0
+        // maxPerStock = Math.max(10000, maxPerStock);
         System.out.println("maxPerStock " + maxPerStock);
 
         double rawMinPerStock = totalCapital * MIN_CAP;
         double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
 
+        // Order should not be less than 10000.0
+        // minPerStock = Math.max(10000, minPerStock);
         System.out.println("minPerStock " + minPerStock);
         return new WebRunner.PortfolioLimits(
                 availableFunds, maxPerStock, minPerStock, availableFunds);
