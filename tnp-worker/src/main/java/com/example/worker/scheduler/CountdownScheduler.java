@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CountdownScheduler {
 
-    private static final int START_TIME_SECONDS = 10 * 60; // 10 minutes
+    private static final int START_TIME_SECONDS = 5 * 60; // 5 minutes
 
     private void startCountdown(String label) {
         Timer timer = new Timer();
@@ -35,13 +35,13 @@ public class CountdownScheduler {
     }
 
     // 🔔 Schedule 9:05 AM
-    @Scheduled(cron = "0 5 9 * * MON-FRI") // Weekdays only
+    @Scheduled(cron = "0 0 9 * * MON-FRI") // Weekdays only
     public void countdownBeforeMorningSession() {
-        startCountdown("Before 9:15 AM");
+        startCountdown("Before 9:05 AM");
     }
 
     // 🔔 Schedule 3:20 PM
-    @Scheduled(cron = "0 20 15 * * MON-FRI") // Weekdays only
+    @Scheduled(cron = "0 25 15 * * MON-FRI") // Weekdays only
     public void countdownBeforeEveningSession() {
         startCountdown("Before 3:30 PM");
     }

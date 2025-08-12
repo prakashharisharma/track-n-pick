@@ -8,6 +8,7 @@ import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.User;
 import com.example.data.transactional.entities.type.dhan.TransactionType;
 import com.example.external.dhan.model.Holding;
+import com.example.model.type.IndiceType;
 import com.example.service.PortfolioService;
 import com.example.service.PositionService;
 import com.example.service.StockPriceService;
@@ -16,31 +17,59 @@ import com.example.service.impl.FundamentalResearchService;
 import com.example.util.FormulaService;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DhanOrderExecutorService {
 
+    private static final double LARGE_ORDER_THRESHOLD = 100000.0;
+    private static final long LARGE_QUANTITY_THRESHOLD = 1000;
+    private static final long ORDER_DELAY_MINUTES = 10;
+
     private final PortfolioService portfolioService;
-
     private final StockPriceService<StockPrice> stockPriceService;
-
     private final PositionService positionService;
-
     private final FormulaService formulaService;
-
     private final DhanOrchestratorService dhanOrchestratorService;
-
     private final FundamentalResearchService fundamentalResearchService;
+    private final PlatformTransactionManager transactionManager;
+
+    private TransactionTemplate transactionTemplate;
+    private final ScheduledExecutorService delayedOrderExecutor =
+            Executors.newScheduledThreadPool(10);
+
+    @PostConstruct
+    public void init() {
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        delayedOrderExecutor.shutdown();
+        try {
+            if (!delayedOrderExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+                delayedOrderExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            delayedOrderExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
 
     @Transactional
     public void executeBuy(User user, List<ResearchTechnical> researchTechnicals) {
-
         Objects.requireNonNull(user, "User cannot be null");
         Objects.requireNonNull(researchTechnicals, "Research technicals cannot be null");
 
@@ -49,7 +78,6 @@ public class DhanOrderExecutorService {
                 user.getUsername(),
                 researchTechnicals.size());
 
-        // PortfolioLimits limits = getPortfolioLimits(user);
         PortfolioLimits limits = getPortfolioLimits(user, researchTechnicals.size());
         double availableFunds = limits.availableFunds();
 
@@ -59,8 +87,8 @@ public class DhanOrderExecutorService {
         }
 
         for (ResearchTechnical researchTechnical : researchTechnicals) {
-            try {
 
+            try {
                 if (!validateResearchTechnical(researchTechnical)) {
                     continue;
                 }
@@ -68,6 +96,16 @@ public class DhanOrderExecutorService {
                 Stock stock = researchTechnical.getStock();
                 double entryPrice =
                         researchTechnical.getEntryPrice() + researchTechnical.getTickSize();
+
+                // Adjust entry price if risk is greater than 5
+                if (researchTechnical.getRisk() > 5) {
+                    double riskAdjustment = researchTechnical.getRisk() - 5;
+                    entryPrice = formulaService.applyPercentChange(entryPrice, -1 * riskAdjustment);
+                    entryPrice =
+                            formulaService.ceilToNearestTick(
+                                    entryPrice, researchTechnical.getTickSize());
+                }
+
                 long positionSize = positionService.calculate(user, researchTechnical);
 
                 PositionDetails position =
@@ -81,8 +119,68 @@ public class DhanOrderExecutorService {
 
                 if (position.finalQuantity() > 0) {
                     logOrderDetails(stock, positionSize, position, entryPrice);
-                    dhanOrchestratorService.placeOrder(
-                            TransactionType.BUY, user, stock, position.finalQuantity(), entryPrice);
+
+                    double orderValue = position.finalQuantity() * entryPrice;
+                    long immediateQuantity = 0;
+                    long delayedQuantity = position.finalQuantity();
+
+                    if (orderValue > LARGE_ORDER_THRESHOLD
+                            || position.finalQuantity() > LARGE_QUANTITY_THRESHOLD) {
+                        // Split order for large values or quantities
+                        immediateQuantity = position.finalQuantity() / 2;
+                        delayedQuantity = position.finalQuantity() - immediateQuantity;
+
+                        // Place immediate order for first half
+                        dhanOrchestratorService.placeOrder(
+                                TransactionType.BUY, user, stock, immediateQuantity, entryPrice);
+                    }
+
+                    // Schedule delayed order
+                    final Stock finalStock = stock;
+                    final User finalUser = user;
+                    final long finalDelayedQuantity = delayedQuantity;
+                    final double finalEntryPrice = entryPrice;
+
+                    delayedOrderExecutor.schedule(
+                            () -> {
+                                try {
+                                    transactionTemplate.execute(
+                                            status -> {
+                                                try {
+                                                    dhanOrchestratorService.placeOrder(
+                                                            TransactionType.BUY,
+                                                            finalUser,
+                                                            finalStock,
+                                                            finalDelayedQuantity,
+                                                            finalEntryPrice);
+                                                    log.info(
+                                                            "Placed delayed buy order for {}"
+                                                                    + " quantity {} at price {}",
+                                                            finalStock.getNseSymbol(),
+                                                            finalDelayedQuantity,
+                                                            finalEntryPrice);
+                                                } catch (Exception e) {
+                                                    log.error(
+                                                            "Error placing delayed buy order for"
+                                                                    + " {}: {}",
+                                                            finalStock.getNseSymbol(),
+                                                            e.getMessage(),
+                                                            e);
+                                                    status.setRollbackOnly();
+                                                }
+                                                return null;
+                                            });
+                                } catch (Exception e) {
+                                    log.error(
+                                            "Transaction error for delayed buy order for {}: {}",
+                                            finalStock.getNseSymbol(),
+                                            e.getMessage(),
+                                            e);
+                                }
+                            },
+                            ORDER_DELAY_MINUTES,
+                            TimeUnit.MINUTES);
+
                     availableFunds = position.remainingFunds();
                 }
             } catch (Exception e) {
@@ -100,58 +198,17 @@ public class DhanOrderExecutorService {
             double maxValuePerStock,
             double mimValuePerStock,
             double originalFunds) {}
-    /*
-    private PortfolioLimits getPortfolioLimits(User user) {
-        double availableFunds = portfolioService.availableFundLimit(user);
-        double totalCapital = portfolioService.calculateNetWorth(user);
-        return new PortfolioLimits(
-                availableFunds,
-                totalCapital * 0.08, // 15% cap per stock
-                totalCapital * 0.04, // 4% min
-                availableFunds);
-    }*/
 
-    private PortfolioLimits getPortfolioLimits(User user) {
-        double availableFunds = portfolioService.availableFundLimit(user);
-        double totalCapital = portfolioService.calculateNetWorth(user);
-
-        double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
-
-        // final double MIN_CAP = 0.05;
-        // final double MAX_CAP = 0.125;
-        final double MIN_CAP = totalCapital <= 500000.0 ? 0.050 : 0.025;
-        final double MAX_CAP = totalCapital <= 500000.0 ? 0.100 : 0.050;
-        final double EXPONENT = 2.0;
-
-        double capPercent = MIN_CAP + (MAX_CAP - MIN_CAP) * Math.pow(1 - ratio, EXPONENT);
-        double rawMaxPerStock = totalCapital * capPercent;
-
-        // Ceil to nearest rupee
-        double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
-
-        final double rawMinPerStock = totalCapital * MIN_CAP;
-
-        // floor to nearest rupee
-        double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
-
-        return new PortfolioLimits(availableFunds, maxPerStock, minPerStock, availableFunds);
-    }
-
-    private DhanOrderExecutorService.PortfolioLimits getPortfolioLimits(User user, int stockCount) {
+    private PortfolioLimits getPortfolioLimits(User user, int stockCount) {
         double availableFunds = portfolioService.availableFundLimit(user);
         double totalCapital = portfolioService.calculateNetWorth(user);
 
         if (stockCount <= 0 || totalCapital == 0) {
-            return new DhanOrderExecutorService.PortfolioLimits(
-                    availableFunds, 0, 0, availableFunds);
+            return new PortfolioLimits(availableFunds, 0, 0, availableFunds);
         }
 
         double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
 
-        // final double MIN_CAP = 0.05;
-        // final double MAX_CAP = 0.125;
-        // final double MIN_CAP = 0.025;
-        // final double MAX_CAP = 0.050;
         final double MIN_CAP = totalCapital <= 500000.0 ? 0.050 : 0.025;
         final double MAX_CAP = totalCapital <= 500000.0 ? 0.100 : 0.050;
         final double EXPONENT = 2.0;
@@ -172,17 +229,10 @@ public class DhanOrderExecutorService {
         double rawMaxPerStock = totalCapital * capPercent;
         double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
 
-        // Order should not be less than 10000.0
-        // maxPerStock = Math.max(5000, maxPerStock);
-
         double rawMinPerStock = totalCapital * MIN_CAP;
         double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
 
-        // Order should not be less than 1000.0
-        // minPerStock = Math.max(5000, minPerStock);
-
-        return new DhanOrderExecutorService.PortfolioLimits(
-                availableFunds, maxPerStock, minPerStock, availableFunds);
+        return new PortfolioLimits(availableFunds, maxPerStock, minPerStock, availableFunds);
     }
 
     private boolean validateResearchTechnical(ResearchTechnical researchTechnical) {
@@ -214,9 +264,15 @@ public class DhanOrderExecutorService {
         MarketCapCategory capCategory =
                 MarketCapCategory.classify(fundamentalResearchService.marketCap(stock));
 
-        double threshold = capCategory == MarketCapCategory.MEGACAP ? 7.0 : 7.5;
+        IndiceType indiceType = stock.getPrimaryIndice();
 
-        if (score <= threshold) {
+        double threshold =
+                capCategory == MarketCapCategory.MEGACAP
+                                || indiceType != null && indiceType == IndiceType.NIFTY50
+                        ? 7.0
+                        : 7.5;
+
+        if (score < threshold) {
             log.warn(
                     "Skipping order for {} due to low score {} (threshold: {})",
                     stock.getNseSymbol(),
@@ -292,7 +348,6 @@ public class DhanOrderExecutorService {
                 user.getUsername(),
                 researchTechnicals.size());
 
-        // Get user's holdings
         List<Holding> holdings = dhanOrchestratorService.getHoldings(user);
         if (holdings == null || holdings.isEmpty()) {
             log.info("No holdings found for user: {}, skipping sell orders", user.getUsername());
@@ -301,16 +356,9 @@ public class DhanOrderExecutorService {
 
         for (ResearchTechnical researchTechnical : researchTechnicals) {
             try {
-                /*
-                if (!validateResearchTechnical(researchTechnical)) {
-                    continue;
-                }
-                */
-
                 Stock stock = researchTechnical.getStock();
                 String nseSymbol = stock.getNseSymbol();
 
-                // Find matching holding for the stock
                 Holding holding =
                         holdings.stream()
                                 .filter(h -> h.getTradingSymbol().equals(nseSymbol))
@@ -352,6 +400,10 @@ public class DhanOrderExecutorService {
                 long quantityToSell = holding.getTotalQty().longValue();
                 long disclosedQuantity = (long) (quantityToSell * 0.31);
 
+                double orderValue = quantityToSell * exitPrice;
+                long immediateQuantity = 0;
+                long delayedQuantity = quantityToSell;
+
                 logOrderDetails(
                         stock,
                         quantityToSell,
@@ -359,9 +411,62 @@ public class DhanOrderExecutorService {
                                 quantityToSell, quantityToSell * exitPrice, disclosedQuantity, 0),
                         exitPrice);
 
-                dhanOrchestratorService.placeOrder(
-                        TransactionType.SELL, user, stock, quantityToSell, exitPrice);
+                if (orderValue > LARGE_ORDER_THRESHOLD
+                        || quantityToSell > LARGE_QUANTITY_THRESHOLD) {
+                    // Split order for large values or quantities
+                    immediateQuantity = quantityToSell / 2;
+                    delayedQuantity = quantityToSell - immediateQuantity;
 
+                    // Place immediate order for first half
+                    dhanOrchestratorService.placeOrder(
+                            TransactionType.SELL, user, stock, immediateQuantity, exitPrice);
+                }
+
+                // Schedule delayed order
+                final Stock finalStock = stock;
+                final User finalUser = user;
+                final long finalDelayedQuantity = delayedQuantity;
+                final double finalExitPrice = exitPrice;
+
+                delayedOrderExecutor.schedule(
+                        () -> {
+                            try {
+                                transactionTemplate.execute(
+                                        status -> {
+                                            try {
+                                                dhanOrchestratorService.placeOrder(
+                                                        TransactionType.SELL,
+                                                        finalUser,
+                                                        finalStock,
+                                                        finalDelayedQuantity,
+                                                        finalExitPrice);
+                                                log.info(
+                                                        "Placed delayed sell order for {} quantity"
+                                                                + " {} at price {}",
+                                                        finalStock.getNseSymbol(),
+                                                        finalDelayedQuantity,
+                                                        finalExitPrice);
+                                            } catch (Exception e) {
+                                                log.error(
+                                                        "Error placing delayed sell order for {}:"
+                                                                + " {}",
+                                                        finalStock.getNseSymbol(),
+                                                        e.getMessage(),
+                                                        e);
+                                                status.setRollbackOnly();
+                                            }
+                                            return null;
+                                        });
+                            } catch (Exception e) {
+                                log.error(
+                                        "Transaction error for delayed sell order for {}: {}",
+                                        finalStock.getNseSymbol(),
+                                        e.getMessage(),
+                                        e);
+                            }
+                        },
+                        ORDER_DELAY_MINUTES,
+                        TimeUnit.MINUTES);
             } catch (Exception e) {
                 log.error(
                         "Error processing sell order for stock {}: {}",

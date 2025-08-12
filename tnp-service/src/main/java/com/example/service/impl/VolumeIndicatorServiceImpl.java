@@ -476,6 +476,9 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         boolean isVolumeIncreasing = currentVolume > prevVolume;
         boolean isVolumeAboveAverage = currentVolume > avgVolume;
 
+        if (currentVolume < avgVolume) {
+            return false;
+        }
         if (isAvgIncreasing && currentVolume > 1.5 * avgVolume) {
             evaluationLogService.add(
                     stockTechnicals,

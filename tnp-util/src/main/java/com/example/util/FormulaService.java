@@ -464,11 +464,17 @@ public class FormulaService {
         return Math.round(value / tickSize) * tickSize;
     }
 
-    public long[] splitIn40_30_20_10(long value) {
-        long part1 = Math.round(value * 0.40);
-        long part2 = Math.round(value * 0.30);
-        long part3 = Math.round(value * 0.20);
+    public long[] splitIn50_25_15_10(long value) {
+        long part1 = Math.round(value * 0.50);
+        long part2 = Math.round(value * 0.25);
+        long part3 = Math.round(value * 0.15);
         long part4 = value - part1 - part2 - part3; // Ensure total sum remains accurate
         return new long[] {part1, part2, part3, part4};
+    }
+
+    public boolean isWithinPercentage(double close, double target, double priceBandPercent) {
+        if (target <= 0 || priceBandPercent < 0) return false;
+        double lowerBound = target * (1 - priceBandPercent / 100.0);
+        return close >= lowerBound && close <= target;
     }
 }

@@ -24,6 +24,8 @@ public class SignalEvaluatorHelperService {
 
     private final VolumeIndicatorService volumeIndicatorService;
 
+    private final AdxIndicatorService adxIndicatorService;
+
     private final CandleStickConfirmationService candleStickConfirmationService;
 
     private final TimeframeSupportResistanceService timeframeSupportResistanceService;
@@ -814,18 +816,15 @@ public class SignalEvaluatorHelperService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
             MovingAverageLength movingAverageLength,
-            double value,
-            boolean sortByValue) {
+            double value) {
 
-        if (sortByValue && movingAverageLength == MovingAverageLength.HIGHEST) {
-            return false;
-        } else if (!sortByValue && movingAverageLength.getMaDays() == 5) {
+        if (movingAverageLength == MovingAverageLength.HIGHEST) {
             return false;
         }
 
         MovingAverageResult highestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, sortByValue);
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
 
         double lowestToHighestPercentageDiff =
                 formulaService.calculateAbsChangePercentage(
@@ -1148,7 +1147,22 @@ public class SignalEvaluatorHelperService {
                         stockPrice.getTimeframe(), stockPrice, stockTechnicals);
 
         boolean checkHigherTimeFrameResistance =
-                (isBullishConfirmed && isUpperWickSizeConfirmed) ? false : true;
+                (isBullishConfirmed || isBullishCandle)
+                                && (CandleStickUtils.isProGapUp(stockPrice)
+                                        || adxIndicatorService.isBullishIncr(stockTechnicals))
+                        ? false
+                        : true;
+
+        evaluationLogService.add(
+                stockPrice,
+                EvaluationLog.Type.NEUTRAL,
+                StringUtils.format(
+                        " isBullishConfirmed {} CandleStickUtils.isProGapUp(stockPrice) {}"
+                                + " adxIndicatorService.isBullishIncr(stockTechnicals) {} Timeframe"
+                                + " resistance check passed",
+                        isBullishConfirmed,
+                        CandleStickUtils.isProGapUp(stockPrice),
+                        adxIndicatorService.isBullishIncr(stockTechnicals)));
 
         boolean isHigherTimeframeResistanceCheckPassed =
                 (checkHigherTimeFrameResistance
@@ -1165,7 +1179,7 @@ public class SignalEvaluatorHelperService {
         return isBullishCandle
                 && isMacdConfirmingBreakout
                 && isRsiBullish
-                && volumeIndicatorService.isVolumeSurge(stockTechnicals)
+                && (volumeIndicatorService.isVolumeSurge(stockTechnicals))
                 && isHigherTimeframeResistanceCheckPassed;
     }
 
@@ -1347,5 +1361,15 @@ public class SignalEvaluatorHelperService {
         }
 
         return entryPrice;
+    }
+
+    public boolean isSteapRise(StockPrice stockPrice) {
+
+        if (formulaService.calculateChangePercentage(stockPrice.getPrev6Low(), stockPrice.getHigh())
+                > 15.0) {
+            return true;
+        }
+
+        return false;
     }
 }

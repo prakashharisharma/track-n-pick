@@ -65,6 +65,9 @@ public class DhanTradeScheduler {
     @Scheduled(cron = "0 45 10 * * *") // 10:45 AM
     @Scheduled(cron = "0 00 11 * * *") // 11:00 AM
     @Scheduled(cron = "0 30 11 * * *") // 11:30 AM
+    @Scheduled(cron = "0 00 12 * * *") // 11:30 AM
+    @Scheduled(cron = "0 00 13 * * *") // 11:30 AM
+    @Scheduled(cron = "0 00 14 * * *") // 11:30 AM
     @Scheduled(cron = "0 00 15 * * *") // 3:00 PM
     @Scheduled(cron = "0 15 15 * * *") // 3:15 PM
     @Scheduled(cron = "0 30 15 * * *") // 3:30 PM
@@ -230,8 +233,8 @@ public class DhanTradeScheduler {
 
     private double[] determineProfitTargets(Stock stock) {
         double[] profitTargetsDefault = {2.0, 3.0, 4.0, 5.0};
-        double[] profitTargetsPriceBand20 = {2.0, 4.0, 6.0, 7.9};
-        double[] profitTargetsPriceBand10 = {2.0, 3.5, 5.0, 6.4};
+        double[] profitTargetsPriceBand20 = {2.0, 5.0, 7.5, 10.0};
+        double[] profitTargetsPriceBand10 = {2.0, 4.0, 6.0, 8.0};
         double[] profitTargetsPriceBand5 = {2.0, 3.0, 4.0, 4.9};
 
         StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
@@ -264,9 +267,9 @@ public class DhanTradeScheduler {
 
     private void placeLargeOrder(
             User user, Stock stock, TradeAggregation aggregation, OrderParameters params) {
-        long[] splitQuantities = formulaService.splitIn40_30_20_10(aggregation.quantity);
+        long[] splitQuantities = formulaService.splitIn50_25_15_10(aggregation.quantity);
 
-        // First order (40%) - Immediate placement
+        // First order (50%) - Immediate placement
         placeSellOrder(
                 user,
                 stock,
@@ -328,23 +331,23 @@ public class DhanTradeScheduler {
             double[] profitTargets,
             long[] splitQuantities)
             throws InterruptedException {
-        // Second order (30%) - After 5 minutes
-        Thread.sleep(5 * 60 * 1000);
+        // Second order (30%) - After 2 minutes
+        Thread.sleep(2 * 60 * 1000);
         placeSellOrder(
                 user,
                 stock,
                 splitQuantities[1],
                 calculateOrderPrice(averagePrice, profitTargets[1], tickSize));
 
-        // Third order (20%) - After 10 minutes
-        Thread.sleep(5 * 60 * 1000);
+        // Third order (20%) - After 5 minutes
+        Thread.sleep(3 * 60 * 1000);
         placeSellOrder(
                 user,
                 stock,
                 splitQuantities[2],
                 calculateOrderPrice(averagePrice, profitTargets[2], tickSize));
 
-        // Fourth order (10%) - After 15 minutes
+        // Fourth order (10%) - After 10 minutes
         Thread.sleep(5 * 60 * 1000);
         placeSellOrder(
                 user,

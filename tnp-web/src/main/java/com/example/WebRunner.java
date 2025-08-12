@@ -61,8 +61,6 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private BhavcopyService bhavcopyService;
 
-    // @Autowired private DailySupportResistanceService dailySupportResistanceService;
-
     @Autowired private OHLCVAggregatorService ohlcvAggregatorService;
     @Autowired private UserService userService;
 
@@ -76,6 +74,7 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private TradingHolidayRepository tradingHolidayRepository;
     @Autowired private CalendarService calendarService;
     @Autowired private MiscUtil miscUtil;
+
     @Autowired private BhavProcessor bhavProcessor;
     @Autowired private NSEIndustryFetcher sectorScrappingService;
     @Autowired private UpdatePriceService updatePriceService;
@@ -107,24 +106,17 @@ public class WebRunner implements CommandLineRunner {
     private MovingAverageConvergenceDivergenceService movingAverageConvergenceDivergenceService;
 
     @Autowired private AverageDirectionalIndexCalculatorService averageDirectionalIndexService;
-
     @Autowired private DailySupportResistanceService dailySupportResistanceService;
-
     @Autowired private McService mcService;
-
     @Autowired private PortfolioService portfolioService;
-
     @Autowired private QuarterlySupportResistanceService quarterlySupportResistanceService;
-
     @Autowired private MonthlySupportResistanceService monthlySupportResistanceService;
-
     @Autowired private WeeklySupportResistanceService weeklySupportResistanceService;
-
     @Autowired private StockRepository stockRepository;
 
     @Autowired private StockPriceHelperService stockPriceHelperService;
-
     @Autowired private StockPriceService<StockPrice> stockPriceService;
+
     @Autowired private ResistanceValidationService resistanceValidationService;
     @Autowired private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
@@ -134,38 +126,28 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
 
     @Autowired private CandleStickConfirmationService candleStickHelperService;
-
     @Autowired private FundamentalResearchService fundamentalResearchService;
 
     @Autowired private CandleStickService candleStickService;
-
     @Autowired private UpdateTechnicalsService updateTechnicalsService;
-
     @Autowired private PositionService positionService;
-
     @Autowired private TrendService trendService;
-
     @Autowired private DynamicTrendService dynamicTrendService;
-
     @Autowired private YearlySupportResistanceService yearlySupportResistanceService;
 
     @Autowired
     private MultiTimeframeSupportResistanceService multiTimeframeSupportResistanceService;
 
-    @Autowired
     @Qualifier("simplePriceActionSignalEvaluator")
+    @Autowired
     private TradeSignalEvaluator simplePriceActionSignalEvaluator;
 
     @Autowired private SectorDownloadService sectorDownloadService;
 
     @Autowired private StockFinancialsService stockFinancialsService;
-
     @Autowired private NSEFinancialsFetcher nseFinancialsFetcher;
-
     @Autowired private NSEXmlService nseXmlService;
-
     @Autowired private FinancialsSummaryService financialsSummaryService;
-
     @Autowired private StockPriceRepository stockPriceRepository;
 
     @Autowired
@@ -181,14 +163,17 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private DhanOrchestratorService orchestratorService;
 
     @Autowired private ResearchTechnicalRepository researchTechnicalRepository;
+    @Autowired private BillingService billingService;
 
     @Override
     public void run(String... arg0) throws InterruptedException, IOException {
 
         log.info("Application started....");
 
-        // bhavProcessor.processAndResearchTechnicals();
+        bhavProcessor.processAndResearchTechnicals();
         this.allocatePositions();
+        // this.showBilling();
+        // this.makePayment();
 
         // List<Stock> stocks = stockService.getActiveStocks();
         /*
@@ -755,13 +740,38 @@ public class WebRunner implements CommandLineRunner {
     }
 
     private void testmcap() {
-        List<Stock> stockList = stockService.getActiveStocks();
 
+        List<Stock> stockList = stockService.getActiveStocks();
         for (Stock stock : stockList) {
             double mcap = fundamentalResearchService.marketCap(stock);
-
             System.out.println(stock.getNseSymbol() + " : " + mcap);
         }
+    }
+
+    private void showBilling() {
+        List<User> users = userService.getAllDhanApiEnabledUsers();
+        for (User user : users) {
+            System.out.println("Billing for " + user.getUsername());
+            billingService.calculateAndRecordCharges(user);
+            // BigDecimal bill = billingService.calculateAndRecordChargesForMonth(user,
+            // YearMonth.now());
+            BillingHistory billingHistory =
+                    billingService.getBillsForMonth(user, YearMonth.now().minusMonths(1));
+            System.out.println("\t\tBill No.: " + billingHistory.getBillNo());
+            System.out.println("\t\tBill Month: " + billingHistory.getBillMonth());
+            System.out.println("\t\tBill Date: " + billingHistory.getBillDate());
+            System.out.println("\t\tAmount: " + billingHistory.getAmount());
+            System.out.println("\t\tGST: " + billingHistory.getGst());
+            System.out.println("\t\tTotal: " + billingHistory.getTotal());
+        }
+    }
+
+    private void makePayment() {
+        User user = userService.getUserByUsername("phsdhan");
+        billingService.makePayment(
+                user, "ES-20250801-0001", "ICICI Bank", "ICICI01", LocalDate.now());
+        user = userService.getUserByUsername("ritudhan");
+        billingService.makePayment(user, "ES-20250801-0002", "UPI", "PAYTM", LocalDate.now());
     }
 
     private void allocatePositions() {
@@ -791,6 +801,13 @@ public class WebRunner implements CommandLineRunner {
             try {
 
                 double entryPrice = researchTechnical.getEntryPrice();
+
+                // Adjust entry price if risk is greater than 5
+                if (researchTechnical.getRisk() > 5) {
+                    double riskAdjustment = researchTechnical.getRisk() - 5;
+                    entryPrice = formulaService.applyPercentChange(entryPrice, -1 * riskAdjustment);
+                }
+
                 long positionSize = positionService.calculate(user, researchTechnical);
 
                 PositionDetails position =
@@ -904,7 +921,7 @@ public class WebRunner implements CommandLineRunner {
         double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
 
         final double MIN_CAP = totalCapital <= 500000.0 ? 0.050 : 0.025;
-        final double MAX_CAP = totalCapital <= 500000.0 ? 0.100 : 0.050;
+        final double MAX_CAP = totalCapital <= 500000.0 ? 0.150 : 0.075;
         final double EXPONENT = 2.0;
 
         // 1. Base cap % depending on funds availability
