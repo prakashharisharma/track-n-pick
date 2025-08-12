@@ -121,15 +121,28 @@ public class AdxIndicatorServiceImpl implements AdxIndicatorService {
 
         if (this.isPlusDiIncreasing(stockTechnicals) && this.isMinusDiDecreasing(stockTechnicals)) {
             if (this.isAdxIncreasing(stockTechnicals)
-                    && this.adx(stockTechnicals) > ADX_BULLISH_MIN) {
+                    && this.adx(stockTechnicals) > ADX_BULLISH_MIN
+                    && this.adx(stockTechnicals) < ADX_BULLISH_MAX) {
                 return Boolean.TRUE;
             } else if (!this.isAdxDecreasing(stockTechnicals)
-                    && this.adx(stockTechnicals) > ADX_BULLISH_MIN + 5.0) {
+                    && this.adx(stockTechnicals) > ADX_BULLISH_MIN + 5.0
+                    && this.adx(stockTechnicals) < ADX_BULLISH_MAX) {
                 return Boolean.TRUE;
             }
         }
 
         return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean isBullishIncr(StockTechnicals stockTechnicals) {
+        if (this.isPlusDiIncreasing(stockTechnicals) && this.isMinusDiDecreasing(stockTechnicals)) {
+            if (this.isAdxIncreasing(stockTechnicals)
+                    && this.adx(stockTechnicals) < ADX_BULLISH_MAX) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

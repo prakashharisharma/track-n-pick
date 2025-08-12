@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 @Service("basicPriceActionSignalEvaluator")
 public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
+    private final ResistanceValidationService resistanceValidationService;
     private final TimeframeSupportResistanceService timeframeSupportResistanceService;
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
     private final StockPriceService<StockPrice> stockPriceService;
@@ -138,6 +139,29 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             }
         }
 
+        if (CandleStickUtils.isRed(stockPrice)) {
+            return Optional.empty();
+        }
+
+        boolean isRangeHigherThanPrevSessionRange =
+                CandleStickUtils.prevSessionRange(stockPrice) < CandleStickUtils.range(stockPrice);
+        boolean isBodyHigherThanPrevSessionBody =
+                CandleStickUtils.prevSessionBodySize(stockPrice)
+                        < CandleStickUtils.bodySize(stockPrice);
+
+        boolean isRangeOrBodyConfirmed =
+                isRangeHigherThanPrevSessionRange || isBodyHigherThanPrevSessionBody;
+
+        if (!isRangeOrBodyConfirmed) {
+            return Optional.empty();
+        }
+
+        int incrMACount = MovingAverageUtil.increasingMaCount(stockTechnicals);
+
+        if (incrMACount == 5) {
+            return Optional.empty();
+        }
+
         MovingAverageResult movingAverageResult =
                 MovingAverageUtil.getMovingAverage(
                         MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
@@ -148,7 +172,8 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
         // boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
 
         if (movingAverageResult.getValue() == fiveMamovingAverageResult.getValue()) {
-            if (!adxIndicatorService.isBullish(stockTechnicals)) {
+            if (!adxIndicatorService.isBullishIncr(stockTechnicals)
+                    || !resistanceValidationService.isOutsideResistanceZone(stockPrice)) {
                 return Optional.empty();
             }
         }

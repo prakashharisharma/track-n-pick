@@ -13,6 +13,7 @@ import com.example.service.StockService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -90,17 +91,17 @@ public class DhanTradeService {
                 if (researchTechnical.getResearchDate()
                         == calendarService.previousTradingSession(LocalDate.now())) {
                     double tradedValue = trade.getTradedQuantity() * trade.getTradedPrice();
-                    double profitMargin = tradedValue * 0.001; // .001% of traded value for intraday
-                    return profitMargin + 2.0; // 2% of traded value + INR 2 per trade
+                    double profitMargin = tradedValue * 0.005; // .001% of traded value for intraday
+                    return profitMargin + 2.0; // 5% of traded value + INR 2 per trade
                 }
 
-                // SELL - In profit charge 2% of profit + INR 2 per trade
+                // SELL - In profit charge 5% of profit + INR 2 per trade
                 else if (researchTechnical.getEntryPrice() < trade.getTradedPrice()) {
                     double tradedValue = trade.getTradedQuantity() * trade.getTradedPrice();
                     double researchEntryValue =
                             trade.getTradedQuantity() * researchTechnical.getEntryPrice();
-                    double profitMargin = (tradedValue - researchEntryValue) * 0.02;
-                    return profitMargin + 2.0; // 2% of traded value + INR 2 per trade
+                    double profitMargin = (tradedValue - researchEntryValue) * 0.05;
+                    return profitMargin + 2.0; // 5% of traded value + INR 2 per trade
                 }
                 // SELL - In loss only charge INR .50 per trade
                 return 0.5;
@@ -110,5 +111,43 @@ public class DhanTradeService {
         }
         // BUY - Charge INR 2 per trade
         return 2.0;
+    }
+
+    /**
+     * Calculate total charges for a user's trades within a specific date range.
+     *
+     * @param user User to calculate charges for
+     * @param fromDate Start date (inclusive)
+     * @param toDate End date (inclusive)
+     * @return Total charges in INR for the specified period
+     */
+    @Transactional(readOnly = true)
+    public double calculateChargesForPeriod(User user, LocalDate fromDate, LocalDate toDate) {
+        log.info(
+                "Calculating charges for user {} from {} to {}",
+                user.getUsername(),
+                fromDate,
+                toDate);
+
+        // Convert dates to LocalDateTime for query
+        LocalDateTime fromDateTime = fromDate.atStartOfDay();
+        LocalDateTime toDateTime = toDate.atTime(23, 59, 59);
+
+        // Get trades and sum their charges
+        List<DhanTrade> trades =
+                dhanTradeRepository.findByUserIdAndCreateTimeBetween(
+                        user.getId(), fromDateTime, toDateTime);
+
+        double totalCharges = trades.stream().mapToDouble(DhanTrade::getCharges).sum();
+
+        log.info(
+                "Found {} trades with total charges {} for user {} in period {} to {}",
+                trades.size(),
+                totalCharges,
+                user.getUsername(),
+                fromDate,
+                toDate);
+
+        return totalCharges;
     }
 }

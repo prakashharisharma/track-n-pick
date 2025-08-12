@@ -25,7 +25,7 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
     private final RsiIndicatorService rsiIndicatorService;
     private final StockPriceService<StockPrice> stockPriceService;
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
-
+    private final ResistanceValidationService resistanceValidationService;
     private final AdxIndicatorService adxIndicatorService;
 
     @Override
@@ -172,9 +172,28 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
         boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
 
         if (evaluationResult.getLength().getMaDays() == 5) {
-            if (!adxIndicatorService.isBullish(stockTechnicals)) {
+            if (!adxIndicatorService.isBullishIncr(stockTechnicals)) {
                 return Optional.empty();
             }
+        }
+
+        boolean isRangeHigherThanPrevSessionRange =
+                CandleStickUtils.prevSessionRange(stockPrice) < CandleStickUtils.range(stockPrice);
+        boolean isBodyHigherThanPrevSessionBody =
+                CandleStickUtils.prevSessionBodySize(stockPrice)
+                        < CandleStickUtils.bodySize(stockPrice);
+
+        boolean isRangeOrBodyConfirmed =
+                isRangeHigherThanPrevSessionRange || isBodyHigherThanPrevSessionBody;
+
+        if (!isRangeOrBodyConfirmed) {
+            return Optional.empty();
+        }
+
+        int incrMACount = MovingAverageUtil.increasingMaCount(stockTechnicals);
+
+        if (incrMACount == 5) {
+            return Optional.empty();
         }
 
         if (signalEvaluatorHelperService.isHighestAlsoBreached(
@@ -182,9 +201,11 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                 stockPrice,
                 stockTechnicals,
                 evaluationResult.getLength(),
-                evaluationResult.getValue(),
-                false)) {
-            return Optional.empty();
+                evaluationResult.getValue())) {
+            if (!adxIndicatorService.isBullishIncr(stockTechnicals)
+                    || !resistanceValidationService.isOutsideResistanceZone(stockPrice)) {
+                return Optional.empty();
+            }
         }
 
         boolean isLowestAndHighestMovingAverageDiffValid =

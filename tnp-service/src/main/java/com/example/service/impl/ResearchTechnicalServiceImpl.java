@@ -14,6 +14,7 @@ import com.example.external.NSEPriceInfoFetcher;
 import com.example.service.*;
 import com.example.service.ConfidenceScoreCalculator;
 import com.example.service.utils.CandleStickUtils;
+import com.example.service.utils.SupportResistanceZoneUtils;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.util.StringUtils;
@@ -128,15 +129,13 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         newResearchTechnical.setStopLoss(
                 this.calculateStopLoss(tradeSetup, stockPrice, newResearchTechnical));
-
-        newResearchTechnical.setTarget(
-                targetService.calculateTarget(stockPrice, newResearchTechnical));
-
         newResearchTechnical.setRisk(
                 Math.abs(
                         formulaService.calculateChangePercentage(
                                 newResearchTechnical.getEntryPrice(),
                                 newResearchTechnical.getStopLoss())));
+        newResearchTechnical.setTarget(
+                targetService.calculateTarget(stockPrice, newResearchTechnical));
 
         double confidenceScore =
                 ConfidenceScoreCalculator.calculateConfidenceScore(
@@ -176,9 +175,18 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 EvaluationLog.Type.POSITIVE,
                 StringUtils.format("isTargetValid: {}", isTargetValid));
 
+        boolean isUpperCircuit =
+                formulaService.roundToNearestTick(
+                                formulaService.applyPercentChange(
+                                        stockPrice.getPrevClose(),
+                                        newResearchTechnical.getPriceBand()),
+                                newResearchTechnical.getTickSize())
+                        == stockPrice.getClose();
+
         if (isRiskWithinLimit
                 && isTargetValid
-                && researchInsightService.isStrongInsights(stockPrice)) {
+                && researchInsightService.isStrongInsights(stockPrice)
+                && !isUpperCircuit) {
 
             newResearchTechnical = researchTechnicalRepository.save(newResearchTechnical);
         }
@@ -285,7 +293,19 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         existingResearch.setExitStrategy(tradeSetup.getStrategy());
         existingResearch.setExitSubStrategy(tradeSetup.getSubStrategy());
         existingResearch.setLastModified(LocalDateTime.now());
-        return researchTechnicalRepository.save(existingResearch);
+
+        boolean isLowerCircuit =
+                formulaService.roundToNearestTick(
+                                formulaService.applyPercentChange(
+                                        stockPrice.getPrevClose(),
+                                        -1 * existingResearch.getPriceBand()),
+                                existingResearch.getTickSize())
+                        == stockPrice.getClose();
+
+        if (!isLowerCircuit) {
+            return researchTechnicalRepository.save(existingResearch);
+        }
+        return existingResearch;
     }
 
     @Override
@@ -307,6 +327,20 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     }
 
     @Override
+    public List<ResearchTechnical> getLatestInvestmentBuyResearch(LocalDate sessionDate) {
+        return researchTechnicalRepository
+                .findAllByResearchDateNotAndTypeAndEntryStrategyOrderByScoreDescPriorityDesc(
+                        sessionDate, Trade.Type.BUY, ResearchTechnical.Strategy.INVESTMENT);
+    }
+
+    @Override
+    public List<ResearchTechnical> getRecentHybridBuyResearch(LocalDate sessionDate) {
+        return researchTechnicalRepository
+                .findAllByResearchDateNotAndTypeAndEntryStrategyOrderByScoreDescPriorityDesc(
+                        sessionDate, Trade.Type.BUY, ResearchTechnical.Strategy.HYBRID);
+    }
+
+    @Override
     public List<ResearchTechnical> getLatestSellResearch(LocalDate sessionDate) {
         return researchTechnicalRepository.findAllByExitDateAndType(sessionDate, Trade.Type.SELL);
     }
@@ -321,11 +355,27 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         == ResearchTechnical.SubStrategy.MA200_BREAKOUT
                 || researchTechnical.getEntrySubStrategy()
                         == ResearchTechnical.SubStrategy.MA100_BREAKOUT) {
+
+            SupportResistanceZones currentZones =
+                    SupportResistanceZoneUtils.calculateSupportResistanceZones(stockPrice);
+            SupportResistanceZoneUtils.Zone currentSupport = currentZones.getSupport();
+
             return formulaService.floorToNearestTick(
                     formulaService.applyPercentChange(
-                            stockPriceHelperService.findLowestLow(stockPrice), -1 * 0.05),
+                            Math.max(
+                                    CandleStickUtils.isPrevSessionRed(stockPrice)
+                                            ? stockPrice.getPrevLow()
+                                            : stockPrice.getLow(),
+                                    (stockPriceHelperService.findLowestLow(stockPrice)
+                                                    + currentSupport.getStart())
+                                            / 2),
+                            -1 * 0.05),
                     researchTechnical.getTickSize());
         }
+
+        SupportResistanceZones currentZones =
+                SupportResistanceZoneUtils.calculateSupportResistanceZones(stockPrice);
+        SupportResistanceZoneUtils.Zone currentSupport = currentZones.getSupport();
 
         double stopLoss = stockPrice.getLow();
 

@@ -30,7 +30,6 @@ public class DhanOrderService {
                         .stock(stock)
                         .securityId(request.getSecurityId())
                         .quantity(Long.parseLong(request.getQuantity()))
-                        .disclosedQuantity(Long.parseLong(request.getDisclosedQuantity()))
                         .price(Double.parseDouble(request.getPrice()))
                         .transactionType(request.getTransactionType().name())
                         .orderType(request.getOrderType().name())
@@ -40,6 +39,9 @@ public class DhanOrderService {
                         .validity(request.getValidity().name())
                         .status(response.getStatus().name())
                         .build();
+        if (order.getDisclosedQuantity() == null) {
+            order.setDisclosedQuantity(0l);
+        }
 
         log.info(
                 "Saving order details for orderId: {}, userId: {}",

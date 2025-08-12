@@ -24,6 +24,8 @@ public class DhanOrchestratorService {
 
     private static final LocalTime MARKET_OPEN_TIME = LocalTime.of(9, 15);
     private static final LocalTime MARKET_CLOSE_TIME = LocalTime.of(15, 30);
+    private static final LocalTime PRE_OPEN_START_TIME = LocalTime.of(9, 0);
+    private static final LocalTime PRE_OPEN_END_TIME = LocalTime.of(9, 7);
     private static final double DISCLOSED_QUANTITY_PERCENTAGE = 0.31;
 
     private boolean isBeforeMarketOpen() {
@@ -34,8 +36,13 @@ public class DhanOrchestratorService {
         return LocalTime.now().isAfter(MARKET_CLOSE_TIME);
     }
 
+    private boolean isPreOpenMarket() {
+        LocalTime now = LocalTime.now();
+        return now.isAfter(PRE_OPEN_START_TIME) && now.isBefore(PRE_OPEN_END_TIME);
+    }
+
     private boolean isAfterMarketOrder() {
-        return isBeforeMarketOpen() || isAfterMarketClose();
+        return (isBeforeMarketOpen() || isAfterMarketClose()) && !isPreOpenMarket();
     }
 
     private long calculateDisclosedQuantity(long totalQuantity) {
@@ -150,15 +157,15 @@ public class DhanOrchestratorService {
         }
 
         boolean isAfterMarketOrder = isAfterMarketOrder();
+        boolean isPreOpenMarket = isPreOpenMarket();
         long disclosedQuantity =
-                isAfterMarketOrder ? quantity : calculateDisclosedQuantity(quantity);
+                isAfterMarketOrder || isPreOpenMarket ? 0 : calculateDisclosedQuantity(quantity);
 
         OrderRequest orderRequest =
                 OrderRequest.builder()
                         .dhanClientId(user.getDhanClientId())
                         .securityId(stock.getInstrument())
                         .quantity(String.valueOf(quantity))
-                        .disclosedQuantity(String.valueOf(disclosedQuantity))
                         .price(String.valueOf(price))
                         .transactionType(transactionType)
                         .exchangeSegment("NSE_EQ")
@@ -166,8 +173,14 @@ public class DhanOrchestratorService {
                         .orderType(OrderType.LIMIT)
                         .validity(Validity.DAY)
                         .afterMarketOrder(isAfterMarketOrder)
-                        .amoTime(AmoTime.OPEN)
+                        .amoTime(isAfterMarketOrder ? AmoTime.PRE_OPEN : AmoTime.OPEN)
                         .build();
+
+        if (disclosedQuantity > 0 && disclosedQuantity < quantity) {
+            orderRequest.setDisclosedQuantity(String.valueOf(disclosedQuantity));
+        }
+
+        System.out.println(orderRequest);
 
         log.info(
                 "Placing buy order for user: {}, stock: {}, quantity: {}, price: {}",

@@ -354,7 +354,9 @@ public class StockPriceHelperService {
             stockPrice.getPrevLow(),
             stockPrice.getPrev2Low(),
             stockPrice.getPrev3Low(),
-            stockPrice.getPrev4Low()
+            stockPrice.getPrev4Low(),
+            stockPrice.getPrev5Low(),
+            stockPrice.getPrev6Low()
         };
 
         // Find the lowest low from the array, defaulting to the current low if no valid lows are
@@ -377,7 +379,9 @@ public class StockPriceHelperService {
             stockPrice.getPrevHigh(),
             stockPrice.getPrev2High(),
             stockPrice.getPrev3High(),
-            stockPrice.getPrev4High()
+            stockPrice.getPrev4High(),
+            stockPrice.getPrev5High(),
+            stockPrice.getPrev6High()
         };
 
         // Find the highest high from the array, defaulting to the current high if no valid highs

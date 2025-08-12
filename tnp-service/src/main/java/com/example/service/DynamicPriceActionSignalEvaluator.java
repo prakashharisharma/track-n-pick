@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 @Service("dynamicPriceActionSignalEvaluator")
 public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
+    private final ResistanceValidationService resistanceValidationService;
     private final DynamicMovingAverageSupportResolverService
             dynamicMovingAverageSupportResolverService;
     private final SignalEvaluatorHelperService signalEvaluatorHelperService;
@@ -132,6 +133,18 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
+        if (MovingAverageUtil.getMovingAverage200(Timeframe.DAILY, stockTechnicals) == 0.0) {
+            return Optional.empty();
+        }
+
+        /*
+        if(CandleStickUtils.upperWickSize(stockPrice) >= 2 * CandleStickUtils.lowerWickSize(stockPrice)
+                && CandleStickUtils.prevUpperWickSize(stockPrice) >= 2 * CandleStickUtils.prevLowerWickSize(stockPrice)
+
+        ){
+            return Optional.empty();
+        }*/
+
         if (rsiIndicatorService.isOverBought(stockTechnicals)
                 || (CandleStickUtils.isUpperWickDominant(stockPrice)
                         && (CandleStickUtils.isStrongRange(timeframe, stockPrice, stockTechnicals)
@@ -158,20 +171,41 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             return Optional.empty();
         }
 
+        boolean isRangeHigherThanPrevSessionRange =
+                CandleStickUtils.prevSessionRange(stockPrice) < CandleStickUtils.range(stockPrice);
+        boolean isBodyHigherThanPrevSessionBody =
+                CandleStickUtils.prevSessionBodySize(stockPrice)
+                        < CandleStickUtils.bodySize(stockPrice);
+
+        boolean isRangeOrBodyConfirmed =
+                isRangeHigherThanPrevSessionRange || isBodyHigherThanPrevSessionBody;
+
+        if (!isRangeOrBodyConfirmed) {
+            return Optional.empty();
+        }
+
+        int incrMACount = MovingAverageUtil.increasingMaCount(stockTechnicals);
+
+        if (incrMACount == 5) {
+            return Optional.empty();
+        }
+
         if (signalEvaluatorHelperService.isHighestAlsoBreached(
                 timeframe,
                 stockPrice,
                 stockTechnicals,
                 evaluationResult.getLength(),
-                evaluationResult.getValue(),
-                true)) {
-            return Optional.empty();
+                evaluationResult.getValue())) {
+            if (!adxIndicatorService.isBullishIncr(stockTechnicals)
+                    || !resistanceValidationService.isOutsideResistanceZone(stockPrice)) {
+                return Optional.empty();
+            }
         }
 
         if (evaluationResult.getLength() == MovingAverageLength.HIGHEST
                 && evaluationResult.getLength().getMaDays() == 5) {
             // boolean isAllMAsIncreasing = MovingAverageUtil.isAllMAsIncreasing(stockTechnicals);
-            if (!adxIndicatorService.isBullish(stockTechnicals)) {
+            if (!adxIndicatorService.isBullishIncr(stockTechnicals)) {
                 return Optional.empty();
             }
         }

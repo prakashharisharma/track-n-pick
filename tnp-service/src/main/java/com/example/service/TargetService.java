@@ -24,11 +24,20 @@ public class TargetService {
         SupportResistanceZones supportResistanceZones =
                 SupportResistanceZoneUtils.calculateSupportResistanceZones(htStockPrice);
 
+        double entryPrice = researchTechnical.getEntryPrice();
+        // Adjust entry price if risk is greater than 5
+        if (researchTechnical.getRisk() > 5) {
+            double riskAdjustment = researchTechnical.getRisk() - 5;
+            entryPrice = formulaService.applyPercentChange(entryPrice, -1 * riskAdjustment);
+            entryPrice =
+                    formulaService.floorToNearestTick(entryPrice, researchTechnical.getTickSize());
+        }
+
         double riskRewardTarget =
                 formulaService.calculateTarget(
-                        stockPrice.getHigh(),
-                        stockPrice.getLow(),
-                        this.calculateRiskRewardRatio(researchTechnical.getEntrySubStrategy()));
+                        entryPrice,
+                        researchTechnical.getStopLoss(),
+                        this.calculateRiskRewardRatio(researchTechnical));
 
         double pivotTarget = getPivotTarget(htStockPrice, stockPrice);
 
@@ -65,9 +74,15 @@ public class TargetService {
         return percentageDiff < 2.0 ? resistance1 : resistance2;
     }
 
-    private double calculateRiskRewardRatio(ResearchTechnical.SubStrategy subStrategy) {
+    private double calculateRiskRewardRatio(ResearchTechnical researchTechnical) {
 
-        return subStrategy.targetPercentage();
+        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.HYBRID) {
+            return 2.0;
+        } else if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.INVESTMENT) {
+            return 3.0;
+        }
+
+        return researchTechnical.getEntrySubStrategy().targetPercentage();
     }
 
     public boolean isTargetValid(double entryPrice, double targetPrice) {
