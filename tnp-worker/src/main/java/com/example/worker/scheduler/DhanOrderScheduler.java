@@ -12,6 +12,7 @@ import com.example.service.UserService;
 import com.example.service.dhan.DhanOrderExecutorService;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -189,6 +190,7 @@ public class DhanOrderScheduler {
                             // Check research date conditions
                             LocalDate researchDate = rt.getResearchDate();
 
+                            /*
                             if (!isWithinPriceBand) {
                                 if (rt.getEntryStrategy() == ResearchTechnical.Strategy.INVESTMENT
                                         || rt.getEntrySubStrategy()
@@ -205,37 +207,60 @@ public class DhanOrderScheduler {
                                                 == ResearchTechnical.SubStrategy.MA50_BREAKOUT) {
                                     return false;
                                 }
-                            }
+                            }*/
 
                             if (researchDate != null) {
                                 long daysBetween =
                                         java.time.temporal.ChronoUnit.DAYS.between(
                                                 researchDate, currentDate);
 
-                                if (daysBetween <= 3 && !isWithinPriceBand) {
-                                    // Within 3 days - set target as 5% above entry
+                                if (calendarService
+                                                .previousTradingSession(miscUtil.currentDate())
+                                                .getDayOfWeek()
+                                        == DayOfWeek.FRIDAY) {}
+
+                                if ((calendarService
+                                                                .previousTradingSession(
+                                                                        miscUtil.currentDate())
+                                                                .getDayOfWeek()
+                                                        == DayOfWeek.FRIDAY
+                                                || calendarService
+                                                                .previousTradingSession(
+                                                                        miscUtil.currentDate())
+                                                                .getDayOfWeek()
+                                                        == DayOfWeek.THURSDAY
+                                                || daysBetween <= 2)
+                                        && !isWithinPriceBand) {
+                                    // Within 2 days - set target as 5% above entry
 
                                     rt.setExitPrice(
                                             formulaService.roundToNearestTick(
-                                                    entryPrice * 1.05, rt.getTickSize()));
+                                                    entryPrice * 1.04, rt.getTickSize()));
+
                                     return true;
-                                } else if (daysBetween <= 5 && !isWithinPriceBand) {
-                                    // Within 5 days - set target as 7.5% above entry
+                                } else if (daysBetween <= 4 && !isWithinPriceBand) {
+                                    // Within 4 days - set target as 7.5% above entry
+                                    rt.setExitPrice(
+                                            formulaService.roundToNearestTick(
+                                                    entryPrice * 1.06, rt.getTickSize()));
+                                    return true;
+                                } else if (daysBetween <= 6 && !isWithinPriceBand) {
+                                    // Within 6 days - set target as 10% above entry
                                     rt.setExitPrice(
                                             formulaService.roundToNearestTick(
                                                     entryPrice * 1.08, rt.getTickSize()));
                                     return true;
-                                } else if (daysBetween <= 7 && !isWithinPriceBand) {
-                                    // Within 7 days - set target as 10% above entry
+                                } else if (daysBetween <= 8 && !isWithinPriceBand) {
+                                    // Within 8 days - set target as 10% above entry
                                     rt.setExitPrice(
                                             formulaService.roundToNearestTick(
                                                     entryPrice * 1.10, rt.getTickSize()));
                                     return true;
                                 } else if (daysBetween <= 10 && !isWithinPriceBand) {
-                                    // Within 7 days - set target as 10% above entry
+                                    // Within 10 days - set target as 10% above entry
                                     rt.setExitPrice(
                                             formulaService.roundToNearestTick(
-                                                    entryPrice * 1.15, rt.getTickSize()));
+                                                    entryPrice * 1.12, rt.getTickSize()));
                                     return true;
                                 }
                             }

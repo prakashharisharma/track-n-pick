@@ -415,6 +415,21 @@ public class CandleStickUtils {
         return low < prevLow;
     }
 
+    public static boolean isHigherLow(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        Double low = stockPrice.getLow();
+        Double prevLow = stockPrice.getPrevLow();
+
+        if (low == null || prevLow == null) {
+            return false;
+        }
+
+        return low > prevLow;
+    }
+
     public static boolean isLowerLow(double low, double prevLow) {
         return low < prevLow;
     }
@@ -826,17 +841,18 @@ public class CandleStickUtils {
 
     public static boolean isUpperWickLongerThanLowerWick(StockPrice stockPrice) {
 
+        double bodySize = bodySize(stockPrice);
         double lowerWickSize = lowerWickSize(stockPrice);
         double upperWickSize = upperWickSize(stockPrice);
 
-        return upperWickSize > lowerWickSize;
+        return upperWickSize > lowerWickSize && upperWickSize >= 0.25 * bodySize;
     }
 
     public static boolean isLowerWickLongerThanUpperWick(StockPrice stockPrice) {
-
+        double bodySize = bodySize(stockPrice);
         double lowerWickSize = lowerWickSize(stockPrice);
         double upperWickSize = upperWickSize(stockPrice);
 
-        return upperWickSize < lowerWickSize;
+        return upperWickSize < lowerWickSize && lowerWickSize >= 0.25 * bodySize;
     }
 }

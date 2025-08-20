@@ -164,6 +164,18 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
             return Optional.empty();
         }
 
+        boolean isHighestAndHighMovingAverageDiffValid =
+                signalEvaluatorHelperService.isHighAndHighestMovingAverageDiffValid(
+                        timeframe, stockPrice, stockTechnicals, MAInteractionType.BREAKOUT, true);
+
+        if (!isHighestAndHighMovingAverageDiffValid) {
+            return Optional.empty();
+        }
+
+        if (CandleStickUtils.isUpperWickLongerThanLowerWick(stockPrice)) {
+            return Optional.empty();
+        }
+
         /*
         if(CandleStickUtils.upperWickSize(stockPrice) >= 2 * CandleStickUtils.lowerWickSize(stockPrice)
                 && CandleStickUtils.prevUpperWickSize(stockPrice) >= 2 * CandleStickUtils.prevLowerWickSize(stockPrice)
@@ -197,6 +209,12 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         if (!CandleStickUtils.isHigherHigh(stockPrice)) {
             return Optional.empty();
+        }
+
+        if (evaluationResult.getLength() == MovingAverageLength.HIGHEST) {
+            if (!MovingAverageUtil.validatedMa200WrtMa100(stockTechnicals)) {
+                return Optional.empty();
+            }
         }
 
         int incrMACount = MovingAverageUtil.increasingMaCount(stockTechnicals);

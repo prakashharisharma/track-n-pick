@@ -20,6 +20,8 @@ public class InvestmentPriceActionSignalEvaluator implements TradeSignalEvaluato
 
     private final SignalEvaluatorHelperService signalEvaluatorHelperService;
 
+    private final StockPriceService<StockPrice> stockPriceService;
+
     @Override
     public TradeSetup evaluateEntry(
             Timeframe timeframe,
@@ -28,7 +30,10 @@ public class InvestmentPriceActionSignalEvaluator implements TradeSignalEvaluato
             StockTechnicals stockTechnicals) {
         Optional<ResearchTechnical.SubStrategy> subStrategyRef = Optional.empty();
 
-        if (TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN) {
+        if (TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN
+                || TrendDirectionUtil.findDirection(
+                                stockPriceService.buildPrevSessionStockPrice(stockPrice))
+                        == Trend.Direction.DOWN) {
             if (stockPrice.getClose()
                     < MovingAverageUtil.getMovingAverage5(timeframe, stockTechnicals)) {
                 if (stockPrice.getClose()
@@ -69,6 +74,14 @@ public class InvestmentPriceActionSignalEvaluator implements TradeSignalEvaluato
                 CandleStickUtils.isStrongRange(timeframe, stockPrice, stockTechnicals);
         boolean isStrongBody =
                 CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
+
+        boolean isHighestAndHighMovingAverageDiffValid =
+                signalEvaluatorHelperService.isHighAndHighestMovingAverageDiffValid(
+                        timeframe, stockPrice, stockTechnicals, MAInteractionType.BREAKOUT, true);
+
+        if (!isHighestAndHighMovingAverageDiffValid) {
+            return Optional.empty();
+        }
 
         if (isLowestAndHighestMovingAverageDiffValid && (isStrongRange || isStrongBody)) {
 

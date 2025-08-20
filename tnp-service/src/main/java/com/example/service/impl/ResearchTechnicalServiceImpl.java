@@ -286,6 +286,10 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         double exitPrice =
                 (Math.min(stockPrice.getOpen(), stockPrice.getClose()) + stockPrice.getLow()) / 2;
 
+        if (tradeSetup.getSubStrategy() == ResearchTechnical.SubStrategy.TARGET_ACHIEVED) {
+            exitPrice = existingResearch.getTarget();
+        }
+
         existingResearch.setExitPrice(
                 formulaService.floorToNearestTick(exitPrice, existingResearch.getTickSize()));
 

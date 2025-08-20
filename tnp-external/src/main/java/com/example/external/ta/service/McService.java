@@ -2,12 +2,14 @@ package com.example.external.ta.service;
 
 import com.example.dto.common.OHLCV;
 import com.example.dto.io.MCResult;
+import com.example.util.MiscUtil;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,10 +21,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class McService {
 
+    @Autowired private MiscUtil miscUtil;
+
     public List<OHLCV> getMCOHLP(String nseSymbol, int years, int countback) {
 
-        LocalDateTime to = LocalDateTime.of(2025, 6, 26, 00, 00, 00, 000);
-        // LocalDateTime to = LocalDateTime.now();
+        // LocalDateTime to = LocalDateTime.of(2025, 8, 14, 00, 00, 00, 000);
+        LocalDateTime to = miscUtil.currentDate().atStartOfDay();
 
         LocalDateTime from = to.minusYears(years);
 
