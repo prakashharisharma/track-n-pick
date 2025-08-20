@@ -56,8 +56,10 @@ public class TrendDirectionUtil {
         boolean currentLHLL = currentHigh < prevHigh && currentLow < prevLow;
 
         // Step 3 & 4: Check for reversal from 5-session trend based on current candle
-        if (prevTrendDown && currentHHHL) return Trend.Direction.UP;
-        if (prevTrendUp && currentLHLL) return Trend.Direction.DOWN;
+        if (prevTrendDown && currentHHHL && CandleStickUtils.isGreen(stockPrice))
+            return Trend.Direction.UP;
+        if (prevTrendUp && currentLHLL && CandleStickUtils.isRed(stockPrice))
+            return Trend.Direction.DOWN;
 
         // Step 5: Fallback to previous 5-session direction
         if (prevTrendDown) return Trend.Direction.DOWN;
@@ -69,8 +71,10 @@ public class TrendDirectionUtil {
         boolean higherHigh = highs[4] > highs[3];
         boolean higherLow = lows[4] > lows[3];
 
-        if (lowerHigh && lowerLow) return Trend.Direction.DOWN;
-        if (higherHigh && higherLow) return Trend.Direction.UP;
+        if ((lowerHigh && lowerLow) && CandleStickUtils.isRed(stockPrice))
+            return Trend.Direction.DOWN;
+        if ((higherHigh && higherLow) && CandleStickUtils.isGreen(stockPrice))
+            return Trend.Direction.UP;
 
         return Trend.Direction.INVALID;
     }

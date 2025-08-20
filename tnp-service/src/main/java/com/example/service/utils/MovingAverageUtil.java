@@ -351,6 +351,50 @@ public class MovingAverageUtil {
         return count;
     }
 
+    public static boolean validatedMa200WrtMa100(StockTechnicals stockTechnicals) {
+        Timeframe timeframe = stockTechnicals.getTimeframe();
+        if (getMovingAverage200(timeframe, stockTechnicals)
+                > getPrevMovingAverage200(timeframe, stockTechnicals)) {
+            if (getMovingAverage100(timeframe, stockTechnicals)
+                    > getPrevMovingAverage100(timeframe, stockTechnicals)) {
+                return true;
+            }
+        }
+
+        if (getMovingAverage100(timeframe, stockTechnicals)
+                < getPrevMovingAverage100(timeframe, stockTechnicals)) {
+            if (getMovingAverage200(timeframe, stockTechnicals)
+                    < getPrevMovingAverage200(timeframe, stockTechnicals)) {
+                return true;
+            }
+        }
+
+        if (getMovingAverage100(timeframe, stockTechnicals)
+                > getPrevMovingAverage100(timeframe, stockTechnicals)) {
+            if (getMovingAverage200(timeframe, stockTechnicals)
+                    < getPrevMovingAverage200(timeframe, stockTechnicals)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean validatedMa5MA20AndMa50(StockTechnicals stockTechnicals) {
+        Timeframe timeframe = stockTechnicals.getTimeframe();
+        if (getMovingAverage5(timeframe, stockTechnicals)
+                > getPrevMovingAverage5(timeframe, stockTechnicals)) {
+            if (getMovingAverage20(timeframe, stockTechnicals)
+                    > getPrevMovingAverage20(timeframe, stockTechnicals)) {
+                if (getMovingAverage50(timeframe, stockTechnicals)
+                        > getPrevMovingAverage50(timeframe, stockTechnicals)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public static int decreasingMaCount(StockTechnicals stockTechnicals) {
         Timeframe timeframe = stockTechnicals.getTimeframe();
         int count = 0;

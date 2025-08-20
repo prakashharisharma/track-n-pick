@@ -224,7 +224,9 @@ public class DhanTradeScheduler {
     private OrderParameters createOrderParameters(Stock stock, TradeAggregation aggregation) {
         double tickSize = researchTechnicalService.getTickSize(stock);
         boolean isSmallOrder =
-                aggregation.quantity <= 10
+                (aggregation.quantity <= 10
+                                && (aggregation.getQuantity() * aggregation.averagePrice)
+                                        < 100000.0)
                         || (aggregation.getQuantity() * aggregation.averagePrice) < 50000.0;
         double[] profitTargets = determineProfitTargets(stock);
 
@@ -358,7 +360,8 @@ public class DhanTradeScheduler {
 
     private double calculateOrderPrice(double averagePrice, double profitTarget, double tickSize) {
         return formulaService.floorToNearestTick(
-                formulaService.applyPercentChange(averagePrice, profitTarget), tickSize);
+                        formulaService.applyPercentChange(averagePrice, profitTarget), tickSize)
+                - tickSize;
     }
 
     private void placeSellOrder(User user, Stock stock, long quantity, double price) {

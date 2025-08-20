@@ -209,7 +209,8 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
         boolean isUpdation = Boolean.FALSE;
         TradeSetup tradeSetup = TradeSetup.builder().build();
         // if (candleStickService.isRed(stockPrice)) {
-        if (this.isTargetAchieved(researchTechnical, timeframe, stock, stockPrice)) {
+        if (this.isTargetAchieved(
+                researchTechnical, timeframe, stock, stockPrice, stockTechnicals)) {
             tradeSetup.setActive(true);
             tradeSetup.setStrategy(ResearchTechnical.Strategy.TARGET);
             tradeSetup.setSubStrategy(ResearchTechnical.SubStrategy.TARGET_ACHIEVED);
@@ -308,14 +309,25 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             ResearchTechnical researchTechnical,
             Timeframe timeframe,
             Stock stock,
-            StockPrice stockPrice) {
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals) {
 
         boolean isLowerHighLowerLow =
                 CandleStickUtils.isLowerHigh(stockPrice) && CandleStickUtils.isLowerLow(stockPrice);
 
-        if (CandleStickUtils.isRed(stockPrice)
-                || CandleStickUtils.isStrongUpperWick(stockPrice)
-                || isLowerHighLowerLow) {
+        boolean isHigherHighHigherLow =
+                CandleStickUtils.isHigherHigh(stockPrice)
+                        && CandleStickUtils.isHigherLow(stockPrice);
+
+        MovingAverageResult highestMovingAverageResult =
+                MovingAverageUtil.getMovingAverage(
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
+
+        boolean isCloseBelowHighest = highestMovingAverageResult.getValue() > stockPrice.getClose();
+
+        if ((CandleStickUtils.isRed(stockPrice) && (isLowerHighLowerLow || isCloseBelowHighest))
+                || (CandleStickUtils.isStrongUpperWick(stockPrice)
+                        && (isHigherHighHigherLow || isLowerHighLowerLow))) {
 
             if (researchTechnical.getTarget() <= stockPrice.getClose()) {
                 evaluationLogService.add(

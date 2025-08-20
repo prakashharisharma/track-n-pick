@@ -1,5 +1,7 @@
 package com.example.service;
 
+import static com.example.service.ResearchTechnicalService.MAX_RISK;
+
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.service.utils.SupportResistanceZoneUtils;
@@ -26,11 +28,11 @@ public class TargetService {
 
         double entryPrice = researchTechnical.getEntryPrice();
         // Adjust entry price if risk is greater than 5
-        if (researchTechnical.getRisk() > 5) {
-            double riskAdjustment = researchTechnical.getRisk() - 5;
+        if (researchTechnical.getRisk() > MAX_RISK) {
+            double riskAdjustment = researchTechnical.getRisk() - MAX_RISK;
             entryPrice = formulaService.applyPercentChange(entryPrice, -1 * riskAdjustment);
             entryPrice =
-                    formulaService.floorToNearestTick(entryPrice, researchTechnical.getTickSize());
+                    formulaService.ceilToNearestTick(entryPrice, researchTechnical.getTickSize());
         }
 
         double riskRewardTarget =

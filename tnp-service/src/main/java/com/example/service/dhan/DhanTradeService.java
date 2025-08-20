@@ -91,8 +91,8 @@ public class DhanTradeService {
                 if (researchTechnical.getResearchDate()
                         == calendarService.previousTradingSession(LocalDate.now())) {
                     double tradedValue = trade.getTradedQuantity() * trade.getTradedPrice();
-                    double profitMargin = tradedValue * 0.005; // .001% of traded value for intraday
-                    return profitMargin + 2.0; // 5% of traded value + INR 2 per trade
+                    double profitMargin = tradedValue * 0.02; // 2% of traded value for intraday
+                    return profitMargin + 2.0; // 2% of traded value + INR 2 per trade
                 }
 
                 // SELL - In profit charge 5% of profit + INR 2 per trade
@@ -101,7 +101,7 @@ public class DhanTradeService {
                     double researchEntryValue =
                             trade.getTradedQuantity() * researchTechnical.getEntryPrice();
                     double profitMargin = (tradedValue - researchEntryValue) * 0.05;
-                    return profitMargin + 2.0; // 5% of traded value + INR 2 per trade
+                    return profitMargin + 1.0; // 5% of traded value + INR 1 per trade
                 }
                 // SELL - In loss only charge INR .50 per trade
                 return 0.5;

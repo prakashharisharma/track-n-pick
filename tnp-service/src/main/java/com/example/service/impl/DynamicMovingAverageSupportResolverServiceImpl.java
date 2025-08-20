@@ -22,9 +22,9 @@ import org.springframework.stereotype.Service;
 public class DynamicMovingAverageSupportResolverServiceImpl
         implements DynamicMovingAverageSupportResolverService {
 
+    private final StockPriceService<StockPrice> stockPriceService;
     private final MovingAverageSupportResistanceService
             fiveDaysMovingAverageSupportResistanceService;
-
     private final MovingAverageSupportResistanceService
             twentyDaysMovingAverageSupportResistanceService;
 
@@ -50,6 +50,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
     private final FormulaService formulaService;
 
     public DynamicMovingAverageSupportResolverServiceImpl(
+            StockPriceService<StockPrice> stockPriceService,
             @Qualifier("fiveDayMovingAverageService")
                     MovingAverageSupportResistanceService
                             fiveDaysMovingAverageSupportResistanceService,
@@ -71,6 +72,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
             CandleStickService candleStickService,
             BreakoutService breakoutService,
             FormulaService formulaService) {
+        this.stockPriceService = stockPriceService;
         this.fiveDaysMovingAverageSupportResistanceService =
                 fiveDaysMovingAverageSupportResistanceService;
         this.twentyDaysMovingAverageSupportResistanceService =
@@ -227,7 +229,11 @@ public class DynamicMovingAverageSupportResolverServiceImpl
         double low = stockPrice.getLow();
         double high = stockPrice.getHigh();
 
-        boolean checkSupport = TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN;
+        boolean checkSupport =
+                TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN
+                        || TrendDirectionUtil.findDirection(
+                                        stockPriceService.buildPrevSessionStockPrice(stockPrice))
+                                == Trend.Direction.DOWN;
 
         List<MAServiceEntry> sorted = getSortedMAEntries(timeframe, stockTechnicals, sortByValue);
 
