@@ -29,7 +29,7 @@ public class ResearchInsightService {
 
     private final FundamentalResearchService fundamentalResearchService;
 
-    public boolean isStrongInsights(StockPrice stockPrice) {
+    public boolean isStrongInsights(StockPrice stockPrice, boolean isInvestment) {
         Stock stock = stockPrice.getStock();
         try {
 
@@ -50,6 +50,12 @@ public class ResearchInsightService {
             SentimentColor qualityColor = stockOverviewResponse.getData().getQualityColor();
             SentimentColor valuationColor = stockOverviewResponse.getData().getValuationColor();
             SentimentColor technicalColor = stockOverviewResponse.getData().getTechnicalColor();
+
+            if (isInvestment
+                    && (qualityColor == null || qualityColor == SentimentColor.POSITIVE)
+                    && valuationColor == SentimentColor.POSITIVE) {
+                return true;
+            }
 
             if (qualityColor == null || qualityColor == SentimentColor.NEGATIVE) {
                 evaluationLogService.add(

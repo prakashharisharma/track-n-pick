@@ -22,6 +22,12 @@ public class InvestmentPriceActionSignalEvaluator implements TradeSignalEvaluato
 
     private final StockPriceService<StockPrice> stockPriceService;
 
+    private final CandleStickConfirmationService candleStickConfirmationService;
+
+    private final VolumeIndicatorService volumeIndicatorService;
+
+    private final RsiIndicatorService rsiIndicatorService;
+
     @Override
     public TradeSetup evaluateEntry(
             Timeframe timeframe,
@@ -34,10 +40,12 @@ public class InvestmentPriceActionSignalEvaluator implements TradeSignalEvaluato
                 || TrendDirectionUtil.findDirection(
                                 stockPriceService.buildPrevSessionStockPrice(stockPrice))
                         == Trend.Direction.DOWN) {
+            // System.out.println("Log1 " + stock.getNseSymbol());
             if (stockPrice.getClose()
                     < MovingAverageUtil.getMovingAverage5(timeframe, stockTechnicals)) {
                 if (stockPrice.getClose()
                         < MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals)) {
+                    // System.out.println("Log2 " + stock.getNseSymbol());
                     subStrategyRef = confirmBreakout(timeframe, stock, stockPrice, stockTechnicals);
                 }
             }
@@ -46,6 +54,8 @@ public class InvestmentPriceActionSignalEvaluator implements TradeSignalEvaluato
         if (subStrategyRef.isPresent()) {
 
             double researchPrice = stockPrice.getHigh() + stockPrice.getLow() / 2;
+
+            researchPrice = Math.min(researchPrice, stockPrice.getClose());
 
             return TradeSetup.builder()
                     .active(Boolean.TRUE)
@@ -79,21 +89,57 @@ public class InvestmentPriceActionSignalEvaluator implements TradeSignalEvaluato
                 signalEvaluatorHelperService.isHighAndHighestMovingAverageDiffValid(
                         timeframe, stockPrice, stockTechnicals, MAInteractionType.BREAKOUT, true);
 
+        boolean isLowestAndLowMovingAverageDiffValid =
+                signalEvaluatorHelperService.isHighAndHighestMovingAverageDiffValid(
+                        timeframe, stockPrice, stockTechnicals, MAInteractionType.BREAKOUT, true);
+
+        if (!isLowestAndLowMovingAverageDiffValid) {
+            return Optional.empty();
+        }
+
         if (!isHighestAndHighMovingAverageDiffValid) {
             return Optional.empty();
         }
 
+        // System.out.println("Log3 " + stock.getNseSymbol());
+
+        if (stockTechnicals.getVolume() < VolumeIndicatorService.MIN_VOLUME * 2) {
+            return Optional.empty();
+        }
+        // System.out.println("Log4 " + stock.getNseSymbol());
+
+        if (stockTechnicals.getVolumeAvg20() < VolumeIndicatorService.MIN_VOLUME_AVG * 2) {
+            return Optional.empty();
+        }
+
+        // System.out.println("Log5 " + stock.getNseSymbol());
         if (isLowestAndHighestMovingAverageDiffValid && (isStrongRange || isStrongBody)) {
+            // System.out.println("Log6 " + stock.getNseSymbol());
+            boolean isBullishConfirmed =
+                    candleStickConfirmationService.isBullishConfirmed(
+                            timeframe, stockPrice, stockTechnicals, true);
+
+            boolean isOverSold =
+                    stockTechnicals.getRsi() < 25.0 || stockTechnicals.getPrevRsi() < 25.0;
+
+            boolean bullishConfirmed =
+                    candleStickConfirmationService.isBullishConfirmed(
+                            timeframe, stockPrice, stockTechnicals, true);
 
             if (CandleStickUtils.isStrongLowerWick(stockPrice)
                     || CandleStickUtils.isLowerWickDominant(stockPrice)
-                    || CandleStickUtils.isLowerWickLongerThanUpperWick(stockPrice)) {
-                if (stockTechnicals.getVolumeAvg20() > stockTechnicals.getPrevVolumeAvg20()) {
+                    || CandleStickUtils.isLowerWickLongerThanUpperWick(stockPrice)
+                    || isBullishConfirmed
+                    || isOverSold
+                    || bullishConfirmed) {
+                // System.out.println("Log7 " + stock.getNseSymbol());
+                if (volumeIndicatorService.isVolumeSurge(stockTechnicals)) {
                     if (stockTechnicals.getVolume() > 1.5 * stockTechnicals.getVolumeAvg20()) {
                         if ((stockTechnicals.getVolume() > 1.5 * stockTechnicals.getPrevVolume())
                                 || (stockTechnicals.getVolume() > stockTechnicals.getPrevVolume()
                                         && stockTechnicals.getPrevVolume()
                                                 > 1.5 * stockTechnicals.getPrevVolumeAvg20())) {
+                            System.out.println("Log8 " + stock.getNseSymbol());
                             return SubStrategyHelper.resolveByName("support");
                         }
                     }

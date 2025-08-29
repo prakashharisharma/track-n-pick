@@ -23,7 +23,7 @@ public class DhanOrchestratorService {
     private final DhanOrderService dhanOrderService;
 
     private static final LocalTime MARKET_OPEN_TIME = LocalTime.of(9, 15);
-    private static final LocalTime MARKET_CLOSE_TIME = LocalTime.of(15, 30);
+    public static final LocalTime MARKET_CLOSE_TIME = LocalTime.of(15, 30);
     private static final LocalTime PRE_OPEN_START_TIME = LocalTime.of(9, 0);
     private static final LocalTime PRE_OPEN_END_TIME = LocalTime.of(9, 7);
     private static final double DISCLOSED_QUANTITY_PERCENTAGE = 0.31;

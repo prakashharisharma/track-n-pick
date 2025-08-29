@@ -1,6 +1,5 @@
 package com.example.worker.scheduler;
 
-import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockTechnicals;
@@ -13,6 +12,7 @@ import com.example.service.dhan.DhanTradeService;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +71,7 @@ public class DhanTradeScheduler {
     @Scheduled(cron = "0 00 15 * * *") // 3:00 PM
     @Scheduled(cron = "0 15 15 * * *") // 3:15 PM
     @Scheduled(cron = "0 30 15 * * *") // 3:30 PM
-    @Scheduled(cron = "0 00 16 * * *") // 4:00 PM
+    @Scheduled(cron = "0 31 15 * * *") // 3:31 PM
     public void fetchTrades() {
         log.info("Starting trade fetch at {}", LocalDateTime.now());
         try {
@@ -107,9 +107,12 @@ public class DhanTradeScheduler {
                         List<Trade> buyTrades = filterTrades(user, TransactionType.BUY, trades);
                         List<Trade> processedBuyTrades =
                                 processTrades(buyTrades, user, TransactionType.BUY);
-                        Map<String, TradeAggregation> aggregatedTrades =
-                                aggregateTradesBySymbol(processedBuyTrades);
-                        placeSplitSellOrders(aggregatedTrades, user);
+
+                        if (LocalTime.now().isBefore(DhanOrchestratorService.MARKET_CLOSE_TIME)) {
+                            Map<String, TradeAggregation> aggregatedTrades =
+                                    aggregateTradesBySymbol(processedBuyTrades);
+                            placeSplitSellOrders(aggregatedTrades, user);
+                        }
 
                     } catch (Exception e) {
                         log.error("Error fetching trades for user: {}", user.getUsername(), e);
@@ -187,7 +190,14 @@ public class DhanTradeScheduler {
                     try {
                         Stock stock = stockService.getStockByNseSymbol(symbol);
                         if (stock != null) {
-                            placeSellOrdersForStock(stock, aggregation, user, symbol);
+                            Optional<ResearchTechnical> researchTechnicalOptional =
+                                    researchTechnicalService.getLatest(stock);
+                            if (!researchTechnicalOptional.isPresent()
+                                    || researchTechnicalOptional.get().getEntryStrategy()
+                                            != ResearchTechnical.Strategy.INVESTMENT) {
+
+                                placeSellOrdersForStock(stock, aggregation, user, symbol);
+                            }
                         } else {
                             log.error("Stock not found for symbol: {}", symbol);
                         }
@@ -234,26 +244,21 @@ public class DhanTradeScheduler {
     }
 
     private double[] determineProfitTargets(Stock stock) {
-        double[] profitTargetsDefault = {2.0, 3.0, 4.0, 5.0};
-        double[] profitTargetsPriceBand20 = {2.0, 5.0, 7.5, 10.0};
-        double[] profitTargetsPriceBand10 = {2.0, 4.0, 6.0, 8.0};
-        double[] profitTargetsPriceBand5 = {2.0, 3.0, 4.0, 4.9};
+        double[] profitTargetsDefault = {3.0, 4.75, 7.5, 10.25};
+        double[] profitTargetsPriceBand20 = {5.0, 7.5, 12.5, 17.5};
+        double[] profitTargetsPriceBand10 = {2.5, 3.75, 6.25, 8.75};
+        double[] profitTargetsPriceBand5 = {2.0, 3.0, 3.5, 4.5};
 
-        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
+        Optional<ResearchTechnical> researchTechnicalOptional =
+                researchTechnicalService.getLatest(stock);
 
-        if (ConfidenceScoreCalculator.calculateMacdScore(stockTechnicals, macdIndicatorService)
-                        == 10.0
-                && ConfidenceScoreCalculator.calculateVolumeScore(stockTechnicals) == 10.0) {
-
-            Optional<ResearchTechnical> researchTechnicalOptional =
-                    researchTechnicalService.getLatest(stock);
-            if (researchTechnicalOptional.isPresent()) {
-                double priceBand = researchTechnicalOptional.get().getPriceBand();
-                if (priceBand == 20.0) return profitTargetsPriceBand20;
-                if (priceBand == 10.0) return profitTargetsPriceBand10;
-                if (priceBand == 5.0) return profitTargetsPriceBand5;
-            }
+        if (researchTechnicalOptional.isPresent()) {
+            double priceBand = researchTechnicalOptional.get().getPriceBand();
+            if (priceBand == 20.0) return profitTargetsPriceBand20;
+            if (priceBand == 10.0) return profitTargetsPriceBand10;
+            if (priceBand == 5.0) return profitTargetsPriceBand5;
         }
+
         return profitTargetsDefault;
     }
 

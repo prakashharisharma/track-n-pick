@@ -144,7 +144,8 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
         log.info("{} Executing technical buy", stock.getNseSymbol());
 
-        if (fundamentalResearchService.isMcapInRange(stock)
+        if (fundamentalResearchService.isPriceInRange(stock)
+                && fundamentalResearchService.isMcapInRange(stock)
                 && volumeIndicatorService.isTradingValueSufficient(
                         timeframe, stockPrice, stockTechnicals)) {
             if (stock.getSeries().equalsIgnoreCase("EQ")) {
@@ -230,18 +231,19 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             tradeSetup =
                     basicPriceActionSignalEvaluator.evaluateExit(
                             timeframe, stock, stockPrice, stockTechnicals);
-
+            /*
             if (!tradeSetup.isActive()) {
                 tradeSetup =
                         simplePriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
-            }
+            }*/
 
             if (!tradeSetup.isActive()) {
                 tradeSetup =
                         dynamicPriceActionSignalEvaluator.evaluateExit(
                                 timeframe, stock, stockPrice, stockTechnicals);
             }
+
             /*
             if (!tradeSetup.isActive()) {
                 tradeSetup =
@@ -321,15 +323,19 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
         MovingAverageResult highestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
-                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
+                        MovingAverageLength.HIGHEST, timeframe, stockTechnicals, false);
 
         boolean isCloseBelowHighest = highestMovingAverageResult.getValue() > stockPrice.getClose();
 
-        if ((CandleStickUtils.isRed(stockPrice) && (isLowerHighLowerLow || isCloseBelowHighest))
-                || (CandleStickUtils.isStrongUpperWick(stockPrice)
-                        && (isHigherHighHigherLow || isLowerHighLowerLow))) {
+        boolean isUpperWickStrong =
+                CandleStickUtils.isStrongUpperWick(stockPrice)
+                        || CandleStickUtils.isUpperWickDominant(stockPrice)
+                        || CandleStickUtils.isUpperWickLongerThanLowerWick(stockPrice);
 
-            if (researchTechnical.getTarget() <= stockPrice.getClose()) {
+        if ((CandleStickUtils.isRed(stockPrice) && isLowerHighLowerLow && isCloseBelowHighest)
+                || (isUpperWickStrong && isHigherHighHigherLow)) {
+
+            if (researchTechnical.getTarget() <= stockPrice.getHigh()) {
                 evaluationLogService.add(
                         stockPrice,
                         EvaluationLog.Type.POSITIVE,

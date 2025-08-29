@@ -145,9 +145,10 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             return Optional.empty();
         }
 
+        /*
         if (CandleStickUtils.isUpperWickLongerThanLowerWick(stockPrice)) {
             return Optional.empty();
-        }
+        }*/
 
         /*
         if(CandleStickUtils.upperWickSize(stockPrice) >= 2 * CandleStickUtils.lowerWickSize(stockPrice)
