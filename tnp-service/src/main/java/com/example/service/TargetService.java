@@ -1,6 +1,6 @@
 package com.example.service;
 
-import static com.example.service.ResearchTechnicalService.MAX_RISK;
+import static com.example.service.ResearchTechnicalService.MIN_RISK;
 
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
@@ -28,11 +28,38 @@ public class TargetService {
 
         double entryPrice = researchTechnical.getEntryPrice();
         // Adjust entry price if risk is greater than 5
-        if (researchTechnical.getRisk() > MAX_RISK) {
-            double riskAdjustment = researchTechnical.getRisk() - MAX_RISK;
+        if (researchTechnical.getRisk() > ResearchTechnicalService.MAX_RISK) {
+
+            double riskAdjustment = researchTechnical.getRisk() - ResearchTechnicalService.MAX_RISK;
+
             entryPrice = formulaService.applyPercentChange(entryPrice, -1 * riskAdjustment);
+
+            if (researchTechnical.getVolumeScore() == 0.75) {
+                entryPrice = formulaService.applyPercentChange(entryPrice, 0.75);
+            } else if (researchTechnical.getVolumeScore() == 0.50) {
+                entryPrice = formulaService.applyPercentChange(entryPrice, 0.50);
+            } else if (researchTechnical.getVolumeScore() == 0.25) {
+                entryPrice = formulaService.applyPercentChange(entryPrice, 0.25);
+            }
+
             entryPrice =
                     formulaService.ceilToNearestTick(entryPrice, researchTechnical.getTickSize());
+            entryPrice = Math.min(entryPrice, stockPrice.getHigh());
+        } else if (researchTechnical.getRisk() < MIN_RISK) {
+
+            entryPrice = formulaService.applyPercentChange(entryPrice, 0.50);
+
+            if (researchTechnical.getVolumeScore() == 0.75) {
+                entryPrice = formulaService.applyPercentChange(entryPrice, 0.30);
+            } else if (researchTechnical.getVolumeScore() == 0.50) {
+                entryPrice = formulaService.applyPercentChange(entryPrice, 0.20);
+            } else if (researchTechnical.getVolumeScore() == 0.25) {
+                entryPrice = formulaService.applyPercentChange(entryPrice, 0.10);
+            }
+
+            entryPrice =
+                    formulaService.ceilToNearestTick(entryPrice, researchTechnical.getTickSize());
+            entryPrice = Math.min(entryPrice, stockPrice.getHigh());
         }
 
         double riskRewardTarget =

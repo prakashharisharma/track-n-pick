@@ -54,18 +54,6 @@ public class SignalEvaluatorHelperService {
             threshold = 1.5;
         }
 
-        MarketCapCategory marketCapCategory =
-                MarketCapCategory.classify(
-                        fundamentalResearchService.marketCap(stockTechnicals.getStock()));
-
-        if (MovingAverageUtil.getMovingAverage50(timeframe, stockTechnicals)
-                > MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals)) {
-            if (MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals)
-                    > MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals)) {
-                // sortByValue = false;
-            }
-        }
-
         MovingAverageResult highestMovingAverageResult =
                 MovingAverageUtil.getMovingAverage(
                         MovingAverageLength.HIGHEST, timeframe, stockTechnicals, sortByValue);
@@ -85,10 +73,67 @@ public class SignalEvaluatorHelperService {
                 stockPrice,
                 result ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
                 StringUtils.format(
-                        "{} {} High to Highest MA Diff:{} (> {}) → {}",
+                        "{} High to Highest MA Diff:{} (> {}) → {}",
                         timeframe.name(),
-                        marketCapCategory,
                         highToHighestDiff,
+                        threshold,
+                        result));
+
+        return result;
+    }
+
+    public boolean isLowestAndLowMovingAverageDiffValid(
+            Timeframe timeframe,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            MAInteractionType maInteractionType,
+            boolean sortByValue) {
+
+        if (stockPrice == null || stockTechnicals == null) {
+            return false;
+        }
+
+        double threshold = 2.0;
+
+        /*
+        if (MovingAverageUtil.validatedMa5MA20AndMa50(stockTechnicals)) {
+            threshold = 1.5;
+        }*/
+
+        // MarketCapCategory marketCapCategory =
+        // MarketCapCategory.classify(fundamentalResearchService.marketCap(stockTechnicals.getStock()));
+
+        /*
+        if (MovingAverageUtil.getMovingAverage50(timeframe, stockTechnicals)
+                > MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals)) {
+            if (MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals)
+                    > MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals)) {
+                // sortByValue = false;
+            }
+        }*/
+
+        MovingAverageResult lowestMovingAverageResult =
+                MovingAverageUtil.getMovingAverage(
+                        MovingAverageLength.LOWEST, timeframe, stockTechnicals, sortByValue);
+
+        MovingAverageResult lowMovingAverageResult =
+                MovingAverageUtil.getMovingAverage(
+                        MovingAverageLength.LOW, timeframe, stockTechnicals, sortByValue);
+
+        double lowestToLowDiff =
+                formulaService.calculateAbsChangePercentage(
+                        lowestMovingAverageResult.getPrevValue(),
+                        lowMovingAverageResult.getPrevValue());
+
+        boolean result = lowestToLowDiff >= threshold;
+
+        evaluationLogService.add(
+                stockPrice,
+                result ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,
+                StringUtils.format(
+                        "{} Lowest to Low MA Diff:{} (> {}) → {}",
+                        timeframe.name(),
+                        lowestToLowDiff,
                         threshold,
                         result));
 

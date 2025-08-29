@@ -13,6 +13,10 @@ import com.example.data.transactional.entities.StockTechnicals;
  */
 public interface VolumeIndicatorService {
 
+    public static long MIN_VOLUME = 5_00_000;
+
+    public static long MIN_VOLUME_AVG = 2_50_000;
+
     public boolean isBullish(
             StockPrice stockPrice, StockTechnicals stockTechnicals, Timeframe timeframe);
 

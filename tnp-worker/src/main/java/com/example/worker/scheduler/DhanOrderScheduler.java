@@ -1,18 +1,9 @@
 package com.example.worker.scheduler;
 
-import com.example.data.common.type.Timeframe;
-import com.example.data.transactional.entities.ResearchTechnical;
-import com.example.data.transactional.entities.StockPrice;
-import com.example.data.transactional.entities.Trade;
-import com.example.data.transactional.entities.User;
-import com.example.service.CalendarService;
-import com.example.service.ResearchTechnicalService;
-import com.example.service.StockPriceService;
-import com.example.service.UserService;
+import com.example.data.transactional.entities.*;
+import com.example.service.*;
 import com.example.service.dhan.DhanOrderExecutorService;
-import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,115 +24,42 @@ import org.springframework.stereotype.Component;
 public class DhanOrderScheduler {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
-    private final FormulaService formulaService;
     private final UserService userService;
     private final DhanOrderExecutorService dhanOrderExecutorService;
     private final ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
     private final CalendarService calendarService;
     private final MiscUtil miscUtil;
-    private final StockPriceService<StockPrice> stockPriceService;
+    private final DhanOrderSchedulerHelperService dhanOrderSchedulerHelperService;
 
     @Scheduled(cron = "0 05 9 * * *") // Runs at 9:05 AM daily
     public void processBuy() {
         log.info("Starting daily buy order processing at {}", LocalDateTime.now());
         try {
             LocalDate sessionDate = miscUtil.currentDate();
+            LocalDate previousTradingSessionDate =
+                    calendarService.previousTradingSession(sessionDate);
             if (calendarService.isWorkingDay(sessionDate)) {
                 List<User> enabledUsers = userService.getAllDhanApiEnabledUsers();
                 List<ResearchTechnical> researchTechnicals =
-                        researchTechnicalService.getLatestBuyResearch(
-                                calendarService.previousTradingSession(sessionDate));
+                        researchTechnicalService.getLatestBuyResearch(previousTradingSessionDate);
                 researchTechnicals.addAll(
-                        this.getPreviousInvestmentResearches(
-                                calendarService.previousTradingSession(sessionDate)));
+                        dhanOrderSchedulerHelperService.getPreviousInvestmentResearches(
+                                previousTradingSessionDate));
                 researchTechnicals.addAll(
-                        this.getRecentHybridResearches(
+                        dhanOrderSchedulerHelperService.getRecentHybridResearches(
+                                previousTradingSessionDate));
+                researchTechnicals.addAll(
+                        dhanOrderSchedulerHelperService.getRecentDynamicResearches(
                                 calendarService.previousTradingSession(sessionDate)));
-                processOrdersInParallel(enabledUsers, researchTechnicals, OrderType.BUY);
+                researchTechnicals.sort(
+                        DhanOrderSchedulerHelperService.byDateVolumeScoreDescComparator());
+
+                processOrdersInParallel(
+                        sessionDate, enabledUsers, researchTechnicals, OrderType.BUY);
             }
         } catch (Exception e) {
             log.error("Error in daily buy order processing", e);
         }
-    }
-
-    private List<ResearchTechnical> getPreviousInvestmentResearches(LocalDate sessionDate) {
-        List<ResearchTechnical> researchTechnicals =
-                researchTechnicalService.getLatestInvestmentBuyResearch(
-                        calendarService.previousTradingSession(sessionDate));
-
-        return researchTechnicals.stream()
-                .filter(rt -> rt.getEntryPrice() != null && rt.getStock() != null)
-                .filter(
-                        rt -> {
-                            StockPrice stockPrice =
-                                    stockPriceService.get(rt.getStock(), Timeframe.DAILY);
-                            if (stockPrice == null || stockPrice.getClose() == null) return false;
-
-                            // Check research date conditions
-                            LocalDate researchDate = rt.getResearchDate();
-
-                            if (researchDate != null) {
-                                long daysBetween =
-                                        java.time.temporal.ChronoUnit.DAYS.between(
-                                                researchDate, sessionDate);
-
-                                if (daysBetween <= 30) {
-                                    return true;
-                                }
-                            }
-                            return false;
-                        })
-                .collect(Collectors.toList());
-    }
-
-    private List<ResearchTechnical> getRecentHybridResearches(LocalDate sessionDate) {
-        List<ResearchTechnical> researchTechnicals =
-                researchTechnicalService.getRecentHybridBuyResearch(
-                        calendarService.previousTradingSession(sessionDate));
-
-        return researchTechnicals.stream()
-                .filter(rt -> rt.getEntryPrice() != null && rt.getStock() != null)
-                .filter(
-                        rt -> {
-                            StockPrice stockPrice =
-                                    stockPriceService.get(rt.getStock(), Timeframe.DAILY);
-                            if (stockPrice == null
-                                    || stockPrice.getClose() == null
-                                    || stockPrice.getLow() == null) return false;
-
-                            LocalDate researchDate = rt.getResearchDate();
-                            if (researchDate == null) return false;
-
-                            long daysBetween =
-                                    java.time.temporal.ChronoUnit.DAYS.between(
-                                            researchDate, sessionDate);
-
-                            if (daysBetween > 7) return false;
-
-                            Double originalEntry = rt.getEntryPrice();
-                            Double dayLow = stockPrice.getLow();
-                            Double close = stockPrice.getClose();
-
-                            if (dayLow < originalEntry) {
-                                // If low breached entry, set to low only if close is above the
-                                // original entry
-                                if (close > originalEntry || close < originalEntry) {
-                                    rt.setEntryPrice(dayLow);
-                                }
-                            }
-
-                            if (rt.getStopLoss() >= rt.getEntryPrice()) {
-                                rt.setStopLoss(rt.getEntryPrice() - 2 * rt.getTickSize());
-                            }
-
-                            rt.setRisk(
-                                    Math.abs(
-                                            formulaService.calculateChangePercentage(
-                                                    rt.getEntryPrice(), rt.getStopLoss())));
-
-                            return true;
-                        })
-                .collect(Collectors.toList());
     }
 
     @Scheduled(cron = "0 05 9 * * *") // Runs at 9:05 AM daily
@@ -149,138 +67,36 @@ public class DhanOrderScheduler {
         log.info("Starting daily sell order processing at {}", LocalDateTime.now());
         try {
             LocalDate sessionDate = miscUtil.currentDate();
+            LocalDate previousTradingSessionDate =
+                    calendarService.previousTradingSession(sessionDate);
+
             if (calendarService.isWorkingDay(sessionDate)) {
                 List<User> enabledUsers = userService.getAllDhanApiEnabledUsers();
                 List<ResearchTechnical> researchTechnicals =
-                        researchTechnicalService.getLatestSellResearch(
-                                calendarService.previousTradingSession(sessionDate));
+                        researchTechnicalService.getLatestSellResearch(previousTradingSessionDate);
 
-                researchTechnicals.addAll(this.getNearTargetResearches());
+                researchTechnicals.addAll(
+                        dhanOrderSchedulerHelperService.getNearTargetResearches(sessionDate));
 
-                processOrdersInParallel(enabledUsers, researchTechnicals, OrderType.SELL);
+                processOrdersInParallel(
+                        sessionDate, enabledUsers, researchTechnicals, OrderType.SELL);
             }
         } catch (Exception e) {
             log.error("Error in daily sell order processing", e);
         }
     }
 
-    private List<ResearchTechnical> getNearTargetResearches() {
-        LocalDate currentDate = miscUtil.currentDate();
-        List<ResearchTechnical> researchTechnicals =
-                researchTechnicalService.getAll(Trade.Type.BUY);
-
-        return researchTechnicals.stream()
-                .filter(rt -> rt.getTarget() != null && rt.getStock() != null)
-                .filter(
-                        rt -> {
-                            StockPrice stockPrice =
-                                    stockPriceService.get(rt.getStock(), Timeframe.DAILY);
-                            if (stockPrice == null || stockPrice.getClose() == null) return false;
-
-                            double close = stockPrice.getClose();
-                            double entryPrice = rt.getEntryPrice();
-                            double target = rt.getTarget();
-                            // boolean isWithin10Percent = formulaService.isWithinPercentage(close,
-                            // target, 10.0);
-
-                            boolean isWithinPriceBand =
-                                    formulaService.isWithinPercentage(
-                                            close, target, rt.getPriceBand());
-
-                            // Check research date conditions
-                            LocalDate researchDate = rt.getResearchDate();
-
-                            /*
-                            if (!isWithinPriceBand) {
-                                if (rt.getEntryStrategy() == ResearchTechnical.Strategy.INVESTMENT
-                                        || rt.getEntrySubStrategy()
-                                                == ResearchTechnical.SubStrategy.LOWEST_BREAKOUT
-                                        || rt.getEntrySubStrategy()
-                                                == ResearchTechnical.SubStrategy.LOW_BREAKOUT
-                                        || rt.getEntrySubStrategy()
-                                                == ResearchTechnical.SubStrategy.MEDIUM_BREAKOUT
-                                        || rt.getEntrySubStrategy()
-                                                == ResearchTechnical.SubStrategy.MA200_BREAKOUT
-                                        || rt.getEntrySubStrategy()
-                                                == ResearchTechnical.SubStrategy.MA100_BREAKOUT
-                                        || rt.getEntrySubStrategy()
-                                                == ResearchTechnical.SubStrategy.MA50_BREAKOUT) {
-                                    return false;
-                                }
-                            }*/
-
-                            if (researchDate != null) {
-                                long daysBetween =
-                                        java.time.temporal.ChronoUnit.DAYS.between(
-                                                researchDate, currentDate);
-
-                                if (calendarService
-                                                .previousTradingSession(miscUtil.currentDate())
-                                                .getDayOfWeek()
-                                        == DayOfWeek.FRIDAY) {}
-
-                                if ((calendarService
-                                                                .previousTradingSession(
-                                                                        miscUtil.currentDate())
-                                                                .getDayOfWeek()
-                                                        == DayOfWeek.FRIDAY
-                                                || calendarService
-                                                                .previousTradingSession(
-                                                                        miscUtil.currentDate())
-                                                                .getDayOfWeek()
-                                                        == DayOfWeek.THURSDAY
-                                                || daysBetween <= 2)
-                                        && !isWithinPriceBand) {
-                                    // Within 2 days - set target as 5% above entry
-
-                                    rt.setExitPrice(
-                                            formulaService.roundToNearestTick(
-                                                    entryPrice * 1.04, rt.getTickSize()));
-
-                                    return true;
-                                } else if (daysBetween <= 4 && !isWithinPriceBand) {
-                                    // Within 4 days - set target as 7.5% above entry
-                                    rt.setExitPrice(
-                                            formulaService.roundToNearestTick(
-                                                    entryPrice * 1.06, rt.getTickSize()));
-                                    return true;
-                                } else if (daysBetween <= 6 && !isWithinPriceBand) {
-                                    // Within 6 days - set target as 10% above entry
-                                    rt.setExitPrice(
-                                            formulaService.roundToNearestTick(
-                                                    entryPrice * 1.08, rt.getTickSize()));
-                                    return true;
-                                } else if (daysBetween <= 8 && !isWithinPriceBand) {
-                                    // Within 8 days - set target as 10% above entry
-                                    rt.setExitPrice(
-                                            formulaService.roundToNearestTick(
-                                                    entryPrice * 1.10, rt.getTickSize()));
-                                    return true;
-                                } else if (daysBetween <= 10 && !isWithinPriceBand) {
-                                    // Within 10 days - set target as 10% above entry
-                                    rt.setExitPrice(
-                                            formulaService.roundToNearestTick(
-                                                    entryPrice * 1.12, rt.getTickSize()));
-                                    return true;
-                                }
-                            }
-
-                            // Original logic for within priceBand% of target
-                            if (isWithinPriceBand) {
-                                rt.setExitPrice(target);
-                                return true;
-                            }
-
-                            return false;
-                        })
-                .collect(Collectors.toList());
-    }
-
     private void processOrdersInParallel(
-            List<User> users, List<ResearchTechnical> researchTechnicals, OrderType orderType) {
+            LocalDate currentDate,
+            List<User> users,
+            List<ResearchTechnical> researchTechnicals,
+            OrderType orderType) {
         List<CompletableFuture<Void>> futures =
                 users.stream()
-                        .map(user -> createOrderFuture(user, researchTechnicals, orderType))
+                        .map(
+                                user ->
+                                        createOrderFuture(
+                                                currentDate, user, researchTechnicals, orderType))
                         .collect(Collectors.toList());
 
         // Wait for all futures to complete
@@ -289,13 +105,16 @@ public class DhanOrderScheduler {
     }
 
     private CompletableFuture<Void> createOrderFuture(
-            User user, List<ResearchTechnical> researchTechnicals, OrderType orderType) {
+            LocalDate currentDate,
+            User user,
+            List<ResearchTechnical> researchTechnicals,
+            OrderType orderType) {
         return CompletableFuture.runAsync(
                 () -> {
                     try {
                         log.info(
                                 "Processing {} orders for user: {}", orderType, user.getUsername());
-                        executeOrder(user, researchTechnicals, orderType);
+                        executeOrder(currentDate, user, researchTechnicals, orderType);
                     } catch (Exception e) {
                         log.error(
                                 "Error processing {} orders for user: {}",
@@ -308,13 +127,16 @@ public class DhanOrderScheduler {
     }
 
     private void executeOrder(
-            User user, List<ResearchTechnical> researchTechnicals, OrderType orderType) {
+            LocalDate currentDate,
+            User user,
+            List<ResearchTechnical> researchTechnicals,
+            OrderType orderType) {
         switch (orderType) {
             case BUY:
-                dhanOrderExecutorService.executeBuy(user, researchTechnicals);
+                dhanOrderExecutorService.executeBuy(currentDate, user, researchTechnicals, false);
                 break;
             case SELL:
-                dhanOrderExecutorService.executeSell(user, researchTechnicals);
+                dhanOrderExecutorService.executeSell(user, researchTechnicals, false);
                 break;
         }
     }

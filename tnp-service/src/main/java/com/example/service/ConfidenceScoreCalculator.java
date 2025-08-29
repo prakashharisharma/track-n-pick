@@ -233,23 +233,25 @@ public class ConfidenceScoreCalculator {
         boolean isVolumeIncreasing = currentVolume > prevVolume;
         boolean isVolumeAboveAverage = currentVolume > avgVolume;
 
+        double score = 5.0;
+
         if (isAvgIncreasing && currentVolume > 1.5 * avgVolume) {
-            return 10;
+            score = 10;
         } else if (isAvgIncreasing && currentVolume > 2 * prevVolume) {
-            return 9;
+            score = 9;
         } else if (isAvgIncreasing
                 && (currentVolume > 1.25 * avgVolume)
                 && (prevVolume > 1.25 * prevAvgVolume)) {
-            return 8;
+            score = 8;
         } else if (isAvgIncreasing && isVolumeIncreasing && isVolumeAboveAverage) {
-            return 7;
+            score = 7;
         } else if (isAvgIncreasing
                 && (prevVolume > 1.25 * prevAvgVolume)
                 && (prevPrevVolume > 1.25 * prevPrevAvgVolume)) {
-            return 6;
+            score = 6;
         }
 
-        return 5;
+        return score;
     }
 
     public static double calculateMacdScore(

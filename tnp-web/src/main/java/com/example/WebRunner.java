@@ -19,7 +19,7 @@ import com.example.processor.BhavProcessor;
 import com.example.service.*;
 import com.example.service.calc.*;
 import com.example.service.dhan.DhanOrchestratorService;
-import com.example.service.dhan.model.PositionDetails;
+import com.example.service.dhan.DhanOrderExecutorService;
 import com.example.service.impl.FundamentalResearchService;
 import com.example.service.utils.*;
 import com.example.util.FormulaService;
@@ -56,6 +56,8 @@ public class WebRunner implements CommandLineRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebRunner.class);
 
+    @Autowired private DhanOrderSchedulerHelperService dhanOrderSchedulerHelperService;
+
     @Autowired private BhavcopyService bhavcopyService;
 
     @Autowired private OHLCVAggregatorService ohlcvAggregatorService;
@@ -71,6 +73,10 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private TradingHolidayRepository tradingHolidayRepository;
     @Autowired private CalendarService calendarService;
     @Autowired private MiscUtil miscUtil;
+
+    @Autowired private DhanOrderExecutorService dhanOrderExecutorService;
+
+    @Autowired private CandleStickConfirmationService candleStickConfirmationService;
 
     @Autowired private BhavProcessor bhavProcessor;
     @Autowired private NSEIndustryFetcher sectorScrappingService;
@@ -162,6 +168,10 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private ResearchTechnicalRepository researchTechnicalRepository;
     @Autowired private BillingService billingService;
 
+    @Autowired
+    @Qualifier("investmentPriceActionSignalEvaluator")
+    private InvestmentPriceActionSignalEvaluator investmentPriceActionSignalEvaluator;
+
     @Override
     public void run(String... arg0) throws InterruptedException, IOException {
 
@@ -171,23 +181,17 @@ public class WebRunner implements CommandLineRunner {
         this.allocatePositions();
         // this.showBilling();
         // this.makePayment();
+
         /*
          List<Stock> stocks = stockService.getActiveStocks();
         for(Stock stock : stocks) {
             StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
 
-            Trend.Direction direction = TrendDirectionUtil.findDirection(stockPrice);
+            investmentPriceActionSignalEvaluator.evaluateEntry(Timeframe.DAILY, stock, stockPrice, stockTechnicals);
 
-            System.out.println(stock.getNseSymbol() +" : " + direction);
-            System.out.println("Prev5 " + stockPrice.getPrev5Open() +","+stockPrice.getPrev5High()+","+stockPrice.getPrev5Low()+","+stockPrice.getPrev5Close());
-            System.out.println("Prev4 " + stockPrice.getPrev4Open() +","+stockPrice.getPrev4High()+","+stockPrice.getPrev4Low()+","+stockPrice.getPrev4Close());
-            System.out.println("Prev3 " + stockPrice.getPrev3Open() +","+stockPrice.getPrev3High()+","+stockPrice.getPrev3Low()+","+stockPrice.getPrev3Close());
-            System.out.println("Prev2 " + stockPrice.getPrev2Open() +","+stockPrice.getPrev2High()+","+stockPrice.getPrev2Low()+","+stockPrice.getPrev2Close());
-            System.out.println("Prev " + stockPrice.getPrevOpen() +","+stockPrice.getPrevHigh()+","+stockPrice.getPrevLow()+","+stockPrice.getPrevClose());
-            System.out.println("Current " + stockPrice.getOpen() +","+stockPrice.getHigh()+","+stockPrice.getLow()+","+stockPrice.getClose());
-        }
+        }*/
 
-         */
         /*
         List<Stock> stocks = new ArrayList<>();
         Stock testStock = stockService.getStockByNseSymbol("THEJO");
@@ -787,221 +791,83 @@ public class WebRunner implements CommandLineRunner {
 
     private void allocatePositions() {
         List<User> users = userService.getAllDhanApiEnabledUsers();
+
+        LocalDate sessionDate = miscUtil.currentDate().plusDays(1);
+        System.out.println("SessionDate " + sessionDate);
+        LocalDate previousTradingSessionDate = calendarService.previousTradingSession(sessionDate);
+        System.out.println("previousTradingSessionDate " + sessionDate);
+        List<ResearchTechnical> researchTechnicalForBuyOrders =
+                researchTechnicalService.getLatestBuyResearch(previousTradingSessionDate);
+        researchTechnicalForBuyOrders.addAll(
+                dhanOrderSchedulerHelperService.getPreviousInvestmentResearches(
+                        previousTradingSessionDate));
+        researchTechnicalForBuyOrders.addAll(
+                dhanOrderSchedulerHelperService.getRecentHybridResearches(
+                        previousTradingSessionDate));
+        researchTechnicalForBuyOrders.addAll(
+                dhanOrderSchedulerHelperService.getRecentDynamicResearches(
+                        previousTradingSessionDate));
+        researchTechnicalForBuyOrders.sort(
+                DhanOrderSchedulerHelperService.byDateVolumeScoreDescComparator());
+
+        System.out.println("Buy researches on " + previousTradingSessionDate);
+
+        researchTechnicalForBuyOrders.forEach(
+                rt -> {
+                    System.out.println(
+                            rt.getStock().getNseSymbol()
+                                    + " "
+                                    + rt.getEntryStrategy()
+                                    + " "
+                                    + rt.getEntryPrice()
+                                    + " "
+                                    + rt.getResearchDate());
+                });
+
+        List<ResearchTechnical> researchTechnicalsForSellOrder =
+                researchTechnicalService.getLatestSellResearch(previousTradingSessionDate);
+
+        researchTechnicalsForSellOrder.addAll(
+                dhanOrderSchedulerHelperService.getNearTargetResearches(sessionDate));
+        System.out.println("***************");
+        System.out.println("Sell researches on " + previousTradingSessionDate);
+
+        researchTechnicalsForSellOrder.forEach(
+                rt -> {
+                    System.out.println(
+                            rt.getStock().getNseSymbol()
+                                    + " "
+                                    + rt.getExitStrategy()
+                                    + " "
+                                    + rt.getExitPrice()
+                                    + " "
+                                    + rt.getExitDate());
+                });
+
         for (User user : users) {
             System.out.println("Allocating for " + user.getUsername());
-            this.allocatePositions(user);
+
+            this.allocatePositions(
+                    sessionDate,
+                    user,
+                    researchTechnicalForBuyOrders,
+                    researchTechnicalsForSellOrder);
         }
     }
 
     /** Position Size = (Total trading fund * Risk%)/SL% */
-    private void allocatePositions(User user) {
+    private void allocatePositions(
+            LocalDate currentDate,
+            User user,
+            List<ResearchTechnical> researchTechnicalForBuyOrders,
+            List<ResearchTechnical> researchTechnicalsForSellOrder) {
 
-        List<ResearchTechnical> researchTechnicalList =
-                researchTechnicalService.getLatestBuyResearch(miscUtil.currentDate());
+        System.out.println("Buy orders for user " + user.getUsername());
 
-        // researchTechnicalList = researchTechnicalList.subList(0,1);
-        WebRunner.PortfolioLimits limits = getPortfolioLimits(user, researchTechnicalList.size());
-        double availableFunds = limits.availableFunds();
+        dhanOrderExecutorService.executeBuy(currentDate, user, researchTechnicalForBuyOrders, true);
 
-        if (availableFunds <= 0.0) {
-            log.info("Skipping buy orders for user {} - no available funds", user.getUsername());
-            return;
-        }
-
-        for (ResearchTechnical researchTechnical : researchTechnicalList) {
-            try {
-
-                double entryPrice = researchTechnical.getEntryPrice();
-
-                // Adjust entry price if risk is greater than 5
-                if (researchTechnical.getRisk() > 4.99) {
-                    double riskAdjustment = researchTechnical.getRisk() - 4.99;
-                    entryPrice = formulaService.applyPercentChange(entryPrice, -1 * riskAdjustment);
-                }
-
-                long positionSize = positionService.calculate(user, researchTechnical);
-
-                PositionDetails position =
-                        calculatePosition(
-                                availableFunds,
-                                limits.maxValuePerStock(),
-                                limits.mimValuePerStock(),
-                                limits.originalFunds(),
-                                positionSize,
-                                entryPrice);
-
-                System.out.println(
-                        researchTechnical.getStock().getNseSymbol()
-                                + " SecurityId: "
-                                + researchTechnical.getStock().getInstrument()
-                                + " PositionSize: "
-                                + positionSize
-                                + " AdjustedPosition: "
-                                + positionSize
-                                + " FinalQty: "
-                                + position.finalQuantity()
-                                + " DisclosedQty: "
-                                + position.disclosedQuantity()
-                                + " Price: "
-                                + entryPrice
-                                + " FinalValue: "
-                                + position.finalValue()
-                                + " RemainingFunds: "
-                                + availableFunds);
-
-                if (position.finalQuantity() > 0) {
-                    String payload =
-                            this.formatPayload(
-                                    user.getDhanClientId(),
-                                    researchTechnical.getStock().getIsinCode(),
-                                    researchTechnical.getStock().getInstrument(),
-                                    String.valueOf(position.finalQuantity()),
-                                    String.valueOf(position.disclosedQuantity()),
-                                    String.valueOf(entryPrice));
-
-                    System.out.println(payload);
-
-                    availableFunds = position.remainingFunds();
-                }
-            } catch (Exception e) {
-                log.error(
-                        "Error processing buy order for stock {}: {}",
-                        researchTechnical.getStock().getNseSymbol(),
-                        e.getMessage(),
-                        e);
-            }
-        }
-    }
-
-    private PositionDetails calculatePosition(
-            double availableFunds,
-            double maxValuePerStock,
-            double minValuePerStock,
-            double originalFunds,
-            long positionSize,
-            double entryPrice) {
-
-        double adjustedPositionValue = positionSize * entryPrice;
-        long finalQuantity = 0;
-        double finalValue = 0.0;
-        // System.out.println("adjustedPositionValue " + adjustedPositionValue);
-        if (adjustedPositionValue <= availableFunds) {
-            double cappedValue = Math.min(adjustedPositionValue, maxValuePerStock);
-            if (cappedValue >= minValuePerStock) {
-                finalValue = cappedValue;
-                finalQuantity = (long) Math.floor(finalValue / entryPrice);
-                finalValue = finalQuantity * entryPrice;
-                availableFunds -= finalValue;
-            }
-        } else if (availableFunds > 0) {
-            long partialQty = (long) Math.floor(availableFunds / entryPrice);
-            double partialValue = partialQty * entryPrice;
-            double cappedValue = Math.min(partialValue, maxValuePerStock);
-
-            if (cappedValue >= minValuePerStock) {
-                finalQuantity = (long) Math.floor(cappedValue / entryPrice);
-                finalValue = finalQuantity * entryPrice;
-                availableFunds -= finalValue;
-            }
-        }
-
-        return new PositionDetails(
-                finalQuantity,
-                finalValue,
-                (long) (finalQuantity * 0.35), // 35% disclosed quantity
-                availableFunds);
-    }
-
-    private record PortfolioLimits(
-            double availableFunds,
-            double maxValuePerStock,
-            double mimValuePerStock,
-            double originalFunds) {}
-
-    private WebRunner.PortfolioLimits getPortfolioLimits(User user, int stockCount) {
-        double availableFunds = portfolioService.availableFundLimit(user);
-        double totalCapital = portfolioService.calculateNetWorth(user);
-
-        // double availableFunds = 60417;
-        // double totalCapital = 1177662;
-
-        if (stockCount <= 0 || totalCapital == 0) {
-            return new WebRunner.PortfolioLimits(availableFunds, 0, 0, availableFunds);
-        }
-
-        double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
-
-        final double MIN_CAP = totalCapital <= 500000.0 ? 0.050 : 0.025;
-        final double MAX_CAP = totalCapital <= 500000.0 ? 0.150 : 0.075;
-        final double EXPONENT = 2.0;
-
-        // 1. Base cap % depending on funds availability
-        double capPercent = MIN_CAP + (MAX_CAP - MIN_CAP) * Math.pow(1 - ratio, EXPONENT);
-
-        // 2. Adjust for stock count (stockCount: 1–10)
-        // Fewer stocks => higher multiplier, More stocks => lower multiplier
-        // Map stockCount = 1 → 1.2x, 10 → 0.8x
-        double stockCountAdjustment = Math.max(0.8, Math.min(1.6, 1.6 - 0.08 * stockCount));
-        capPercent *= stockCountAdjustment;
-
-        // 3. Cap the final value to max 15%
-        capPercent = Math.min(capPercent, MAX_CAP);
-
-        System.out.println("capPercent " + capPercent);
-        // 3. Calculate max and min per stock
-        double rawMaxPerStock = totalCapital * capPercent;
-        double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
-
-        // Order should not be less than 10000.0
-        // maxPerStock = Math.max(10000, maxPerStock);
-        System.out.println("maxPerStock " + maxPerStock);
-
-        double rawMinPerStock = totalCapital * MIN_CAP;
-        double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
-
-        // Order should not be less than 10000.0
-        // minPerStock = Math.max(10000, minPerStock);
-        System.out.println("minPerStock " + minPerStock);
-        return new WebRunner.PortfolioLimits(
-                availableFunds, maxPerStock, minPerStock, availableFunds);
-    }
-
-    private String formatPayload(
-            String clientId,
-            String correlationId,
-            String securityId,
-            String quantity,
-            String disclosedQuantity,
-            String price) {
-        boolean isBefore9AM = LocalTime.now().isBefore(LocalTime.of(9, 0));
-        boolean isAfter3_30PM = LocalTime.now().isAfter(LocalTime.of(15, 30));
-
-        boolean isAfterMarketOrder = isBefore9AM || isAfter3_30PM;
-
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("dhanClientId", clientId);
-        payload.put("correlationId", correlationId);
-        payload.put("transactionType", "BUY");
-        payload.put("exchangeSegment", "NSE_EQ");
-        payload.put("productType", "CNC");
-        payload.put("orderType", "LIMIT");
-        payload.put("validity", "DAY");
-        payload.put("securityId", securityId);
-        payload.put("quantity", quantity);
-        payload.put("disclosedQuantity", disclosedQuantity);
-        payload.put("price", price);
-        payload.put("triggerPrice", "");
-        payload.put("afterMarketOrder", isAfterMarketOrder);
-        payload.put("amoTime", isAfterMarketOrder ? "PRE_OPEN" : "OPEN");
-        payload.put("boProfitValue", "");
-        payload.put("boStopLossValue", "");
-
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.writeValueAsString(payload);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to format payload", e);
-        }
+        System.out.println("Sell orders for user " + user.getUsername());
+        dhanOrderExecutorService.executeSell(user, researchTechnicalsForSellOrder, true);
     }
 
     private void testTrend() {
