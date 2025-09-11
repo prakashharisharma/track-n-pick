@@ -66,9 +66,13 @@ public class DhanTradeScheduler {
     @Scheduled(cron = "0 00 11 * * *") // 11:00 AM
     @Scheduled(cron = "0 30 11 * * *") // 11:30 AM
     @Scheduled(cron = "0 00 12 * * *") // 11:30 AM
+    @Scheduled(cron = "0 15 12 * * *") // 11:30 AM
+    @Scheduled(cron = "0 30 12 * * *") // 11:30 AM
     @Scheduled(cron = "0 00 13 * * *") // 11:30 AM
+    @Scheduled(cron = "0 12 13 * * *") // 11:30 AM
     @Scheduled(cron = "0 00 14 * * *") // 11:30 AM
     @Scheduled(cron = "0 00 15 * * *") // 3:00 PM
+    @Scheduled(cron = "0 05 15 * * *") // 3:15 PM
     @Scheduled(cron = "0 15 15 * * *") // 3:15 PM
     @Scheduled(cron = "0 30 15 * * *") // 3:30 PM
     @Scheduled(cron = "0 31 15 * * *") // 3:31 PM
@@ -192,12 +196,13 @@ public class DhanTradeScheduler {
                         if (stock != null) {
                             Optional<ResearchTechnical> researchTechnicalOptional =
                                     researchTechnicalService.getLatest(stock);
-                            if (!researchTechnicalOptional.isPresent()
-                                    || researchTechnicalOptional.get().getEntryStrategy()
-                                            != ResearchTechnical.Strategy.INVESTMENT) {
+
+                            if (researchTechnicalOptional.isPresent()
+                                    && researchTechnicalOptional.get().getVolumeScore() < 0.75) {
 
                                 placeSellOrdersForStock(stock, aggregation, user, symbol);
                             }
+
                         } else {
                             log.error("Stock not found for symbol: {}", symbol);
                         }
@@ -245,7 +250,7 @@ public class DhanTradeScheduler {
 
     private double[] determineProfitTargets(Stock stock) {
         double[] profitTargetsDefault = {3.0, 4.75, 7.5, 10.25};
-        double[] profitTargetsPriceBand20 = {5.0, 7.5, 12.5, 17.5};
+        double[] profitTargetsPriceBand20 = {4.5, 7.5, 12.5, 17.5};
         double[] profitTargetsPriceBand10 = {2.5, 3.75, 6.25, 8.75};
         double[] profitTargetsPriceBand5 = {2.0, 3.0, 3.5, 4.5};
 

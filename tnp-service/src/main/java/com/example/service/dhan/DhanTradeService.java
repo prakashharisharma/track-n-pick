@@ -10,6 +10,7 @@ import com.example.external.dhan.model.Trade;
 import com.example.service.CalendarService;
 import com.example.service.ResearchTechnicalService;
 import com.example.service.StockService;
+import com.example.util.MiscUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -25,10 +26,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DhanTradeService {
 
+    private final MiscUtil miscUtil;
+
     private final DhanTradeRepository dhanTradeRepository;
     private final StockService stockService;
-    private final DhanOrchestratorService dhanOrchestratorService;
-    private final ResearchTechnicalService researchTechnicalService;
+    private final ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
     private final CalendarService calendarService;
     private static final DateTimeFormatter DATE_TIME_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -89,7 +91,7 @@ public class DhanTradeService {
                 ResearchTechnical researchTechnical = researchTechnicalOptional.get();
 
                 if (researchTechnical.getResearchDate()
-                        == calendarService.previousTradingSession(LocalDate.now())) {
+                        == calendarService.previousTradingSession(miscUtil.currentDate())) {
                     double tradedValue = trade.getTradedQuantity() * trade.getTradedPrice();
                     double profitMargin = tradedValue * 0.02; // 2% of traded value for intraday
                     return profitMargin + 2.0; // 2% of traded value + INR 2 per trade
@@ -103,14 +105,14 @@ public class DhanTradeService {
                     double profitMargin = (tradedValue - researchEntryValue) * 0.05;
                     return profitMargin + 1.0; // 5% of traded value + INR 1 per trade
                 }
-                // SELL - In loss only charge INR .50 per trade
-                return 0.5;
+                // SELL - In loss only charge INR .0 per trade
+                return 0.0;
             }
-            // SELL - Outside research charge INR 5 per trade
-            return 5.0;
+            // SELL - Outside research charge INR 1 per trade
+            return 1.0;
         }
-        // BUY - Charge INR 2 per trade
-        return 2.0;
+        // BUY - Charge INR 0.50 per trade
+        return 0.25;
     }
 
     /**

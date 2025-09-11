@@ -230,24 +230,22 @@ public class MovingAverageUtil {
 
     public static boolean isAllMaAlignedBullish(
             Timeframe timeframe, StockTechnicals stockTechnicals) {
-        double ma5 = getMovingAverage5(timeframe, stockTechnicals);
         double ma20 = getMovingAverage20(timeframe, stockTechnicals);
         double ma50 = getMovingAverage50(timeframe, stockTechnicals);
         double ma100 = getMovingAverage100(timeframe, stockTechnicals);
         double ma200 = getMovingAverage200(timeframe, stockTechnicals);
 
-        return ma5 > ma20 && ma20 > ma50 && ma50 > ma100 && ma100 > ma200;
+        return ma20 > ma50 && ma50 > ma100 && ma100 > ma200;
     }
 
     public static boolean isAllMaAlignedBearish(
             Timeframe timeframe, StockTechnicals stockTechnicals) {
-        double ma5 = getMovingAverage5(timeframe, stockTechnicals);
         double ma20 = getMovingAverage20(timeframe, stockTechnicals);
         double ma50 = getMovingAverage50(timeframe, stockTechnicals);
         double ma100 = getMovingAverage100(timeframe, stockTechnicals);
         double ma200 = getMovingAverage200(timeframe, stockTechnicals);
 
-        return ma5 < ma20 && ma20 < ma50 && ma50 < ma100 && ma100 < ma200;
+        return ma20 < ma50 && ma50 < ma100 && ma100 < ma200;
     }
 
     public static boolean isLongerMaAlignedBullish(

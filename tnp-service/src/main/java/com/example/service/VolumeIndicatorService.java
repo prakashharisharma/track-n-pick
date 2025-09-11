@@ -45,4 +45,8 @@ public interface VolumeIndicatorService {
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals);
 
     public boolean isVolumeSurge(StockTechnicals stockTechnicals);
+
+    public boolean isMinVolumeAvg(StockTechnicals stockTechnicals, double multiplier);
+
+    public boolean isMinVolume(StockTechnicals stockTechnicals, double multiplier);
 }

@@ -1,5 +1,6 @@
 package com.example.service.dhan;
 
+import static com.example.data.transactional.entities.ResearchTechnical.Strategy.BASIC;
 import static com.example.service.ResearchTechnicalService.MIN_RISK;
 
 import com.example.data.common.type.MarketCapCategory;
@@ -15,8 +16,10 @@ import com.example.service.*;
 import com.example.service.dhan.model.PositionDetails;
 import com.example.service.impl.FundamentalResearchService;
 import com.example.util.FormulaService;
+import com.example.util.MiscUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.LinkedHashMap;
@@ -43,6 +46,8 @@ public class DhanOrderExecutorService {
     private static final double LARGE_ORDER_THRESHOLD = 100000.0;
     private static final long LARGE_QUANTITY_THRESHOLD = 1000;
     private static final long ORDER_DELAY_MINUTES = 10;
+
+    private final MiscUtil miscUtil;
 
     private final PortfolioService portfolioService;
 
@@ -118,18 +123,6 @@ public class DhanOrderExecutorService {
                 double entryPrice =
                         researchTechnical.getEntryPrice() + researchTechnical.getTickSize();
 
-                if (existingHolding != null && existingHolding.getAvgCostPrice() != null) {
-                    if (entryPrice >= existingHolding.getAvgCostPrice()) {
-                        log.info(
-                                "Skipping buy order for {} as entry price {} is higher than avg"
-                                        + " cost price {}",
-                                nseSymbol,
-                                entryPrice,
-                                existingHolding.getAvgCostPrice());
-                        continue;
-                    }
-                }
-
                 StockPrice stockPrice =
                         stockPriceService.get(researchTechnical.getStock(), Timeframe.DAILY);
 
@@ -137,32 +130,64 @@ public class DhanOrderExecutorService {
                         .getResearchDate()
                         .isEqual(calendarService.previousTradingSession(currentDate))) {
 
-                    // Adjust entry price if risk is greater than 5
-                    if (researchTechnical.getRisk() > ResearchTechnicalService.MAX_RISK) {
+                    double maxRisk = ResearchTechnicalService.MAX_RISK;
 
-                        double riskAdjustment =
-                                researchTechnical.getRisk() - ResearchTechnicalService.MAX_RISK;
+                    /*
+                    if(researchTechnical.getEntryStrategy() != ResearchTechnical.Strategy.CANDLESTICK) {
+                        if (researchTechnical.getVolumeScore() == 0.75) {
+                            maxRisk = maxRisk + 0.50;
+                        }
+                    }*/
+
+                    // Adjust entry price if risk is greater than 5
+                    if (researchTechnical.getRisk() > maxRisk) {
+
+                        double riskAdjustment = researchTechnical.getRisk() - maxRisk;
                         entryPrice =
                                 formulaService.applyPercentChange(entryPrice, -1 * riskAdjustment);
-
                     } else if (researchTechnical.getRisk() < MIN_RISK) {
-
                         entryPrice = formulaService.applyPercentChange(entryPrice, 0.50);
+                    }
+
+                    if (researchTechnical.getVolumeScore() == 0.75) {
+                        entryPrice = formulaService.applyPercentChange(entryPrice, 0.75);
+                    } else if (researchTechnical.getVolumeScore() == 0.50) {
+                        entryPrice = formulaService.applyPercentChange(entryPrice, 0.50);
+                    } else if (researchTechnical.getVolumeScore() == 0.25) {
+                        entryPrice = formulaService.applyPercentChange(entryPrice, 0.25);
+                    }
+
+                    entryPrice =
+                            Math.min(
+                                    entryPrice, (stockPrice.getHigh() + stockPrice.getClose()) / 2);
+
+                    if (researchTechnical.getEntryPrice() <= stockPrice.getClose()
+                            && researchTechnical.getEntryStrategy()
+                                    != ResearchTechnical.Strategy.CANDLESTICK) {
+                        if (researchTechnical.getScore() > 9.0) {
+                            entryPrice = formulaService.applyPercentChange(entryPrice, 0.25);
+                        }
                     }
                 }
 
-                if (researchTechnical.getVolumeScore() == 0.75) {
-                    entryPrice = formulaService.applyPercentChange(entryPrice, 0.75);
-                } else if (researchTechnical.getVolumeScore() == 0.50) {
-                    entryPrice = formulaService.applyPercentChange(entryPrice, 0.50);
-                } else if (researchTechnical.getVolumeScore() == 0.25) {
-                    entryPrice = formulaService.applyPercentChange(entryPrice, 0.25);
+                if (researchTechnical.getEntryStrategy() == BASIC) {
+                    entryPrice =
+                            formulaService.applyPercentChange(
+                                    researchTechnical.getEntryPrice(), 0.25);
+                } else {
+                    entryPrice =
+                            Math.min(
+                                    entryPrice,
+                                    (stockPrice.getHigh()
+                                                    + Math.max(
+                                                            stockPrice.getOpen(),
+                                                            stockPrice.getClose()))
+                                            / 2);
                 }
-
                 entryPrice =
                         formulaService.ceilToNearestTick(
                                 entryPrice, researchTechnical.getTickSize());
-                entryPrice = Math.min(entryPrice, stockPrice.getHigh());
+                System.out.println(stock.getNseSymbol() + " " + entryPrice);
 
                 long positionSize = positionService.calculate(user, researchTechnical);
 
@@ -174,9 +199,9 @@ public class DhanOrderExecutorService {
                                 limits.originalFunds(),
                                 positionSize,
                                 entryPrice);
-
-                if (position.finalQuantity() > 0) {
-
+                long finalQuantity = position.finalQuantity();
+                if (finalQuantity > 0) {
+                    /*
                     if (existingHolding != null && existingHolding.getAvgCostPrice() != null) {
                         if (position.finalQuantity() < existingHolding.getTotalQty()) {
                             log.info(
@@ -187,13 +212,42 @@ public class DhanOrderExecutorService {
                                     position.finalQuantity());
                             continue;
                         }
+                    }*/
+
+                    if (existingHolding != null
+                            && existingHolding.getAvgCostPrice() != null
+                            && existingHolding.getTotalQty() != null) {
+
+                        double existingHoldingValue =
+                                existingHolding.getTotalQty() * existingHolding.getAvgCostPrice();
+
+                        if (existingHoldingValue >= position.finalValue()) {
+                            log.info(
+                                    "Skipping buy order for {} as existing holding value {} is"
+                                            + " higher than permitted value {}",
+                                    nseSymbol,
+                                    existingHoldingValue,
+                                    position.finalValue());
+                            continue;
+                        } else {
+
+                            double valueTobeAdd = position.finalValue() - existingHoldingValue;
+                            long quantityToBeAdd = (long) Math.floor(valueTobeAdd / entryPrice);
+                            finalQuantity = quantityToBeAdd;
+                            log.info(
+                                    "Existing holding found for {} with quantity {} calculated new"
+                                            + " quantity to add {} ",
+                                    stock.getNseSymbol(),
+                                    existingHolding.getTotalQty(),
+                                    finalQuantity);
+                        }
                     }
 
                     logOrderDetails(stock, positionSize, position, entryPrice);
 
-                    double orderValue = position.finalQuantity() * entryPrice;
+                    double orderValue = finalQuantity * entryPrice;
                     long immediateQuantity = 0;
-                    long delayedQuantity = position.finalQuantity();
+                    long delayedQuantity = finalQuantity;
 
                     if (isMockExecution) {
                         String payload =
@@ -201,7 +255,7 @@ public class DhanOrderExecutorService {
                                         user.getDhanClientId(),
                                         researchTechnical.getStock().getIsinCode(),
                                         researchTechnical.getStock().getInstrument(),
-                                        String.valueOf(position.finalQuantity()),
+                                        String.valueOf(finalQuantity),
                                         String.valueOf(position.disclosedQuantity()),
                                         String.valueOf(entryPrice),
                                         TransactionType.BUY);
@@ -209,10 +263,10 @@ public class DhanOrderExecutorService {
                         System.out.println(payload);
                     } else {
                         if (orderValue > LARGE_ORDER_THRESHOLD
-                                || position.finalQuantity() > LARGE_QUANTITY_THRESHOLD) {
+                                || finalQuantity > LARGE_QUANTITY_THRESHOLD) {
                             // Split order for large values or quantities
-                            immediateQuantity = position.finalQuantity() / 2;
-                            delayedQuantity = position.finalQuantity() - immediateQuantity;
+                            immediateQuantity = finalQuantity / 2;
+                            delayedQuantity = finalQuantity - immediateQuantity;
 
                             // Place immediate order for first half
                             dhanOrchestratorService.placeOrder(
@@ -489,6 +543,39 @@ public class DhanOrderExecutorService {
                 }
 
                 long quantityToSell = holding.getTotalQty().longValue();
+
+                if (researchTechnical.getExitDate() == null) {
+
+                    LocalDate researchDate = researchTechnical.getResearchDate();
+                    LocalDate currentDate = miscUtil.currentDate();
+                    if (researchDate != null) {
+                        long daysBetween =
+                                java.time.temporal.ChronoUnit.DAYS.between(
+                                        researchDate, currentDate);
+
+                        if (calendarService.previousTradingSession(currentDate).getDayOfWeek()
+                                        == DayOfWeek.FRIDAY
+                                || calendarService
+                                                .previousTradingSession(currentDate)
+                                                .getDayOfWeek()
+                                        == DayOfWeek.THURSDAY
+                                || daysBetween <= 2) {
+                            // Within 2 days - set target as 5% above entry
+                            quantityToSell = quantityToSell / 8;
+
+                        } else if (daysBetween <= 4) {
+                            quantityToSell = quantityToSell / 5;
+                        } else if (daysBetween <= 6) {
+                            quantityToSell = quantityToSell / 4;
+                        } else if (daysBetween <= 8) {
+                            quantityToSell = quantityToSell / 3;
+                            ;
+                        } else {
+                            quantityToSell = quantityToSell / 2;
+                        }
+                    }
+                }
+
                 long disclosedQuantity = (long) (quantityToSell * 0.31);
 
                 double orderValue = quantityToSell * exitPrice;

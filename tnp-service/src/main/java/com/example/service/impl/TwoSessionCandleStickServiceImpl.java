@@ -34,10 +34,11 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
         double prevBody = CandleStickUtils.prevSessionBodySize(stockPrice);
         boolean isStrongBody =
                 CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
-
+        boolean isStrongRange =
+                CandleStickUtils.isStrongRange(timeframe, stockPrice, stockTechnicals);
         boolean isBullishPattern =
-                currentBody > prevBody
-                        && isStrongBody
+                (currentBody > prevBody)
+                        && (isStrongBody || isStrongRange)
                         && CandleStickUtils.isOpenBelowPrevClose(stockPrice)
                         && CandleStickUtils.isCloseAbovePrevOpen(stockPrice);
 
@@ -54,7 +55,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                                     CandlestickPattern.SessionCount.TWO) // Engulfing uses 2 candles
                             .name(CandlestickPattern.Name.ENGULFING)
                             .sentiment(CandlestickPattern.Sentiment.BULLISH)
-                            .isStrongBody(isStrongBody)
                             .bodySize(currentBody)
                             .rangeSize(CandleStickUtils.range(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
@@ -101,6 +101,7 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
     @Override
     public boolean isBullishOutsideBar(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
         if (stockPrice == null || stockTechnicals == null) {
             return false;
         }
@@ -127,14 +128,12 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                 CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
 
         boolean isBullishPattern =
-                range >= 1.2 * prevRange
-                        && // Ensure strong range expansion
-                        isStrongRange
+                range >= 1.25 * prevRange
+                        && isStrongRange
                         && isStrongBody
                         && currentBody >= prevBody
                         && lowerWick >= 1.5 * upperWick
-                        && // Ensure meaningful lower wick dominance
-                        CandleStickUtils.isLowerLow(stockPrice)
+                        && CandleStickUtils.isLowerLow(stockPrice)
                         && CandleStickUtils.isHigherHigh(stockPrice);
 
         if (isBullishPattern) {
@@ -149,9 +148,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.OUTSIDE_BAR)
                             .sentiment(CandlestickPattern.Sentiment.BULLISH)
-                            .isStrongBody(isStrongBody)
-                            .bodySize(currentBody)
-                            .rangeSize(range)
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -175,15 +171,25 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
             return false;
         }
 
+        double minPercentRange = 0.0236; // Fibonacci 2.36% or 0.05 (5%)
+
+        double price = (stockPrice.getClose() + stockPrice.getOpen()) / 2;
+        double bodySize = CandleStickUtils.bodySize(stockPrice);
+        boolean isAbsoluteStrong = (bodySize >= minPercentRange * price);
+
+        if (!isAbsoluteStrong) {
+            return false;
+        }
+
         // Compare absolute lows (0.5% deviation allowed)
         double prevLow = stockPrice.getPrevLow();
         double currentLow = stockPrice.getLow();
-        boolean isEqualLows = Math.abs(prevLow - currentLow) / prevLow <= 0.005;
+        boolean isEqualLows = Math.abs(prevLow - currentLow) / prevLow <= 0.0005;
 
         // Compare body lows (previous close ≈ current open)
         double prevClose = stockPrice.getPrevClose();
         double currentOpen = stockPrice.getOpen();
-        boolean isEqualBodyLows = Math.abs(prevClose - currentOpen) / prevClose <= 0.005;
+        boolean isEqualBodyLows = Math.abs(prevClose - currentOpen) / prevClose <= 0.0005;
 
         // Strong bullish reversal confirmation: Close above previous open
         boolean isBullishReversal = stockPrice.getClose() > stockPrice.getPrevOpen();
@@ -197,15 +203,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.TWEEZER_BOTTOM) // Add this enum if needed
                             .sentiment(CandlestickPattern.Sentiment.BULLISH)
-                            .isStrongBody(false) // Tweezer bodies aren't necessarily strong
-                            .isSmallBody(false) // adjust if your definition differs
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
             candlestickPatternService.create(pattern); // <-- Call your service here
@@ -270,15 +267,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.PIERCING_LINE)
                             .sentiment(CandlestickPattern.Sentiment.BULLISH)
-                            .isStrongBody(isCurrStrong)
-                            .isSmallBody(false) // typically not a small body
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -337,15 +325,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.KICKER) // add to your enum
                             .sentiment(CandlestickPattern.Sentiment.BULLISH)
-                            .isStrongBody(isCurrStrong)
-                            .isSmallBody(false)
-                            .isGapUp(true)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -397,18 +376,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.SASH) // add this enum value
                             .sentiment(CandlestickPattern.Sentiment.BULLISH)
-                            .isStrongBody(false) // sash bodies are moderate
-                            .isSmallBody(false)
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(
-                                    stockTechnicals != null && stockTechnicals.getAtr() != null
-                                            ? stockTechnicals.getAtr()
-                                            : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -458,15 +425,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.SEPARATING_LINE) // add this enum
                             .sentiment(CandlestickPattern.Sentiment.BULLISH)
-                            .isStrongBody(false)
-                            .isSmallBody(false)
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -518,15 +476,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.HARAMI)
                             .sentiment(CandlestickPattern.Sentiment.BULLISH)
-                            .isStrongBody(false)
-                            .isSmallBody(true)
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -613,15 +562,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.INSIDE_BAR) // add INSIDE_BAR to your enum
                             .sentiment(CandlestickPattern.Sentiment.BULLISH)
-                            .isStrongBody(false)
-                            .isSmallBody(true)
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -649,9 +589,11 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
         double prevBody = CandleStickUtils.prevSessionBodySize(stockPrice);
         boolean isStrongBody =
                 CandleStickUtils.isStrongBody(timeframe, stockPrice, stockTechnicals);
+        boolean isPrevSmallBody = CandleStickUtils.isPrevSmallBody(stockPrice, stockTechnicals);
 
         boolean isBearishPattern =
                 currentBody > prevBody
+                        && isPrevSmallBody
                         && isStrongBody
                         && CandleStickUtils.isOpenAbovePrevClose(stockPrice)
                         && CandleStickUtils.isCloseBelowPrevOpen(stockPrice);
@@ -668,15 +610,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.ENGULFING)
                             .sentiment(CandlestickPattern.Sentiment.BEARISH)
-                            .isStrongBody(isStrongBody)
-                            .isSmallBody(false)
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(currentBody)
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -763,15 +696,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.OUTSIDE_BAR) // ensure enum value exists
                             .sentiment(CandlestickPattern.Sentiment.BEARISH)
-                            .isStrongBody(isCurrCandleStrong)
-                            .isSmallBody(false)
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -794,15 +718,25 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
             return false;
         }
 
+        double minPercentRange = 0.0161; // Fibonacci 2.36% or 0.05 (5%)
+
+        double price = (stockPrice.getClose() + stockPrice.getOpen()) / 2;
+        double bodySize = CandleStickUtils.bodySize(stockPrice);
+        boolean isAbsoluteStrong = (bodySize >= minPercentRange * price);
+
+        if (!isAbsoluteStrong) {
+            return false;
+        }
+
         // Compare absolute highs (0.5% deviation allowed)
         double prevHigh = stockPrice.getPrevHigh();
         double currentHigh = stockPrice.getHigh();
-        boolean isEqualHighs = Math.abs(prevHigh - currentHigh) / prevHigh <= 0.005;
+        boolean isEqualHighs = Math.abs(prevHigh - currentHigh) / prevHigh <= 0.0005;
 
         // Compare body highs (previous close ≈ current open)
         double prevClose = stockPrice.getPrevClose();
         double currentOpen = stockPrice.getOpen();
-        boolean isEqualBodyHighs = Math.abs(prevClose - currentOpen) / prevClose <= 0.005;
+        boolean isEqualBodyHighs = Math.abs(prevClose - currentOpen) / prevClose <= 0.0005;
 
         // Strong bearish reversal confirmation: Close below previous open
         boolean isBearishReversal = stockPrice.getClose() < stockPrice.getPrevOpen();
@@ -819,15 +753,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.TWEEZER_TOP) // ensure enum exists
                             .sentiment(CandlestickPattern.Sentiment.BEARISH)
-                            .isStrongBody(false)
-                            .isSmallBody(false)
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -885,15 +810,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.DARK_CLOUD_COVER) // ensure enum exists
                             .sentiment(CandlestickPattern.Sentiment.BEARISH)
-                            .isStrongBody(isCurrStrong)
-                            .isSmallBody(false)
-                            .isGapUp(true)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -949,15 +865,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.KICKER) // ensure enum exists
                             .sentiment(CandlestickPattern.Sentiment.BEARISH)
-                            .isStrongBody(isCurrStrong)
-                            .isSmallBody(false)
-                            .isGapUp(false)
-                            .isGapDown(true)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -1003,15 +910,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.SASH) // ensure this exists in your enum
                             .sentiment(CandlestickPattern.Sentiment.BEARISH)
-                            .isStrongBody(true) // typically a strong body in a sash
-                            .isSmallBody(false)
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(atr)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -1056,15 +954,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                                     CandlestickPattern.Name
                                             .SEPARATING_LINE) // ensure this enum exists
                             .sentiment(CandlestickPattern.Sentiment.BEARISH)
-                            .isStrongBody(true) // typically a strong body
-                            .isSmallBody(false)
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -1117,15 +1006,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                             .sessionCount(CandlestickPattern.SessionCount.TWO)
                             .name(CandlestickPattern.Name.HARAMI) // make sure this enum exists
                             .sentiment(CandlestickPattern.Sentiment.BEARISH)
-                            .isStrongBody(false)
-                            .isSmallBody(true)
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
@@ -1204,15 +1084,6 @@ public class TwoSessionCandleStickServiceImpl implements TwoSessionCandleStickSe
                                     CandlestickPattern.Name
                                             .INSIDE_BAR) // or BEARISH_INSIDE_BAR if you prefer
                             .sentiment(CandlestickPattern.Sentiment.BEARISH)
-                            .isStrongBody(false)
-                            .isSmallBody(true)
-                            .isGapUp(false)
-                            .isGapDown(false)
-                            .atr(stockTechnicals.getAtr() != null ? stockTechnicals.getAtr() : 0.0)
-                            .bodySize(CandleStickUtils.bodySize(stockPrice))
-                            .rangeSize(CandleStickUtils.range(stockPrice))
-                            .lowerWickSize(CandleStickUtils.lowerWickSize(stockPrice))
-                            .upperWickSize(CandleStickUtils.upperWickSize(stockPrice))
                             .sessionDate(stockPrice.getSessionDate())
                             .build();
 
