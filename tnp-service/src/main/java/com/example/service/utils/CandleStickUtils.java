@@ -10,100 +10,97 @@ public class CandleStickUtils {
     private static final double ATR_MULTIPLIER = 1.2; // 1.2x ATR
     private static final double TOLERANCE = 0.0001;
 
+    private static final double WICK_TOLERANCE = 0.50;
+
     public static boolean isStrongBody(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        if (stockPrice == null || stockTechnicals == null) return false;
 
-        double bodySize = bodySize(stockPrice);
-        double totalRange = range(stockPrice);
-        double atr = (stockTechnicals.getAtr() != null) ? stockTechnicals.getAtr() : 0.0;
+        if (stockPrice == null) return false;
 
-        if (totalRange == 0) return false; // Avoid division issues
+        double open = stockPrice.getOpen();
+        double close = stockPrice.getClose();
+        double high = stockPrice.getHigh();
+        double low = stockPrice.getLow();
 
-        // Adjust thresholds based on timeframe
-        double minBodyPercentage, atrMultiplier;
-        switch (timeframe) {
-            case DAILY:
-                minBodyPercentage = 0.65;
-                atrMultiplier = 1.1;
-                break;
-            case WEEKLY:
-                minBodyPercentage = 0.65;
-                atrMultiplier = 1.3;
-                break;
-            case MONTHLY:
-                minBodyPercentage = 0.65;
-                atrMultiplier = 1.5;
-                break;
-            default:
-                return false;
-        }
+        double bodySize = Math.abs(close - open);
+        double totalRange = high - low;
+        if (totalRange == 0) return false;
 
-        return (bodySize > minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
+        // Absolute threshold: body must be ≥ 3.82% (Fib) or 5% of price
+        double midPrice = (open + close) / 2.0;
+        double minPercentRange = 0.0382; // or 0.05 for stricter filter
+        if (bodySize < minPercentRange * midPrice) return false;
+
+        // Wick adjustment
+        double upperWick = high - Math.max(open, close);
+        double lowerWick = Math.min(open, close) - low;
+        double effectiveRange =
+                (lowerWick > upperWick)
+                        ? (bodySize + upperWick) // ignore long lower wick
+                        : totalRange;
+
+        // Relative threshold: at least 60% of effective range
+        return bodySize >= 0.60 * effectiveRange;
     }
 
     public static boolean isPrevSessionStrongBody(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        if (stockPrice == null || stockTechnicals == null) return false;
+        if (stockPrice == null) return false;
 
-        double bodySize = prevSessionBodySize(stockPrice);
-        double totalRange = prevSessionRange(stockPrice);
-        double atr = (stockTechnicals.getPrevAtr() != null) ? stockTechnicals.getPrevAtr() : 0.0;
+        double open = stockPrice.getPrevOpen();
+        double close = stockPrice.getPrevClose();
+        double high = stockPrice.getPrevHigh();
+        double low = stockPrice.getPrevLow();
 
-        if (totalRange == 0) return false; // Avoid division issues
+        double bodySize = Math.abs(close - open);
+        double totalRange = high - low;
+        if (totalRange == 0) return false;
 
-        // Adjust thresholds based on timeframe
-        double minBodyPercentage, atrMultiplier;
-        switch (timeframe) {
-            case DAILY:
-                minBodyPercentage = 0.65;
-                atrMultiplier = 1.1;
-                break;
-            case WEEKLY:
-                minBodyPercentage = 0.65;
-                atrMultiplier = 1.3;
-                break;
-            case MONTHLY:
-                minBodyPercentage = 0.65;
-                atrMultiplier = 1.5;
-                break;
-            default:
-                return false;
-        }
+        // Absolute threshold: body must be ≥ 3.82% (Fib) or 5% of price
+        double midPrice = (open + close) / 2.0;
+        double minPercentRange = 0.0382; // or 0.05 for stricter filter
+        if (bodySize < minPercentRange * midPrice) return false;
 
-        return (bodySize > minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
+        // Wick adjustment
+        double upperWick = high - Math.max(open, close);
+        double lowerWick = Math.min(open, close) - low;
+        double effectiveRange =
+                (lowerWick > upperWick)
+                        ? (bodySize + upperWick) // ignore long lower wick
+                        : totalRange;
+
+        // Relative threshold: at least 60% of effective range
+        return bodySize >= 0.60 * effectiveRange;
     }
 
     public static boolean isPrev2SessionStrongBody(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
-        if (stockPrice == null || stockTechnicals == null) return false;
+        if (stockPrice == null) return false;
 
-        double bodySize = prev2SessionBodySize(stockPrice);
-        double totalRange = prev2SessionRange(stockPrice);
-        double atr = (stockTechnicals.getPrev2Atr() != null) ? stockTechnicals.getPrev2Atr() : 0.0;
+        double open = stockPrice.getPrev2Open();
+        double close = stockPrice.getPrev2Close();
+        double high = stockPrice.getPrev2High();
+        double low = stockPrice.getPrev2Low();
 
-        if (totalRange == 0) return false; // Avoid division issues
+        double bodySize = Math.abs(close - open);
+        double totalRange = high - low;
+        if (totalRange == 0) return false;
 
-        // Adjust thresholds based on timeframe
-        double minBodyPercentage, atrMultiplier;
-        switch (timeframe) {
-            case DAILY:
-                minBodyPercentage = 0.65;
-                atrMultiplier = 1.1;
-                break;
-            case WEEKLY:
-                minBodyPercentage = 0.65;
-                atrMultiplier = 1.3;
-                break;
-            case MONTHLY:
-                minBodyPercentage = 0.65;
-                atrMultiplier = 1.5;
-                break;
-            default:
-                return false;
-        }
+        // Absolute threshold: body must be ≥ 3.82% (Fib) or 5% of price
+        double midPrice = (open + close) / 2.0;
+        double minPercentRange = 0.0382; // or 0.05 for stricter filter
+        if (bodySize < minPercentRange * midPrice) return false;
 
-        return (bodySize > minBodyPercentage * totalRange) || (bodySize >= atrMultiplier * atr);
+        // Wick adjustment
+        double upperWick = high - Math.max(open, close);
+        double lowerWick = Math.min(open, close) - low;
+        double effectiveRange =
+                (lowerWick > upperWick)
+                        ? (bodySize + upperWick) // ignore long lower wick
+                        : totalRange;
+
+        // Relative threshold: at least 60% of effective range
+        return bodySize >= 0.60 * effectiveRange;
     }
 
     public static boolean isStrongRange(
@@ -112,30 +109,38 @@ public class CandleStickUtils {
 
         double range = range(stockPrice);
         double prevRange = prevSessionRange(stockPrice);
-        double atr = (stockTechnicals.getAtr() != null) ? stockTechnicals.getAtr() : 0.0;
+        if (range == 0 || prevRange == 0) return false; // avoid div by zero
 
-        if (range == 0) return false; // Avoid division issues
+        // --- absolute threshold check ---
+        // double price = stockPrice.getClose(); // could also use midpoint (high+low)/2
+        double price =
+                (stockPrice.getHigh() + stockPrice.getLow())
+                        / 2; // could also use midpoint (high+low)/2
+        double minPercentRange = 0.0382; // Fibonacci 3.82% or 0.05 (5%)
 
-        // Adjust thresholds based on timeframe
-        double minRangeMultiplier, atrMultiplier;
+        boolean isAbsoluteStrong = (range >= minPercentRange * price);
+
+        // --- relative multiplier check ---
+        double minRangeMultiplier;
         switch (timeframe) {
             case DAILY:
-                minRangeMultiplier = 1.2;
-                atrMultiplier = 1.1;
+                minRangeMultiplier = 1.25;
                 break;
             case WEEKLY:
-                minRangeMultiplier = 1.2;
-                atrMultiplier = 1.3;
+                minRangeMultiplier = 1.5;
                 break;
             case MONTHLY:
-                minRangeMultiplier = 1.2;
-                atrMultiplier = 1.5;
+                minRangeMultiplier = 1.75;
                 break;
             default:
-                return false;
+                minRangeMultiplier = 2.0;
+                break;
         }
 
-        return (range >= minRangeMultiplier * prevRange) || (range >= atrMultiplier * atr);
+        boolean isRelativeStrong = (range >= minRangeMultiplier * prevRange);
+
+        // --- hybrid rule ---
+        return isAbsoluteStrong || isRelativeStrong;
     }
 
     public static boolean isGreen(StockPrice stockPrice) {
@@ -294,9 +299,13 @@ public class CandleStickUtils {
                         : isSmallBody(stockPrice, stockTechnicals);
 
         boolean longWick =
-                checkUpperWick ? (upperWick >= 2 * bodySize) : (lowerWick >= 2 * bodySize);
+                checkUpperWick
+                        ? (upperWick + WICK_TOLERANCE >= 2 * bodySize)
+                        : (lowerWick + WICK_TOLERANCE >= 2 * bodySize);
         boolean smallOppositeWick =
-                checkUpperWick ? (lowerWick <= 0.1 * totalRange) : (upperWick <= 0.1 * totalRange);
+                checkUpperWick
+                        ? (lowerWick <= 0.15 * totalRange + WICK_TOLERANCE)
+                        : (upperWick <= 0.15 * totalRange + WICK_TOLERANCE);
 
         return smallBody && longWick && smallOppositeWick;
     }
@@ -700,30 +709,6 @@ public class CandleStickUtils {
         return lowerWick >= (bodySize * 1.5);
     }
 
-    public static boolean isSmallBody(StockPrice stockPrice, StockTechnicals stockTechnicals) {
-
-        if (stockPrice == null
-                || stockTechnicals == null
-                || stockPrice.getOpen() == null
-                || stockPrice.getClose() == null
-                || stockPrice.getHigh() == null
-                || stockPrice.getLow() == null
-                || stockTechnicals.getAtr() == null) {
-            return false;
-        }
-
-        double bodySize = Math.abs(stockPrice.getClose() - stockPrice.getOpen());
-        double candleRange = stockPrice.getHigh() - stockPrice.getLow();
-        double atr = stockTechnicals.getAtr();
-
-        if (candleRange == 0 || atr == 0) return false;
-
-        boolean smallByRange = bodySize <= (0.35 * candleRange) && bodySize > (0.1 * candleRange);
-        boolean smallByAtr = bodySize <= (0.4 * atr); // You can tweak this threshold
-
-        return smallByRange || smallByAtr;
-    }
-
     public static boolean isCloseHighEqual(StockPrice stockPrice) {
         if (stockPrice == null
                 || stockPrice.getPrevOpen() == null
@@ -740,6 +725,30 @@ public class CandleStickUtils {
         return false;
     }
 
+    public static boolean isSmallBody(StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
+        if (stockPrice == null
+                || stockTechnicals == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getClose() == null
+                || stockPrice.getHigh() == null
+                || stockPrice.getLow() == null
+                || stockTechnicals.getAtr() == null) {
+            return false;
+        }
+
+        double bodySize = Math.abs(stockPrice.getClose() - stockPrice.getOpen());
+        double candleRange = stockPrice.getHigh() - stockPrice.getLow();
+        // double atr = stockTechnicals.getAtr();
+
+        if (candleRange == 0) return false;
+
+        return bodySize <= (0.30 * candleRange) && bodySize > (0.1 * candleRange);
+        // boolean smallByAtr = bodySize <= (0.4 * atr); // You can tweak this threshold
+
+        // return smallByRange || smallByAtr;
+    }
+
     public static boolean isPrevSmallBody(StockPrice stockPrice, StockTechnicals stockTechnicals) {
         if (stockPrice == null
                 || stockPrice.getPrevOpen() == null
@@ -751,13 +760,13 @@ public class CandleStickUtils {
 
         double bodySize = prevSessionBodySize(stockPrice);
         double candleRange = prevSessionRange(stockPrice);
-        double atr = stockTechnicals.getPrevAtr();
+        // double atr = stockTechnicals.getPrevAtr();
 
-        boolean smallByRange = bodySize <= (0.35 * candleRange) && bodySize > (0.1 * candleRange);
-        ;
-        boolean smallByAtr = bodySize <= (0.35 * atr); // You can tweak this threshold
+        return bodySize <= (0.30 * candleRange) && bodySize > (0.1 * candleRange);
 
-        return smallByRange || smallByAtr;
+        // boolean smallByAtr = bodySize <= (0.35 * atr); // You can tweak this threshold
+
+        // return smallByRange || smallByAtr;
     }
 
     public static boolean isVerySmallBody(StockPrice stockPrice) {

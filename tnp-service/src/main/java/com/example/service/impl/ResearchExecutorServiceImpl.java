@@ -18,11 +18,12 @@ import com.example.service.utils.MovingAverageUtil;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import java.time.LocalDate;
-import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -47,6 +48,10 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     @Autowired private CalendarService calendarService;
     @Autowired private FormulaService formulaService;
     @Autowired private VolumeIndicatorService volumeIndicatorService;
+
+    @Autowired
+    @Qualifier("candleStickPriceActionSignalEvaluator")
+    private TradeSignalEvaluator candleStickPriceActionSignalEvaluator;
 
     @Autowired
     @Qualifier("basicPriceActionSignalEvaluator")
@@ -90,25 +95,45 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     }
 
     @Override
+    @Transactional
     public void executeTechnical(Timeframe timeframe, Stock stock, LocalDate sessionDate) {
         log.info("{} Executing technical research", stock.getNseSymbol());
 
         StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
-
         StockPrice stockPrice = stockPriceService.get(stock, timeframe);
 
+        // Execute buy in its own transaction
+        executeBuyOperation(timeframe, stock, stockPrice, stockTechnicals, sessionDate);
+
+        // Execute sell in its own transaction
+        executeSellOperation(timeframe, stock, stockPrice, stockTechnicals, sessionDate);
+
+        log.info("{} Executed technical research", stock.getNseSymbol());
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void executeBuyOperation(
+            Timeframe timeframe,
+            Stock stock,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            LocalDate sessionDate) {
+        this.technicalBuy(timeframe, stock, stockPrice, stockTechnicals, sessionDate);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void executeSellOperation(
+            Timeframe timeframe,
+            Stock stock,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            LocalDate sessionDate) {
         ResearchTechnical researchTechnical =
                 researchTechnicalService.get(stock, timeframe, Trade.Type.BUY);
-
-        this.technicalBuy(timeframe, stock, stockPrice, stockTechnicals, sessionDate);
-
         if (researchTechnical != null) {
             this.technicalSell(
                     timeframe, stock, stockPrice, stockTechnicals, researchTechnical, sessionDate);
-            this.technicalBuy(timeframe, stock, stockPrice, stockTechnicals, sessionDate);
         }
-
-        log.info("{} Executed technical research", stock.getNseSymbol());
     }
 
     private void fundamentalBuy(Stock stock) {
@@ -152,15 +177,14 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                 log.info("{} Found EQ stock ", stock.getNseSymbol());
 
                 TradeSetup tradeSetup =
-                        dynamicPriceActionSignalEvaluator.evaluateEntry(
+                        basicPriceActionSignalEvaluator.evaluateEntry(
                                 timeframe, stock, stockPrice, stockTechnicals);
-                /*
+
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
-                            basicPriceActionSignalEvaluator.evaluateEntry(
+                            dynamicPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
-                 */
 
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
@@ -173,6 +197,13 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                             investmentPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
+
+                if (!tradeSetup.isActive()) {
+                    tradeSetup =
+                            candleStickPriceActionSignalEvaluator.evaluateEntry(
+                                    timeframe, stock, stockPrice, stockTechnicals);
+                }
+
                 /*
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
@@ -271,6 +302,13 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             Stock stock,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals) {
+
+        if (CandleStickUtils.isLowerWickDominant(stockPrice)
+                || CandleStickUtils.isStrongLowerWick(stockPrice)) {
+            if (stockTechnicals.getVolumeAvg20() > stockTechnicals.getPrevVolumeAvg20()) {
+                return false;
+            }
+        }
 
         if (MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals)
                 > MovingAverageUtil.getPrevMovingAverage200(timeframe, stockTechnicals)) {

@@ -441,12 +441,8 @@ public class CandleStickConfirmationServiceImpl implements CandleStickConfirmati
                         singleSessionCandleStickService.isHammer(
                                 timeframe, stockPrice, stockTechnicals)
                         || singleSessionCandleStickService.isBullishPinBar(
-                                timeframe, stockPrice, stockTechnicals)
-                        ||
-
-                        // 3️⃣ Weaker Bullish Reversal Patterns
-                        singleSessionCandleStickService.isOpenLow(
                                 timeframe, stockPrice, stockTechnicals);
+        // || singleSessionCandleStickService.isOpenLow(timeframe, stockPrice, stockTechnicals);
 
         if (!isBullishPattern) {
             return false;

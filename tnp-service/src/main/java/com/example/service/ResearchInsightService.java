@@ -3,6 +3,7 @@ package com.example.service;
 import com.example.common.config.CacheManagerNameConstants;
 import com.example.data.common.type.MarketCapCategory;
 import com.example.data.transactional.entities.EvaluationLog;
+import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.dto.integration.StockOverviewResponse;
@@ -29,7 +30,7 @@ public class ResearchInsightService {
 
     private final FundamentalResearchService fundamentalResearchService;
 
-    public boolean isStrongInsights(StockPrice stockPrice, boolean isInvestment) {
+    public boolean isStrongInsights(StockPrice stockPrice, ResearchTechnical.Strategy strategy) {
         Stock stock = stockPrice.getStock();
         try {
 
@@ -51,9 +52,16 @@ public class ResearchInsightService {
             SentimentColor valuationColor = stockOverviewResponse.getData().getValuationColor();
             SentimentColor technicalColor = stockOverviewResponse.getData().getTechnicalColor();
 
-            if (isInvestment
+            if (strategy == ResearchTechnical.Strategy.INVESTMENT
                     && (qualityColor == null || qualityColor == SentimentColor.POSITIVE)
                     && valuationColor == SentimentColor.POSITIVE) {
+                return true;
+            }
+
+            if (strategy == ResearchTechnical.Strategy.CANDLESTICK
+                    && ((stockOverviewResponse.getData().getValuationValue() >= 50)
+                            || (stockOverviewResponse.getData().getQualityValue() >= 50)
+                            || (stockOverviewResponse.getData().getTechnicalValue() >= 50))) {
                 return true;
             }
 
@@ -79,8 +87,9 @@ public class ResearchInsightService {
 
             int score = this.calculateScore(qualityColor, valuationColor, technicalColor);
 
-            boolean result = (valuationColor == SentimentColor.NEGATIVE) ? score >= 6 : score >= 5;
-
+            // boolean result = (valuationColor == SentimentColor.NEGATIVE) ? score >= 6 : score >=
+            // 5;
+            boolean result = valuationColor == SentimentColor.POSITIVE ? score >= 5 : score >= 6;
             evaluationLogService.add(
                     stockPrice,
                     result ? EvaluationLog.Type.POSITIVE : EvaluationLog.Type.NEUTRAL,

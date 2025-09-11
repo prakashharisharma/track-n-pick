@@ -18,7 +18,7 @@ public class GenerateBillScheduler {
     private final BillingService billingService;
 
     // Runs at 9:00 AM on the 1st day of every month
-    @Scheduled(cron = "0 0 9 1 * ?")
+    @Scheduled(cron = "0 17 9 1 * ?")
     public void generateMonthlyBills() {
         log.info("Starting monthly bill generation at {}", java.time.LocalDateTime.now());
 

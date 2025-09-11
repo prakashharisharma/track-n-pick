@@ -17,8 +17,8 @@ import org.springframework.data.domain.Page;
 
 public interface ResearchTechnicalService<T extends ResearchTechnical> {
 
-    public static final double MAX_RISK = 4.49;
-    public static final double MIN_RISK = 2.99;
+    public static final double MAX_RISK = 6.0;
+    public static final double MIN_RISK = 2.0;
 
     T entry(
             Stock stock,
@@ -42,11 +42,17 @@ public interface ResearchTechnicalService<T extends ResearchTechnical> {
 
     public List<ResearchTechnical> getLatestBuyResearch(LocalDate sessionDate);
 
+    public List<ResearchTechnical> getAllResearchWithinAYear(LocalDate sessionDate);
+
     public List<ResearchTechnical> getLatestInvestmentBuyResearch(LocalDate sessionDate);
+
+    public List<ResearchTechnical> getLatestCandleStickBuyResearch(LocalDate sessionDate);
 
     public List<ResearchTechnical> getRecentHybridBuyResearch(LocalDate sessionDate);
 
     public List<ResearchTechnical> getRecentDynamicBuyResearch(LocalDate sessionDate);
+
+    public List<ResearchTechnical> getRecentBasicBuyResearch(LocalDate sessionDate);
 
     public List<ResearchTechnical> getLatestSellResearch(LocalDate sessionDate);
 

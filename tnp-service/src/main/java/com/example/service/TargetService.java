@@ -105,10 +105,12 @@ public class TargetService {
 
     private double calculateRiskRewardRatio(ResearchTechnical researchTechnical) {
 
-        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.HYBRID) {
-            return 2.0;
+        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.BASIC) {
+            return 3.0;
         } else if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.INVESTMENT) {
             return 3.0;
+        } else if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.HYBRID) {
+            return 2.0;
         }
 
         return researchTechnical.getEntrySubStrategy().targetPercentage();

@@ -1059,7 +1059,7 @@ public class SignalEvaluatorHelperService {
 
         boolean isBullishConfirmed =
                 candleStickConfirmationService.isBullishConfirmed(
-                        timeframe, stockPrice, stockTechnicals, true);
+                        timeframe, stockPrice, stockTechnicals, false);
 
         boolean result = isStrongBody || isStrongLowerWick || isBullishConfirmed || isGapUp;
 
@@ -1243,7 +1243,7 @@ public class SignalEvaluatorHelperService {
 
         boolean isBullishConfirmed =
                 candleStickConfirmationService.isBullishConfirmed(
-                        stockPrice.getTimeframe(), stockPrice, stockTechnicals, true);
+                        stockPrice.getTimeframe(), stockPrice, stockTechnicals, false);
 
         boolean isUpperWickSizeConfirmed =
                 candleStickConfirmationService.isUpperWickSizeConfirmed(

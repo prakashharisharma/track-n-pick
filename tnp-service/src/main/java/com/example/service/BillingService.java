@@ -97,7 +97,7 @@ public class BillingService {
                         .user(user)
                         .build();
 
-        // billingHistoryRepository.save(billingHistory);
+        billingHistoryRepository.save(billingHistory);
 
         log.info(
                 "Recorded bill for user {} for month {}: amount={}, gst={}, total={}, billNo={}",

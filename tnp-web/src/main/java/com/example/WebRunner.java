@@ -125,6 +125,8 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private BreakoutService breakoutService;
 
+    @Autowired private SupportResistanceUtilService supportResistanceUtilService;
+
     @Autowired private NSEPriceInfoFetcher nsePriceInfoFetcher;
     @Autowired private ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
 
@@ -178,19 +180,11 @@ public class WebRunner implements CommandLineRunner {
         log.info("Application started....");
 
         // bhavProcessor.processAndResearchTechnicals();
+        // this.processResearchOnly();
         this.allocatePositions();
+
         // this.showBilling();
         // this.makePayment();
-
-        /*
-         List<Stock> stocks = stockService.getActiveStocks();
-        for(Stock stock : stocks) {
-            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
-            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
-
-            investmentPriceActionSignalEvaluator.evaluateEntry(Timeframe.DAILY, stock, stockPrice, stockTechnicals);
-
-        }*/
 
         /*
         List<Stock> stocks = new ArrayList<>();
@@ -789,10 +783,46 @@ public class WebRunner implements CommandLineRunner {
         billingService.makePayment(user, "ES-20250801-0002", "UPI", "PAYTM", LocalDate.now());
     }
 
+    private void processResearchOnly() {
+        List<Stock> stocks = stockService.getActiveStocks();
+        for (Stock stock : stocks) {
+            if (calendarService.isLastTradingSessionOfMonth(miscUtil.currentDate())) {
+                researchExecutorService.executeTechnical(
+                        Timeframe.MONTHLY, stock, miscUtil.currentDate());
+                try {
+                    ThreadsUtil.delay(100);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if (calendarService.isLastTradingSessionOfWeek(miscUtil.currentDate())) {
+                researchExecutorService.executeTechnical(
+                        Timeframe.WEEKLY, stock, miscUtil.currentDate());
+                try {
+                    ThreadsUtil.delay(100);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            try {
+                ThreadsUtil.delay(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            researchExecutorService.executeTechnical(
+                    Timeframe.DAILY, stock, miscUtil.currentDate());
+        }
+    }
+
     private void allocatePositions() {
         List<User> users = userService.getAllDhanApiEnabledUsers();
 
-        LocalDate sessionDate = miscUtil.currentDate().plusDays(1);
+        LocalDate sessionDate = miscUtil.currentDate();
+
+        if (LocalTime.now().isAfter(LocalTime.of(15, 30))) {
+            sessionDate = miscUtil.currentDate().plusDays(1);
+        }
+
         System.out.println("SessionDate " + sessionDate);
         LocalDate previousTradingSessionDate = calendarService.previousTradingSession(sessionDate);
         System.out.println("previousTradingSessionDate " + sessionDate);
@@ -802,17 +832,34 @@ public class WebRunner implements CommandLineRunner {
                 dhanOrderSchedulerHelperService.getPreviousInvestmentResearches(
                         previousTradingSessionDate));
         researchTechnicalForBuyOrders.addAll(
+                dhanOrderSchedulerHelperService.getPreviousCandleStickResearches(
+                        previousTradingSessionDate));
+        researchTechnicalForBuyOrders.addAll(
                 dhanOrderSchedulerHelperService.getRecentHybridResearches(
                         previousTradingSessionDate));
         researchTechnicalForBuyOrders.addAll(
                 dhanOrderSchedulerHelperService.getRecentDynamicResearches(
                         previousTradingSessionDate));
+        researchTechnicalForBuyOrders.addAll(
+                dhanOrderSchedulerHelperService.getRecentBasicResearches(
+                        calendarService.previousTradingSession(sessionDate)));
         researchTechnicalForBuyOrders.sort(
                 DhanOrderSchedulerHelperService.byDateVolumeScoreDescComparator());
+        if (researchTechnicalForBuyOrders.size() > 10) {
+            researchTechnicalForBuyOrders.removeIf(rt -> rt.getRisk() >= 10);
+        }
+
+        List<ResearchTechnical> reorderedResearchTechnicalForBuyOrders =
+                DhanOrderSchedulerHelperService.distributeInvestmentsStable(
+                        researchTechnicalForBuyOrders);
+
+        if (reorderedResearchTechnicalForBuyOrders.size() > 5) {
+            reorderedResearchTechnicalForBuyOrders.removeIf(rt -> rt.getRisk() >= 7.0);
+        }
 
         System.out.println("Buy researches on " + previousTradingSessionDate);
 
-        researchTechnicalForBuyOrders.forEach(
+        reorderedResearchTechnicalForBuyOrders.forEach(
                 rt -> {
                     System.out.println(
                             rt.getStock().getNseSymbol()
@@ -821,7 +868,13 @@ public class WebRunner implements CommandLineRunner {
                                     + " "
                                     + rt.getEntryPrice()
                                     + " "
-                                    + rt.getResearchDate());
+                                    + rt.getResearchDate()
+                                    + " "
+                                    + rt.getRisk()
+                                    + " "
+                                    + rt.getVolumeScore()
+                                    + " "
+                                    + rt.getScore());
                 });
 
         List<ResearchTechnical> researchTechnicalsForSellOrder =
@@ -850,7 +903,7 @@ public class WebRunner implements CommandLineRunner {
             this.allocatePositions(
                     sessionDate,
                     user,
-                    researchTechnicalForBuyOrders,
+                    reorderedResearchTechnicalForBuyOrders,
                     researchTechnicalsForSellOrder);
         }
     }

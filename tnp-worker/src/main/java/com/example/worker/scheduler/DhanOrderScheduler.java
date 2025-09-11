@@ -46,13 +46,32 @@ public class DhanOrderScheduler {
                         dhanOrderSchedulerHelperService.getPreviousInvestmentResearches(
                                 previousTradingSessionDate));
                 researchTechnicals.addAll(
+                        dhanOrderSchedulerHelperService.getPreviousCandleStickResearches(
+                                previousTradingSessionDate));
+                researchTechnicals.addAll(
                         dhanOrderSchedulerHelperService.getRecentHybridResearches(
                                 previousTradingSessionDate));
                 researchTechnicals.addAll(
                         dhanOrderSchedulerHelperService.getRecentDynamicResearches(
                                 calendarService.previousTradingSession(sessionDate)));
+
+                researchTechnicals.addAll(
+                        dhanOrderSchedulerHelperService.getRecentBasicResearches(
+                                calendarService.previousTradingSession(sessionDate)));
                 researchTechnicals.sort(
                         DhanOrderSchedulerHelperService.byDateVolumeScoreDescComparator());
+
+                if (researchTechnicals.size() > 10) {
+                    researchTechnicals.removeIf(rt -> rt.getRisk() >= 10);
+                }
+
+                List<ResearchTechnical> reorderedResearchTechnicalForBuyOrders =
+                        DhanOrderSchedulerHelperService.distributeInvestmentsStable(
+                                researchTechnicals);
+
+                if (reorderedResearchTechnicalForBuyOrders.size() > 5) {
+                    reorderedResearchTechnicalForBuyOrders.removeIf(rt -> rt.getRisk() >= 7.0);
+                }
 
                 processOrdersInParallel(
                         sessionDate, enabledUsers, researchTechnicals, OrderType.BUY);

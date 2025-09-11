@@ -34,11 +34,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
+    private final VolumeIndicatorService volumeIndicatorService;
 
     private final ResearchTechnicalRepository<ResearchTechnical> researchTechnicalRepository;
 
@@ -84,67 +87,84 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
             LocalDate sessionDate) {
-        // Ensure no prior BUY research exists for the timeframe
-        ResearchTechnical existingResearchTechnical =
+        // Find existing research or create new one
+        ResearchTechnical researchTechnical =
                 researchTechnicalRepository
                         .findByStockIdAndTimeframeAndType(
                                 stock.getStockId(), timeframe, Trade.Type.BUY)
-                        .orElse(null);
+                        .orElseGet(
+                                () ->
+                                        STOCK_PRICE_CREATORS
+                                                .getOrDefault(
+                                                        timeframe,
+                                                        () -> {
+                                                            throw new IllegalArgumentException(
+                                                                    "Unsupported timeframe: "
+                                                                            + timeframe);
+                                                        })
+                                                .get());
 
-        ResearchTechnical newResearchTechnical =
-                STOCK_PRICE_CREATORS
-                        .getOrDefault(
-                                timeframe,
-                                () -> {
-                                    throw new IllegalArgumentException(
-                                            "Unsupported timeframe: " + timeframe);
-                                })
-                        .get();
-
-        if (existingResearchTechnical != null) {
-            newResearchTechnical.setPrevResearchDate(existingResearchTechnical.getResearchDate());
-            newResearchTechnical.setPrevEntryStrategy(existingResearchTechnical.getEntryStrategy());
-            newResearchTechnical.setPrevEntrySubStrategy(
-                    existingResearchTechnical.getEntrySubStrategy());
-            newResearchTechnical.setPrevEntryPrice(existingResearchTechnical.getEntryPrice());
-            newResearchTechnical.setPrevTarget(existingResearchTechnical.getTarget());
-            newResearchTechnical.setPrevStopLoss(existingResearchTechnical.getStopLoss());
-            newResearchTechnical.setPrevScore(existingResearchTechnical.getScore());
+        // If this is an update, save previous values
+        if (researchTechnical.getResearchTechnicalsId() != null) {
+            researchTechnical.setPrevResearchDate(researchTechnical.getResearchDate());
+            researchTechnical.setPrevEntryStrategy(researchTechnical.getEntryStrategy());
+            researchTechnical.setPrevEntrySubStrategy(researchTechnical.getEntrySubStrategy());
+            researchTechnical.setPrevEntryPrice(researchTechnical.getEntryPrice());
+            researchTechnical.setPrevTarget(researchTechnical.getTarget());
+            researchTechnical.setPrevStopLoss(researchTechnical.getStopLoss());
+            researchTechnical.setPrevScore(researchTechnical.getScore());
         }
 
-        // Create new research entry
-        newResearchTechnical.setStock(stock);
-        newResearchTechnical.setTimeframe(timeframe);
-        newResearchTechnical.setType(Trade.Type.BUY);
-        newResearchTechnical.setEntryStrategy(tradeSetup.getStrategy());
-        newResearchTechnical.setEntrySubStrategy(tradeSetup.getSubStrategy());
-        newResearchTechnical.setPriority(Double.valueOf(tradeSetup.getSubStrategy().getPriority()));
+        // Set new values
+        researchTechnical.setStock(stock);
+        researchTechnical.setTimeframe(timeframe);
+        researchTechnical.setType(Trade.Type.BUY);
+        researchTechnical.setEntryStrategy(tradeSetup.getStrategy());
+        researchTechnical.setEntrySubStrategy(tradeSetup.getSubStrategy());
+
+        double priority =
+                (Double.valueOf(tradeSetup.getStrategy().getPriority())
+                                + Double.valueOf(tradeSetup.getSubStrategy().getPriority()))
+                        / 2;
+
+        researchTechnical.setPriority(priority);
 
         PriceInfoDto priceInfoDto = nsePriceInfoFetcher.getPriceInfo(stock.getNseSymbol());
-        newResearchTechnical.setTickSize(priceInfoDto.getTickSize());
-        newResearchTechnical.setPriceBand(priceInfoDto.getPriceBand());
+        researchTechnical.setTickSize(priceInfoDto.getTickSize());
+        researchTechnical.setPriceBand(priceInfoDto.getPriceBand());
 
-        newResearchTechnical.setEntryPrice(
-                this.calculateResearchPrice(tradeSetup, stockPrice, newResearchTechnical));
+        researchTechnical.setEntryPrice(
+                this.calculateResearchPrice(tradeSetup, stockPrice, researchTechnical));
 
-        newResearchTechnical.setStopLoss(
-                this.calculateStopLoss(tradeSetup, stockPrice, newResearchTechnical));
-        newResearchTechnical.setRisk(
+        double stopLoss = this.calculateStopLoss(tradeSetup, stockPrice, researchTechnical);
+
+        if (Math.abs(
+                        formulaService.calculateChangePercentage(
+                                researchTechnical.getEntryPrice(), stopLoss))
+                > MAX_RISK) {
+            stopLoss =
+                    formulaService.applyPercentChange(
+                            researchTechnical.getEntryPrice(), -1 * MAX_RISK);
+            stopLoss = Math.min(stockPrice.getLow(), stopLoss);
+        }
+
+        researchTechnical.setStopLoss(stopLoss);
+
+        researchTechnical.setRisk(
                 Math.abs(
                         formulaService.calculateChangePercentage(
-                                newResearchTechnical.getEntryPrice(),
-                                newResearchTechnical.getStopLoss())));
+                                researchTechnical.getEntryPrice(),
+                                researchTechnical.getStopLoss())));
 
-        newResearchTechnical.setTarget(
-                targetService.calculateTarget(stockPrice, newResearchTechnical));
+        researchTechnical.setTarget(targetService.calculateTarget(stockPrice, researchTechnical));
 
         double confidenceScore =
                 ConfidenceScoreCalculator.calculateConfidenceScore(
-                        newResearchTechnical.getEntryStrategy().getPriority(),
-                        newResearchTechnical.getEntrySubStrategy().getPriority(),
-                        newResearchTechnical.getRisk(),
-                        fundamentalResearchService.marketCap(newResearchTechnical.getStock()),
-                        newResearchTechnical.getEntryPrice(),
+                        researchTechnical.getEntryStrategy().getPriority(),
+                        researchTechnical.getEntrySubStrategy().getPriority(),
+                        researchTechnical.getRisk(),
+                        fundamentalResearchService.marketCap(researchTechnical.getStock()),
+                        researchTechnical.getEntryPrice(),
                         ConfidenceScoreCalculator.calculateVolumeScore(stockTechnicals),
                         ConfidenceScoreCalculator.calculateMacdScore(
                                 stockTechnicals, macdIndicatorService),
@@ -152,30 +172,30 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         double volumeScore = 0.0;
 
-        if (stockTechnicals.getVolumeAvg20() > VolumeIndicatorService.MIN_VOLUME_AVG
-                && stockTechnicals.getVolume() > VolumeIndicatorService.MIN_VOLUME) {
+        if (volumeIndicatorService.isMinVolumeAvg(stockTechnicals, 2.0)
+                && volumeIndicatorService.isMinVolume(stockTechnicals, 2.0)) {
             volumeScore = volumeScore + 0.75;
-        } else if (stockTechnicals.getVolume() > VolumeIndicatorService.MIN_VOLUME) {
+        } else if (volumeIndicatorService.isMinVolume(stockTechnicals, 2.0)) {
             volumeScore = volumeScore + 0.50;
-        } else if (stockTechnicals.getVolumeAvg20() > VolumeIndicatorService.MIN_VOLUME_AVG) {
+        } else if (volumeIndicatorService.isMinVolumeAvg(stockTechnicals, 2.0)) {
             volumeScore = volumeScore + 0.25;
         }
 
-        newResearchTechnical.setVolumeScore(volumeScore);
+        researchTechnical.setVolumeScore(volumeScore);
 
         double score = miscUtil.roundToTwoDecimals(confidenceScore + volumeScore);
         score = Math.min(score, 10.0);
-        newResearchTechnical.setScore(score);
-        newResearchTechnical.setResearchDate(sessionDate);
-        newResearchTechnical.setLastModified(LocalDateTime.now());
+        researchTechnical.setScore(score);
+        researchTechnical.setResearchDate(sessionDate);
+        researchTechnical.setLastModified(LocalDateTime.now());
 
         boolean isRiskWithinLimit =
                 isRiskWithinLimit(
                         timeframe,
                         stockPrice,
                         stockTechnicals,
-                        newResearchTechnical.getEntrySubStrategy(),
-                        newResearchTechnical.getRisk());
+                        researchTechnical.getEntrySubStrategy(),
+                        researchTechnical.getRisk());
         evaluationLogService.add(
                 stockPrice,
                 EvaluationLog.Type.POSITIVE,
@@ -183,7 +203,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
 
         boolean isTargetValid =
                 targetService.isTargetValid(
-                        newResearchTechnical.getEntryPrice(), newResearchTechnical.getTarget());
+                        researchTechnical.getEntryPrice(), researchTechnical.getTarget());
 
         evaluationLogService.add(
                 stockPrice,
@@ -194,23 +214,20 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 formulaService.roundToNearestTick(
                                 formulaService.applyPercentChange(
                                         stockPrice.getPrevClose(),
-                                        newResearchTechnical.getPriceBand()),
-                                newResearchTechnical.getTickSize())
+                                        researchTechnical.getPriceBand()),
+                                researchTechnical.getTickSize())
                         == stockPrice.getClose();
 
         if (isRiskWithinLimit
                 && isTargetValid
                 && researchInsightService.isStrongInsights(
-                        stockPrice,
-                        tradeSetup.getStrategy() == ResearchTechnical.Strategy.INVESTMENT
-                                ? true
-                                : false)
+                        stockPrice, ResearchTechnical.Strategy.INVESTMENT)
                 && !isUpperCircuit) {
 
-            newResearchTechnical = researchTechnicalRepository.save(newResearchTechnical);
+            researchTechnical = researchTechnicalRepository.save(researchTechnical);
         }
 
-        return newResearchTechnical;
+        return researchTechnical;
     }
 
     public boolean isRiskWithinLimit(
@@ -247,8 +264,9 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 case MONTHLY -> limit = 10.0 + riskBuffer;
             }
         }
-
-        if (subStrategy == ResearchTechnical.SubStrategy.MA200_BREAKOUT
+        if (subStrategy == ResearchTechnical.SubStrategy.BREAKOUT) {
+            limit = limit + 3.5;
+        } else if (subStrategy == ResearchTechnical.SubStrategy.MA200_BREAKOUT
                 || subStrategy == ResearchTechnical.SubStrategy.LOWEST_BREAKOUT) {
             limit = limit + 3.0;
         } else if (subStrategy == ResearchTechnical.SubStrategy.MA100_BREAKOUT
@@ -306,11 +324,32 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         double exitPrice =
                 (Math.min(stockPrice.getOpen(), stockPrice.getClose()) + stockPrice.getLow()) / 2;
 
+        if (CandleStickUtils.isGreen(stockPrice)) {
+            exitPrice = stockPrice.getClose();
+        }
+
         if (tradeSetup.getSubStrategy() == ResearchTechnical.SubStrategy.TARGET_ACHIEVED) {
+
             exitPrice =
-                    Math.min(
+                    Math.max(
                             existingResearch.getTarget(),
-                            Math.max(stockPrice.getOpen(), stockPrice.getClose()));
+                            (stockPrice.getOpen() + stockPrice.getHigh()) / 2);
+
+            if (CandleStickUtils.isGreen(stockPrice)
+                    && existingResearch.getTarget() > stockPrice.getClose()
+                    && existingResearch.getTarget() < stockPrice.getHigh()) {
+                exitPrice =
+                        Math.min(
+                                existingResearch.getTarget(),
+                                (stockPrice.getOpen() + stockPrice.getHigh()) / 2);
+            }
+
+            if (CandleStickUtils.isRed(stockPrice)) {
+                exitPrice =
+                        Math.min(
+                                existingResearch.getTarget(),
+                                Math.min(stockPrice.getOpen(), stockPrice.getClose()));
+            }
         }
 
         existingResearch.setExitPrice(
@@ -336,6 +375,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResearchTechnical get(Stock stock, Timeframe timeframe, Trade.Type type) {
         return researchTechnicalRepository
                 .findByStockIdAndTimeframeAndType(stock.getStockId(), timeframe, type)
@@ -350,8 +390,15 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     @Override
     public List<ResearchTechnical> getLatestBuyResearch(LocalDate sessionDate) {
         return researchTechnicalRepository
-                .findAllByResearchDateAndTypeOrderByVolumeScoreDescScoreDescPriorityDesc(
+                .findAllByResearchDateAndTypeOrderByRiskAscVolumeScoreDescScoreDescPriorityDesc(
                         sessionDate, Trade.Type.BUY);
+    }
+
+    @Override
+    public List<ResearchTechnical> getAllResearchWithinAYear(LocalDate sessionDate) {
+        return researchTechnicalRepository
+                .findAllByResearchDateWithinOneYearOrderByScoreDescPriorityDesc(
+                        sessionDate, sessionDate.minusYears(1));
     }
 
     @Override
@@ -359,6 +406,13 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         return researchTechnicalRepository
                 .findAllByResearchDateNotAndTypeAndEntryStrategyOrderByScoreDescPriorityDesc(
                         sessionDate, Trade.Type.BUY, ResearchTechnical.Strategy.INVESTMENT);
+    }
+
+    @Override
+    public List<ResearchTechnical> getLatestCandleStickBuyResearch(LocalDate sessionDate) {
+        return researchTechnicalRepository
+                .findAllByResearchDateNotAndTypeAndEntryStrategyOrderByScoreDescPriorityDesc(
+                        sessionDate, Trade.Type.BUY, ResearchTechnical.Strategy.CANDLESTICK);
     }
 
     @Override
@@ -376,12 +430,26 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     }
 
     @Override
+    public List<ResearchTechnical> getRecentBasicBuyResearch(LocalDate sessionDate) {
+        return researchTechnicalRepository
+                .findAllByResearchDateNotAndTypeAndEntryStrategyOrderByScoreDescPriorityDesc(
+                        sessionDate, Trade.Type.BUY, ResearchTechnical.Strategy.BASIC);
+    }
+
+    @Override
     public List<ResearchTechnical> getLatestSellResearch(LocalDate sessionDate) {
         return researchTechnicalRepository.findAllByExitDateAndType(sessionDate, Trade.Type.SELL);
     }
 
     private double calculateStopLoss(
             TradeSetup tradeSetup, StockPrice stockPrice, ResearchTechnical researchTechnical) {
+
+        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.BASIC) {
+
+            double stopLoss = Math.min(stockPrice.getLow(), stockPrice.getPrevLow());
+
+            return formulaService.floorToNearestTick(stopLoss, researchTechnical.getTickSize());
+        }
 
         if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.INVESTMENT) {
 
@@ -398,7 +466,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                 || researchTechnical.getEntrySubStrategy()
                         == ResearchTechnical.SubStrategy.LOW_BREAKOUT
                 || researchTechnical.getEntrySubStrategy()
-                        == ResearchTechnical.SubStrategy.MA200_BREAKOUT
+                        == ResearchTechnical.SubStrategy.MEDIUM_BREAKOUT
                 || researchTechnical.getEntrySubStrategy()
                         == ResearchTechnical.SubStrategy.MA100_BREAKOUT) {
 

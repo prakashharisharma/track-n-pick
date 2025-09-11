@@ -30,7 +30,9 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     private static double BEARISH_MULTIPLIER_MONTHLY = 1.5;
     private static double THRESHOLD_MONTHLY = 0.5;
 
-    private static double MIN_TRADING_VALUE = 3_00_00_000.0;
+    private static double MIN_TRADING_VALUE = 7_00_00_000.0; // 5CR Avg per day
+
+    private static long MIN_TRADING_VOLUME = 3_50_000; // 5 L avg Volume
 
     private final EvaluationLogService evaluationLogService;
 
@@ -330,7 +332,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
 
         // Condition 2: Increasing volume pattern (prev volume above prev MA, current volume above
         // current MA, and increasing)
-        boolean condition2 = prevVolume > prevVolumeMA && volume > volumeMA && volume > prevVolume;
+        boolean condition2 = volume > prevVolume && volume > volumeMA;
 
         // Condition 3: Combined RVOL check (Relative volume ratio > threshold)
         boolean condition3 = avgVolumeMA > 0 && (avgVolume / avgVolumeMA) > threshold;
@@ -355,12 +357,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
         boolean condition1 = avgVolume > threshold * avgVolumeMA;
 
         // Condition 2: Increasing volume pattern (each volume is above its MA and increasing)
-        boolean condition2 =
-                prev2Volume > prev2VolumeMA
-                        && prevVolume > prevVolumeMA
-                        && volume > volumeMA
-                        && prevVolume > prev2Volume
-                        && volume > prevVolume;
+        boolean condition2 = prevVolume > prev2Volume && prevVolume > volume && volume > volumeMA;
 
         // Condition 3: Combined RVOL check (Relative volume ratio > threshold)
         boolean condition3 = avgVolumeMA > 0 && (avgVolume / avgVolumeMA) > threshold;
@@ -418,23 +415,24 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     public boolean isTradingValueSufficient(
             Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
+        long minimumTradingVolume = MIN_TRADING_VOLUME;
+        double minimumTradingValue = MIN_TRADING_VALUE;
+
+        if (timeframe == Timeframe.WEEKLY) {
+            minimumTradingVolume = 2 * 5 * minimumTradingVolume;
+            minimumTradingValue = 2 * 5 * minimumTradingValue;
+        }
+
+        if (timeframe == Timeframe.MONTHLY) {
+            minimumTradingVolume = 2 * 20 * minimumTradingVolume;
+            minimumTradingValue = 2 * 20 * minimumTradingValue;
+        }
+
         double avgClose;
         long avgVolume;
 
-        switch (timeframe) {
-            case WEEKLY:
-                avgClose = stockTechnicals.getSma10();
-                avgVolume = stockTechnicals.getVolumeAvg10();
-                break;
-            case MONTHLY:
-                avgClose = stockTechnicals.getSma5();
-                avgVolume = stockTechnicals.getVolumeAvg5();
-                break;
-            default: // DAILY or other
-                avgClose = stockTechnicals.getSma20();
-                avgVolume = stockTechnicals.getVolumeAvg20();
-                break;
-        }
+        avgClose = stockTechnicals.getSma20();
+        avgVolume = stockTechnicals.getVolumeAvg20();
 
         double avgTradingValue = avgClose * avgVolume;
 
@@ -443,7 +441,7 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
                 stockPrice.getStock().getNseSymbol(),
                 avgTradingValue);
 
-        return avgTradingValue >= MIN_TRADING_VALUE;
+        return avgTradingValue >= minimumTradingValue || avgVolume >= minimumTradingVolume;
     }
 
     @Override
@@ -536,5 +534,31 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
                         multiplier));
 
         return false;
+    }
+
+    @Override
+    public boolean isMinVolumeAvg(StockTechnicals stockTechnicals, double multiplier) {
+        long minVolumeAvg = MIN_VOLUME_AVG;
+
+        if (stockTechnicals.getTimeframe() == Timeframe.WEEKLY) {
+            minVolumeAvg = 2 * 5 * minVolumeAvg;
+        }
+        if (stockTechnicals.getTimeframe() == Timeframe.MONTHLY) {
+            minVolumeAvg = 2 * 20 * minVolumeAvg;
+        }
+        return stockTechnicals.getVolumeAvg20() > minVolumeAvg * multiplier;
+    }
+
+    @Override
+    public boolean isMinVolume(StockTechnicals stockTechnicals, double multiplier) {
+        long minVolume = MIN_VOLUME;
+
+        if (stockTechnicals.getTimeframe() == Timeframe.WEEKLY) {
+            minVolume = 2 * 5 * minVolume;
+        }
+        if (stockTechnicals.getTimeframe() == Timeframe.MONTHLY) {
+            minVolume = 2 * 20 * minVolume;
+        }
+        return stockTechnicals.getVolume() > minVolume * multiplier;
     }
 }

@@ -206,7 +206,9 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
         int incrMACount = MovingAverageUtil.increasingMaCount(stockTechnicals);
 
         if (incrMACount == 5) {
-            return Optional.empty();
+            if (rsiIndicatorService.rsi(stockTechnicals) > 60) {
+                return Optional.empty();
+            }
         }
 
         if (signalEvaluatorHelperService.isHighestAlsoBreached(
