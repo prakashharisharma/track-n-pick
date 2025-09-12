@@ -193,7 +193,7 @@ public class DhanOrderExecutorService {
                                 positionSize,
                                 entryPrice);
                 long finalQuantity = position.finalQuantity();
-                double valueLeftOver = 0.0;
+                double valueToAdjust = 0.0;
                 if (finalQuantity > 0) {
 
                     if (existingHolding != null
@@ -215,7 +215,7 @@ public class DhanOrderExecutorService {
 
                             double valueTobeAdd = position.finalValue() - existingHoldingValue;
                             long quantityToBeAdd = (long) Math.floor(valueTobeAdd / entryPrice);
-                            valueLeftOver = position.finalValue() - valueTobeAdd;
+                            valueToAdjust = position.finalValue() - valueTobeAdd;
                             finalQuantity = quantityToBeAdd;
                             log.info(
                                     "Existing holding found for {} with quantity {} calculated new"
@@ -307,7 +307,7 @@ public class DhanOrderExecutorService {
                                 ORDER_DELAY_MINUTES,
                                 TimeUnit.MINUTES);
                     }
-                    availableFunds = position.remainingFunds() + valueLeftOver;
+                    availableFunds = position.remainingFunds() + valueToAdjust;
                 }
             } catch (Exception e) {
                 log.error(

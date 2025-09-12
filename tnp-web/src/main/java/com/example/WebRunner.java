@@ -179,7 +179,7 @@ public class WebRunner implements CommandLineRunner {
 
         log.info("Application started....");
 
-        bhavProcessor.processAndResearchTechnicals();
+        // bhavProcessor.processAndResearchTechnicals();
         // this.processResearchOnly();
         this.allocatePositions();
 
