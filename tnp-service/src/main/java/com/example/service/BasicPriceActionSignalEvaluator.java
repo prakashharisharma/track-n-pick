@@ -128,6 +128,10 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             return Optional.empty();
         }
 
+        if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, false)) {
+            return Optional.empty();
+        }
+
         if (MovingAverageUtil.increasingMaCount(stockTechnicals) < 3) {
             return Optional.empty();
         }
@@ -146,8 +150,9 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                         stockPrice.getTimeframe(), stockPrice, stockTechnicals);
 
         boolean isBreakout = false;
-        if (evaluationResult.isBreakout()
-                && evaluationResult.getLength() == MovingAverageLength.HIGHEST) {
+        /* if (evaluationResult.isBreakout()
+        && evaluationResult.getLength() == MovingAverageLength.HIGHEST) {*/
+        if (evaluationResult.isBreakout()) {
             if ((isStrongBody || isStrongRange)) {
 
                 // if (stockTechnicals.getSma200() < stockTechnicals.getEma50()) {

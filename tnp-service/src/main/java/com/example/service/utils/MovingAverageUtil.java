@@ -230,12 +230,46 @@ public class MovingAverageUtil {
 
     public static boolean isAllMaAlignedBullish(
             Timeframe timeframe, StockTechnicals stockTechnicals) {
+        double ma5 = getMovingAverage5(timeframe, stockTechnicals);
         double ma20 = getMovingAverage20(timeframe, stockTechnicals);
         double ma50 = getMovingAverage50(timeframe, stockTechnicals);
         double ma100 = getMovingAverage100(timeframe, stockTechnicals);
         double ma200 = getMovingAverage200(timeframe, stockTechnicals);
 
-        return ma20 > ma50 && ma50 > ma100 && ma100 > ma200;
+        if (ma200 > 0) {
+            return ma20 > ma50 && ma50 > ma100 && ma100 > ma200;
+        }
+        if (ma100 > 0) {
+            return ma20 > ma50 && ma50 > ma100;
+        }
+        if (ma50 > 0) {
+            return ma5 > ma20 && ma20 > ma50;
+        }
+        return false;
+    }
+
+    public static boolean isDifferentialMaAlignedBullish(
+            Timeframe timeframe, StockTechnicals stockTechnicals) {
+
+        double ma5 = getMovingAverage5(timeframe, stockTechnicals);
+        double ma20 = getMovingAverage20(timeframe, stockTechnicals);
+        double ma50 = getMovingAverage50(timeframe, stockTechnicals);
+        double ma100 = getMovingAverage100(timeframe, stockTechnicals);
+        double ma200 = getMovingAverage200(timeframe, stockTechnicals);
+
+        if (ma200 > 0) {
+            return ma50 > ma200;
+        }
+
+        if (ma100 > 0) {
+            return ma20 > ma100;
+        }
+
+        if (ma50 > 0) {
+            return ma5 > ma50;
+        }
+
+        return false;
     }
 
     public static boolean isAllMaAlignedBearish(
@@ -318,15 +352,15 @@ public class MovingAverageUtil {
         int count = 0;
 
         if (getMovingAverage5(timeframe, stockTechnicals)
-                > getPrevMovingAverage5(timeframe, stockTechnicals)) count++;
+                >= getPrevMovingAverage5(timeframe, stockTechnicals)) count++;
         if (getMovingAverage20(timeframe, stockTechnicals)
-                > getPrevMovingAverage20(timeframe, stockTechnicals)) count++;
+                >= getPrevMovingAverage20(timeframe, stockTechnicals)) count++;
         if (getMovingAverage50(timeframe, stockTechnicals)
-                > getPrevMovingAverage50(timeframe, stockTechnicals)) count++;
+                >= getPrevMovingAverage50(timeframe, stockTechnicals)) count++;
         if (getMovingAverage100(timeframe, stockTechnicals)
-                > getPrevMovingAverage100(timeframe, stockTechnicals)) count++;
+                >= getPrevMovingAverage100(timeframe, stockTechnicals)) count++;
         if (getMovingAverage200(timeframe, stockTechnicals)
-                > getPrevMovingAverage200(timeframe, stockTechnicals)) count++;
+                >= getPrevMovingAverage200(timeframe, stockTechnicals)) count++;
 
         return count >= 5;
     }
@@ -336,15 +370,15 @@ public class MovingAverageUtil {
         int count = 0;
 
         if (getMovingAverage5(timeframe, stockTechnicals)
-                > getPrevMovingAverage5(timeframe, stockTechnicals)) count++;
+                >= getPrevMovingAverage5(timeframe, stockTechnicals)) count++;
         if (getMovingAverage20(timeframe, stockTechnicals)
-                > getPrevMovingAverage20(timeframe, stockTechnicals)) count++;
+                >= getPrevMovingAverage20(timeframe, stockTechnicals)) count++;
         if (getMovingAverage50(timeframe, stockTechnicals)
-                > getPrevMovingAverage50(timeframe, stockTechnicals)) count++;
+                >= getPrevMovingAverage50(timeframe, stockTechnicals)) count++;
         if (getMovingAverage100(timeframe, stockTechnicals)
-                > getPrevMovingAverage100(timeframe, stockTechnicals)) count++;
+                >= getPrevMovingAverage100(timeframe, stockTechnicals)) count++;
         if (getMovingAverage200(timeframe, stockTechnicals)
-                > getPrevMovingAverage200(timeframe, stockTechnicals)) count++;
+                >= getPrevMovingAverage200(timeframe, stockTechnicals)) count++;
 
         return count;
     }

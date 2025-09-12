@@ -77,6 +77,10 @@ public class InvestmentPriceActionSignalEvaluator implements TradeSignalEvaluato
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
+        if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, true)) {
+            return Optional.empty();
+        }
+
         boolean isLowestAndHighestMovingAverageDiffValid =
                 signalEvaluatorHelperService.isLowestAndHighestMovingAverageDiffValid(
                         timeframe, stockPrice, stockTechnicals, MAInteractionType.BREAKOUT, true);
@@ -112,15 +116,11 @@ public class InvestmentPriceActionSignalEvaluator implements TradeSignalEvaluato
             return Optional.empty();
         }
 
-        // System.out.println("Log3 " + stock.getNseSymbol());
-
         if (!volumeIndicatorService.isMinVolume(stockTechnicals, 2.0)) {
             return Optional.empty();
         }
 
-        // System.out.println("Log4 " + stock.getNseSymbol());
-
-        if (!volumeIndicatorService.isMinVolumeAvg(stockTechnicals, 1.0)) {
+        if (!volumeIndicatorService.isMinVolumeAvg(stockTechnicals, 2.0)) {
             return Optional.empty();
         }
 

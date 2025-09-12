@@ -8,10 +8,7 @@ import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.dto.common.TradeSetup;
 import com.example.service.impl.CandleStickConfirmationServiceImpl;
-import com.example.service.utils.CandleStickUtils;
-import com.example.service.utils.MovingAverageUtil;
-import com.example.service.utils.SubStrategyHelper;
-import com.example.service.utils.TrendDirectionUtil;
+import com.example.service.utils.*;
 import com.example.util.FormulaService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +24,8 @@ public class CandleStickPriceActionSignalEvaluator implements TradeSignalEvaluat
     private final FormulaService formulaService;
 
     private final RsiIndicatorService rsiIndicatorService;
+
+    private final SignalEvaluatorHelperService signalEvaluatorHelperService;
 
     private final CandleStickConfirmationServiceImpl candleStickConfirmationService;
     private final DynamicMovingAverageSupportResolverService
@@ -95,18 +94,9 @@ public class CandleStickPriceActionSignalEvaluator implements TradeSignalEvaluat
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
-        /*
-        if(evaluationResult.isBreakout()) {
-            if (evaluationResult.getLength() != MovingAverageLength.LOWEST && evaluationResult.getLength() != MovingAverageLength.LOW) {
-                return Optional.empty();
-            }
+        if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, false)) {
+            return Optional.empty();
         }
-
-        if(evaluationResult.isNearSupport()){
-            if (evaluationResult.getLength() != MovingAverageLength.LOWEST && evaluationResult.getLength() != MovingAverageLength.LOW && evaluationResult.getLength() != MovingAverageLength.MEDIUM) {
-                return Optional.empty();
-            }
-        }*/
 
         if (evaluationResult.isBreakout()
                 && !(stockPrice.getPrevOpen() < evaluationResult.getPrevValue()

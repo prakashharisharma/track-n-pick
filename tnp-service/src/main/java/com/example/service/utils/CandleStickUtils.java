@@ -116,7 +116,7 @@ public class CandleStickUtils {
         double price =
                 (stockPrice.getHigh() + stockPrice.getLow())
                         / 2; // could also use midpoint (high+low)/2
-        double minPercentRange = 0.0382; // Fibonacci 3.82% or 0.05 (5%)
+        double minPercentRange = 0.05; // Fibonacci 3.82% or 0.05 (5%)
 
         boolean isAbsoluteStrong = (range >= minPercentRange * price);
 

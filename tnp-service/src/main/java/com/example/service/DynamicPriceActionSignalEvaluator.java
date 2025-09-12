@@ -133,6 +133,10 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
+        if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, false)) {
+            return Optional.empty();
+        }
+
         if (MovingAverageUtil.getMovingAverage200(Timeframe.DAILY, stockTechnicals) == 0.0) {
             return Optional.empty();
         }

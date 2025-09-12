@@ -132,13 +132,6 @@ public class DhanOrderExecutorService {
 
                     double maxRisk = ResearchTechnicalService.MAX_RISK;
 
-                    /*
-                    if(researchTechnical.getEntryStrategy() != ResearchTechnical.Strategy.CANDLESTICK) {
-                        if (researchTechnical.getVolumeScore() == 0.75) {
-                            maxRisk = maxRisk + 0.50;
-                        }
-                    }*/
-
                     // Adjust entry price if risk is greater than 5
                     if (researchTechnical.getRisk() > maxRisk) {
 
@@ -200,19 +193,8 @@ public class DhanOrderExecutorService {
                                 positionSize,
                                 entryPrice);
                 long finalQuantity = position.finalQuantity();
+                double valueLeftOver = 0.0;
                 if (finalQuantity > 0) {
-                    /*
-                    if (existingHolding != null && existingHolding.getAvgCostPrice() != null) {
-                        if (position.finalQuantity() < existingHolding.getTotalQty()) {
-                            log.info(
-                                    "Skipping buy order for {} as existing quantity {} is higher"
-                                            + " than final quantity {}",
-                                    nseSymbol,
-                                    existingHolding.getTotalQty(),
-                                    position.finalQuantity());
-                            continue;
-                        }
-                    }*/
 
                     if (existingHolding != null
                             && existingHolding.getAvgCostPrice() != null
@@ -233,6 +215,7 @@ public class DhanOrderExecutorService {
 
                             double valueTobeAdd = position.finalValue() - existingHoldingValue;
                             long quantityToBeAdd = (long) Math.floor(valueTobeAdd / entryPrice);
+                            valueLeftOver = position.finalValue() - valueTobeAdd;
                             finalQuantity = quantityToBeAdd;
                             log.info(
                                     "Existing holding found for {} with quantity {} calculated new"
@@ -324,7 +307,7 @@ public class DhanOrderExecutorService {
                                 ORDER_DELAY_MINUTES,
                                 TimeUnit.MINUTES);
                     }
-                    availableFunds = position.remainingFunds();
+                    availableFunds = position.remainingFunds() + valueLeftOver;
                 }
             } catch (Exception e) {
                 log.error(

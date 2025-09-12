@@ -37,6 +37,9 @@ public class SignalEvaluatorHelperService {
 
     private final FundamentalResearchService fundamentalResearchService;
 
+    private final StockPriceService<StockPrice> stockPriceService;
+    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
+
     public boolean isHighAndHighestMovingAverageDiffValid(
             Timeframe timeframe,
             StockPrice stockPrice,
@@ -1472,6 +1475,49 @@ public class SignalEvaluatorHelperService {
                 > 15.0) {
             return true;
         }
+
+        return false;
+    }
+
+    public boolean isHigherTimeframeConfirmed(
+            StockTechnicals stockTechnicals, boolean isInvestment) {
+
+        long increasingMAThreshold = isInvestment ? 2 : 3;
+
+        StockTechnicals stockTechnicalsHigherTimeframe =
+                stockTechnicalsService.get(
+                        stockTechnicals.getStock(), stockTechnicals.getTimeframe().getHigher());
+
+        long increasingMACount =
+                MovingAverageUtil.increasingMaCount(stockTechnicalsHigherTimeframe);
+
+        if (increasingMACount >= increasingMAThreshold
+                && MovingAverageUtil.isAllMaAlignedBullish(
+                        stockTechnicals.getTimeframe().getHigher(),
+                        stockTechnicalsHigherTimeframe)) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(" Higher timeframe confirmed with all MA aligned Bullish"));
+            return true;
+        }
+
+        if (MovingAverageUtil.isAllMAsIncreasing(stockTechnicalsHigherTimeframe)
+                && MovingAverageUtil.isDifferentialMaAlignedBullish(
+                        stockTechnicals.getTimeframe().getHigher(),
+                        stockTechnicalsHigherTimeframe)) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.POSITIVE,
+                    StringUtils.format(
+                            " Higher timeframe confirmed with differential MA aligned Bullish"));
+            return true;
+        }
+
+        evaluationLogService.add(
+                stockTechnicals,
+                EvaluationLog.Type.NEUTRAL,
+                StringUtils.format(" Higher timeframe not confirmed"));
 
         return false;
     }

@@ -30,9 +30,9 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
     private static double BEARISH_MULTIPLIER_MONTHLY = 1.5;
     private static double THRESHOLD_MONTHLY = 0.5;
 
-    private static double MIN_TRADING_VALUE = 7_00_00_000.0; // 5CR Avg per day
+    private static double MIN_TRADING_VALUE = 6_00_00_000.0; // 6CR Avg per day
 
-    private static long MIN_TRADING_VOLUME = 3_50_000; // 5 L avg Volume
+    private static long MIN_TRADING_VOLUME = 3_00_000; // 3.0 L avg Volume
 
     private final EvaluationLogService evaluationLogService;
 
