@@ -58,13 +58,6 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 subStrategyRef =
                         confirmBreakout(
                                 timeframe, stock, stockPrice, stockTechnicals, evaluationResult);
-
-                researchPrice =
-                        signalEvaluatorHelperService.calculateEntryPrice(
-                                timeframe,
-                                stockPrice,
-                                stockTechnicals,
-                                evaluationResult.getValue());
             }
 
             if (subStrategyRef.isPresent()) {
@@ -133,8 +126,10 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
-        if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, false)) {
-            return Optional.empty();
+        if (timeframe != Timeframe.MONTHLY) {
+            if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, false)) {
+                return Optional.empty();
+            }
         }
 
         if (MovingAverageUtil.getMovingAverage200(Timeframe.DAILY, stockTechnicals) == 0.0) {
@@ -148,19 +143,6 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
         if (!isHighestAndHighMovingAverageDiffValid) {
             return Optional.empty();
         }
-
-        /*
-        if (CandleStickUtils.isUpperWickLongerThanLowerWick(stockPrice)) {
-            return Optional.empty();
-        }*/
-
-        /*
-        if(CandleStickUtils.upperWickSize(stockPrice) >= 2 * CandleStickUtils.lowerWickSize(stockPrice)
-                && CandleStickUtils.prevUpperWickSize(stockPrice) >= 2 * CandleStickUtils.prevLowerWickSize(stockPrice)
-
-        ){
-            return Optional.empty();
-        }*/
 
         if (rsiIndicatorService.isOverBought(stockTechnicals)
                 || (CandleStickUtils.isUpperWickDominant(stockPrice)

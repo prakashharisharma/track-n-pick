@@ -258,15 +258,15 @@ public class MovingAverageUtil {
         double ma200 = getMovingAverage200(timeframe, stockTechnicals);
 
         if (ma200 > 0) {
-            return ma50 > ma200;
+            return ma20 > ma100 && ma50 > ma200;
         }
 
         if (ma100 > 0) {
-            return ma20 > ma100;
+            return ma5 > ma50 && ma20 > ma100;
         }
 
         if (ma50 > 0) {
-            return ma5 > ma50;
+            return ma5 > ma20 && ma20 > ma50;
         }
 
         return false;

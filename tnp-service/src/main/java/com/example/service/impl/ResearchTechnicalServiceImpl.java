@@ -14,7 +14,6 @@ import com.example.external.NSEPriceInfoFetcher;
 import com.example.service.*;
 import com.example.service.ConfidenceScoreCalculator;
 import com.example.service.utils.CandleStickUtils;
-import com.example.service.utils.SupportResistanceZoneUtils;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.example.util.StringUtils;
@@ -70,6 +69,10 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     private final ResearchInsightService researchInsightService;
 
     private final NSEPriceInfoFetcher nsePriceInfoFetcher;
+
+    private final StopLossService stopLossService;
+
+    private final EntryPriceService entryPriceService;
 
     private static final Map<Timeframe, Supplier<ResearchTechnical>> STOCK_PRICE_CREATORS =
             Map.of(
@@ -133,30 +136,29 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         researchTechnical.setTickSize(priceInfoDto.getTickSize());
         researchTechnical.setPriceBand(priceInfoDto.getPriceBand());
 
-        researchTechnical.setEntryPrice(
-                this.calculateResearchPrice(tradeSetup, stockPrice, researchTechnical));
+        double volumeScore = 0.0;
 
-        double stopLoss = this.calculateStopLoss(tradeSetup, stockPrice, researchTechnical);
-
-        if (Math.abs(
-                        formulaService.calculateChangePercentage(
-                                researchTechnical.getEntryPrice(), stopLoss))
-                > MAX_RISK) {
-            stopLoss =
-                    formulaService.applyPercentChange(
-                            researchTechnical.getEntryPrice(), -1 * MAX_RISK);
-            stopLoss = Math.min(stockPrice.getLow(), stopLoss);
+        if (volumeIndicatorService.isMinVolumeAvg(stockTechnicals, 2.0)
+                && volumeIndicatorService.isMinVolume(stockTechnicals, 2.0)) {
+            volumeScore = volumeScore + 0.75;
+        } else if (volumeIndicatorService.isMinVolumeAvg(stockTechnicals, 2.0)) {
+            volumeScore = volumeScore + 0.50;
+        } else if (volumeIndicatorService.isMinVolume(stockTechnicals, 2.0)) {
+            volumeScore = volumeScore + 0.25;
         }
 
-        researchTechnical.setStopLoss(stopLoss);
+        researchTechnical.setVolumeScore(volumeScore);
 
-        researchTechnical.setRisk(
-                Math.abs(
-                        formulaService.calculateChangePercentage(
-                                researchTechnical.getEntryPrice(),
-                                researchTechnical.getStopLoss())));
+        researchTechnical.setEntryPrice(
+                entryPriceService.calculate(stockPrice, stockTechnicals, researchTechnical));
 
-        researchTechnical.setTarget(targetService.calculateTarget(stockPrice, researchTechnical));
+        researchTechnical.setStopLoss(
+                stopLossService.calculate(stockPrice, stockTechnicals, researchTechnical));
+
+        researchTechnical.setRisk(RiskUtil.calculateRiskPercent(researchTechnical, true));
+
+        researchTechnical.setTarget(
+                targetService.calculate(stockPrice, stockTechnicals, researchTechnical));
 
         double confidenceScore =
                 ConfidenceScoreCalculator.calculateConfidenceScore(
@@ -169,19 +171,6 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         ConfidenceScoreCalculator.calculateMacdScore(
                                 stockTechnicals, macdIndicatorService),
                         researchInsightService.valuationScore(stock));
-
-        double volumeScore = 0.0;
-
-        if (volumeIndicatorService.isMinVolumeAvg(stockTechnicals, 2.0)
-                && volumeIndicatorService.isMinVolume(stockTechnicals, 2.0)) {
-            volumeScore = volumeScore + 0.75;
-        } else if (volumeIndicatorService.isMinVolume(stockTechnicals, 2.0)) {
-            volumeScore = volumeScore + 0.50;
-        } else if (volumeIndicatorService.isMinVolumeAvg(stockTechnicals, 2.0)) {
-            volumeScore = volumeScore + 0.25;
-        }
-
-        researchTechnical.setVolumeScore(volumeScore);
 
         double score = miscUtil.roundToTwoDecimals(confidenceScore + volumeScore);
         score = Math.min(score, 10.0);
@@ -439,95 +428,6 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
     @Override
     public List<ResearchTechnical> getLatestSellResearch(LocalDate sessionDate) {
         return researchTechnicalRepository.findAllByExitDateAndType(sessionDate, Trade.Type.SELL);
-    }
-
-    private double calculateStopLoss(
-            TradeSetup tradeSetup, StockPrice stockPrice, ResearchTechnical researchTechnical) {
-
-        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.BASIC) {
-
-            double stopLoss = Math.min(stockPrice.getLow(), stockPrice.getPrevLow());
-
-            return formulaService.floorToNearestTick(stopLoss, researchTechnical.getTickSize());
-        }
-
-        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.INVESTMENT) {
-
-            double sl =
-                    Math.min(
-                            formulaService.applyPercentChange(
-                                    researchTechnical.getEntryPrice(), -1 * MAX_RISK),
-                            stockPrice.getLow() - researchTechnical.getTickSize());
-
-            return formulaService.floorToNearestTick(sl, researchTechnical.getTickSize());
-        }
-
-        if (researchTechnical.getEntrySubStrategy() == ResearchTechnical.SubStrategy.LOWEST_BREAKOUT
-                || researchTechnical.getEntrySubStrategy()
-                        == ResearchTechnical.SubStrategy.LOW_BREAKOUT
-                || researchTechnical.getEntrySubStrategy()
-                        == ResearchTechnical.SubStrategy.MEDIUM_BREAKOUT
-                || researchTechnical.getEntrySubStrategy()
-                        == ResearchTechnical.SubStrategy.MA100_BREAKOUT) {
-
-            SupportResistanceZones currentZones =
-                    SupportResistanceZoneUtils.calculateSupportResistanceZones(stockPrice);
-            SupportResistanceZoneUtils.Zone currentSupport = currentZones.getSupport();
-
-            return formulaService.floorToNearestTick(
-                    formulaService.applyPercentChange(
-                            Math.max(
-                                    CandleStickUtils.isPrevSessionRed(stockPrice)
-                                            ? stockPrice.getPrevLow()
-                                            : stockPrice.getLow(),
-                                    (stockPriceHelperService.findLowestLow(stockPrice)
-                                                    + currentSupport.getStart())
-                                            / 2),
-                            -1 * 0.05),
-                    researchTechnical.getTickSize());
-        }
-
-        SupportResistanceZones currentZones =
-                SupportResistanceZoneUtils.calculateSupportResistanceZones(stockPrice);
-        SupportResistanceZoneUtils.Zone currentSupport = currentZones.getSupport();
-
-        double stopLoss = stockPrice.getLow();
-
-        if (CandleStickUtils.isPrevSessionRed(stockPrice)) {
-            stopLoss = Math.min(stopLoss, stockPrice.getPrevLow());
-        }
-
-        return formulaService.floorToNearestTick(
-                formulaService.applyPercentChange(stopLoss, -1 * 0.05),
-                researchTechnical.getTickSize());
-    }
-
-    private double calculateResearchPrice(
-            TradeSetup tradeSetup, StockPrice stockPrice, ResearchTechnical researchTechnical) {
-
-        if (tradeSetup.getResearchPrice() > 0.0) {
-            return Math.min(
-                    formulaService.ceilToNearestTick(
-                            tradeSetup.getResearchPrice(), researchTechnical.getTickSize()),
-                    stockPrice.getHigh());
-        }
-
-        ResearchTechnical.SubStrategy subStrategy = tradeSetup.getSubStrategy();
-
-        boolean isRedCandle = CandleStickUtils.isRed(stockPrice);
-
-        double researchPrice = stockPrice.getHigh();
-
-        researchPrice =
-                isRedCandle
-                        ? (stockPrice.getOpen()
-                                + (stockPrice.getHigh() - stockPrice.getOpen()) * 0.50)
-                        : (stockPrice.getClose()
-                                + (stockPrice.getHigh() - stockPrice.getClose()) * 0.50);
-
-        return Math.min(
-                formulaService.ceilToNearestTick(researchPrice, researchTechnical.getTickSize()),
-                stockPrice.getHigh());
     }
 
     @Override

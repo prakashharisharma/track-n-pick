@@ -1484,12 +1484,56 @@ public class SignalEvaluatorHelperService {
 
         long increasingMAThreshold = isInvestment ? 2 : 3;
 
+        StockPrice stockTPriceHigherTimeframe =
+                stockPriceService.get(
+                        stockTechnicals.getStock(), stockTechnicals.getTimeframe().getHigher());
+
         StockTechnicals stockTechnicalsHigherTimeframe =
                 stockTechnicalsService.get(
                         stockTechnicals.getStock(), stockTechnicals.getTimeframe().getHigher());
 
         long increasingMACount =
                 MovingAverageUtil.increasingMaCount(stockTechnicalsHigherTimeframe);
+        /*
+        if(MovingAverageUtil.isAllMaAlignedBearish(stockTechnicalsHigherTimeframe.getTimeframe(), stockTechnicalsHigherTimeframe) && increasingMACount >= increasingMAThreshold){
+            if(stockTPriceHigherTimeframe.getClose() > MovingAverageUtil.getMovingAverage50(stockTechnicalsHigherTimeframe.getTimeframe(), stockTechnicalsHigherTimeframe)){
+                evaluationLogService.add(
+                        stockTechnicals,
+                        EvaluationLog.Type.POSITIVE,
+                        StringUtils.format("Higher timeframe confirmed with all MA aligned bearish but close above 50"));
+                return true;
+            }
+        }
+        */
+
+        // If highertime close below 200 return false
+        double ma200 =
+                MovingAverageUtil.getMovingAverage200(
+                        stockTPriceHigherTimeframe.getTimeframe(), stockTechnicalsHigherTimeframe);
+
+        if (ma200 > 0 && stockTPriceHigherTimeframe.getClose() < ma200) {
+            return false;
+        }
+
+        double ma100 =
+                MovingAverageUtil.getMovingAverage100(
+                        stockTPriceHigherTimeframe.getTimeframe(), stockTechnicalsHigherTimeframe);
+
+        if (ma200 == 0 && ma100 > 0 && stockTPriceHigherTimeframe.getClose() < ma100) {
+            return false;
+        }
+
+        double ma50 =
+                MovingAverageUtil.getMovingAverage50(
+                        stockTPriceHigherTimeframe.getTimeframe(), stockTechnicalsHigherTimeframe);
+
+        if (ma200 == 0 && ma100 == 0 && ma50 > 0 && stockTPriceHigherTimeframe.getClose() < ma50) {
+            evaluationLogService.add(
+                    stockTechnicals,
+                    EvaluationLog.Type.NEUTRAL,
+                    StringUtils.format("Higher timeframe not confirmed closed below"));
+            return false;
+        }
 
         if (increasingMACount >= increasingMAThreshold
                 && MovingAverageUtil.isAllMaAlignedBullish(
@@ -1498,7 +1542,7 @@ public class SignalEvaluatorHelperService {
             evaluationLogService.add(
                     stockTechnicals,
                     EvaluationLog.Type.POSITIVE,
-                    StringUtils.format(" Higher timeframe confirmed with all MA aligned Bullish"));
+                    StringUtils.format("Higher timeframe confirmed with all MA aligned Bullish"));
             return true;
         }
 
@@ -1510,14 +1554,14 @@ public class SignalEvaluatorHelperService {
                     stockTechnicals,
                     EvaluationLog.Type.POSITIVE,
                     StringUtils.format(
-                            " Higher timeframe confirmed with differential MA aligned Bullish"));
+                            "Higher timeframe confirmed with differential MA aligned Bullish"));
             return true;
         }
 
         evaluationLogService.add(
                 stockTechnicals,
                 EvaluationLog.Type.NEUTRAL,
-                StringUtils.format(" Higher timeframe not confirmed"));
+                StringUtils.format("Higher timeframe not confirmed"));
 
         return false;
     }
