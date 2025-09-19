@@ -78,7 +78,7 @@ public class InvestmentPriceActionSignalEvaluator implements TradeSignalEvaluato
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
         if (timeframe != Timeframe.MONTHLY) {
-            if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, false)) {
+            if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, true)) {
                 return Optional.empty();
             }
         }

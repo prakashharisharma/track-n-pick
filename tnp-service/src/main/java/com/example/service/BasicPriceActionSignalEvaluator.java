@@ -24,6 +24,11 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             dynamicMovingAverageSupportResolverService;
 
     private final FormulaService formulaService;
+    private final CandleStickConfirmationService candleStickConfirmationService;
+
+    private final AdxIndicatorService adxIndicatorService;
+
+    private final ResistanceValidationService resistanceValidationService;
 
     @Override
     public TradeSetup evaluateEntry(
@@ -158,7 +163,23 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             }
         }
 
-        if (isBreakout) {
+        boolean isBullishConfirmed =
+                candleStickConfirmationService.isBullishConfirmed(
+                        stockPrice.getTimeframe(), stockPrice, stockTechnicals, false);
+
+        boolean checkHigherTimeFrameResistance =
+                (isBullishConfirmed)
+                                && (CandleStickUtils.isProGapUp(stockPrice)
+                                        || adxIndicatorService.isBullishIncr(stockTechnicals))
+                        ? false
+                        : true;
+
+        boolean isHigherTimeframeResistanceCheckPassed =
+                (checkHigherTimeFrameResistance
+                        ? resistanceValidationService.isOutsideResistanceZone(stockPrice)
+                        : true);
+
+        if (isBreakout && isHigherTimeframeResistanceCheckPassed) {
             return SubStrategyHelper.resolveByName("breakout");
         }
 

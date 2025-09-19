@@ -175,6 +175,10 @@ public class WebRunner implements CommandLineRunner {
     @Qualifier("investmentPriceActionSignalEvaluator")
     private InvestmentPriceActionSignalEvaluator investmentPriceActionSignalEvaluator;
 
+    @Autowired
+    @Qualifier("megaPriceActionSignalEvaluator")
+    private MegaPriceActionSignalEvaluator megaPriceActionSignalEvaluator;
+
     @Autowired private EntryPriceService entryPriceService;
 
     @Override
@@ -184,9 +188,9 @@ public class WebRunner implements CommandLineRunner {
 
         // bhavProcessor.processAndResearchTechnicals();
         // this.processResearchOnly();
-        // this.allocatePositions();
+        this.allocatePositions();
 
-        this.findMonthlyBreakout();
+        // this.findMonthlyBreakout();
 
         // this.showBilling();
         // this.makePayment();
@@ -821,6 +825,10 @@ public class WebRunner implements CommandLineRunner {
 
     private void findMonthlyBreakout() {
         List<Stock> stocks = stockService.getActiveStocks();
+        // List<Stock> stocks = new ArrayList<>();
+
+        // Stock stock1 = stockService.getStockByNseSymbol("BANCOINDIA");
+        // stocks.add(stock1);
 
         int counter = 0;
         for (Stock stock : stocks) {
@@ -832,6 +840,10 @@ public class WebRunner implements CommandLineRunner {
                 TradeSetup tradeSetup =
                         simplePriceActionSignalEvaluator.evaluateEntry(
                                 stockPrice.getTimeframe(), stock, stockPrice, stockTechnicals);
+
+                // TradeSetup tradeSetup =
+                // megaPriceActionSignalEvaluator.evaluateEntry(stockPrice.getTimeframe(), stock,
+                // stockPrice, stockTechnicals);
                 // TradeSetup tradeSetup =
                 // investmentPriceActionSignalEvaluator.evaluateEntry(stockPrice.getTimeframe(),
                 // stock, stockPrice, stockTechnicals);

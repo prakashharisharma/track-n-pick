@@ -1535,10 +1535,23 @@ public class SignalEvaluatorHelperService {
             return false;
         }
 
+        double higherTimeframeClose = stockTPriceHigherTimeframe.getClose();
+
+        boolean isCloseAboveMA =
+                stockTPriceHigherTimeframe.getTimeframe() == Timeframe.WEEKLY
+                        ? higherTimeframeClose
+                                > MovingAverageUtil.getMovingAverage20(
+                                        stockTechnicalsHigherTimeframe.getTimeframe(),
+                                        stockTechnicalsHigherTimeframe)
+                        : higherTimeframeClose
+                                > MovingAverageUtil.getMovingAverage5(
+                                        stockTechnicalsHigherTimeframe.getTimeframe(),
+                                        stockTechnicalsHigherTimeframe);
+
         if (increasingMACount >= increasingMAThreshold
                 && MovingAverageUtil.isAllMaAlignedBullish(
-                        stockTechnicals.getTimeframe().getHigher(),
-                        stockTechnicalsHigherTimeframe)) {
+                        stockTechnicals.getTimeframe().getHigher(), stockTechnicalsHigherTimeframe)
+                && isCloseAboveMA) {
             evaluationLogService.add(
                     stockTechnicals,
                     EvaluationLog.Type.POSITIVE,
@@ -1548,8 +1561,8 @@ public class SignalEvaluatorHelperService {
 
         if (MovingAverageUtil.isAllMAsIncreasing(stockTechnicalsHigherTimeframe)
                 && MovingAverageUtil.isDifferentialMaAlignedBullish(
-                        stockTechnicals.getTimeframe().getHigher(),
-                        stockTechnicalsHigherTimeframe)) {
+                        stockTechnicals.getTimeframe().getHigher(), stockTechnicalsHigherTimeframe)
+                && isCloseAboveMA) {
             evaluationLogService.add(
                     stockTechnicals,
                     EvaluationLog.Type.POSITIVE,

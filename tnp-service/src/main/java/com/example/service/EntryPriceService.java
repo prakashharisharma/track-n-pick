@@ -16,6 +16,8 @@ public class EntryPriceService {
 
     private final FormulaService formulaService;
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
+    private final DynamicMovingAverageSupportResolverService
+            dynamicMovingAverageSupportResolverService;
 
     public double calculate(
             StockPrice stockPrice,
@@ -56,7 +58,23 @@ public class EntryPriceService {
         if (upperWickSize <= 0.2 * range) {
             return stockPrice.getHigh();
         } else {
+
+            MovingAverageResult highestMovingAverageResult =
+                    MovingAverageUtil.getMovingAverage(
+                            MovingAverageLength.HIGHEST,
+                            stockPrice.getTimeframe(),
+                            stockTechnicals,
+                            true);
+
             double ema5 = stockTechnicals.getEma5();
+
+            double highestMA = highestMovingAverageResult.getValue();
+
+            // ema5 is less than highest ma but close above highest ma
+            if (ema5 < highestMA && highestMA < stockPrice.getClose()) {
+
+                ema5 = Math.max(ema5, formulaService.applyPercentChange(highestMA, -1 * 2.0));
+            }
 
             double maxOfOpenClose = Math.max(stockPrice.getClose(), stockPrice.getOpen());
 
