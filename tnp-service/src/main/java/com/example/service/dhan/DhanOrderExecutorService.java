@@ -1,8 +1,5 @@
 package com.example.service.dhan;
 
-import static com.example.data.transactional.entities.ResearchTechnical.Strategy.BASIC;
-import static com.example.service.ResearchTechnicalService.MIN_RISK;
-
 import com.example.data.common.type.MarketCapCategory;
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.ResearchTechnical;
@@ -15,6 +12,7 @@ import com.example.model.type.IndiceType;
 import com.example.service.*;
 import com.example.service.dhan.model.PositionDetails;
 import com.example.service.impl.FundamentalResearchService;
+import com.example.service.utils.CandleStickUtils;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,8 +41,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 @RequiredArgsConstructor
 public class DhanOrderExecutorService {
 
-    private static final double LARGE_ORDER_THRESHOLD = 100000.0;
-    private static final long LARGE_QUANTITY_THRESHOLD = 1000;
+    private static final double LARGE_ORDER_THRESHOLD = 1_00_000.0;
+    private static final long LARGE_QUANTITY_THRESHOLD = 10_000;
     private static final long ORDER_DELAY_MINUTES = 10;
 
     private final MiscUtil miscUtil;
@@ -120,74 +118,62 @@ public class DhanOrderExecutorService {
                                 .findFirst()
                                 .orElse(null);
 
-                double entryPrice =
-                        researchTechnical.getEntryPrice() + researchTechnical.getTickSize();
-
+                double entryPrice = researchTechnical.getEntryPrice();
                 StockPrice stockPrice =
-                        stockPriceService.get(researchTechnical.getStock(), Timeframe.DAILY);
+                        stockPriceService.get(stock, researchTechnical.getTimeframe());
 
-                if (researchTechnical
-                        .getResearchDate()
-                        .isEqual(calendarService.previousTradingSession(currentDate))) {
+                if (CandleStickUtils.isGreen(stockPrice)) {
 
-                    double maxRisk = ResearchTechnicalService.MAX_RISK;
-
-                    /*
-                    if(researchTechnical.getEntryStrategy() != ResearchTechnical.Strategy.CANDLESTICK) {
-                        if (researchTechnical.getVolumeScore() == 0.75) {
-                            maxRisk = maxRisk + 0.50;
-                        }
-                    }*/
-
-                    // Adjust entry price if risk is greater than 5
-                    if (researchTechnical.getRisk() > maxRisk) {
-
-                        double riskAdjustment = researchTechnical.getRisk() - maxRisk;
-                        entryPrice =
-                                formulaService.applyPercentChange(entryPrice, -1 * riskAdjustment);
-                    } else if (researchTechnical.getRisk() < MIN_RISK) {
-                        entryPrice = formulaService.applyPercentChange(entryPrice, 0.50);
-                    }
-
-                    if (researchTechnical.getVolumeScore() == 0.75) {
-                        entryPrice = formulaService.applyPercentChange(entryPrice, 0.75);
-                    } else if (researchTechnical.getVolumeScore() == 0.50) {
-                        entryPrice = formulaService.applyPercentChange(entryPrice, 0.50);
-                    } else if (researchTechnical.getVolumeScore() == 0.25) {
+                    // Give boost .5 % if risk is less min risk
+                    if (researchTechnical.getRisk()
+                            < RiskUtil.minRisk(researchTechnical.getTimeframe())) {
                         entryPrice = formulaService.applyPercentChange(entryPrice, 0.25);
                     }
 
-                    entryPrice =
-                            Math.min(
-                                    entryPrice, (stockPrice.getHigh() + stockPrice.getClose()) / 2);
+                    // Give boost .5 % if score > 8.5
+                    if (researchTechnical.getScore() >= 8.5) {
 
-                    if (researchTechnical.getEntryPrice() <= stockPrice.getClose()
-                            && researchTechnical.getEntryStrategy()
-                                    != ResearchTechnical.Strategy.CANDLESTICK) {
-                        if (researchTechnical.getScore() > 9.0) {
+                        entryPrice = formulaService.applyPercentChange(entryPrice, 0.25);
+                    }
+
+                    if (researchTechnical.getTimeframe() != Timeframe.DAILY) {
+                        double maxAboveClose =
+                                formulaService.applyPercentChange(stockPrice.getClose(), 2.0);
+
+                        entryPrice = Math.min(maxAboveClose, entryPrice);
+                    }
+
+                    if (researchTechnical.getTimeframe() == Timeframe.DAILY) {
+                        entryPrice = Math.min(stockPrice.getHigh(), entryPrice);
+                    }
+
+                    double avgRisk =
+                            (RiskUtil.minRisk(researchTechnical.getTimeframe())
+                                            + RiskUtil.maxRisk(researchTechnical.getTimeframe()))
+                                    / 2;
+
+                    if (researchTechnical.getRisk() <= avgRisk
+                            && researchTechnical.getScore() >= 8.5
+                            && researchTechnical.getVolumeScore() >= 0.75) {
+                        if (researchTechnical.getTimeframe() == Timeframe.DAILY) {
                             entryPrice = formulaService.applyPercentChange(entryPrice, 0.25);
                         }
+                        if (researchTechnical.getTimeframe() != Timeframe.DAILY) {
+                            entryPrice = formulaService.applyPercentChange(entryPrice, 0.35);
+                        }
                     }
+
+                    entryPrice =
+                            formulaService.ceilToNearestTick(
+                                    entryPrice, researchTechnical.getTickSize());
                 }
 
-                if (researchTechnical.getEntryStrategy() == BASIC) {
-                    entryPrice =
-                            formulaService.applyPercentChange(
-                                    researchTechnical.getEntryPrice(), 0.25);
-                } else {
-                    entryPrice =
-                            Math.min(
-                                    entryPrice,
-                                    (stockPrice.getHigh()
-                                                    + Math.max(
-                                                            stockPrice.getOpen(),
-                                                            stockPrice.getClose()))
-                                            / 2);
-                }
-                entryPrice =
-                        formulaService.ceilToNearestTick(
-                                entryPrice, researchTechnical.getTickSize());
-                System.out.println(stock.getNseSymbol() + " " + entryPrice);
+                System.out.println(
+                        stock.getNseSymbol()
+                                + "="
+                                + researchTechnical.getEntryPrice()
+                                + "->"
+                                + entryPrice);
 
                 long positionSize = positionService.calculate(user, researchTechnical);
 
@@ -200,19 +186,8 @@ public class DhanOrderExecutorService {
                                 positionSize,
                                 entryPrice);
                 long finalQuantity = position.finalQuantity();
+                double valueToAdjust = 0.0;
                 if (finalQuantity > 0) {
-                    /*
-                    if (existingHolding != null && existingHolding.getAvgCostPrice() != null) {
-                        if (position.finalQuantity() < existingHolding.getTotalQty()) {
-                            log.info(
-                                    "Skipping buy order for {} as existing quantity {} is higher"
-                                            + " than final quantity {}",
-                                    nseSymbol,
-                                    existingHolding.getTotalQty(),
-                                    position.finalQuantity());
-                            continue;
-                        }
-                    }*/
 
                     if (existingHolding != null
                             && existingHolding.getAvgCostPrice() != null
@@ -233,6 +208,7 @@ public class DhanOrderExecutorService {
 
                             double valueTobeAdd = position.finalValue() - existingHoldingValue;
                             long quantityToBeAdd = (long) Math.floor(valueTobeAdd / entryPrice);
+                            valueToAdjust = position.finalValue() - valueTobeAdd;
                             finalQuantity = quantityToBeAdd;
                             log.info(
                                     "Existing holding found for {} with quantity {} calculated new"
@@ -324,7 +300,7 @@ public class DhanOrderExecutorService {
                                 ORDER_DELAY_MINUTES,
                                 TimeUnit.MINUTES);
                     }
-                    availableFunds = position.remainingFunds();
+                    availableFunds = position.remainingFunds() + valueToAdjust;
                 }
             } catch (Exception e) {
                 log.error(
@@ -352,8 +328,8 @@ public class DhanOrderExecutorService {
 
         double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
 
-        final double MIN_CAP = totalCapital <= 500000.0 ? 0.050 : 0.025;
-        final double MAX_CAP = totalCapital <= 500000.0 ? 0.100 : 0.050;
+        final double MIN_CAP = totalCapital <= 5_00_000.0 ? 0.050 : 0.025;
+        final double MAX_CAP = totalCapital <= 5_00_000.0 ? 0.100 : 0.050;
         final double EXPONENT = 2.0;
 
         // 1. Base cap % depending on funds availability

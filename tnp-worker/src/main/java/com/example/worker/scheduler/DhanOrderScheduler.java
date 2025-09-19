@@ -42,6 +42,7 @@ public class DhanOrderScheduler {
                 List<User> enabledUsers = userService.getAllDhanApiEnabledUsers();
                 List<ResearchTechnical> researchTechnicals =
                         researchTechnicalService.getLatestBuyResearch(previousTradingSessionDate);
+
                 researchTechnicals.addAll(
                         dhanOrderSchedulerHelperService.getPreviousInvestmentResearches(
                                 previousTradingSessionDate));
@@ -54,27 +55,25 @@ public class DhanOrderScheduler {
                 researchTechnicals.addAll(
                         dhanOrderSchedulerHelperService.getRecentDynamicResearches(
                                 calendarService.previousTradingSession(sessionDate)));
-
                 researchTechnicals.addAll(
                         dhanOrderSchedulerHelperService.getRecentBasicResearches(
                                 calendarService.previousTradingSession(sessionDate)));
+
                 researchTechnicals.sort(
                         DhanOrderSchedulerHelperService.byDateVolumeScoreDescComparator());
 
-                if (researchTechnicals.size() > 10) {
-                    researchTechnicals.removeIf(rt -> rt.getRisk() >= 10);
-                }
+                researchTechnicals.removeIf(
+                        rt -> rt.getRisk() > RiskUtil.maxRisk(rt.getTimeframe()));
 
                 List<ResearchTechnical> reorderedResearchTechnicalForBuyOrders =
                         DhanOrderSchedulerHelperService.distributeInvestmentsStable(
                                 researchTechnicals);
 
-                if (reorderedResearchTechnicalForBuyOrders.size() > 5) {
-                    reorderedResearchTechnicalForBuyOrders.removeIf(rt -> rt.getRisk() >= 7.0);
-                }
-
                 processOrdersInParallel(
-                        sessionDate, enabledUsers, researchTechnicals, OrderType.BUY);
+                        sessionDate,
+                        enabledUsers,
+                        reorderedResearchTechnicalForBuyOrders,
+                        OrderType.BUY);
             }
         } catch (Exception e) {
             log.error("Error in daily buy order processing", e);

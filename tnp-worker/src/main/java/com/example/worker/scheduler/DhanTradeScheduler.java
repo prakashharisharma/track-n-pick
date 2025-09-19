@@ -1,5 +1,6 @@
 package com.example.worker.scheduler;
 
+import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockTechnicals;
@@ -69,7 +70,7 @@ public class DhanTradeScheduler {
     @Scheduled(cron = "0 15 12 * * *") // 11:30 AM
     @Scheduled(cron = "0 30 12 * * *") // 11:30 AM
     @Scheduled(cron = "0 00 13 * * *") // 11:30 AM
-    @Scheduled(cron = "0 12 13 * * *") // 11:30 AM
+    @Scheduled(cron = "0 55 13 * * *") // 11:30 AM
     @Scheduled(cron = "0 00 14 * * *") // 11:30 AM
     @Scheduled(cron = "0 00 15 * * *") // 3:00 PM
     @Scheduled(cron = "0 05 15 * * *") // 3:15 PM
@@ -198,9 +199,15 @@ public class DhanTradeScheduler {
                                     researchTechnicalService.getLatest(stock);
 
                             if (researchTechnicalOptional.isPresent()
-                                    && researchTechnicalOptional.get().getVolumeScore() < 0.75) {
+                                    && (researchTechnicalOptional.get().getVolumeScore() < 0.75
+                                            && researchTechnicalOptional.get().getScore() < 8.5)) {
 
-                                placeSellOrdersForStock(stock, aggregation, user, symbol);
+                                placeSellOrdersForStock(
+                                        stock,
+                                        aggregation,
+                                        user,
+                                        symbol,
+                                        researchTechnicalOptional.get().getTimeframe());
                             }
 
                         } else {
@@ -213,14 +220,18 @@ public class DhanTradeScheduler {
     }
 
     private void placeSellOrdersForStock(
-            Stock stock, TradeAggregation aggregation, User user, String symbol) {
+            Stock stock,
+            TradeAggregation aggregation,
+            User user,
+            String symbol,
+            Timeframe timeframe) {
         log.info(
                 "Processing sell orders for stock {} with quantity {} and average price {}",
                 symbol,
                 aggregation.quantity,
                 aggregation.averagePrice);
 
-        OrderParameters params = createOrderParameters(stock, aggregation);
+        OrderParameters params = createOrderParameters(stock, aggregation, timeframe);
 
         if (params.isSmallOrder()) {
             placeSmallOrder(user, stock, aggregation, params);
@@ -236,20 +247,23 @@ public class DhanTradeScheduler {
         boolean smallOrder; // lombok will create isSmallOrder() for us
     }
 
-    private OrderParameters createOrderParameters(Stock stock, TradeAggregation aggregation) {
+    private OrderParameters createOrderParameters(
+            Stock stock, TradeAggregation aggregation, Timeframe timeframe) {
         double tickSize = researchTechnicalService.getTickSize(stock);
         boolean isSmallOrder =
                 (aggregation.quantity <= 10
                                 && (aggregation.getQuantity() * aggregation.averagePrice)
                                         < 100000.0)
                         || (aggregation.getQuantity() * aggregation.averagePrice) < 50000.0;
-        double[] profitTargets = determineProfitTargets(stock);
+        double[] profitTargets = determineProfitTargets(stock, timeframe);
 
         return new OrderParameters(tickSize, profitTargets, isSmallOrder);
     }
 
-    private double[] determineProfitTargets(Stock stock) {
+    private double[] determineProfitTargets(Stock stock, Timeframe timeframe) {
+
         double[] profitTargetsDefault = {3.0, 4.75, 7.5, 10.25};
+        double[] profitTargetsNotDaily = {5.0, 5.0, 5.0, 5.0};
         double[] profitTargetsPriceBand20 = {4.5, 7.5, 12.5, 17.5};
         double[] profitTargetsPriceBand10 = {2.5, 3.75, 6.25, 8.75};
         double[] profitTargetsPriceBand5 = {2.0, 3.0, 3.5, 4.5};
@@ -264,7 +278,7 @@ public class DhanTradeScheduler {
             if (priceBand == 5.0) return profitTargetsPriceBand5;
         }
 
-        return profitTargetsDefault;
+        return timeframe != Timeframe.DAILY ? profitTargetsNotDaily : profitTargetsDefault;
     }
 
     private void placeSmallOrder(

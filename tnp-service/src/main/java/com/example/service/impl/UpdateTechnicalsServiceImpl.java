@@ -469,6 +469,14 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
         LocalDate from = to.minusYears(3);
 
+        if (timeFrame == Timeframe.WEEKLY) {
+            from = to.minusYears(5);
+        }
+
+        if (timeFrame == Timeframe.MONTHLY) {
+            from = to.minusYears(17);
+        }
+
         log.info("{} fetching OHLCV from {} to {}", nseSymbol, from, to);
 
         return ohlcvService.fetch(timeFrame, nseSymbol, from, to);

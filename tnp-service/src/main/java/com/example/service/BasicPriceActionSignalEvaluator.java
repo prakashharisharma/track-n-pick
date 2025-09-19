@@ -18,19 +18,17 @@ import org.springframework.stereotype.Service;
 @Service("basicPriceActionSignalEvaluator")
 public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
-    private final ResistanceValidationService resistanceValidationService;
-    private final TimeframeSupportResistanceService timeframeSupportResistanceService;
-    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
-    private final StockPriceService<StockPrice> stockPriceService;
     private final SignalEvaluatorHelperService signalEvaluatorHelperService;
-    private final RsiIndicatorService rsiIndicatorService;
-
-    private final AdxIndicatorService adxIndicatorService;
 
     private final DynamicMovingAverageSupportResolverService
             dynamicMovingAverageSupportResolverService;
 
     private final FormulaService formulaService;
+    private final CandleStickConfirmationService candleStickConfirmationService;
+
+    private final AdxIndicatorService adxIndicatorService;
+
+    private final ResistanceValidationService resistanceValidationService;
 
     @Override
     public TradeSetup evaluateEntry(
@@ -55,14 +53,6 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                             stockPrice,
                             stockTechnicals,
                             evaluationResultOptional.get());
-
-            double ema5 = stockTechnicals.getEma5();
-            double avgPrice = (ema5 + stockPrice.getClose()) / 2;
-            double weightedAvgPrice = formulaService.applyPercentChange(avgPrice, 0.5);
-            double weightedClosePrice =
-                    formulaService.applyPercentChange(
-                            Math.max(stockPrice.getClose(), stockPrice.getOpen()), 0.25);
-            researchPrice = Math.min(weightedAvgPrice, weightedClosePrice);
         }
 
         if (subStrategyRef.isPresent()) {
@@ -124,16 +114,19 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 stock.getNseSymbol(),
                 stockPrice.getTimeframe());
 
-        if (timeframe == Timeframe.DAILY) {
-            return Optional.empty();
+        if (timeframe != Timeframe.MONTHLY) {
+            if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, false)) {
+                return Optional.empty();
+            }
         }
 
-        if (MovingAverageUtil.increasingMaCount(stockTechnicals) < 3) {
-            return Optional.empty();
-        }
+        if (!(MovingAverageUtil.isAllMaAlignedBullish(
+                                stockTechnicals.getTimeframe(), stockTechnicals)
+                        && MovingAverageUtil.increasingMaCount(stockTechnicals) >= 3)
+                && !(MovingAverageUtil.isDifferentialMaAlignedBullish(
+                                stockTechnicals.getTimeframe(), stockTechnicals)
+                        && MovingAverageUtil.isAllMAsIncreasing(stockTechnicals))) {
 
-        if (!MovingAverageUtil.isAllMaAlignedBullish(
-                stockTechnicals.getTimeframe(), stockTechnicals)) {
             return Optional.empty();
         }
 
@@ -146,12 +139,10 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                         stockPrice.getTimeframe(), stockPrice, stockTechnicals);
 
         boolean isBreakout = false;
-        if (evaluationResult.isBreakout()
-                && evaluationResult.getLength() == MovingAverageLength.HIGHEST) {
+
+        if (evaluationResult.isBreakout()) {
             if ((isStrongBody || isStrongRange)) {
 
-                // if (stockTechnicals.getSma200() < stockTechnicals.getEma50()) {
-                // if (stockPrice.getClose() > stockTechnicals.getEma50()) {
                 if (stockTechnicals.getVolumeAvg20() > stockTechnicals.getPrevVolumeAvg20()) {
                     if (stockTechnicals.getVolume() > stockTechnicals.getPrevVolume()) {
                         if (stockTechnicals.getVolume() > stockTechnicals.getVolumeAvg20()) {
@@ -169,12 +160,26 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                         }
                     }
                 }
-                // }
-                // }
             }
         }
 
-        if (isBreakout) {
+        boolean isBullishConfirmed =
+                candleStickConfirmationService.isBullishConfirmed(
+                        stockPrice.getTimeframe(), stockPrice, stockTechnicals, false);
+
+        boolean checkHigherTimeFrameResistance =
+                (isBullishConfirmed)
+                                && (CandleStickUtils.isProGapUp(stockPrice)
+                                        || adxIndicatorService.isBullishIncr(stockTechnicals))
+                        ? false
+                        : true;
+
+        boolean isHigherTimeframeResistanceCheckPassed =
+                (checkHigherTimeFrameResistance
+                        ? resistanceValidationService.isOutsideResistanceZone(stockPrice)
+                        : true);
+
+        if (isBreakout && isHigherTimeframeResistanceCheckPassed) {
             return SubStrategyHelper.resolveByName("breakout");
         }
 
@@ -189,8 +194,12 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             MAEvaluationResult evaluationResult) {
         log.debug(
                 "Confirming breakdown for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
-        if (timeframe == Timeframe.DAILY) {
-            return Optional.empty();
+
+        if (CandleStickUtils.isLowerWickDominant(stockPrice)
+                || CandleStickUtils.isStrongLowerWick(stockPrice)) {
+            if (CandleStickUtils.isPrevSessionRed(stockPrice)) {
+                return Optional.empty();
+            }
         }
 
         if ((evaluationResult.isBreakdown()

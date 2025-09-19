@@ -6,7 +6,6 @@ public interface AdxIndicatorService {
 
     public static final double ADX_BULLISH_MIN = 20.0;
     public static final double ADX_BULLISH_MAX = 50.0;
-
     public static final double ADX_BEARISH_MIN = 20.0;
     public static final double ADX_BEARISH_MAX = 40.0;
 

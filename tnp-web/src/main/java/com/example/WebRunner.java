@@ -10,6 +10,7 @@ import com.example.data.transactional.repo.*;
 import com.example.data.transactional.repo.TradingHolidayRepository;
 import com.example.dto.assembler.StockPriceOHLCVAssembler;
 import com.example.dto.common.OHLCV;
+import com.example.dto.common.TradeSetup;
 import com.example.dto.integration.StockOverviewResponse;
 import com.example.dto.io.*;
 import com.example.external.*;
@@ -97,6 +98,10 @@ public class WebRunner implements CommandLineRunner {
 
     @Autowired private FundsLedgerRepository fundsLedgerRepository;
 
+    @Autowired
+    @Qualifier("simplePriceActionSignalEvaluator")
+    private TradeSignalEvaluator simplePriceActionSignalEvaluator;
+
     @Autowired private ResearchExecutorService researchExecutorService;
 
     @Autowired private OnBalanceVolumeCalculatorService onBalanceVolumeCalculatorService;
@@ -143,10 +148,6 @@ public class WebRunner implements CommandLineRunner {
     @Autowired
     private MultiTimeframeSupportResistanceService multiTimeframeSupportResistanceService;
 
-    @Qualifier("simplePriceActionSignalEvaluator")
-    @Autowired
-    private TradeSignalEvaluator simplePriceActionSignalEvaluator;
-
     @Autowired private SectorDownloadService sectorDownloadService;
 
     @Autowired private StockFinancialsService stockFinancialsService;
@@ -174,6 +175,12 @@ public class WebRunner implements CommandLineRunner {
     @Qualifier("investmentPriceActionSignalEvaluator")
     private InvestmentPriceActionSignalEvaluator investmentPriceActionSignalEvaluator;
 
+    @Autowired
+    @Qualifier("megaPriceActionSignalEvaluator")
+    private MegaPriceActionSignalEvaluator megaPriceActionSignalEvaluator;
+
+    @Autowired private EntryPriceService entryPriceService;
+
     @Override
     public void run(String... arg0) throws InterruptedException, IOException {
 
@@ -182,6 +189,8 @@ public class WebRunner implements CommandLineRunner {
         // bhavProcessor.processAndResearchTechnicals();
         // this.processResearchOnly();
         this.allocatePositions();
+
+        // this.findMonthlyBreakout();
 
         // this.showBilling();
         // this.makePayment();
@@ -265,7 +274,7 @@ public class WebRunner implements CommandLineRunner {
         // this.testScore();
         // this.updatePriceHistory();
         // this.updateTechnicals();
-        // this.processPriceUpdate(false);
+        //  this.processPriceUpdate(false);
         // this.processTechnicalsUpdate();
 
         // this.updateSectorsActivity();
@@ -814,6 +823,40 @@ public class WebRunner implements CommandLineRunner {
         }
     }
 
+    private void findMonthlyBreakout() {
+        List<Stock> stocks = stockService.getActiveStocks();
+        // List<Stock> stocks = new ArrayList<>();
+
+        // Stock stock1 = stockService.getStockByNseSymbol("BANCOINDIA");
+        // stocks.add(stock1);
+
+        int counter = 0;
+        for (Stock stock : stocks) {
+
+            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
+
+            if (stockPrice != null && stockTechnicals != null) {
+                TradeSetup tradeSetup =
+                        simplePriceActionSignalEvaluator.evaluateEntry(
+                                stockPrice.getTimeframe(), stock, stockPrice, stockTechnicals);
+
+                // TradeSetup tradeSetup =
+                // megaPriceActionSignalEvaluator.evaluateEntry(stockPrice.getTimeframe(), stock,
+                // stockPrice, stockTechnicals);
+                // TradeSetup tradeSetup =
+                // investmentPriceActionSignalEvaluator.evaluateEntry(stockPrice.getTimeframe(),
+                // stock, stockPrice, stockTechnicals);
+
+                if (tradeSetup.isActive()) {
+                    ++counter;
+                }
+            }
+        }
+
+        System.out.println("counter " + counter);
+    }
+
     private void allocatePositions() {
         List<User> users = userService.getAllDhanApiEnabledUsers();
 
@@ -825,7 +868,9 @@ public class WebRunner implements CommandLineRunner {
 
         System.out.println("SessionDate " + sessionDate);
         LocalDate previousTradingSessionDate = calendarService.previousTradingSession(sessionDate);
-        System.out.println("previousTradingSessionDate " + sessionDate);
+
+        System.out.println("previousTradingSessionDate " + previousTradingSessionDate);
+
         List<ResearchTechnical> researchTechnicalForBuyOrders =
                 researchTechnicalService.getLatestBuyResearch(previousTradingSessionDate);
         researchTechnicalForBuyOrders.addAll(
@@ -843,19 +888,16 @@ public class WebRunner implements CommandLineRunner {
         researchTechnicalForBuyOrders.addAll(
                 dhanOrderSchedulerHelperService.getRecentBasicResearches(
                         calendarService.previousTradingSession(sessionDate)));
+
         researchTechnicalForBuyOrders.sort(
                 DhanOrderSchedulerHelperService.byDateVolumeScoreDescComparator());
-        if (researchTechnicalForBuyOrders.size() > 10) {
-            researchTechnicalForBuyOrders.removeIf(rt -> rt.getRisk() >= 10);
-        }
+
+        researchTechnicalForBuyOrders.removeIf(
+                rt -> rt.getRisk() > RiskUtil.maxRisk(rt.getTimeframe()));
 
         List<ResearchTechnical> reorderedResearchTechnicalForBuyOrders =
                 DhanOrderSchedulerHelperService.distributeInvestmentsStable(
                         researchTechnicalForBuyOrders);
-
-        if (reorderedResearchTechnicalForBuyOrders.size() > 5) {
-            reorderedResearchTechnicalForBuyOrders.removeIf(rt -> rt.getRisk() >= 7.0);
-        }
 
         System.out.println("Buy researches on " + previousTradingSessionDate);
 
@@ -863,6 +905,8 @@ public class WebRunner implements CommandLineRunner {
                 rt -> {
                     System.out.println(
                             rt.getStock().getNseSymbol()
+                                    + " "
+                                    + rt.getTimeframe()
                                     + " "
                                     + rt.getEntryStrategy()
                                     + " "
@@ -874,7 +918,9 @@ public class WebRunner implements CommandLineRunner {
                                     + " "
                                     + rt.getVolumeScore()
                                     + " "
-                                    + rt.getScore());
+                                    + rt.getScore()
+                                    + " "
+                                    + rt.getTickSize());
                 });
 
         List<ResearchTechnical> researchTechnicalsForSellOrder =

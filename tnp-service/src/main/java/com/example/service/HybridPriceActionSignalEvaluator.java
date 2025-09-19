@@ -60,38 +60,6 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
                 subStrategyRef =
                         confirmBreakout(
                                 timeframe, stock, stockPrice, stockTechnicals, evaluationResult);
-
-                researchPrice =
-                        signalEvaluatorHelperService.calculateEntryPrice(
-                                timeframe,
-                                stockPrice,
-                                stockTechnicals,
-                                evaluationResult.getValue());
-
-                researchPrice = formulaService.applyPercentChange(researchPrice, -1 * 2.0);
-
-                MovingAverageResult highestMovingAverageResult =
-                        MovingAverageUtil.getMovingAverage(
-                                MovingAverageLength.HIGHEST, timeframe, stockTechnicals, true);
-
-                if (stockPrice.getClose() > highestMovingAverageResult.getValue()) {
-                    researchPrice =
-                            Math.max(
-                                    formulaService.applyPercentChange(
-                                            stockPrice.getHigh(), -1 * 2.0),
-                                    formulaService.applyPercentChange(
-                                            highestMovingAverageResult.getValue(), .50));
-                }
-
-                if (researchPrice < stockPrice.getOpen()) {
-                    researchPrice = stockPrice.getOpen();
-                }
-
-                if (CandleStickUtils.isProGapUp(stockPrice)) {
-                    researchPrice = stockPrice.getClose();
-                }
-
-                // researchPrice = formulaService.applyPercentChange(researchPrice, 0.60);
             }
 
             if (subStrategyRef.isPresent()) {
@@ -160,6 +128,12 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
+        if (timeframe != Timeframe.MONTHLY) {
+            if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, false)) {
+                return Optional.empty();
+            }
+        }
+
         if (MovingAverageUtil.getMovingAverage200(Timeframe.DAILY, stockTechnicals) == 0.0) {
             return Optional.empty();
         }
@@ -175,14 +149,6 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
         if (CandleStickUtils.isUpperWickLongerThanLowerWick(stockPrice)) {
             return Optional.empty();
         }
-
-        /*
-        if(CandleStickUtils.upperWickSize(stockPrice) >= 2 * CandleStickUtils.lowerWickSize(stockPrice)
-                && CandleStickUtils.prevUpperWickSize(stockPrice) >= 2 * CandleStickUtils.prevLowerWickSize(stockPrice)
-
-        ){
-            return Optional.empty();
-        }*/
 
         if (rsiIndicatorService.isOverBought(stockTechnicals)
                 || (CandleStickUtils.isUpperWickDominant(stockPrice)
@@ -255,9 +221,6 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
         boolean isRangeOrBody =
                 isRangeHigherThanPrevSessionRange || isBodyHigherThanPrevSessionBody;
 
-        // if ((isHtLowestAndHighestMovingAverageDiffValid || isLongerMAsAlignBullish) &&
-        // isNearestMovingAverageDiffValidForBreakout) {
-        // if (stockPrice.getClose() > htStockPrice.getHigh()) {
         boolean currentConfirmation =
                 signalEvaluatorHelperService.currentBreakoutConfirmation(
                         stockPrice, stockTechnicals);
@@ -269,8 +232,6 @@ public class HybridPriceActionSignalEvaluator implements TradeSignalEvaluator {
             return SubStrategyHelper.resolveByName(
                     evaluationResult.getLength().name() + "_breakout");
         }
-        // }
-        // }
 
         return Optional.empty();
     }

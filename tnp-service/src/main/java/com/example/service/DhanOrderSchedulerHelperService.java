@@ -1,14 +1,12 @@
 package com.example.service;
 
-import static com.example.data.transactional.entities.ResearchTechnical.Strategy.BASIC;
-import static com.example.data.transactional.entities.ResearchTechnical.Strategy.INVESTMENT;
+import static com.example.data.transactional.entities.ResearchTechnical.Strategy.*;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.data.transactional.entities.Trade;
-import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.util.FormulaService;
 import java.time.LocalDate;
@@ -25,13 +23,12 @@ public class DhanOrderSchedulerHelperService {
 
     private final FormulaService formulaService;
     private final ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
-    private final CalendarService calendarService;
     private final StockPriceService<StockPrice> stockPriceService;
     private final DynamicMovingAverageSupportResolverService
             dynamicMovingAverageSupportResolverService;
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
-    private boolean validateBasicResearch(
+    private boolean validateInitialResearch(
             ResearchTechnical rt,
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
@@ -65,8 +62,6 @@ public class DhanOrderSchedulerHelperService {
                         true);
 
         if (close > highestMovingAverageResult.getValue()) {
-            // System.out.println(rt.getStock().getNseSymbol() + " " + close +" > " +
-            // highestMovingAverageResult.getValue());
             return false;
         }
 
@@ -104,62 +99,29 @@ public class DhanOrderSchedulerHelperService {
         Double open = stockPrice.getOpen();
         double newEntryPrice = originalEntry;
 
-        double ma5 =
-                MovingAverageUtil.getMovingAverage5(
-                        stockTechnicals.getTimeframe(), stockTechnicals);
-
-        if (dayLow < originalEntry) {
+        if (dayLow < originalEntry && rt.getTimeframe() == Timeframe.DAILY) {
 
             newEntryPrice = dayLow;
 
             if (close < originalEntry) {
                 newEntryPrice = (dayLow + Math.min(close, open)) / 2;
             }
-
-        } else {
-            newEntryPrice =
-                    formulaService.applyPercentChange((stockPrice.getClose() + ma5) / 2, .5);
-
-            if (CandleStickUtils.isLowerWickLongerThanUpperWick(stockPrice)) {
-                newEntryPrice = formulaService.applyPercentChange(newEntryPrice, 0.50);
-                if (CandleStickUtils.isHigherHigh(stockPrice)
-                        && CandleStickUtils.isHigherLow(stockPrice)) {
-                    newEntryPrice = formulaService.applyPercentChange(newEntryPrice, 0.50);
-                    if (rt.getEntryStrategy() == INVESTMENT) {
-                        newEntryPrice = formulaService.applyPercentChange(newEntryPrice, 0.25);
-                    }
-                    if (stockTechnicals.getVolumeAvg20() > stockTechnicals.getPrevVolumeAvg20()) {
-                        newEntryPrice = formulaService.applyPercentChange(newEntryPrice, 0.25);
-                    }
-                }
-            }
-
-            newEntryPrice = Math.max(newEntryPrice, formulaService.applyPercentChange(ma5, 0.5));
         }
-
-        if (rt.getEntryStrategy() == BASIC) {
-            newEntryPrice = formulaService.applyPercentChange(originalEntry, 0.25);
-        }
-
-        newEntryPrice = formulaService.ceilToNearestTick(newEntryPrice, rt.getTickSize());
-
         rt.setEntryPrice(newEntryPrice);
-        /*
-        rt.setRisk(
-                Math.abs(
-                        formulaService.calculateChangePercentage(
-                                rt.getEntryPrice(), rt.getStopLoss())));*/
     }
 
     private List<ResearchTechnical> filterAndProcessResearches(
             List<ResearchTechnical> researchTechnicals,
             LocalDate sessionDate,
-            int maxDays,
             boolean isInvestment) {
 
         return researchTechnicals.stream()
                 .filter(rt -> rt.getEntryPrice() != null && rt.getStock() != null)
-                .filter(rt -> rt.getVolumeScore() == 0.75 || rt.getScore() >= 8.5)
+                .filter(
+                        rt ->
+                                rt.getVolumeScore() >= 0.75
+                                        || rt.getScore() >= 8.5
+                                        || rt.getTimeframe() != Timeframe.DAILY)
                 .filter(
                         rt -> {
                             if (rt.getEntryStrategy() == BASIC) {
@@ -167,29 +129,45 @@ public class DhanOrderSchedulerHelperService {
                             }
 
                             StockPrice stockPrice =
-                                    stockPriceService.get(rt.getStock(), Timeframe.DAILY);
+                                    stockPriceService.get(rt.getStock(), rt.getTimeframe());
                             StockTechnicals stockTechnicals =
-                                    stockTechnicalsService.get(rt.getStock(), Timeframe.DAILY);
+                                    stockTechnicalsService.get(rt.getStock(), rt.getTimeframe());
 
-                            if (!validateBasicResearch(
+                            if (!validateInitialResearch(
                                     rt, stockPrice, stockTechnicals, isInvestment)) return false;
-                            if (!validateResearchDate(rt, sessionDate, maxDays)) return false;
+                            if (!validateResearchDate(
+                                    rt, sessionDate, triggerDays(rt.getTimeframe()))) return false;
+
                             if (!validateVolumeAvg(rt, stockPrice, stockTechnicals)) return false;
 
                             adjustPriceAndRisk(rt, stockPrice, stockTechnicals);
+
                             if (rt.getStopLoss() >= rt.getEntryPrice()) {
                                 return false;
                             }
+
                             return true;
                         })
                 .collect(Collectors.toList());
+    }
+
+    private int triggerDays(Timeframe timeframe) {
+
+        if (timeframe == Timeframe.WEEKLY) {
+            return 7 * 2;
+        }
+
+        if (timeframe == Timeframe.MONTHLY) {
+            return 30 * 2;
+        }
+
+        return 1 * 3;
     }
 
     public List<ResearchTechnical> getRecentBasicResearches(LocalDate sessionDate) {
         return filterAndProcessResearches(
                 researchTechnicalService.getRecentBasicBuyResearch(sessionDate),
                 sessionDate,
-                14,
                 false);
     }
 
@@ -197,7 +175,6 @@ public class DhanOrderSchedulerHelperService {
         return filterAndProcessResearches(
                 researchTechnicalService.getLatestInvestmentBuyResearch(sessionDate),
                 sessionDate,
-                14,
                 true);
     }
 
@@ -205,7 +182,6 @@ public class DhanOrderSchedulerHelperService {
         return filterAndProcessResearches(
                 researchTechnicalService.getLatestCandleStickBuyResearch(sessionDate),
                 sessionDate,
-                7,
                 false);
     }
 
@@ -213,7 +189,6 @@ public class DhanOrderSchedulerHelperService {
         return filterAndProcessResearches(
                 researchTechnicalService.getRecentHybridBuyResearch(sessionDate),
                 sessionDate,
-                7,
                 false);
     }
 
@@ -221,7 +196,6 @@ public class DhanOrderSchedulerHelperService {
         return filterAndProcessResearches(
                 researchTechnicalService.getRecentDynamicBuyResearch(sessionDate),
                 sessionDate,
-                7,
                 false);
     }
 
@@ -249,59 +223,6 @@ public class DhanOrderSchedulerHelperService {
                             boolean isWithinPriceBand =
                                     formulaService.isWithinPercentage(
                                             close, target, rt.getPriceBand());
-
-                            // Check research date conditions
-                            LocalDate researchDate = rt.getResearchDate();
-                            /*
-                            if (researchDate != null && rt.getEntryStrategy()!=BASIC) {
-                                long daysBetween =
-                                        java.time.temporal.ChronoUnit.DAYS.between(
-                                                researchDate, currentDate);
-
-
-                                if ((calendarService
-                                                                .previousTradingSession(currentDate)
-                                                                .getDayOfWeek()
-                                                        == DayOfWeek.FRIDAY
-                                                || calendarService
-                                                                .previousTradingSession(currentDate)
-                                                                .getDayOfWeek()
-                                                        == DayOfWeek.THURSDAY
-                                                || daysBetween <= 2)
-                                        && !isWithinPriceBand) {
-                                    // Within 2 days - set target as 5% above entry
-
-                                    rt.setExitPrice(
-                                            formulaService.roundToNearestTick(
-                                                    entryPrice * 1.05, rt.getTickSize()));
-
-                                    return true;
-                                } else if (daysBetween <= 4 && !isWithinPriceBand) {
-                                    // Within 4 days - set target as 7.5% above entry
-                                    rt.setExitPrice(
-                                            formulaService.roundToNearestTick(
-                                                    entryPrice * 1.075, rt.getTickSize()));
-                                    return true;
-                                } else if (daysBetween <= 6 && !isWithinPriceBand) {
-                                    // Within 6 days - set target as 10% above entry
-                                    rt.setExitPrice(
-                                            formulaService.roundToNearestTick(
-                                                    entryPrice * 1.10, rt.getTickSize()));
-                                    return true;
-                                } else if (daysBetween <= 8 && !isWithinPriceBand) {
-                                    // Within 8 days - set target as 12.5% above entry
-                                    rt.setExitPrice(
-                                            formulaService.roundToNearestTick(
-                                                    entryPrice * 1.125, rt.getTickSize()));
-                                    return true;
-                                } else if (daysBetween <= 10 && !isWithinPriceBand) {
-                                    // Within 10 days - set target as 15% above entry
-                                    rt.setExitPrice(
-                                            formulaService.roundToNearestTick(
-                                                    entryPrice * 1.15, rt.getTickSize()));
-                                    return true;
-                                }
-                            }*/
 
                             // Original logic for within priceBand% of target
                             if (isWithinPriceBand) {
@@ -338,10 +259,16 @@ public class DhanOrderSchedulerHelperService {
                         .filter(rt -> rt.getEntryStrategy() == BASIC)
                         .collect(Collectors.toList());
 
+        List<ResearchTechnical> simples =
+                researchTechnicalForBuyOrders.stream()
+                        .filter(rt -> rt.getEntryStrategy() == SIMPLE)
+                        .collect(Collectors.toList());
+
         List<ResearchTechnical> others =
                 researchTechnicalForBuyOrders.stream()
                         .filter(rt -> rt.getEntryStrategy() != INVESTMENT)
                         .filter(rt -> rt.getEntryStrategy() != BASIC)
+                        .filter(rt -> rt.getEntryStrategy() != SIMPLE)
                         .collect(Collectors.toList());
 
         int total = researchTechnicalForBuyOrders.size();
@@ -349,9 +276,10 @@ public class DhanOrderSchedulerHelperService {
 
         if (invCount == 0) {
             // just return basics on top + rest
-            List<ResearchTechnical> result = new ArrayList<>(basics);
+            List<ResearchTechnical> result = new ArrayList<>(simples);
+            result.addAll(basics);
             result.addAll(others);
-            return result;
+            return uniqueBySymbol(result);
         }
 
         List<ResearchTechnical> distributed = new ArrayList<>(total);
@@ -372,9 +300,27 @@ public class DhanOrderSchedulerHelperService {
 
         // prepend basics
         List<ResearchTechnical> result = new ArrayList<>(total);
+        result.addAll(simples);
         result.addAll(basics);
         result.addAll(distributed);
 
-        return result;
+        return uniqueBySymbol(result);
+    }
+
+    private static List<ResearchTechnical> uniqueBySymbol(List<ResearchTechnical> list) {
+        Set<String> seen = new HashSet<>();
+        List<ResearchTechnical> unique = new ArrayList<>();
+        for (ResearchTechnical rt : list) {
+
+            // normalize symbol to be safe
+            String symbol = rt.getStock().getNseSymbol();
+            if (symbol != null) {
+                symbol = symbol.trim().toUpperCase(); // remove spaces + case insensitive
+            }
+            if (seen.add(symbol)) {
+                unique.add(rt);
+            }
+        }
+        return unique;
     }
 }

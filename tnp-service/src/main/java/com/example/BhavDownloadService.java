@@ -17,13 +17,22 @@ public class BhavDownloadService {
 
     @Retryable(
             value = {Exception.class},
-            maxAttempts = 5, // Initial attempt + 4 retries
+            maxAttempts = 7, // 1 initial attempt + 6 retries
             backoff =
                     @Backoff(
-                            delay = 900_000,
-                            multiplier = 2,
-                            maxDelay = 7_200_000) // 15 min, 30 min, 60 min...
-            )
+                            delay = 300_000, // 5 minutes (in ms)
+                            multiplier = 2, // Double each time
+                            maxDelay = 9_600_000 // 160 min cap (in ms)
+                            ))
+    /*
+    @Retryable(
+            value = {Exception.class},
+            maxAttempts = 11, // 1 + 16 retries
+            backoff =
+                    @Backoff(
+                            delay = 18_00_000, // 30 minutes in ms
+                            multiplier = 1 // no exponential, just fixed delay
+                            ))*/
     public byte[] downloadFile(String fileUrl) throws IOException {
 
         log.info("Downloading file from: {}", fileUrl);

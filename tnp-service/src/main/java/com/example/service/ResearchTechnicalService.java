@@ -17,9 +17,6 @@ import org.springframework.data.domain.Page;
 
 public interface ResearchTechnicalService<T extends ResearchTechnical> {
 
-    public static final double MAX_RISK = 6.0;
-    public static final double MIN_RISK = 2.0;
-
     T entry(
             Stock stock,
             Timeframe timeframe,
