@@ -19,9 +19,11 @@ import com.example.external.ta.service.McService;
 import com.example.processor.BhavProcessor;
 import com.example.service.*;
 import com.example.service.calc.*;
+import com.example.service.dhan.DhanConsentLoginService;
 import com.example.service.dhan.DhanOrchestratorService;
 import com.example.service.dhan.DhanOrderExecutorService;
 import com.example.service.impl.FundamentalResearchService;
+import com.example.service.strategy.*;
 import com.example.service.utils.*;
 import com.example.util.FormulaService;
 import com.example.util.MiscUtil;
@@ -179,18 +181,54 @@ public class WebRunner implements CommandLineRunner {
     @Qualifier("megaPriceActionSignalEvaluator")
     private MegaPriceActionSignalEvaluator megaPriceActionSignalEvaluator;
 
+    @Autowired
+    @Qualifier("priceActionService")
+    private PriceActionServiceImpl priceActionService;
+
     @Autowired private EntryPriceService entryPriceService;
+
+    @Autowired private TotpService totpService;
+
+    @Autowired private DhanConsentLoginService dhanConsentLoginService;
+
+    @Autowired private BottomPriceActionSignalEvaluator bottomPriceActionSignalEvaluator;
 
     @Override
     public void run(String... arg0) throws InterruptedException, IOException {
 
+        // https://dhanhq.co/docs/v2/authentication/#access-token
         log.info("Application started....");
 
         // bhavProcessor.processAndResearchTechnicals();
-        // this.processResearchOnly();
-        this.allocatePositions();
-
+        bhavProcessor.processResearch();
+        //  this.allocatePositions();
         // this.findMonthlyBreakout();
+        /*
+         int[] digits = totpService.generateToken("CQL4D7FZTBCH2JA7VITTCPHVG3C4YEJR");
+
+         System.out.print("Digits array: ");
+         for (int d : digits) {
+             System.out.print(d + " ");
+         }
+         System.out.print("\n");
+
+        */
+
+        /*
+         User user = userService.getUserByUsername("ritudhan");
+        String token = dhanConsentLoginService.loginAndGetTokenId(user);
+         System.out.println(token);
+         */
+
+        /*
+        Stock stock = stockService.getStockByNseSymbol("HINDUNILVR");
+        StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+        StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
+        Optional<ResearchTechnical> researchTechnicalOptional = researchTechnicalService.getLatest(stock);
+        if(researchTechnicalOptional.isPresent()){
+            double entryPrice = entryPriceService.calculate(stockPrice, stockTechnicals, researchTechnicalOptional.get());
+            System.out.println(entryPrice);
+        }*/
 
         // this.showBilling();
         // this.makePayment();
@@ -829,18 +867,62 @@ public class WebRunner implements CommandLineRunner {
 
         // Stock stock1 = stockService.getStockByNseSymbol("BANCOINDIA");
         // stocks.add(stock1);
-
+        System.out.println("total " + stocks.size());
         int counter = 0;
         for (Stock stock : stocks) {
 
-            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
-            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
+            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.WEEKLY);
+            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.WEEKLY);
+
+            // StockPrice stockPriceHT = stockPriceService.get(stock, Timeframe.DAILY.getHigher());
+            // StockTechnicals stockTechnicalsHT = stockTechnicalsService.get(stock,
+            // Timeframe.DAILY.getHigher());
+            /*
+            if (stockPrice != null && stockTechnicals != null) {
+                if (stockPriceHT != null && stockTechnicalsHT != null) {
+                    // Higher time frame aligned bullish
+                    if (MovingAverageUtil.isAllMaAlignedBullish(
+                            stockPriceHT.getTimeframe(), stockTechnicalsHT)) {
+                        if (MovingAverageUtil.isAllMaAlignedBearish(
+                                stockPrice.getTimeframe(), stockTechnicals)) {
+                            Optional<MAEvaluationResult> evaluationResultOptional =
+                                    dynamicMovingAverageSupportResolverService
+                                            .evaluateSingleInteractionSmart(
+                                                    stockPrice.getTimeframe(),
+                                                    stockPrice,
+                                                    stockTechnicals,
+                                                    false);
+                            if (evaluationResultOptional.isPresent()
+                                    && evaluationResultOptional.get().isBreakout()) {
+                                if (CandleStickUtils.isGreen(stockPrice)) {
+                                    if (volumeIndicatorService.isBullish(
+                                            stockPrice,
+                                            stockTechnicals,
+                                            stockPrice.getTimeframe())) {
+                                        ++counter;
+                                        System.out.println("FFF " + stock.getNseSymbol());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }*/
+
+            // TradeSetup tradeSetup =
+            // simplePriceActionSignalEvaluator.evaluateEntry(stockPrice.getTimeframe(), stock,
+            // stockPrice, stockTechnicals);
 
             if (stockPrice != null && stockTechnicals != null) {
+
                 TradeSetup tradeSetup =
-                        simplePriceActionSignalEvaluator.evaluateEntry(
+                        bottomPriceActionSignalEvaluator.evaluateEntry(
+                                stockPrice.getTimeframe(), stock, stockPrice, stockTechnicals);
+                /*
+                TradeSetup tradeSetup =
+                        priceActionService.evaluateEntry(
                                 stockPrice.getTimeframe(), stock, stockPrice, stockTechnicals);
 
+                 */
                 // TradeSetup tradeSetup =
                 // megaPriceActionSignalEvaluator.evaluateEntry(stockPrice.getTimeframe(), stock,
                 // stockPrice, stockTechnicals);
@@ -851,9 +933,10 @@ public class WebRunner implements CommandLineRunner {
                 if (tradeSetup.isActive()) {
                     ++counter;
                 }
+            } else {
+                System.out.println("data not found " + stock.getNseSymbol());
             }
         }
-
         System.out.println("counter " + counter);
     }
 
@@ -887,6 +970,18 @@ public class WebRunner implements CommandLineRunner {
                         previousTradingSessionDate));
         researchTechnicalForBuyOrders.addAll(
                 dhanOrderSchedulerHelperService.getRecentBasicResearches(
+                        calendarService.previousTradingSession(sessionDate)));
+
+        researchTechnicalForBuyOrders.addAll(
+                dhanOrderSchedulerHelperService.getRecentSimpleResearches(
+                        calendarService.previousTradingSession(sessionDate)));
+
+        researchTechnicalForBuyOrders.addAll(
+                dhanOrderSchedulerHelperService.getRecentFlexiResearches(
+                        calendarService.previousTradingSession(sessionDate)));
+
+        researchTechnicalForBuyOrders.addAll(
+                dhanOrderSchedulerHelperService.getRecentPriceResearches(
                         calendarService.previousTradingSession(sessionDate)));
 
         researchTechnicalForBuyOrders.sort(

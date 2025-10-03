@@ -1,4 +1,4 @@
-package com.example.service;
+package com.example.service.strategy;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.Stock;

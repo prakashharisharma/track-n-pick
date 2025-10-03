@@ -59,6 +59,18 @@ public class DhanOrderScheduler {
                         dhanOrderSchedulerHelperService.getRecentBasicResearches(
                                 calendarService.previousTradingSession(sessionDate)));
 
+                researchTechnicals.addAll(
+                        dhanOrderSchedulerHelperService.getRecentSimpleResearches(
+                                calendarService.previousTradingSession(sessionDate)));
+
+                researchTechnicals.addAll(
+                        dhanOrderSchedulerHelperService.getRecentFlexiResearches(
+                                calendarService.previousTradingSession(sessionDate)));
+
+                researchTechnicals.addAll(
+                        dhanOrderSchedulerHelperService.getRecentPriceResearches(
+                                calendarService.previousTradingSession(sessionDate)));
+
                 researchTechnicals.sort(
                         DhanOrderSchedulerHelperService.byDateVolumeScoreDescComparator());
 

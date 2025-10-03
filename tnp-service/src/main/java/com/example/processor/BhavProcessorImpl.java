@@ -79,7 +79,15 @@ public class BhavProcessorImpl implements BhavProcessor {
 
             ThreadsUtil.delay();
 
-            this.processAndResearchTechnicals();
+            this.processTechnicals();
+
+            ThreadsUtil.delay();
+
+            this.processTechnicals();
+
+            ThreadsUtil.delay();
+
+            this.processResearch();
 
             log.info("Completed Bhav Processor");
 
@@ -414,7 +422,7 @@ public class BhavProcessorImpl implements BhavProcessor {
     }
 
     @Override
-    public void processAndResearchTechnicals() {
+    public void processTechnicals() {
         List<Stock> stockList = stockService.getActiveStocks();
 
         int maxConcurrentThreads = ThreadsUtil.poolSize();
@@ -473,9 +481,71 @@ public class BhavProcessorImpl implements BhavProcessor {
 
             updateTechnicalsService.updateTechnicals(timeframe, stock, stockTechnicals);
 
-            // if(timeframe == Timeframe.DAILY) {
+            // researchExecutorService.executeTechnical(timeframe, stock, date);
+
+        } catch (Exception e) {
+            log.error("{} Error processing {} batch", stock.getNseSymbol(), timeframe, e);
+        }
+    }
+
+    @Override
+    public void processResearch() {
+        List<Stock> stockList = stockService.getActiveStocks();
+
+        int maxConcurrentThreads = ThreadsUtil.poolSize();
+        ExecutorService executor = Executors.newFixedThreadPool(maxConcurrentThreads);
+
+        for (Stock stock : stockList) {
+            executor.submit(
+                    () -> {
+                        try {
+                            processResearchBatch(stock);
+                        } catch (Exception e) {
+                            log.error("{} Error processing technicals", stock.getNseSymbol(), e);
+                        }
+                    });
+
+            // Delay *between* submissions to prevent MongoDB bursts
+            try {
+
+                LocalDate today = miscUtil.currentDate();
+
+                if (calendarService.isLastTradingSessionOfMonth(today)) {
+                    ThreadsUtil.delay(500);
+                } else if (calendarService.isLastTradingSessionOfWeek(today)) {
+                    ThreadsUtil.delay(400);
+                } else {
+                    ThreadsUtil.delay(300);
+                }
+                // ThreadsUtil.delay(600);
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        executor.shutdown();
+    }
+
+    private void processResearchBatch(Stock stock) {
+        LocalDate today = miscUtil.currentDate();
+
+        if (calendarService.isLastTradingSessionOfMonth(today)) {
+            processResearchOne(Timeframe.MONTHLY, stock, today);
+        }
+
+        if (calendarService.isLastTradingSessionOfWeek(today)) {
+            processResearchOne(Timeframe.WEEKLY, stock, today);
+        }
+
+        processResearchOne(Timeframe.DAILY, stock, today);
+    }
+
+    private void processResearchOne(Timeframe timeframe, Stock stock, LocalDate date) {
+        log.info("PRocessing research {} {} {}", timeframe, stock.getNseSymbol(), date);
+        try {
+
             researchExecutorService.executeTechnical(timeframe, stock, date);
-            // }
 
         } catch (Exception e) {
             log.error("{} Error processing {} batch", stock.getNseSymbol(), timeframe, e);

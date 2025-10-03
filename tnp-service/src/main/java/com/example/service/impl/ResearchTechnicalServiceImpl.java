@@ -173,6 +173,7 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
                         researchInsightService.valuationScore(stock));
 
         double score = miscUtil.roundToTwoDecimals(confidenceScore + volumeScore);
+
         score = Math.min(score, 10.0);
         researchTechnical.setScore(score);
         researchTechnical.setResearchDate(sessionDate);
@@ -423,6 +424,27 @@ public class ResearchTechnicalServiceImpl implements ResearchTechnicalService {
         return researchTechnicalRepository
                 .findAllByResearchDateNotAndTypeAndEntryStrategyOrderByScoreDescPriorityDesc(
                         sessionDate, Trade.Type.BUY, ResearchTechnical.Strategy.BASIC);
+    }
+
+    @Override
+    public List<ResearchTechnical> getRecentSimpleBuyResearch(LocalDate sessionDate) {
+        return researchTechnicalRepository
+                .findAllByResearchDateNotAndTypeAndEntryStrategyOrderByScoreDescPriorityDesc(
+                        sessionDate, Trade.Type.BUY, ResearchTechnical.Strategy.SIMPLE);
+    }
+
+    @Override
+    public List<ResearchTechnical> getRecentFlexiBuyResearch(LocalDate sessionDate) {
+        return researchTechnicalRepository
+                .findAllByResearchDateNotAndTypeAndEntryStrategyOrderByScoreDescPriorityDesc(
+                        sessionDate, Trade.Type.BUY, ResearchTechnical.Strategy.FLEXI);
+    }
+
+    @Override
+    public List<ResearchTechnical> getRecentPriceBuyResearch(LocalDate sessionDate) {
+        return researchTechnicalRepository
+                .findAllByResearchDateNotAndTypeAndEntryStrategyOrderByScoreDescPriorityDesc(
+                        sessionDate, Trade.Type.BUY, ResearchTechnical.Strategy.PRICE);
     }
 
     @Override

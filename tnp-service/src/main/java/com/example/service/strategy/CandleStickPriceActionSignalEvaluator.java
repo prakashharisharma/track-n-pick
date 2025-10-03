@@ -1,4 +1,4 @@
-package com.example.service;
+package com.example.service.strategy;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
@@ -7,6 +7,10 @@ import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.dto.common.TradeSetup;
+import com.example.service.DynamicMovingAverageSupportResolverService;
+import com.example.service.MAEvaluationResult;
+import com.example.service.RsiIndicatorService;
+import com.example.service.StockPriceService;
 import com.example.service.impl.CandleStickConfirmationServiceImpl;
 import com.example.service.utils.*;
 import com.example.util.FormulaService;
@@ -52,6 +56,7 @@ public class CandleStickPriceActionSignalEvaluator implements TradeSignalEvaluat
                 if (evaluationResultOptional.isPresent()) {
                     MAEvaluationResult evaluationResult = evaluationResultOptional.get();
                     if (evaluationResult.isBreakout() || evaluationResult.isNearSupport()) {
+
                         subStrategyRef =
                                 confirmBreakout(
                                         timeframe,
@@ -60,6 +65,7 @@ public class CandleStickPriceActionSignalEvaluator implements TradeSignalEvaluat
                                         stockTechnicals,
                                         evaluationResult);
                     }
+                    // }
                 }
             }
         }
@@ -84,10 +90,21 @@ public class CandleStickPriceActionSignalEvaluator implements TradeSignalEvaluat
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
 
+        /*
         if (timeframe != Timeframe.MONTHLY) {
             if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, false)) {
                 return Optional.empty();
             }
+        }*/
+
+        if (signalEvaluatorHelperService.isHighestAlsoBreached(
+                timeframe,
+                stockPrice,
+                stockTechnicals,
+                evaluationResult.getLength(),
+                evaluationResult.getValue())) {
+
+            return Optional.empty();
         }
 
         if (evaluationResult.isBreakout()

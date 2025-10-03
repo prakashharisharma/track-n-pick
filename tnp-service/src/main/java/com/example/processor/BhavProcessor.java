@@ -9,5 +9,7 @@ public interface BhavProcessor {
 
     public void processTimeframePrice();
 
-    public void processAndResearchTechnicals();
+    public void processTechnicals();
+
+    public void processResearch();
 }

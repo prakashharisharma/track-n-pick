@@ -441,7 +441,14 @@ public class VolumeIndicatorServiceImpl implements VolumeIndicatorService {
                 stockPrice.getStock().getNseSymbol(),
                 avgTradingValue);
 
-        return avgTradingValue >= minimumTradingValue || avgVolume >= minimumTradingVolume;
+        boolean isSufficient =
+                avgTradingValue >= minimumTradingValue || avgVolume >= minimumTradingVolume;
+        log.info(
+                "{} average trading value {} sufficient {}",
+                stockPrice.getStock().getNseSymbol(),
+                avgTradingValue,
+                isSufficient);
+        return isSufficient;
     }
 
     @Override

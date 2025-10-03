@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 public class StopLossService {
 
     private final FormulaService formulaService;
+    private final StockPriceService<StockPrice> stockPriceService;
+    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
     public double calculate(
             StockPrice stockPrice,
@@ -25,6 +27,26 @@ public class StopLossService {
             stopLoss = Math.min(stockPrice.getLow(), stockPrice.getPrevLow());
         }
 
-        return formulaService.floorToNearestTick(stopLoss, researchTechnical.getTickSize());
+        double stopLossHt = stopLoss;
+
+        StockPrice stockPriceHt =
+                stockPriceService.get(stockPrice.getStock(), stockPrice.getTimeframe().getHigher());
+        StockTechnicals stockTechnicalsHt =
+                stockTechnicalsService.get(
+                        stockPrice.getStock(), stockPrice.getTimeframe().getHigher());
+
+        if (stockPriceHt != null && stockTechnicalsHt != null) {
+            if (stockPriceHt.getClose() > stockTechnicalsHt.getEma5()) {
+                if (CandleStickUtils.isGreen(stockPriceHt)) {
+                    stopLossHt = stockPriceHt.getLow();
+                    if (CandleStickUtils.isPrevSessionRed(stockPriceHt)) {
+                        stopLossHt = Math.min(stockPriceHt.getLow(), stockPriceHt.getPrevLow());
+                    }
+                }
+            }
+        }
+
+        return formulaService.floorToNearestTick(
+                Math.min(stopLoss, stopLossHt), researchTechnical.getTickSize());
     }
 }

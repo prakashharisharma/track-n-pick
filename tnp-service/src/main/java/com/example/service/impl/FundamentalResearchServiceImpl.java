@@ -35,10 +35,10 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
         StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
         if (stockPrice.getClose() > rules.getPricegt()
                 && stockPrice.getClose() < rules.getPricelt()) {
-
+            log.info("Price in range {}", stock.getNseSymbol());
             return Boolean.TRUE;
         }
-
+        log.info("Price not in range {}", stock.getNseSymbol());
         return Boolean.FALSE;
     }
 
@@ -48,9 +48,10 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
         double marketCapInCr = this.marketCap(stock);
 
         if (marketCapInCr >= rules.getMcap()) {
+            log.info("mcap in range {}", stock.getNseSymbol());
             return true;
         }
-
+        log.info("mcap not in range {}", stock.getNseSymbol());
         return false;
     }
 
