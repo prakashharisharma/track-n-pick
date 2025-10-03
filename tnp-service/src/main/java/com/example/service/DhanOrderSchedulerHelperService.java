@@ -37,15 +37,14 @@ public class DhanOrderSchedulerHelperService {
             return false;
         if (rt.getResearchDate() == null) return false;
 
-        if (rt.getEntryStrategy() == BASIC) {
-            return true;
-        }
-
         Optional<MAEvaluationResult> evaluationResultOptional =
                 dynamicMovingAverageSupportResolverService.evaluateSingleInteractionSmart(
                         stockPrice.getTimeframe(), stockPrice, stockTechnicals, true);
 
-        if (evaluationResultOptional.isPresent() && evaluationResultOptional.get().isBreakdown()) {
+        if (evaluationResultOptional.isPresent()
+                && (evaluationResultOptional.get().isBreakdown()
+                        || evaluationResultOptional.get().isNearResistance())) {
+
             return false;
         }
 
@@ -61,15 +60,22 @@ public class DhanOrderSchedulerHelperService {
                         stockTechnicals,
                         true);
 
-        if (close > highestMovingAverageResult.getValue()) {
-            return false;
+        if (rt.getTimeframe() == Timeframe.DAILY) {
+            if (close > highestMovingAverageResult.getValue()) {
+                return false;
+            }
         }
-
         if (!isInvestment) {
             // Not investment: either close > ma5 OR entryPrice > ma5
             if (!(close >= ma5 || entryPrice <= ma5)) {
                 return false;
             }
+        }
+
+        StockPrice stockPriceDaily = stockPriceService.get(rt.getStock(), Timeframe.DAILY);
+
+        if (stockPriceDaily.getClose() < stockPrice.getLow() || stockPriceDaily.getClose() < ma5) {
+            return false;
         }
 
         return true;
@@ -84,22 +90,21 @@ public class DhanOrderSchedulerHelperService {
     private boolean validateVolumeAvg(
             ResearchTechnical rt, StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
-        if (rt.getEntryStrategy() == BASIC) {
-            return true;
-        }
-
         return stockTechnicals.getVolumeAvg20() > stockTechnicals.getPrevVolumeAvg20();
     }
 
     private void adjustPriceAndRisk(
             ResearchTechnical rt, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        stockPrice = stockPriceService.get(rt.getStock(), Timeframe.DAILY);
+
         Double originalEntry = rt.getEntryPrice();
         Double dayLow = stockPrice.getLow();
         Double close = stockPrice.getClose();
         Double open = stockPrice.getOpen();
         double newEntryPrice = originalEntry;
 
-        if (dayLow < originalEntry && rt.getTimeframe() == Timeframe.DAILY) {
+        // if (dayLow < originalEntry && rt.getTimeframe() == Timeframe.DAILY) {
+        if (dayLow < originalEntry) {
 
             newEntryPrice = dayLow;
 
@@ -124,10 +129,6 @@ public class DhanOrderSchedulerHelperService {
                                         || rt.getTimeframe() != Timeframe.DAILY)
                 .filter(
                         rt -> {
-                            if (rt.getEntryStrategy() == BASIC) {
-                                return true;
-                            }
-
                             StockPrice stockPrice =
                                     stockPriceService.get(rt.getStock(), rt.getTimeframe());
                             StockTechnicals stockTechnicals =
@@ -138,7 +139,8 @@ public class DhanOrderSchedulerHelperService {
                             if (!validateResearchDate(
                                     rt, sessionDate, triggerDays(rt.getTimeframe()))) return false;
 
-                            if (!validateVolumeAvg(rt, stockPrice, stockTechnicals)) return false;
+                            // if (!validateVolumeAvg(rt, stockPrice, stockTechnicals)) return
+                            // false;
 
                             adjustPriceAndRisk(rt, stockPrice, stockTechnicals);
 
@@ -167,6 +169,27 @@ public class DhanOrderSchedulerHelperService {
     public List<ResearchTechnical> getRecentBasicResearches(LocalDate sessionDate) {
         return filterAndProcessResearches(
                 researchTechnicalService.getRecentBasicBuyResearch(sessionDate),
+                sessionDate,
+                false);
+    }
+
+    public List<ResearchTechnical> getRecentSimpleResearches(LocalDate sessionDate) {
+        return filterAndProcessResearches(
+                researchTechnicalService.getRecentSimpleBuyResearch(sessionDate),
+                sessionDate,
+                false);
+    }
+
+    public List<ResearchTechnical> getRecentFlexiResearches(LocalDate sessionDate) {
+        return filterAndProcessResearches(
+                researchTechnicalService.getRecentFlexiBuyResearch(sessionDate),
+                sessionDate,
+                false);
+    }
+
+    public List<ResearchTechnical> getRecentPriceResearches(LocalDate sessionDate) {
+        return filterAndProcessResearches(
+                researchTechnicalService.getRecentPriceBuyResearch(sessionDate),
                 sessionDate,
                 false);
     }

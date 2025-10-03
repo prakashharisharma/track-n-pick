@@ -1,9 +1,10 @@
-package com.example.service;
+package com.example.service.strategy;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.*;
 import com.example.dto.common.OHLCV;
 import com.example.dto.common.TradeSetup;
+import com.example.service.*;
 import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.SignalEvaluatorHelperService;

@@ -105,6 +105,8 @@ public class DhanOrchestratorService {
 
         double fundLimit = this.getFundLimit(user);
 
+        System.out.println("holdingValue " + holdingValue);
+        System.out.println("fundLimit " + fundLimit);
         return holdingValue + fundLimit;
     }
 

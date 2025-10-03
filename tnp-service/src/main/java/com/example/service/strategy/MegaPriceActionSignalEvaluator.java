@@ -1,4 +1,4 @@
-package com.example.service;
+package com.example.service.strategy;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.ResearchTechnical;
@@ -6,6 +6,7 @@ import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.dto.common.TradeSetup;
+import com.example.service.*;
 import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.SignalEvaluatorHelperService;
@@ -67,7 +68,7 @@ public class MegaPriceActionSignalEvaluator implements TradeSignalEvaluator {
         if (subStrategyRef.isPresent()) {
             return TradeSetup.builder()
                     .active(Boolean.TRUE)
-                    .strategy(ResearchTechnical.Strategy.INVESTMENT)
+                    .strategy(ResearchTechnical.Strategy.MEGA)
                     .subStrategy(subStrategyRef.get())
                     .researchPrice(researchPrice)
                     .build();

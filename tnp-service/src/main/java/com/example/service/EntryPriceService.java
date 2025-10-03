@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class EntryPriceService {
 
     private final FormulaService formulaService;
+    private final CandleStickConfirmationService candleStickConfirmationService;
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
     private final DynamicMovingAverageSupportResolverService
             dynamicMovingAverageSupportResolverService;
@@ -24,6 +25,10 @@ public class EntryPriceService {
             StockTechnicals stockTechnicals,
             ResearchTechnical researchTechnical) {
 
+        boolean isCloseBelowEma5 =
+                stockPrice.getClose()
+                        < MovingAverageUtil.getMovingAverage5(
+                                stockTechnicals.getTimeframe(), stockTechnicals);
         double basePrice = calculateBasePrice(stockPrice, stockTechnicals);
 
         // Fetch higher timeframe technicals
@@ -31,12 +36,24 @@ public class EntryPriceService {
                 stockTechnicalsService.get(
                         stockTechnicals.getStock(), stockTechnicals.getTimeframe().getHigher());
 
-        // Apply boosts
         basePrice = applyCandleBoost(basePrice, stockPrice, researchTechnical);
+        // System.out.println("BASE " + basePrice);
+        // Apply boosts
+        if (candleStickConfirmationService.isUpperWickSizeConfirmed(
+                stockPrice.getTimeframe(), stockPrice, stockTechnicals)) {
+            if (!isCloseBelowEma5) {
+                basePrice = applyHtBoost(basePrice, htTechnicals);
+                // System.out.println("HTBOOST " + basePrice);
 
-        basePrice = applyHtBoost(basePrice, htTechnicals);
+            }
+            basePrice = applyVolumeBoost(basePrice, stockPrice, researchTechnical);
+            // System.out.println("VOL " + basePrice);
+        }
 
-        basePrice = applyVolumeBoost(basePrice, stockPrice, researchTechnical);
+        if (isCloseBelowEma5) {
+            basePrice = applyMaBoost(basePrice, stockTechnicals, stockPrice);
+            // System.out.println("CLOSEBELOW " + basePrice);
+        }
 
         if (researchTechnical.getTimeframe() != Timeframe.DAILY) {
             double maxAboveHigh = formulaService.applyPercentChange(stockPrice.getHigh(), 0.5);
@@ -54,8 +71,14 @@ public class EntryPriceService {
     private double calculateBasePrice(StockPrice stockPrice, StockTechnicals stockTechnicals) {
         double range = CandleStickUtils.range(stockPrice);
         double upperWickSize = CandleStickUtils.upperWickSize(stockPrice);
+        double ema5 = stockTechnicals.getEma5();
 
-        if (upperWickSize <= 0.2 * range) {
+        if (stockPrice.getClose() < ema5) {
+            double basePrice =
+                    (Math.min(stockPrice.getOpen(), stockPrice.getClose()) + stockPrice.getLow())
+                            / 2;
+            return formulaService.applyPercentChange(basePrice, 0.25);
+        } else if (upperWickSize <= 0.2 * range) {
             return stockPrice.getHigh();
         } else {
 
@@ -65,8 +88,6 @@ public class EntryPriceService {
                             stockPrice.getTimeframe(),
                             stockTechnicals,
                             true);
-
-            double ema5 = stockTechnicals.getEma5();
 
             double highestMA = highestMovingAverageResult.getValue();
 
@@ -105,6 +126,11 @@ public class EntryPriceService {
             return formulaService.applyPercentChange(price, 1.0);
         }
         return price;
+    }
+
+    private double applyMaBoost(
+            double price, StockTechnicals stockTechnicals, StockPrice stockPrice) {
+        return formulaService.applyPercentChange(price, -1 * 0.75);
     }
 
     private double applyVolumeBoost(

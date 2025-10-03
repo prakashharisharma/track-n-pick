@@ -119,47 +119,55 @@ public class DhanOrderExecutorService {
                                 .orElse(null);
 
                 double entryPrice = researchTechnical.getEntryPrice();
+
                 StockPrice stockPrice =
                         stockPriceService.get(stock, researchTechnical.getTimeframe());
 
-                if (CandleStickUtils.isGreen(stockPrice)) {
+                if (CandleStickUtils.isGreen(stockPrice) && researchTechnical.getScore() >= 8.5) {
 
-                    // Give boost .5 % if risk is less min risk
-                    if (researchTechnical.getRisk()
-                            < RiskUtil.minRisk(researchTechnical.getTimeframe())) {
-                        entryPrice = formulaService.applyPercentChange(entryPrice, 0.25);
-                    }
+                    StockPrice stockPriceDaily = stockPriceService.get(stock, Timeframe.DAILY);
 
-                    // Give boost .5 % if score > 8.5
-                    if (researchTechnical.getScore() >= 8.5) {
-
-                        entryPrice = formulaService.applyPercentChange(entryPrice, 0.25);
-                    }
-
-                    if (researchTechnical.getTimeframe() != Timeframe.DAILY) {
-                        double maxAboveClose =
-                                formulaService.applyPercentChange(stockPrice.getClose(), 2.0);
-
-                        entryPrice = Math.min(maxAboveClose, entryPrice);
-                    }
-
-                    if (researchTechnical.getTimeframe() == Timeframe.DAILY) {
-                        entryPrice = Math.min(stockPrice.getHigh(), entryPrice);
-                    }
-
-                    double avgRisk =
-                            (RiskUtil.minRisk(researchTechnical.getTimeframe())
-                                            + RiskUtil.maxRisk(researchTechnical.getTimeframe()))
-                                    / 2;
-
-                    if (researchTechnical.getRisk() <= avgRisk
-                            && researchTechnical.getScore() >= 8.5
-                            && researchTechnical.getVolumeScore() >= 0.75) {
-                        if (researchTechnical.getTimeframe() == Timeframe.DAILY) {
+                    if (CandleStickUtils.isGreen(stockPriceDaily)
+                            && (stockPriceDaily.getClose() > entryPrice
+                                    || researchTechnical.getResearchDate().isEqual(currentDate))) {
+                        // Give boost .5 % if risk is less min risk
+                        if (researchTechnical.getRisk()
+                                < RiskUtil.minRisk(researchTechnical.getTimeframe())) {
                             entryPrice = formulaService.applyPercentChange(entryPrice, 0.25);
                         }
+
+                        // Give boost .5 % if score > 8.5
+                        if (researchTechnical.getScore() >= 8.5) {
+
+                            entryPrice = formulaService.applyPercentChange(entryPrice, 0.25);
+                        }
+
                         if (researchTechnical.getTimeframe() != Timeframe.DAILY) {
-                            entryPrice = formulaService.applyPercentChange(entryPrice, 0.35);
+                            double maxAboveClose =
+                                    formulaService.applyPercentChange(stockPrice.getClose(), 2.0);
+
+                            entryPrice = Math.min(maxAboveClose, entryPrice);
+                        }
+
+                        if (researchTechnical.getTimeframe() == Timeframe.DAILY) {
+                            entryPrice = Math.min(stockPrice.getHigh(), entryPrice);
+                        }
+
+                        double avgRisk =
+                                (RiskUtil.minRisk(researchTechnical.getTimeframe())
+                                                + RiskUtil.maxRisk(
+                                                        researchTechnical.getTimeframe()))
+                                        / 2;
+
+                        if (researchTechnical.getRisk() <= avgRisk
+                                && researchTechnical.getScore() >= 8.5
+                                && researchTechnical.getVolumeScore() >= 0.75) {
+                            if (researchTechnical.getTimeframe() == Timeframe.DAILY) {
+                                entryPrice = formulaService.applyPercentChange(entryPrice, 0.25);
+                            }
+                            if (researchTechnical.getTimeframe() != Timeframe.DAILY) {
+                                entryPrice = formulaService.applyPercentChange(entryPrice, 0.35);
+                            }
                         }
                     }
 
@@ -173,7 +181,11 @@ public class DhanOrderExecutorService {
                                 + "="
                                 + researchTechnical.getEntryPrice()
                                 + "->"
-                                + entryPrice);
+                                + entryPrice
+                                + " "
+                                + limits.mimValuePerStock
+                                + ":"
+                                + limits.maxValuePerStock);
 
                 long positionSize = positionService.calculate(user, researchTechnical);
 
@@ -185,14 +197,14 @@ public class DhanOrderExecutorService {
                                 limits.originalFunds(),
                                 positionSize,
                                 entryPrice);
+
                 long finalQuantity = position.finalQuantity();
+
                 double valueToAdjust = 0.0;
                 if (finalQuantity > 0) {
-
                     if (existingHolding != null
                             && existingHolding.getAvgCostPrice() != null
                             && existingHolding.getTotalQty() != null) {
-
                         double existingHoldingValue =
                                 existingHolding.getTotalQty() * existingHolding.getAvgCostPrice();
 
@@ -219,6 +231,10 @@ public class DhanOrderExecutorService {
                         }
                     }
 
+                    if (finalQuantity <= 0) {
+                        continue;
+                    }
+
                     logOrderDetails(stock, positionSize, position, entryPrice);
 
                     double orderValue = finalQuantity * entryPrice;
@@ -238,8 +254,10 @@ public class DhanOrderExecutorService {
 
                         System.out.println(payload);
                     } else {
+
                         if (orderValue > LARGE_ORDER_THRESHOLD
                                 || finalQuantity > LARGE_QUANTITY_THRESHOLD) {
+
                             // Split order for large values or quantities
                             immediateQuantity = finalQuantity / 2;
                             delayedQuantity = finalQuantity - immediateQuantity;
@@ -326,30 +344,26 @@ public class DhanOrderExecutorService {
             return new PortfolioLimits(availableFunds, 0, 0, availableFunds);
         }
 
-        double ratio = totalCapital == 0 ? 0 : availableFunds / totalCapital;
+        // Fixed caps (1% – 4%)
+        final double MIN_CAP = 0.01; // 1%
+        final double MAX_CAP = 0.05; // 5%
 
-        final double MIN_CAP = totalCapital <= 5_00_000.0 ? 0.050 : 0.025;
-        final double MAX_CAP = totalCapital <= 5_00_000.0 ? 0.100 : 0.050;
-        final double EXPONENT = 2.0;
-
-        // 1. Base cap % depending on funds availability
-        double capPercent = MIN_CAP + (MAX_CAP - MIN_CAP) * Math.pow(1 - ratio, EXPONENT);
-
-        // 2. Adjust for stock count (stockCount: 1–10)
-        // Fewer stocks => higher multiplier, More stocks => lower multiplier
-        // Map stockCount = 1 → 1.6x, 10 → 0.8x
-        double stockCountAdjustment = Math.max(0.8, Math.min(1.6, 1.6 - 0.08 * stockCount));
-        capPercent *= stockCountAdjustment;
-
-        // 3. Cap the final value to max 15%
-        capPercent = Math.min(capPercent, MAX_CAP);
-
-        // 3. Calculate max and min per stock
-        double rawMaxPerStock = totalCapital * capPercent;
-        double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
-
+        // Raw fixed caps
+        double rawMaxPerStock = totalCapital * MAX_CAP;
         double rawMinPerStock = totalCapital * MIN_CAP;
+
+        // Round
+        double maxPerStock = Math.ceil(rawMaxPerStock / 100) * 100;
         double minPerStock = Math.floor(rawMinPerStock / 100) * 100;
+
+        // --- Key change ---
+        // If total required (stockCount * maxPerStock) fits in availableFunds, keep fixed max
+        // Else dynamically adjust the max per stock so it fits in availableFunds
+        if (stockCount * maxPerStock > availableFunds) {
+            maxPerStock = Math.floor((availableFunds / stockCount) / 100) * 100;
+            // Ensure not lower than minCap
+            maxPerStock = Math.max(maxPerStock, minPerStock);
+        }
 
         return new PortfolioLimits(availableFunds, maxPerStock, minPerStock, availableFunds);
     }
@@ -411,34 +425,58 @@ public class DhanOrderExecutorService {
             long positionSize,
             double entryPrice) {
 
+        // log.info("Calculating position size {}", availableFunds);
+
         double adjustedPositionValue = positionSize * entryPrice;
         long finalQuantity = 0;
         double finalValue = 0.0;
 
+        // Case 1: Requested position is affordable
         if (adjustedPositionValue <= availableFunds) {
+            // log.info("Adjusted position value {}", adjustedPositionValue);
+
             double cappedValue = Math.min(adjustedPositionValue, maxValuePerStock);
+            // log.info("Max per stock {}, capped value {}", maxValuePerStock, cappedValue);
+
             if (cappedValue >= minValuePerStock) {
-                finalValue = cappedValue;
-                finalQuantity = (long) Math.floor(finalValue / entryPrice);
-                finalValue = finalQuantity * entryPrice;
-                availableFunds -= finalValue;
+                long qty = (long) Math.floor(cappedValue / entryPrice);
+                double value = qty * entryPrice;
+
+                // ensure within [min, max]
+                if (value >= minValuePerStock && value <= maxValuePerStock) {
+                    finalQuantity = qty;
+                    finalValue = value;
+                    availableFunds -= finalValue;
+                }
             }
+
+            // Case 2: Only partial possible
         } else if (availableFunds > 0) {
             long partialQty = (long) Math.floor(availableFunds / entryPrice);
             double partialValue = partialQty * entryPrice;
+
             double cappedValue = Math.min(partialValue, maxValuePerStock);
+            // log.info("Partial capped value {}", cappedValue);
 
             if (cappedValue >= minValuePerStock) {
-                finalQuantity = (long) Math.floor(cappedValue / entryPrice);
-                finalValue = finalQuantity * entryPrice;
-                availableFunds -= finalValue;
+                long qty = (long) Math.floor(cappedValue / entryPrice);
+                double value = qty * entryPrice;
+
+                // ensure within [min, max]
+                if (value >= minValuePerStock && value <= maxValuePerStock) {
+                    finalQuantity = qty;
+                    finalValue = value;
+                    availableFunds -= finalValue;
+                }
             }
         }
+
+        // log.info("Final position -> qty: {}, value: {}", finalQuantity, finalValue);
 
         return new PositionDetails(
                 finalQuantity,
                 finalValue,
-                (long) (finalQuantity * 0.31), // 40% disclosed quantity
+                (long) Math.ceil(finalQuantity * 0.31), // 40% disclosed quantity
                 availableFunds);
     }
 

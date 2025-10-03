@@ -3,6 +3,7 @@ package com.example.service;
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
+import com.example.service.utils.SignalEvaluatorHelperService;
 import com.example.util.FormulaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TargetService {
 
+    private final SignalEvaluatorHelperService signalEvaluatorHelperService;
     private final FormulaService formulaService;
 
     private final StockPriceService<StockPrice> stockPriceService;
@@ -38,15 +40,24 @@ public class TargetService {
         double minRisk = RiskUtil.minRisk(stockPrice.getTimeframe()); // e.g., 6
         double maxRisk = RiskUtil.maxRisk(stockPrice.getTimeframe()); // e.g., 8
 
+        double ratio = 1.5;
+
         if (risk <= minRisk) {
-            return 3.0; // full R for low risk
+            ratio = 3.0; // full R for low risk
         } else if (risk >= maxRisk) {
-            return 2.0; // minimum R for max allowable risk
+            ratio = 2.0; // minimum R for max allowable risk
         } else {
             // Linear interpolation between 3.0 and 2.0
-            double ratio = 3.0 - ((risk - minRisk) / (maxRisk - minRisk)) * (3.0 - 2.0);
-            return ratio;
+            ratio = 3.0 - ((risk - minRisk) / (maxRisk - minRisk)) * (3.0 - 2.0);
         }
+
+        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.CANDLESTICK) {
+            if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, false)) {
+                ratio = 2.0;
+            }
+        }
+
+        return ratio;
     }
 
     public boolean isTargetValid(double entryPrice, double targetPrice) {

@@ -13,6 +13,9 @@ import com.example.service.*;
 import com.example.service.ResearchTechnicalService;
 import com.example.service.StockPriceService;
 import com.example.service.StockTechnicalsService;
+import com.example.service.strategy.BottomPriceActionSignalEvaluator;
+import com.example.service.strategy.InvestmentPriceActionSignalEvaluator;
+import com.example.service.strategy.TradeSignalEvaluator;
 import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
 import com.example.util.FormulaService;
@@ -62,6 +65,10 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     private TradeSignalEvaluator megaPriceActionSignalEvaluator;
 
     @Autowired
+    @Qualifier("priceActionService")
+    private TradeSignalEvaluator priceActionService;
+
+    @Autowired
     @Qualifier("dynamicPriceActionSignalEvaluator")
     private TradeSignalEvaluator dynamicPriceActionSignalEvaluator;
 
@@ -74,16 +81,16 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     private TradeSignalEvaluator simplePriceActionSignalEvaluator;
 
     @Autowired
-    @Qualifier("pivotPriceActionSignalEvaluator")
-    private TradeSignalEvaluator pivotPriceActionSignalEvaluator;
-
-    @Autowired
-    @Qualifier("rangePriceActionSignalEvaluator")
-    private RangePriceActionSignalEvaluator rangePriceActionSignalEvaluator;
+    @Qualifier("flexiPriceActionSignalEvaluator")
+    private TradeSignalEvaluator flexiPriceActionSignalEvaluator;
 
     @Autowired
     @Qualifier("investmentPriceActionSignalEvaluator")
     private InvestmentPriceActionSignalEvaluator investmentPriceActionSignalEvaluator;
+
+    @Autowired
+    @Qualifier("bottomPriceActionSignalEvaluator")
+    private BottomPriceActionSignalEvaluator bottomPriceActionSignalEvaluator;
 
     @Override
     public void executeFundamental(Stock stock) {
@@ -176,12 +183,17 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             LocalDate sessionDate) {
 
         log.info("{} Executing technical buy", stock.getNseSymbol());
-
+        /*
         if (fundamentalResearchService.isPriceInRange(stock)
                 && fundamentalResearchService.isMcapInRange(stock)
                 && volumeIndicatorService.isTradingValueSufficient(
-                        timeframe, stockPrice, stockTechnicals)) {
-            if (stock.getSeries().equalsIgnoreCase("EQ")) {
+                        timeframe, stockPrice, stockTechnicals)) {*/
+
+        if (fundamentalResearchService.isPriceInRange(stock)
+                && fundamentalResearchService.isMcapInRange(stock)) {
+
+            if (stock.getSeries().equalsIgnoreCase("EQ")
+                    || stock.getSeries().equalsIgnoreCase("BE")) {
                 log.info("{} Found EQ stock ", stock.getNseSymbol());
 
                 TradeSetup tradeSetup =
@@ -202,6 +214,17 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
 
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
+                            priceActionService.evaluateEntry(
+                                    timeframe, stock, stockPrice, stockTechnicals);
+                }
+                if (!tradeSetup.isActive()) {
+                    tradeSetup =
+                            flexiPriceActionSignalEvaluator.evaluateEntry(
+                                    timeframe, stock, stockPrice, stockTechnicals);
+                }
+
+                if (!tradeSetup.isActive()) {
+                    tradeSetup =
                             dynamicPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
@@ -212,12 +235,17 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
 
-                /*
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
                             investmentPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
-                }*/
+                }
+
+                if (!tradeSetup.isActive()) {
+                    tradeSetup =
+                            bottomPriceActionSignalEvaluator.evaluateEntry(
+                                    timeframe, stock, stockPrice, stockTechnicals);
+                }
 
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
@@ -323,7 +351,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                 return false;
             }
         }
-
+        /*
         if (MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals)
                 > MovingAverageUtil.getPrevMovingAverage200(timeframe, stockTechnicals)) {
             if (MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals)
@@ -338,9 +366,9 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                     }
                 }
             }
-        }
+        }*/
 
-        if (researchTechnical.getStopLoss() > stockPrice.getClose()
+        if (stockPrice.getClose() < researchTechnical.getStopLoss()
                 && stockPrice.getClose()
                         < Math.min(stockPrice.getPrevOpen(), stockPrice.getPrevClose())) {
             evaluationLogService.add(
@@ -351,9 +379,10 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                     "{} Stop loss triggered, stopLoss {}",
                     stock.getNseSymbol(),
                     researchTechnical.getStopLoss());
+            /*
             if (resistanceValidationService.isOutsideSupportZone(stockPrice)) {
                 return Boolean.TRUE;
-            }
+            }*/
         }
 
         return Boolean.FALSE;

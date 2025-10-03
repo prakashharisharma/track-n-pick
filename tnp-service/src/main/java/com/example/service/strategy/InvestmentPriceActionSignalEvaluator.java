@@ -1,4 +1,4 @@
-package com.example.service;
+package com.example.service.strategy;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
@@ -7,6 +7,7 @@ import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockPrice;
 import com.example.data.transactional.entities.StockTechnicals;
 import com.example.dto.common.TradeSetup;
+import com.example.service.*;
 import com.example.service.utils.*;
 import com.example.util.FormulaService;
 import java.util.Optional;
