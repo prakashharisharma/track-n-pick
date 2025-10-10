@@ -31,6 +31,12 @@ public class EntryPriceService {
                                 stockTechnicals.getTimeframe(), stockTechnicals);
         double basePrice = calculateBasePrice(stockPrice, stockTechnicals);
 
+        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.SIMPLE) {
+            basePrice = (stockPrice.getOpen() + stockPrice.getClose()) / 2;
+            basePrice = formulaService.applyPercentChange(basePrice, 0.99);
+            return formulaService.ceilToNearestTick(basePrice, researchTechnical.getTickSize());
+        }
+
         // Fetch higher timeframe technicals
         StockTechnicals htTechnicals =
                 stockTechnicalsService.get(
@@ -50,7 +56,8 @@ public class EntryPriceService {
             // System.out.println("VOL " + basePrice);
         }
 
-        if (isCloseBelowEma5) {
+        if (isCloseBelowEma5
+                && researchTechnical.getEntryStrategy() != ResearchTechnical.Strategy.SIMPLE) {
             basePrice = applyMaBoost(basePrice, stockTechnicals, stockPrice);
             // System.out.println("CLOSEBELOW " + basePrice);
         }
@@ -64,6 +71,7 @@ public class EntryPriceService {
         if (researchTechnical.getTimeframe() == Timeframe.DAILY) {
             basePrice = Math.min(basePrice, stockPrice.getHigh());
         }
+        basePrice = applyTimeframeBoost(basePrice, stockTechnicals, stockPrice);
 
         return formulaService.ceilToNearestTick(basePrice, researchTechnical.getTickSize());
     }
@@ -131,6 +139,14 @@ public class EntryPriceService {
     private double applyMaBoost(
             double price, StockTechnicals stockTechnicals, StockPrice stockPrice) {
         return formulaService.applyPercentChange(price, -1 * 0.75);
+    }
+
+    private double applyTimeframeBoost(
+            double price, StockTechnicals stockTechnicals, StockPrice stockPrice) {
+        if (stockPrice.getTimeframe() == Timeframe.MONTHLY) {
+            return formulaService.applyPercentChange(price, 1.99);
+        }
+        return price;
     }
 
     private double applyVolumeBoost(

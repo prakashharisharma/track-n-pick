@@ -17,21 +17,15 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("priceActionService")
 public class PriceActionServiceImpl implements TradeSignalEvaluator {
-    private final CandleStickConfirmationService candleStickHelperService;
     private final CandleStickConfirmationService candleStickConfirmationService;
-    private final AdxIndicatorService adxIndicatorService;
-
+    private final SignalEvaluatorHelperService signalEvaluatorHelperService;
+    private final CandleStickConfirmationService candleStickHelperService;
     private final ResistanceValidationService resistanceValidationService;
     private final VolumeIndicatorService volumeIndicatorService;
-
+    private final AdxIndicatorService adxIndicatorService;
     private final CandleStickService candleStickService;
-
-    private final StockPriceHelperService stockPriceHelperService;
     private final RelevanceService relevanceService;
-
     private final TrendService trendService;
-
-    private final SignalEvaluatorHelperService signalEvaluatorHelperService;
 
     @Override
     public TradeSetup evaluateEntry(
@@ -101,11 +95,9 @@ public class PriceActionServiceImpl implements TradeSignalEvaluator {
                         stockPrice.getTimeframe(), stockPrice, stockTechnicals, false);
 
         boolean checkHigherTimeFrameResistance =
-                (isBullishConfirmed)
-                                && (CandleStickUtils.isProGapUp(stockPrice)
-                                        || adxIndicatorService.isBullishIncr(stockTechnicals))
-                        ? false
-                        : true;
+                (!isBullishConfirmed)
+                        || (!CandleStickUtils.isProGapUp(stockPrice)
+                                && !adxIndicatorService.isBullishIncr(stockTechnicals));
 
         boolean isHigherTimeframeResistanceCheckPassed =
                 (checkHigherTimeFrameResistance

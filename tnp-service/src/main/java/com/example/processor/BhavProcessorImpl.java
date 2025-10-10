@@ -83,10 +83,6 @@ public class BhavProcessorImpl implements BhavProcessor {
 
             ThreadsUtil.delay();
 
-            this.processTechnicals();
-
-            ThreadsUtil.delay();
-
             this.processResearch();
 
             log.info("Completed Bhav Processor");
@@ -437,41 +433,32 @@ public class BhavProcessorImpl implements BhavProcessor {
                             log.error("{} Error processing technicals", stock.getNseSymbol(), e);
                         }
                     });
-
-            // Delay *between* submissions to prevent MongoDB bursts
-            try {
-
-                LocalDate today = miscUtil.currentDate();
-
-                if (calendarService.isLastTradingSessionOfMonth(today)) {
-                    ThreadsUtil.delay(1000);
-                } else if (calendarService.isLastTradingSessionOfWeek(today)) {
-                    ThreadsUtil.delay(800);
-                } else {
-                    ThreadsUtil.delay(600);
-                }
-                // ThreadsUtil.delay(600);
-
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
 
         executor.shutdown();
+        log.info("Completed technicals process");
     }
 
     private void processTechnicalsBatch(Stock stock) {
         LocalDate today = miscUtil.currentDate();
+        try {
+            if (calendarService.isLastTradingSessionOfMonth(today)) {
+                processOne(Timeframe.MONTHLY, stock, today);
+                ThreadsUtil.delay(1000);
+            }
 
-        if (calendarService.isLastTradingSessionOfMonth(today)) {
-            processOne(Timeframe.MONTHLY, stock, today);
+            if (calendarService.isLastTradingSessionOfWeek(today)) {
+                processOne(Timeframe.WEEKLY, stock, today);
+                ThreadsUtil.delay(800);
+            }
+
+            processOne(Timeframe.DAILY, stock, today);
+
+            // Delay *between* submissions to prevent MongoDB bursts
+
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-
-        if (calendarService.isLastTradingSessionOfWeek(today)) {
-            processOne(Timeframe.WEEKLY, stock, today);
-        }
-
-        processOne(Timeframe.DAILY, stock, today);
     }
 
     private void processOne(Timeframe timeframe, Stock stock, LocalDate date) {
@@ -480,8 +467,6 @@ public class BhavProcessorImpl implements BhavProcessor {
             StockTechnicals stockTechnicals = updateTechnicalsService.build(timeframe, stock, date);
 
             updateTechnicalsService.updateTechnicals(timeframe, stock, stockTechnicals);
-
-            // researchExecutorService.executeTechnical(timeframe, stock, date);
 
         } catch (Exception e) {
             log.error("{} Error processing {} batch", stock.getNseSymbol(), timeframe, e);
@@ -504,41 +489,30 @@ public class BhavProcessorImpl implements BhavProcessor {
                             log.error("{} Error processing technicals", stock.getNseSymbol(), e);
                         }
                     });
-
-            // Delay *between* submissions to prevent MongoDB bursts
-            try {
-
-                LocalDate today = miscUtil.currentDate();
-
-                if (calendarService.isLastTradingSessionOfMonth(today)) {
-                    ThreadsUtil.delay(500);
-                } else if (calendarService.isLastTradingSessionOfWeek(today)) {
-                    ThreadsUtil.delay(400);
-                } else {
-                    ThreadsUtil.delay(300);
-                }
-                // ThreadsUtil.delay(600);
-
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
 
         executor.shutdown();
+        log.info("Completed research process");
     }
 
     private void processResearchBatch(Stock stock) {
         LocalDate today = miscUtil.currentDate();
+        try {
+            if (calendarService.isLastTradingSessionOfMonth(today)) {
+                processResearchOne(Timeframe.MONTHLY, stock, today);
+                ThreadsUtil.delay(500);
+            }
 
-        if (calendarService.isLastTradingSessionOfMonth(today)) {
-            processResearchOne(Timeframe.MONTHLY, stock, today);
+            if (calendarService.isLastTradingSessionOfWeek(today)) {
+                processResearchOne(Timeframe.WEEKLY, stock, today);
+                ThreadsUtil.delay(400);
+            }
+
+            processResearchOne(Timeframe.DAILY, stock, today);
+
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-
-        if (calendarService.isLastTradingSessionOfWeek(today)) {
-            processResearchOne(Timeframe.WEEKLY, stock, today);
-        }
-
-        processResearchOne(Timeframe.DAILY, stock, today);
     }
 
     private void processResearchOne(Timeframe timeframe, Stock stock, LocalDate date) {

@@ -22,17 +22,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("megaPriceActionSignalEvaluator")
 public class MegaPriceActionSignalEvaluator implements TradeSignalEvaluator {
-
-    private final MonthlySupportResistanceService monthlySupportResistanceService;
-
-    private final WeeklySupportResistanceService weeklySupportResistanceService;
     private final DynamicMovingAverageSupportResolverService
             dynamicMovingAverageSupportResolverService;
     private final SignalEvaluatorHelperService signalEvaluatorHelperService;
-    private final EvaluationLogService evaluationLogService;
     private final RsiIndicatorService rsiIndicatorService;
-    private final StockPriceService<StockPrice> stockPriceService;
-
     private final MiscUtil miscUtil;
     private final CalendarService calendarService;
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
@@ -94,10 +87,6 @@ public class MegaPriceActionSignalEvaluator implements TradeSignalEvaluator {
             StockTechnicals stockTechnicals) {
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
-
-        if (timeframe == Timeframe.DAILY) {
-            return Optional.empty();
-        }
 
         if (timeframe != Timeframe.MONTHLY) {
             if (!signalEvaluatorHelperService.isHigherTimeframeConfirmed(stockTechnicals, false)) {
@@ -163,7 +152,6 @@ public class MegaPriceActionSignalEvaluator implements TradeSignalEvaluator {
                                 }
                             }
                         }
-                        // }
                     }
                 }
             }
@@ -209,9 +197,6 @@ public class MegaPriceActionSignalEvaluator implements TradeSignalEvaluator {
         boolean isNearestMovingAverageDiffValidForBreakdown =
                 signalEvaluatorHelperService.isNearestMovingAverageDiffValidForBreakdown(
                         timeframe, stockTechnicals, evaluationResult, false);
-        boolean isAllMAsDecreasing = MovingAverageUtil.isAllMAsDecreasing(stockTechnicals);
-        boolean isMaAlignBearish =
-                MovingAverageUtil.isAllMaAlignedBearish(timeframe, stockTechnicals);
 
         if (isLowestAndHighestMovingAverageDiffValid
                 && isNearestMovingAverageDiffValidForBreakdown) {

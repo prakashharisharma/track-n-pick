@@ -44,7 +44,6 @@ public class DhanOrderSchedulerHelperService {
         if (evaluationResultOptional.isPresent()
                 && (evaluationResultOptional.get().isBreakdown()
                         || evaluationResultOptional.get().isNearResistance())) {
-
             return false;
         }
 
@@ -136,8 +135,8 @@ public class DhanOrderSchedulerHelperService {
 
                             if (!validateInitialResearch(
                                     rt, stockPrice, stockTechnicals, isInvestment)) return false;
-                            if (!validateResearchDate(
-                                    rt, sessionDate, triggerDays(rt.getTimeframe()))) return false;
+                            if (!validateResearchDate(rt, sessionDate, triggerDays(rt)))
+                                return false;
 
                             // if (!validateVolumeAvg(rt, stockPrice, stockTechnicals)) return
                             // false;
@@ -153,8 +152,9 @@ public class DhanOrderSchedulerHelperService {
                 .collect(Collectors.toList());
     }
 
-    private int triggerDays(Timeframe timeframe) {
+    private int triggerDays(ResearchTechnical researchTechnical) {
 
+        Timeframe timeframe = researchTechnical.getTimeframe();
         if (timeframe == Timeframe.WEEKLY) {
             return 7 * 2;
         }
@@ -162,8 +162,7 @@ public class DhanOrderSchedulerHelperService {
         if (timeframe == Timeframe.MONTHLY) {
             return 30 * 2;
         }
-
-        return 1 * 3;
+        return researchTechnical.getEntryStrategy() == SIMPLE ? 1 * 4 : 1 * 2;
     }
 
     public List<ResearchTechnical> getRecentBasicResearches(LocalDate sessionDate) {

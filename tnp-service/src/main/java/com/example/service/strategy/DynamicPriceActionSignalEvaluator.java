@@ -127,7 +127,9 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         if (timeframe == Timeframe.DAILY
                 && evaluationResult.getLength() == MovingAverageLength.MEDIUM) {
-            return Optional.empty();
+            if (!CandleStickUtils.isPrevSessionRed(stockPrice)) {
+                return Optional.empty();
+            }
         }
 
         if (timeframe == Timeframe.DAILY
@@ -270,6 +272,12 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
         }
 
         if (!CandleStickUtils.isLowerLow(stockPrice)) {
+            return Optional.empty();
+        }
+
+        long incrCount = MovingAverageUtil.increasingMaCount(stockTechnicals);
+
+        if (timeframe == Timeframe.DAILY && incrCount >= 4) {
             return Optional.empty();
         }
 

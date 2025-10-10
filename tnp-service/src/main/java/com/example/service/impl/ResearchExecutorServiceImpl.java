@@ -217,11 +217,12 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                             priceActionService.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
                 }
+                /*
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
                             flexiPriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
-                }
+                }*/
 
                 if (!tradeSetup.isActive()) {
                     tradeSetup =
@@ -351,7 +352,13 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                 return false;
             }
         }
-        /*
+
+        long incrCount = MovingAverageUtil.increasingMaCount(stockTechnicals);
+
+        if (incrCount >= 4) {
+            return false;
+        }
+
         if (MovingAverageUtil.getMovingAverage200(timeframe, stockTechnicals)
                 > MovingAverageUtil.getPrevMovingAverage200(timeframe, stockTechnicals)) {
             if (MovingAverageUtil.getMovingAverage100(timeframe, stockTechnicals)
@@ -366,7 +373,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                     }
                 }
             }
-        }*/
+        }
 
         if (stockPrice.getClose() < researchTechnical.getStopLoss()
                 && stockPrice.getClose()

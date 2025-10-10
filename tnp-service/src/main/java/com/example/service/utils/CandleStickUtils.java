@@ -155,6 +155,10 @@ public class CandleStickUtils {
         return stockPrice != null && stockPrice.getPrev2Close() > stockPrice.getPrev2Open();
     }
 
+    public static boolean isPrev3SessionGreen(StockPrice stockPrice) {
+        return stockPrice != null && stockPrice.getPrev3Close() > stockPrice.getPrev3Open();
+    }
+
     public static boolean isRed(StockPrice stockPrice) {
         return stockPrice != null && stockPrice.getClose() < stockPrice.getOpen();
     }
