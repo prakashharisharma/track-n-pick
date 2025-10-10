@@ -38,13 +38,12 @@ public class BottomPriceActionSignalEvaluator implements TradeSignalEvaluator {
 
         Optional<MAEvaluationResult> evaluationResultOptional =
                 dynamicMovingAverageSupportResolverService.evaluateSingleInteractionSmart(
-                        timeframe, stockPrice, stockTechnicals, false);
+                        timeframe, stockPrice, stockTechnicals, true);
 
         if (evaluationResultOptional.isPresent()) {
             MAEvaluationResult evaluationResult = evaluationResultOptional.get();
             // Breakout EMA5
-            if (evaluationResult.isBreakout()
-                    && evaluationResult.getLength() == MovingAverageLength.HIGHEST) {
+            if (evaluationResult.isBreakout()) {
                 Optional<ResearchTechnical.SubStrategy> subStrategyRef = Optional.empty();
                 evaluationLogService.add(
                         stockPrice,
@@ -111,7 +110,8 @@ public class BottomPriceActionSignalEvaluator implements TradeSignalEvaluator {
                                 stockPrice.getTimeframe(), stockPrice, stockTechnicals);
 
                 if (isStrongBody || isStrongRange) {
-                    if (this.isVolumeSurge(stockTechnicals)) {
+                    int decreasingMACount = MovingAverageUtil.decreasingMaCount(stockTechnicals);
+                    if (this.isVolumeSurge(stockTechnicals) && decreasingMACount >= 3) {
                         System.out.println("Found Bottom " + stock.getNseSymbol());
                         return SubStrategyHelper.resolveByName(
                                 evaluationResult.getLength().name() + "_breakout");
@@ -161,6 +161,12 @@ public class BottomPriceActionSignalEvaluator implements TradeSignalEvaluator {
         } else if (volume >= avgVolume) {
             if (volume >= 3 * prevVolume) {
                 return true;
+            }
+        } else if (avgVolume > prevAvgVolume) {
+            if (prevVolume > prevAvgVolume) {
+                if (prevVolume >= volume * 1.5) {
+                    return true;
+                }
             }
         }
 

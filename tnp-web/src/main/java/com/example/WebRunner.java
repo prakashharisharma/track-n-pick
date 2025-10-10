@@ -200,9 +200,9 @@ public class WebRunner implements CommandLineRunner {
         log.info("Application started....");
 
         // bhavProcessor.processAndResearchTechnicals();
-        bhavProcessor.processResearch();
-        //  this.allocatePositions();
-        // this.findMonthlyBreakout();
+        // bhavProcessor.processResearch();
+        this.allocatePositions();
+        //   this.findMonthlyBreakout();
         /*
          int[] digits = totpService.generateToken("CQL4D7FZTBCH2JA7VITTCPHVG3C4YEJR");
 
@@ -863,6 +863,8 @@ public class WebRunner implements CommandLineRunner {
 
     private void findMonthlyBreakout() {
         List<Stock> stocks = stockService.getActiveStocks();
+        List<Stock> result = new ArrayList<>();
+        List<Stock> weeklyResult = new ArrayList<>();
         // List<Stock> stocks = new ArrayList<>();
 
         // Stock stock1 = stockService.getStockByNseSymbol("BANCOINDIA");
@@ -871,8 +873,8 @@ public class WebRunner implements CommandLineRunner {
         int counter = 0;
         for (Stock stock : stocks) {
 
-            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.WEEKLY);
-            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.WEEKLY);
+            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
 
             // StockPrice stockPriceHT = stockPriceService.get(stock, Timeframe.DAILY.getHigher());
             // StockTechnicals stockTechnicalsHT = stockTechnicalsService.get(stock,
@@ -908,16 +910,19 @@ public class WebRunner implements CommandLineRunner {
                     }
                 }*/
 
-            // TradeSetup tradeSetup =
-            // simplePriceActionSignalEvaluator.evaluateEntry(stockPrice.getTimeframe(), stock,
-            // stockPrice, stockTechnicals);
+            // stockPrice = stockPriceService.buildPrevSessionStockPrice(stockPrice);
+            // stockTechnicals =
+            // stockTechnicalsService.buildPrevSessionStockTechnicals(stockTechnicals);
+            TradeSetup tradeSetup =
+                    simplePriceActionSignalEvaluator.evaluateEntry(
+                            stockPrice.getTimeframe(), stock, stockPrice, stockTechnicals);
 
             if (stockPrice != null && stockTechnicals != null) {
-
+                /*
                 TradeSetup tradeSetup =
                         bottomPriceActionSignalEvaluator.evaluateEntry(
                                 stockPrice.getTimeframe(), stock, stockPrice, stockTechnicals);
-                /*
+
                 TradeSetup tradeSetup =
                         priceActionService.evaluateEntry(
                                 stockPrice.getTimeframe(), stock, stockPrice, stockTechnicals);
@@ -932,12 +937,43 @@ public class WebRunner implements CommandLineRunner {
 
                 if (tradeSetup.isActive()) {
                     ++counter;
+                    if (tradeSetup.getSubStrategy()
+                            == ResearchTechnical.SubStrategy.MONTHLY_BREAKOUT) {
+                        result.add(stock);
+                    }
+                    if (tradeSetup.getSubStrategy()
+                            == ResearchTechnical.SubStrategy.WEEKLY_BREAKOUT) {
+                        weeklyResult.add(stock);
+                    }
                 }
             } else {
                 System.out.println("data not found " + stock.getNseSymbol());
             }
         }
         System.out.println("counter " + counter);
+        for (Stock stock : result) {
+            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+            StockPrice stockPriceHt = stockPriceService.get(stock, Timeframe.MONTHLY);
+            double per =
+                    formulaService.calculateChangePercentage(
+                            stockPrice.getPrev3Close(), stockPrice.getClose());
+            System.out.println(
+                    "Found: "
+                            + stock.getNseSymbol()
+                            + " with price: "
+                            + stockPrice.getPrev3Close()
+                            + " >= "
+                            + stockPriceHt.getClose()
+                            + " : "
+                            + stockPrice.getClose()
+                            + " : "
+                            + per
+                            + "%");
+        }
+        System.out.println("counter " + counter);
+        for (Stock stock : weeklyResult) {
+            System.out.println("FoundWeekly: " + stock.getNseSymbol());
+        }
     }
 
     private void allocatePositions() {

@@ -123,7 +123,10 @@ public class DhanOrderExecutorService {
                 StockPrice stockPrice =
                         stockPriceService.get(stock, researchTechnical.getTimeframe());
 
-                if (CandleStickUtils.isGreen(stockPrice) && researchTechnical.getScore() >= 8.5) {
+                if (CandleStickUtils.isGreen(stockPrice)
+                        && researchTechnical.getScore() >= 8.5
+                        && researchTechnical.getEntryStrategy()
+                                != ResearchTechnical.Strategy.SIMPLE) {
 
                     StockPrice stockPriceDaily = stockPriceService.get(stock, Timeframe.DAILY);
 

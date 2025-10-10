@@ -154,7 +154,8 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                                     stockPrice.getTimeframe(), stockPrice, stockTechnicals);
                     if (isStrongBody || isStrongRange) {
                         if (this.isVolumeSurge(stockTechnicals)) {
-                            return SubStrategyHelper.resolveByName("breakout");
+                            return SubStrategyHelper.resolveByName(
+                                    evaluationResult.getLength().name() + "_breakout");
                         }
                     }
                 }
@@ -181,6 +182,10 @@ public class BasicPriceActionSignalEvaluator implements TradeSignalEvaluator {
                     } else if (prevVolume > prevAvgVolume) {
                         return true;
                     }
+                }
+            } else if (prevVolume > prevAvgVolume) {
+                if (prevVolume >= volume * 1.5) {
+                    return true;
                 }
             }
         }

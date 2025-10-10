@@ -10,7 +10,6 @@ import com.example.service.utils.MovingAverageUtil;
 import com.example.service.utils.SignalEvaluatorHelperService;
 import com.example.service.utils.SubStrategyHelper;
 import com.example.util.MiscUtil;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -22,19 +21,13 @@ import org.springframework.stereotype.Service;
 @Service("simplePriceActionSignalEvaluator")
 public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
 
+    private final DynamicMovingAverageSupportResolverService
+            dynamicMovingAverageSupportResolverService;
     private final MonthlySupportResistanceService monthlySupportResistanceService;
-    private final WeeklySupportResistanceService weeklySupportResistanceService;
-    private final SignalEvaluatorHelperService signalEvaluatorHelperService;
-    private final RsiIndicatorService rsiIndicatorService;
-    private final StockPriceService<StockPrice> stockPriceService;
     private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
-
-    private final CandleStickConfirmationService candleStickConfirmationService;
-
-    private final AdxIndicatorService adxIndicatorService;
-
-    private final ResistanceValidationService resistanceValidationService;
-
+    private final SignalEvaluatorHelperService signalEvaluatorHelperService;
+    private final StockPriceService<StockPrice> stockPriceService;
+    private final RsiIndicatorService rsiIndicatorService;
     private final CalendarService calendarService;
     private final MiscUtil miscUtil;
 
@@ -50,16 +43,17 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                 stockTechnicalsService.get(stock, Timeframe.MONTHLY);
 
         double researchPrice = 0.0;
+
         Optional<ResearchTechnical.SubStrategy> subStrategyRef = Optional.empty();
+
         if (monthlyStockPrice != null && monthlyStockTechnicals != null) {
 
             LocalDate sessionDate = stockPrice.getSessionDate();
-            LocalDate now = LocalDate.now();
 
             LocalDate firstOfMonth =
                     calendarService.nextTradingDate(miscUtil.previousMonthLastDay());
 
-            LocalDate fifteenthOfMonth = firstOfMonth.plusDays(7);
+            LocalDate fifteenthOfMonth = firstOfMonth.plusDays(3);
 
             if (sessionDate != null
                     && (!sessionDate.isBefore(firstOfMonth)
@@ -74,33 +68,6 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                                 stockTechnicals,
                                 monthlyStockPrice,
                                 monthlyStockTechnicals);
-            }
-
-            if (subStrategyRef.isEmpty()) {
-                StockPrice weeklyStockPrice = stockPriceService.get(stock, Timeframe.WEEKLY);
-                StockTechnicals weeklyStockTechnicals =
-                        stockTechnicalsService.get(stock, Timeframe.WEEKLY);
-
-                LocalDate firstDayOfWeek =
-                        calendarService.nextTradingDate(miscUtil.previousWeekLastDay());
-                LocalDate secondDayOfWeek = firstDayOfWeek.plusDays(1);
-
-                if (sessionDate != null
-                        && (!sessionDate.isBefore(firstDayOfWeek)
-                                && !sessionDate.isAfter(secondDayOfWeek))) {
-                    if (signalEvaluatorHelperService.isHigherTimeframeConfirmed(
-                            weeklyStockTechnicals, false)) {
-                        subStrategyRef =
-                                confirmBreakout(
-                                        timeframe,
-                                        Timeframe.WEEKLY,
-                                        stock,
-                                        stockPrice,
-                                        stockTechnicals,
-                                        weeklyStockPrice,
-                                        weeklyStockTechnicals);
-                    }
-                }
             }
         }
 
@@ -141,38 +108,35 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
             return Optional.empty();
         }
 
-        boolean isBullishConfirmed =
-                candleStickConfirmationService.isBullishConfirmed(
-                        stockPrice.getTimeframe(), stockPrice, stockTechnicals, false);
-
-        boolean checkHigherTimeFrameResistance =
-                !isBullishConfirmed
-                        || (!CandleStickUtils.isProGapUp(stockPrice)
-                                && !adxIndicatorService.isBullishIncr(stockTechnicals));
-
-        boolean isHigherTimeframeResistanceCheckPassed =
-                (checkHigherTimeFrameResistance
-                        ? resistanceValidationService.isOutsideResistanceZone(stockPrice)
-                        : true);
-
         // Monthly Align Bullish
         if (MovingAverageUtil.isAllMaAlignedBullish(
                 higherTimeframeStockTechnicals.getTimeframe(), higherTimeframeStockTechnicals)) {
 
+            boolean isLowRejected =
+                    higherTimeframeStockPrice.getLow() < higherTimeframeStockTechnicals.getEma5();
+
+            Optional<MAEvaluationResult> evaluationResultOptional =
+                    dynamicMovingAverageSupportResolverService.evaluateSingleInteractionSmart(
+                            timeframe, stockPrice, stockTechnicals, false);
+
+            boolean isNearSupport =
+                    evaluationResultOptional.isPresent()
+                            && (evaluationResultOptional.get().isNearSupport());
+
             // Monthly closed above ema5
             if (higherTimeframeStockPrice.getClose()
-                    > MovingAverageUtil.getMovingAverage5(
-                            higherTimeframeStockTechnicals.getTimeframe(),
-                            higherTimeframeStockTechnicals)) {
-                boolean isLowRejected =
-                        higherTimeframeStockPrice.getLow()
-                                < higherTimeframeStockTechnicals.getEma5();
+                            > MovingAverageUtil.getMovingAverage5(
+                                    higherTimeframeStockTechnicals.getTimeframe(),
+                                    higherTimeframeStockTechnicals)
+                    || isLowRejected
+                    || isNearSupport) {
 
                 // Monthly REd and prev Green
                 if (CandleStickUtils.isRed(higherTimeframeStockPrice)
                         && (CandleStickUtils.isPrevSessionGreen(higherTimeframeStockPrice)
                                 || CandleStickUtils.isPrev2SessionGreen(higherTimeframeStockPrice)
-                                || isLowRejected)) {
+                                || CandleStickUtils.isPrev3SessionGreen(higherTimeframeStockPrice)
+                                || isNearSupport)) {
 
                     if (!(CandleStickUtils.isRed(higherTimeframeStockPrice)
                             && CandleStickUtils.isPrevSessionGreen(higherTimeframeStockPrice)
@@ -182,77 +146,122 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
                         // monthly HL or low rejected
                         if (CandleStickUtils.isHigherLow(higherTimeframeStockPrice)
                                 || isLowRejected) {
-
+                            //  System.out.println("STEP5: " +stock.getNseSymbol());
+                            /*
                             if (!CandleStickUtils.isUpperWickDominant(higherTimeframeStockPrice)
                                     && !CandleStickUtils.isStrongUpperWick(
-                                            higherTimeframeStockPrice)) {
-
+                                            higherTimeframeStockPrice)) {*/
+                            if (!CandleStickUtils.isUpperWickDominant(higherTimeframeStockPrice)) {
                                 StockPrice prevSessionStockPrice =
                                         stockPriceService.buildPrevSessionStockPrice(
                                                 higherTimeframeStockPrice);
+                                if (higherTimeframeStockTechnicals.getEma5()
+                                        > higherTimeframeStockTechnicals.getEma20()) {
+                                    if (!CandleStickUtils.isUpperWickDominant(
+                                            prevSessionStockPrice)) {
+                                        if (MovingAverageUtil.increasingMaCount(
+                                                        higherTimeframeStockTechnicals)
+                                                >= 2) {
 
-                                if (!CandleStickUtils.isUpperWickDominant(prevSessionStockPrice)) {
-                                    if (MovingAverageUtil.isAllMAsIncreasing(
-                                            higherTimeframeStockTechnicals)) {
-
-                                        LocalDate firstOfMonth = LocalDate.now().withDayOfMonth(1);
-                                        OHLCV ohlcv =
-                                                monthlySupportResistanceService
-                                                        .supportAndResistance(
-                                                                stock.getNseSymbol(),
-                                                                firstOfMonth,
-                                                                LocalDate.now());
-
-                                        if (higherTimeframe == Timeframe.WEEKLY) {
-                                            LocalDate firstDayOfWeek =
-                                                    LocalDate.now().with(DayOfWeek.MONDAY);
-                                            ohlcv =
-                                                    weeklySupportResistanceService
+                                            LocalDate firstOfMonth =
+                                                    LocalDate.now().withDayOfMonth(1);
+                                            OHLCV ohlcv =
+                                                    monthlySupportResistanceService
                                                             .supportAndResistance(
                                                                     stock.getNseSymbol(),
-                                                                    firstDayOfWeek,
+                                                                    firstOfMonth,
                                                                     LocalDate.now());
-                                        }
 
-                                        // Monthly close >= open or Monthly close >= low
-                                        if (higherTimeframeStockPrice.getClose() >= ohlcv.getOpen()
-                                                || higherTimeframeStockPrice.getClose()
-                                                        >= ohlcv.getLow()) {
+                                            double htClose = higherTimeframeStockPrice.getClose();
+                                            double htLow = higherTimeframeStockPrice.getLow();
+                                            double open = ohlcv.getOpen();
+                                            double low = ohlcv.getLow();
 
-                                            // Is Daily MA align Bullish
-                                            if (MovingAverageUtil.isAllMaAlignedBullish(
-                                                    stockTechnicals.getTimeframe(),
-                                                    stockTechnicals)) {
-                                                // Daily close > monthly close
-                                                if (stockPrice.getClose()
-                                                        > higherTimeframeStockPrice.getClose()) {
+                                            // Monthly close >= open or Monthly close >= low
 
-                                                    // Prev close <= monthly close
-                                                    if (stockPrice.getPrevClose()
-                                                            <= higherTimeframeStockPrice
+                                            boolean interactsWithHigherTimeframe =
+                                                    htClose >= open
+                                                            || htClose >= low
+                                                            || (open >= htClose && low >= htLow)
+                                                            || (open >= htClose && low <= htClose);
+
+                                            if (interactsWithHigherTimeframe) {
+                                                // Is Daily MA align Bullish
+                                                if (MovingAverageUtil.isAllMaAlignedBullish(
+                                                                stockTechnicals.getTimeframe(),
+                                                                stockTechnicals)
+                                                        || (MovingAverageUtil.isAllMaAlignedBearish(
+                                                                stockTechnicals.getTimeframe(),
+                                                                stockTechnicals))) {
+                                                    // Daily close > monthly close
+                                                    if (stockPrice.getClose()
+                                                            > higherTimeframeStockPrice
                                                                     .getClose()) {
-                                                        if (CandleStickUtils.isGreen(stockPrice)
-                                                                && isHigherTimeframeResistanceCheckPassed) {
-                                                            System.out.println(
-                                                                    stock.getNseSymbol()
-                                                                            + " Found with stop"
-                                                                            + " loss "
-                                                                            + stockPrice.getLow());
-                                                            System.out.print(
-                                                                    higherTimeframe
-                                                                            + " open "
-                                                                            + ohlcv.getOpen()
-                                                                            + " low "
-                                                                            + ohlcv.getLow());
-                                                            if (higherTimeframe
-                                                                    == Timeframe.WEEKLY) {
-                                                                return SubStrategyHelper
-                                                                        .resolveByName(
-                                                                                "weekly_breakout");
-                                                            }
 
-                                                            return SubStrategyHelper.resolveByName(
-                                                                    "monthly_breakout");
+                                                        // Prev close <= monthly close
+                                                        if (stockPrice.getPrevClose()
+                                                                <= higherTimeframeStockPrice
+                                                                        .getClose()) {
+                                                            if (CandleStickUtils.isGreen(
+                                                                    stockPrice)) {
+                                                                if (!CandleStickUtils
+                                                                        .isUpperWickDominant(
+                                                                                stockPrice)) {
+
+                                                                    if ((stockPrice.getClose()
+                                                                                    > MovingAverageUtil
+                                                                                            .getMovingAverage200(
+                                                                                                    timeframe,
+                                                                                                    stockTechnicals))
+                                                                            || (CandleStickUtils
+                                                                                            .isHigherHigh(
+                                                                                                    stockPrice)
+                                                                                    && (this
+                                                                                            .isVolumeSurge(
+                                                                                                    stockTechnicals)))) {
+
+                                                                        /*
+                                                                        boolean isStrongBody =
+                                                                                CandleStickUtils.isStrongBody(
+                                                                                        stockPrice
+                                                                                                .getTimeframe(),
+                                                                                        stockPrice,
+                                                                                        stockTechnicals);
+
+                                                                        boolean isStrongRange =
+                                                                                CandleStickUtils.isStrongRange(
+                                                                                        stockPrice
+                                                                                                .getTimeframe(),
+                                                                                        stockPrice,
+                                                                                        stockTechnicals);
+                                                                         */
+                                                                        // if (isStrongBody ||
+                                                                        // isStrongRange) {
+
+                                                                        System.out.println(
+                                                                                stock.getNseSymbol()
+                                                                                        + " Found"
+                                                                                        + " with"
+                                                                                        + " stop"
+                                                                                        + " loss "
+                                                                                        + stockPrice
+                                                                                                .getLow());
+                                                                        System.out.print(
+                                                                                higherTimeframe
+                                                                                        + " open "
+                                                                                        + ohlcv
+                                                                                                .getOpen()
+                                                                                        + " low "
+                                                                                        + ohlcv
+                                                                                                .getLow());
+
+                                                                        return SubStrategyHelper
+                                                                                .resolveByName(
+                                                                                        "monthly_breakout");
+                                                                        // }
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -268,6 +277,28 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
         }
 
         return Optional.empty();
+    }
+
+    private boolean isVolumeSurge(StockTechnicals stockTechnicals) {
+
+        long avg = stockTechnicals.getVolumeAvg20();
+        long prevAvg = stockTechnicals.getPrevVolumeAvg20();
+        long volume = stockTechnicals.getVolume();
+        long prevVolume = stockTechnicals.getPrevVolume();
+
+        if (avg > prevAvg) {
+            if (volume > avg) {
+                return true;
+            }
+        }
+
+        if (prevVolume > volume * 2) {
+            if (prevVolume > prevAvg) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private Optional<ResearchTechnical.SubStrategy> confirmBreakdown(
@@ -307,9 +338,6 @@ public class SimplePriceActionSignalEvaluator implements TradeSignalEvaluator {
         boolean isNearestMovingAverageDiffValidForBreakdown =
                 signalEvaluatorHelperService.isNearestMovingAverageDiffValidForBreakdown(
                         timeframe, stockTechnicals, evaluationResult, false);
-        boolean isAllMAsDecreasing = MovingAverageUtil.isAllMAsDecreasing(stockTechnicals);
-        boolean isMaAlignBearish =
-                MovingAverageUtil.isAllMaAlignedBearish(timeframe, stockTechnicals);
 
         if (isLowestAndHighestMovingAverageDiffValid
                 && isNearestMovingAverageDiffValidForBreakdown) {

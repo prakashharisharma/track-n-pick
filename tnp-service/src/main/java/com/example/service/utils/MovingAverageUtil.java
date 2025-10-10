@@ -237,7 +237,9 @@ public class MovingAverageUtil {
         double ma200 = getMovingAverage200(timeframe, stockTechnicals);
 
         if (ma200 > 0) {
-            return (ma20 > ma50 && ma50 > ma200) || (ma20 > ma50 && ma50 > ma100);
+            return (ma20 > ma50 && ma50 > ma200)
+                    || (ma20 > ma50 && ma50 > ma100)
+                    || (ma50 > ma100 && ma100 > ma200);
         } else if (ma100 > 0) {
             return (ma20 > ma50 && ma50 > ma100) || (ma20 > ma50);
         } else if (ma50 > 0) {

@@ -52,16 +52,15 @@ public class ResearchInsightService {
             SentimentColor valuationColor = stockOverviewResponse.getData().getValuationColor();
             SentimentColor technicalColor = stockOverviewResponse.getData().getTechnicalColor();
 
-            if (strategy == ResearchTechnical.Strategy.INVESTMENT
-                    && (qualityColor == null || qualityColor == SentimentColor.POSITIVE)
-                    && valuationColor == SentimentColor.POSITIVE) {
+            if ((qualityColor != null && qualityColor == SentimentColor.POSITIVE)
+                    || valuationColor != null && valuationColor == SentimentColor.POSITIVE
+                    || technicalColor != null && technicalColor == SentimentColor.POSITIVE) {
                 return true;
             }
 
-            if (strategy == ResearchTechnical.Strategy.CANDLESTICK
-                    && ((stockOverviewResponse.getData().getValuationValue() >= 50)
-                            || (stockOverviewResponse.getData().getQualityValue() >= 50)
-                            || (stockOverviewResponse.getData().getTechnicalValue() >= 50))) {
+            if ((stockOverviewResponse.getData().getValuationValue() >= 50)
+                    || (stockOverviewResponse.getData().getQualityValue() >= 50)
+                    || (stockOverviewResponse.getData().getTechnicalValue() >= 50)) {
                 return true;
             }
 

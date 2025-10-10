@@ -3,7 +3,6 @@ package com.example.worker.scheduler;
 import com.example.data.common.type.Timeframe;
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockTechnicals;
 import com.example.data.transactional.entities.User;
 import com.example.data.transactional.entities.type.dhan.TransactionType;
 import com.example.external.dhan.model.Trade;
@@ -40,14 +39,10 @@ public class DhanTradeScheduler {
     private final DhanOrchestratorService dhanOrchestratorService;
     private final DhanTradeService dhanTradeService;
     private final StockService stockService;
-
-    private final StockTechnicalsService<StockTechnicals> stockTechnicalsService;
     private final CalendarService calendarService;
     private final MiscUtil miscUtil;
 
     private final FormulaService formulaService;
-
-    private final MacdIndicatorService macdIndicatorService;
 
     private final ResearchTechnicalService<ResearchTechnical> researchTechnicalService;
 
@@ -201,13 +196,15 @@ public class DhanTradeScheduler {
                             if (researchTechnicalOptional.isPresent()
                                     && (researchTechnicalOptional.get().getVolumeScore() < 0.75
                                             && researchTechnicalOptional.get().getScore() < 8.5)) {
-
-                                placeSellOrdersForStock(
-                                        stock,
-                                        aggregation,
-                                        user,
-                                        symbol,
-                                        researchTechnicalOptional.get().getTimeframe());
+                                if (researchTechnicalOptional.get().getEntryStrategy()
+                                        != ResearchTechnical.Strategy.SIMPLE) {
+                                    placeSellOrdersForStock(
+                                            stock,
+                                            aggregation,
+                                            user,
+                                            symbol,
+                                            researchTechnicalOptional.get().getTimeframe());
+                                }
                             }
 
                         } else {
