@@ -347,6 +347,9 @@ public class MovingAverageUtil {
     }
 
     public static int increasingMaCount(StockTechnicals stockTechnicals) {
+        if (stockTechnicals == null) {
+            return 0;
+        }
         Timeframe timeframe = stockTechnicals.getTimeframe();
         int count = 0;
 

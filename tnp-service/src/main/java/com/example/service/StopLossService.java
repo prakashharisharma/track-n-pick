@@ -23,6 +23,10 @@ public class StopLossService {
 
         double stopLoss = stockPrice.getLow();
 
+        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.SIMPLE) {
+            return stopLoss - researchTechnical.getTickSize();
+        }
+
         if (CandleStickUtils.isPrevSessionRed(stockPrice)) {
             stopLoss = Math.min(stockPrice.getLow(), stockPrice.getPrevLow());
         }

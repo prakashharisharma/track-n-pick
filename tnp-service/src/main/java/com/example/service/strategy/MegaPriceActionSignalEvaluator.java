@@ -48,9 +48,9 @@ public class MegaPriceActionSignalEvaluator implements TradeSignalEvaluator {
             LocalDate sessionDate = stockPrice.getSessionDate();
 
             LocalDate firstOfMonth =
-                    calendarService.nextTradingDate(miscUtil.previousMonthLastDay());
+                    calendarService.nextTradingSession(miscUtil.previousMonthLastDay());
             LocalDate firstDayOfWeek =
-                    calendarService.nextTradingDate(miscUtil.previousWeekLastDay());
+                    calendarService.nextTradingSession(miscUtil.previousWeekLastDay());
 
             if (sessionDate != null
                     && (sessionDate.isEqual(firstOfMonth) || sessionDate.isEqual(firstDayOfWeek))) {

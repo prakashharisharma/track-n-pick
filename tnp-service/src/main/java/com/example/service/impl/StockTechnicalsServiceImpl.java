@@ -619,6 +619,9 @@ public class StockTechnicalsServiceImpl implements StockTechnicalsService {
     }
 
     private void shiftPreviousTechnicals(StockTechnicals stockTechnicals) {
+
+        stockTechnicals.setPrev3Ema5(stockTechnicals.getPrev2Ema5());
+
         stockTechnicals.setPrev2Sma5(stockTechnicals.getPrevSma5());
         stockTechnicals.setPrev2Sma10(stockTechnicals.getPrevSma10());
         stockTechnicals.setPrev2Sma20(stockTechnicals.getPrevSma20());
@@ -697,6 +700,7 @@ public class StockTechnicalsServiceImpl implements StockTechnicalsService {
         prev.setSma100(current.getPrevSma100());
         prev.setSma200(current.getPrevSma200());
 
+        prev.setPrevEma5(current.getPrevEma5());
         prev.setEma5(current.getPrevEma5());
         prev.setEma10(current.getPrevEma10());
         prev.setEma20(current.getPrevEma20());

@@ -1,5 +1,6 @@
 package com.example;
 
+import com.example.data.common.type.MarketCapCategory;
 import com.example.data.common.type.Timeframe;
 import com.example.data.common.type.Trend;
 import com.example.data.storage.repo.PriceTemplate;
@@ -130,6 +131,7 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private ResistanceValidationService resistanceValidationService;
     @Autowired private StockTechnicalsService<StockTechnicals> stockTechnicalsService;
 
+    @Autowired private RsiIndicatorService rsiIndicatorService;
     @Autowired private BreakoutService breakoutService;
 
     @Autowired private SupportResistanceUtilService supportResistanceUtilService;
@@ -199,10 +201,29 @@ public class WebRunner implements CommandLineRunner {
         // https://dhanhq.co/docs/v2/authentication/#access-token
         log.info("Application started....");
 
-        // bhavProcessor.processAndResearchTechnicals();
-        // bhavProcessor.processResearch();
-        this.allocatePositions();
-        //   this.findMonthlyBreakout();
+        //  bhavProcessor.processTechnicals();
+        bhavProcessor.processResearch();
+        //  this.allocatePositions();
+
+        /*
+        List<StockAnalysis> weekly = new ArrayList<>();
+        List<StockAnalysis> monthly = new ArrayList<>();
+        // To be execute on last session of month or Week
+        //last session candle should be  green
+        weekly.addAll(this.newAlgoTest(Timeframe.WEEKLY));
+        monthly.addAll(this.newAlgoTest(Timeframe.MONTHLY));
+        // To be execute at the end of 1st and 2nd session
+        weekly.addAll(this.newAlgo2(Timeframe.WEEKLY));
+        monthly.addAll(this.newAlgo2(Timeframe.MONTHLY));
+        // To be execute at the end of 1st and 2nd session
+        weekly.addAll(this.findWeeklySimpleBreakout());
+        monthly.addAll(this.findMonthlySimpleBreakout());
+
+        System.out.println("WEEKLY Analyzed: ");
+        this.sortAndPrint(weekly);
+        System.out.println("MONTHLY Analyzed: ");
+        this.sortAndPrint(monthly);
+        */
         /*
          int[] digits = totpService.generateToken("CQL4D7FZTBCH2JA7VITTCPHVG3C4YEJR");
 
@@ -861,118 +882,810 @@ public class WebRunner implements CommandLineRunner {
         }
     }
 
-    private void findMonthlyBreakout() {
-        List<Stock> stocks = stockService.getActiveStocks();
-        List<Stock> result = new ArrayList<>();
-        List<Stock> weeklyResult = new ArrayList<>();
-        // List<Stock> stocks = new ArrayList<>();
+    private List<StockAnalysis> newAlgoTest(Timeframe timeframe) {
 
-        // Stock stock1 = stockService.getStockByNseSymbol("BANCOINDIA");
-        // stocks.add(stock1);
-        System.out.println("total " + stocks.size());
-        int counter = 0;
+        // Timeframe timeframe = Timeframe.WEEKLY;
+        List<Stock> stocks = stockService.getActiveStocks();
+
+        List<Stock> result = new ArrayList<>();
+
         for (Stock stock : stocks) {
 
-            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
-            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
+            StockPrice stockPrice = stockPriceService.get(stock, timeframe);
 
-            // StockPrice stockPriceHT = stockPriceService.get(stock, Timeframe.DAILY.getHigher());
-            // StockTechnicals stockTechnicalsHT = stockTechnicalsService.get(stock,
-            // Timeframe.DAILY.getHigher());
-            /*
-            if (stockPrice != null && stockTechnicals != null) {
-                if (stockPriceHT != null && stockTechnicalsHT != null) {
-                    // Higher time frame aligned bullish
-                    if (MovingAverageUtil.isAllMaAlignedBullish(
-                            stockPriceHT.getTimeframe(), stockTechnicalsHT)) {
-                        if (MovingAverageUtil.isAllMaAlignedBearish(
-                                stockPrice.getTimeframe(), stockTechnicals)) {
-                            Optional<MAEvaluationResult> evaluationResultOptional =
-                                    dynamicMovingAverageSupportResolverService
-                                            .evaluateSingleInteractionSmart(
-                                                    stockPrice.getTimeframe(),
-                                                    stockPrice,
-                                                    stockTechnicals,
-                                                    false);
-                            if (evaluationResultOptional.isPresent()
-                                    && evaluationResultOptional.get().isBreakout()) {
-                                if (CandleStickUtils.isGreen(stockPrice)) {
-                                    if (volumeIndicatorService.isBullish(
-                                            stockPrice,
-                                            stockTechnicals,
-                                            stockPrice.getTimeframe())) {
-                                        ++counter;
-                                        System.out.println("FFF " + stock.getNseSymbol());
+            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
+
+            if (!this.isInititalValidated(stockPrice, stockTechnicals)) {
+                continue;
+            }
+
+            Optional<MAEvaluationResult> evaluationResultOptional =
+                    dynamicMovingAverageSupportResolverService.evaluateSingleInteractionSmart(
+                            timeframe, stockPrice, stockTechnicals, false);
+
+            if (evaluationResultOptional.isPresent()
+                    && evaluationResultOptional.get().isBreakout()) {
+                if (stockTechnicals.getVolume() > stockTechnicals.getPrevVolume()
+                        && stockTechnicals.getVolumeAvg20()
+                                > stockTechnicals.getPrevVolumeAvg20()) {
+                    if (stockTechnicals.getVolume() > stockTechnicals.getVolumeAvg20()) {
+                        if (MovingAverageUtil.increasingMaCount(stockTechnicals) >= 5) {
+                            if (this.isLast2SessionRedAndCloseBelowEma5(stockPrice, stockTechnicals)
+                                    || this.isLast2SessionLHLL(stockPrice)) {
+                                result.add(stock);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        System.out.println("Here is result");
+
+        List<StockAnalysis> stockAnalysed = new ArrayList<>();
+
+        for (Stock stock : result) {
+
+            StockPrice stockPrice = stockPriceService.get(stock, timeframe);
+
+            StockPrice stockPriceDaily = stockPriceService.get(stock, Timeframe.DAILY);
+
+            StockTechnicals stockTechnicalsDaily =
+                    stockTechnicalsService.get(stock, Timeframe.DAILY);
+
+            double entryPrice =
+                    this.calculateEntryPrice(
+                            stockPrice.getOpen(), stockPrice.getClose(), timeframe);
+
+            double target = this.calculateTarget(entryPrice, timeframe);
+
+            double per =
+                    formulaService.calculateChangePercentage(
+                            entryPrice, stockPriceDaily.getClose());
+
+            LocalDate lastSessionOfCurrentMonth =
+                    calendarService.previousTradingSession(miscUtil.nextMonthFirstDay());
+
+            LocalDate lastOfPrevMonth =
+                    calendarService.previousTradingSession(miscUtil.currentMonthFirstDay());
+
+            LocalDate lastSessionOfCurrentWeek =
+                    calendarService.previousTradingSession(miscUtil.nextWeekFirstDay());
+
+            LocalDate lastOfPrevWeek =
+                    calendarService.previousTradingSession(miscUtil.currentWeekFirstDay());
+
+            LocalDate ohlcvFromTo = lastOfPrevMonth;
+
+            if (timeframe == Timeframe.WEEKLY) {
+                ohlcvFromTo = lastOfPrevWeek;
+            }
+
+            if (miscUtil.currentDate().isEqual(lastSessionOfCurrentMonth)
+                    && timeframe == Timeframe.MONTHLY) {
+                ohlcvFromTo = lastSessionOfCurrentMonth;
+            }
+
+            if (miscUtil.currentDate().isEqual(lastSessionOfCurrentWeek)
+                    && timeframe == Timeframe.WEEKLY) {
+                ohlcvFromTo = lastSessionOfCurrentWeek;
+            }
+
+            OHLCV ohlcv =
+                    monthlySupportResistanceService.supportAndResistance(
+                            stock.getNseSymbol(), ohlcvFromTo, ohlcvFromTo);
+
+            StockPrice stockPriceLastSession = new StockPriceDaily();
+            stockPriceLastSession.setOpen(ohlcv.getOpen());
+            stockPriceLastSession.setHigh(ohlcv.getHigh());
+            stockPriceLastSession.setLow(ohlcv.getLow());
+            stockPriceLastSession.setClose(ohlcv.getClose());
+            ohlcv =
+                    monthlySupportResistanceService.supportAndResistance(
+                            stock.getNseSymbol(),
+                            calendarService.previousTradingSession(ohlcvFromTo),
+                            calendarService.previousTradingSession(ohlcvFromTo));
+            stockPriceLastSession.setPrevOpen(ohlcv.getOpen());
+            stockPriceLastSession.setPrevHigh(ohlcv.getHigh());
+            stockPriceLastSession.setPrevLow(ohlcv.getLow());
+            stockPriceLastSession.setPrevClose(ohlcv.getClose());
+            // last session candle should be green
+            if (CandleStickUtils.isGreen(stockPriceLastSession)) {
+
+                if (CandleStickUtils.isPrevSessionRed(stockPriceLastSession)
+                        || CandleStickUtils.isPrevLowerWickDominant(stockPriceLastSession)
+                        || (CandleStickUtils.prevSessionBodySize(stockPriceLastSession)
+                                        < CandleStickUtils.bodySize(stockPriceLastSession)
+                                && !CandleStickUtils.isPrevUpperWickDominant(
+                                        stockPriceLastSession))) {
+
+                    double stopLoss = ohlcv.getLow();
+
+                    double dynamicStopLoss =
+                            this.calculateDynamicStopLoss(
+                                    per,
+                                    stopLoss,
+                                    stockPriceDaily,
+                                    stockTechnicalsDaily,
+                                    timeframe);
+
+                    boolean isExitCandidate =
+                            this.isExitCandidate(
+                                    dynamicStopLoss, stockPriceDaily, stockTechnicalsDaily);
+
+                    double risk = ((entryPrice - stopLoss) / entryPrice) * 100.0;
+
+                    if (risk < (timeframe == Timeframe.MONTHLY ? 5.0 : 3.0)) {
+                        stockAnalysed.add(
+                                new StockAnalysis(
+                                        ResearchTechnical.Strategy.BASIC,
+                                        stock,
+                                        MarketCapCategory.classify(
+                                                fundamentalResearchService.marketCap(stock)),
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        stockPrice.getClose(),
+                                        stockPriceDaily.getClose(),
+                                        entryPrice,
+                                        stopLoss,
+                                        dynamicStopLoss,
+                                        risk,
+                                        target,
+                                        per,
+                                        isExitCandidate));
+                    }
+                }
+            }
+            // System.out.println("Found: " + stock.getNseSymbol() +" entry: "+entryPrice +"
+            // stopLoss: "+ stopLoss +" risk: "+ risk +" target is: "+target + " %change: " +per);
+        }
+        // System.out.println(timeframe.name()  + " stockAnalysed: ");
+        // this.sortAndPrint(stockAnalysed);
+        return stockAnalysed;
+    }
+
+    private List<StockAnalysis> newAlgo2(Timeframe timeframe) {
+
+        // Timeframe timeframe = Timeframe.MONTHLY;
+        List<Stock> stocks = stockService.getActiveStocks();
+        List<Stock> result = new ArrayList<>();
+
+        for (Stock stock : stocks) {
+
+            StockPrice stockPrice = stockPriceService.get(stock, timeframe);
+
+            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, timeframe);
+
+            if (!this.isInititalValidated(stockPrice, stockTechnicals)) {
+                continue;
+            }
+
+            Optional<MAEvaluationResult> evaluationResultOptional =
+                    dynamicMovingAverageSupportResolverService.evaluateSingleInteractionSmart(
+                            timeframe, stockPrice, stockTechnicals, false);
+            // BreakOut EMA5 || EMA20
+            if (evaluationResultOptional.isPresent()
+                    && evaluationResultOptional.get().isBreakout()) {
+
+                LocalDate currentMonthFirstSession =
+                        calendarService.nextTradingSession(miscUtil.previousMonthLastDay());
+                LocalDate currentMonthSecondSession =
+                        calendarService.nextTradingSession(currentMonthFirstSession);
+
+                LocalDate ohlcvFromTo = currentMonthFirstSession;
+
+                LocalDate currentWeekFirstSession =
+                        calendarService.nextTradingSession(miscUtil.previousWeekLastDay());
+                LocalDate currentWeekSecondSession =
+                        calendarService.nextTradingSession(currentWeekFirstSession);
+
+                if (timeframe == Timeframe.WEEKLY) {
+                    ohlcvFromTo = currentWeekFirstSession;
+                }
+
+                OHLCV ohlcv =
+                        monthlySupportResistanceService.supportAndResistance(
+                                stock.getNseSymbol(), ohlcvFromTo, ohlcvFromTo);
+
+                if (CandleStickUtils.isGreen(stockPrice)
+                        && CandleStickUtils.isPrevSessionRed(stockPrice)) {
+                    if (!CandleStickUtils.isUpperWickDominant(stockPrice)) {
+                        if (ohlcv.getOpen() < stockPrice.getClose()
+                                || ohlcv.getLow() < stockPrice.getClose()) {
+                            if (MovingAverageUtil.increasingMaCount(stockTechnicals) >= 5) {
+                                if (stockTechnicals.getVolumeAvg20()
+                                        > stockTechnicals.getPrevVolumeAvg20()) {
+
+                                    LocalDate currentMonthThirdSession =
+                                            calendarService.nextTradingSession(
+                                                    currentMonthSecondSession);
+                                    LocalDate currentWeekThirdSession =
+                                            calendarService.nextTradingSession(
+                                                    currentWeekSecondSession);
+
+                                    LocalDate sessionDate = currentMonthFirstSession;
+                                    LocalDate sessionDateTill = currentMonthThirdSession;
+
+                                    if (timeframe == Timeframe.WEEKLY) {
+                                        sessionDate = currentWeekFirstSession;
+                                        sessionDateTill = currentWeekThirdSession;
+                                    }
+
+                                    while (sessionDate.isBefore(sessionDateTill)) {
+
+                                        OHLCV ohlcvDaily =
+                                                monthlySupportResistanceService
+                                                        .supportAndResistance(
+                                                                stock.getNseSymbol(),
+                                                                sessionDate,
+                                                                sessionDate);
+
+                                        StockPrice stockPriceDaily = new StockPriceDaily();
+                                        stockPriceDaily.setOpen(ohlcvDaily.getOpen());
+                                        stockPriceDaily.setHigh(ohlcvDaily.getHigh());
+                                        stockPriceDaily.setLow(ohlcvDaily.getLow());
+                                        stockPriceDaily.setClose(ohlcvDaily.getClose());
+
+                                        ohlcvDaily =
+                                                monthlySupportResistanceService
+                                                        .supportAndResistance(
+                                                                stock.getNseSymbol(),
+                                                                calendarService
+                                                                        .previousTradingSession(
+                                                                                sessionDate),
+                                                                calendarService
+                                                                        .previousTradingSession(
+                                                                                sessionDate));
+
+                                        stockPriceDaily.setPrevOpen(ohlcvDaily.getOpen());
+                                        stockPriceDaily.setPrevHigh(ohlcvDaily.getHigh());
+                                        stockPriceDaily.setPrevLow(ohlcvDaily.getLow());
+                                        stockPriceDaily.setPrevClose(ohlcvDaily.getClose());
+
+                                        // Daily Close above Monthly Close
+                                        if (stockPriceDaily.getClose() > stockPrice.getClose()) {
+                                            StockTechnicals stockTechnicalsDaily =
+                                                    new StockTechnicalsDaily();
+
+                                            if (stock.getNseSymbol()
+                                                    .equalsIgnoreCase("BHARATGEAR")) {
+                                                stockTechnicalsDaily.setVolume(169l);
+                                                stockTechnicalsDaily.setPrevVolume(207l);
+                                                stockTechnicalsDaily.setVolumeAvg20(171l);
+                                                stockTechnicalsDaily.setPrevVolumeAvg20(170l);
+                                            }
+
+                                            if (stock.getNseSymbol().equalsIgnoreCase("MTARTECH")) {
+                                                stockTechnicalsDaily.setVolume(205l);
+                                                stockTechnicalsDaily.setPrevVolume(116l);
+                                                stockTechnicalsDaily.setVolumeAvg20(475l);
+                                                stockTechnicalsDaily.setPrevVolumeAvg20(468l);
+                                            }
+
+                                            if (stock.getNseSymbol().equalsIgnoreCase("PRIVISCL")) {
+                                                stockTechnicalsDaily.setVolume(65l);
+                                                stockTechnicalsDaily.setPrevVolume(18l);
+                                                stockTechnicalsDaily.setVolumeAvg20(536l);
+                                                stockTechnicalsDaily.setPrevVolumeAvg20(531l);
+                                            }
+
+                                            if (CandleStickUtils.isGreen(stockPriceDaily)) {
+
+                                                if (CandleStickUtils.isPrevSessionRed(
+                                                                stockPriceDaily)
+                                                        || CandleStickUtils.isPrevLowerWickDominant(
+                                                                stockPriceDaily)
+                                                        || (CandleStickUtils.prevSessionBodySize(
+                                                                                stockPriceDaily)
+                                                                        < CandleStickUtils.bodySize(
+                                                                                stockPriceDaily)
+                                                                && !CandleStickUtils
+                                                                        .isPrevUpperWickDominant(
+                                                                                stockPriceDaily))) {
+                                                    if (!CandleStickUtils.isUpperWickDominant(
+                                                            stockPriceDaily)) {
+                                                        if (stockTechnicalsDaily.getVolumeAvg20()
+                                                                > stockTechnicalsDaily
+                                                                        .getPrevVolumeAvg20()) {
+                                                            if (stockTechnicalsDaily.getVolume()
+                                                                    > stockTechnicalsDaily
+                                                                            .getPrevVolume()) {
+
+                                                                result.add(stock);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        sessionDate =
+                                                calendarService.nextTradingSession(sessionDate);
                                     }
                                 }
                             }
                         }
                     }
-                }*/
+                }
+            }
+        }
 
-            // stockPrice = stockPriceService.buildPrevSessionStockPrice(stockPrice);
-            // stockTechnicals =
-            // stockTechnicalsService.buildPrevSessionStockTechnicals(stockTechnicals);
+        System.out.println("Here is result");
+        List<StockAnalysis> stockAnalysed = new ArrayList<>();
+        for (Stock stock : result) {
+            StockPrice stockPrice = stockPriceService.get(stock, timeframe);
+            StockPrice stockPriceDaily = stockPriceService.get(stock, Timeframe.DAILY);
+            StockTechnicals stockTechnicalsDaily =
+                    stockTechnicalsService.get(stock, Timeframe.DAILY);
+
+            LocalDate currentMonthFirstSession =
+                    calendarService.previousTradingSession(miscUtil.previousMonthLastDay());
+
+            LocalDate ohlcvFromTo = calendarService.nextTradingSession(currentMonthFirstSession);
+
+            OHLCV ohlcv =
+                    monthlySupportResistanceService.supportAndResistance(
+                            stock.getNseSymbol(), ohlcvFromTo, ohlcvFromTo);
+
+            double entryPrice =
+                    this.calculateEntryPrice(ohlcv.getOpen(), ohlcv.getClose(), Timeframe.MONTHLY);
+
+            double target = this.calculateTarget(entryPrice, Timeframe.MONTHLY);
+
+            double per =
+                    formulaService.calculateChangePercentage(
+                            entryPrice, stockPriceDaily.getClose());
+
+            double stopLoss = ohlcv.getLow();
+
+            double dynamicStopLoss =
+                    this.calculateDynamicStopLoss(
+                            per,
+                            stopLoss,
+                            stockPriceDaily,
+                            stockTechnicalsDaily,
+                            Timeframe.MONTHLY);
+
+            boolean isExitCandidate =
+                    this.isExitCandidate(dynamicStopLoss, stockPriceDaily, stockTechnicalsDaily);
+
+            double risk = ((entryPrice - stopLoss) / entryPrice) * 100.0;
+
+            if (risk < (timeframe == Timeframe.MONTHLY ? 5.0 : 3.0)) {
+                stockAnalysed.add(
+                        new StockAnalysis(
+                                ResearchTechnical.Strategy.PRICE,
+                                stock,
+                                MarketCapCategory.classify(
+                                        fundamentalResearchService.marketCap(stock)),
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                stockPrice.getClose(),
+                                stockPriceDaily.getClose(),
+                                entryPrice,
+                                stopLoss,
+                                dynamicStopLoss,
+                                risk,
+                                target,
+                                per,
+                                isExitCandidate));
+            }
+
+            // System.out.println("Found: " + stock.getNseSymbol() +" entry: "+entryPrice +"
+            // stopLoss: "+ stopLoss +" risk: "+ risk +" target is: "+target + " %change: " +per);
+        }
+        //  System.out.println(timeframe + " stockAnalysed: ");
+        // this.sortAndPrint(stockAnalysed);
+        return stockAnalysed;
+    }
+
+    private boolean isInititalValidated(StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        if (stockPrice == null || stockTechnicals == null) {
+            return false;
+        }
+
+        Stock stock = stockPrice.getStock();
+
+        boolean isEqOrBE = stock.getSeries().equalsIgnoreCase("EQ");
+
+        if (!isEqOrBE) {
+            return false;
+        }
+
+        if (stock.getSector() == null || stock.getSector().getType() == Sector.Type.ETF) {
+            return false;
+        }
+
+        if (stockPrice.getTimeframe() != Timeframe.MONTHLY) {
+            if (!volumeIndicatorService.isTradingValueSufficient(
+                    stockPrice.getTimeframe(), stockPrice, stockTechnicals)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isLast2SessionRedAndCloseBelowEma5(
+            StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
+        // if( stockPrice.getTimeframe()==Timeframe.MONTHLY ||
+        // CandleStickUtils.isPrev3SessionRed(stockPrice) && stockPrice.getPrev3Close() <
+        // stockTechnicals.getPrev3Ema5() ){
+        if (CandleStickUtils.isPrev2SessionRed(stockPrice)
+                && stockPrice.getPrev2Close() < stockTechnicals.getPrev2Ema5()) {
+            if (CandleStickUtils.isPrevSessionRed(stockPrice)
+                    && stockPrice.getPrevClose() < stockTechnicals.getPrevEma5()) {
+                return true;
+            }
+        }
+        // }
+
+        return false;
+    }
+
+    private boolean isLast2SessionLHLL(StockPrice stockPrice) {
+        // if(stockPrice.getTimeframe()==Timeframe.MONTHLY ||  stockPrice.getPrev3High() <
+        // stockPrice.getPrev4High() && stockPrice.getPrev3Low() < stockPrice.getPrev4Low()) {
+        if (stockPrice.getPrev2High() < stockPrice.getPrev3High()) {
+            if (stockPrice.getPrevHigh() < stockPrice.getPrev2High()
+                    && stockPrice.getPrevLow() < stockPrice.getPrev2Low()) {
+                return true;
+            }
+        }
+        // }
+
+        return false;
+    }
+
+    private List<StockAnalysis> findMonthlySimpleBreakout() {
+
+        List<String> symbolsOct25 = new ArrayList<>();
+        symbolsOct25.add("ICICIBANK");
+        symbolsOct25.add("MBAPL");
+        symbolsOct25.add("LORDSCHLO");
+        symbolsOct25.add("WINDMACHIN");
+        symbolsOct25.add("DIVISLAB");
+        symbolsOct25.add("ERIS");
+        symbolsOct25.add("GRMOVER");
+        symbolsOct25.add("NUVAMA");
+
+        List<Stock> stocks = stockService.getActiveStocks();
+
+        List<Stock> result = new ArrayList<>();
+        for (String symbol : symbolsOct25) {
+            Stock stock = stockService.getStockByNseSymbol(symbol);
+            result.add(stock);
+        }
+
+        int counter = 0;
+        for (Stock stock : stocks) {
+
+            StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
+            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
             TradeSetup tradeSetup =
                     simplePriceActionSignalEvaluator.evaluateEntry(
                             stockPrice.getTimeframe(), stock, stockPrice, stockTechnicals);
 
             if (stockPrice != null && stockTechnicals != null) {
-                /*
-                TradeSetup tradeSetup =
-                        bottomPriceActionSignalEvaluator.evaluateEntry(
-                                stockPrice.getTimeframe(), stock, stockPrice, stockTechnicals);
-
-                TradeSetup tradeSetup =
-                        priceActionService.evaluateEntry(
-                                stockPrice.getTimeframe(), stock, stockPrice, stockTechnicals);
-
-                 */
-                // TradeSetup tradeSetup =
-                // megaPriceActionSignalEvaluator.evaluateEntry(stockPrice.getTimeframe(), stock,
-                // stockPrice, stockTechnicals);
-                // TradeSetup tradeSetup =
-                // investmentPriceActionSignalEvaluator.evaluateEntry(stockPrice.getTimeframe(),
-                // stock, stockPrice, stockTechnicals);
 
                 if (tradeSetup.isActive()) {
                     ++counter;
                     if (tradeSetup.getSubStrategy()
                             == ResearchTechnical.SubStrategy.MONTHLY_BREAKOUT) {
+
                         result.add(stock);
-                    }
-                    if (tradeSetup.getSubStrategy()
-                            == ResearchTechnical.SubStrategy.WEEKLY_BREAKOUT) {
-                        weeklyResult.add(stock);
                     }
                 }
             } else {
                 System.out.println("data not found " + stock.getNseSymbol());
             }
         }
-        System.out.println("counter " + counter);
-        for (Stock stock : result) {
+
+        System.out.println("monthly counter " + counter);
+
+        List<StockAnalysis> analyzed = this.filterAnalyzed(result, Timeframe.MONTHLY);
+
+        // this.sortAndPrint(analyzed);
+
+        return analyzed;
+    }
+
+    private List<StockAnalysis> findWeeklySimpleBreakout() {
+
+        List<String> symbolsOct25 = new ArrayList<>();
+        symbolsOct25.add("MINDACORP");
+
+        List<Stock> stocks = stockService.getActiveStocks();
+
+        List<Stock> result = new ArrayList<>();
+        for (String symbol : symbolsOct25) {
+            Stock stock = stockService.getStockByNseSymbol(symbol);
+            result.add(stock);
+        }
+
+        int counter = 0;
+        for (Stock stock : stocks) {
+
             StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
-            StockPrice stockPriceHt = stockPriceService.get(stock, Timeframe.MONTHLY);
+            StockTechnicals stockTechnicals = stockTechnicalsService.get(stock, Timeframe.DAILY);
+            TradeSetup tradeSetup =
+                    simplePriceActionSignalEvaluator.evaluateEntry(
+                            stockPrice.getTimeframe(), stock, stockPrice, stockTechnicals);
+
+            if (stockPrice != null && stockTechnicals != null) {
+
+                if (tradeSetup.isActive()) {
+                    ++counter;
+                    if (tradeSetup.getSubStrategy()
+                            == ResearchTechnical.SubStrategy.WEEKLY_BREAKOUT) {
+                        result.add(stock);
+                    }
+                }
+            } else {
+                System.out.println("data not found " + stock.getNseSymbol());
+            }
+        }
+
+        System.out.println("weekly counter " + counter);
+
+        List<StockAnalysis> analyzed = this.filterAnalyzed(result, Timeframe.WEEKLY);
+
+        // this.sortAndPrint(analyzed);
+
+        return analyzed;
+    }
+
+    private List<StockAnalysis> filterAnalyzed(List<Stock> stocks, Timeframe timeframeHt) {
+        List<StockAnalysis> analyzed = new ArrayList<>();
+        for (Stock stock : stocks) {
+            StockPrice stockPriceDaily = stockPriceService.get(stock, Timeframe.DAILY);
+            StockTechnicals stockTechnicalsDaily =
+                    stockTechnicalsService.get(stock, Timeframe.DAILY);
+
+            StockPrice stockPriceHt = stockPriceService.get(stock, timeframeHt);
+            StockTechnicals stockTechnicalsHt = stockTechnicalsService.get(stock, timeframeHt);
+
+            if (!this.isInititalValidated(stockPriceHt, stockTechnicalsHt)) {
+                continue;
+            }
+            double htEma5 =
+                    MovingAverageUtil.getMovingAverage5(
+                            stockTechnicalsHt.getTimeframe(), stockTechnicalsHt);
+
+            boolean isHtHigherHighAndHigherLow =
+                    CandleStickUtils.isHigherHigh(stockPriceHt)
+                            && CandleStickUtils.isHigherLow(stockPriceHt);
+
+            boolean isHtLongUpperWick =
+                    CandleStickUtils.upperWickSize(stockPriceHt)
+                            > CandleStickUtils.lowerWickSize(stockPriceHt);
+
+            if (CandleStickUtils.isPrevSessionGreen(stockPriceHt)
+                    && (!isHtHigherHighAndHigherLow
+                            || stockPriceHt.getClose() < htEma5
+                            || isHtLongUpperWick)) {
+                continue;
+            }
+
+            double htEma20 =
+                    MovingAverageUtil.getMovingAverage20(
+                            stockTechnicalsHt.getTimeframe(), stockTechnicalsHt);
+
+            if (stockPriceHt.getClose() < htEma20) {
+                continue;
+            }
+
+            boolean isHt4Incr = MovingAverageUtil.increasingMaCount(stockTechnicalsHt) >= 4;
+            boolean isHtAvgIncr =
+                    stockTechnicalsHt.getVolumeAvg20() > stockTechnicalsHt.getPrevVolumeAvg20();
+            boolean isHtVolIncr =
+                    stockTechnicalsHt.getVolume() > stockTechnicalsHt.getPrevVolume()
+                            || stockTechnicalsHt.getPrevVolume()
+                                    > stockTechnicalsHt.getVolume() * 1.5;
+
+            boolean isHtLowRejected =
+                    (stockPriceHt.getClose() > htEma5 && stockPriceHt.getLow() <= htEma5
+                                    || stockPriceHt.getClose() > htEma20
+                                            && stockPriceHt.getLow() <= htEma20)
+                            && CandleStickUtils.lowerWickSize(stockPriceHt)
+                                    > CandleStickUtils.upperWickSize(stockPriceHt);
+
+            boolean isHtLongLowerWick =
+                    CandleStickUtils.lowerWickSize(stockPriceHt)
+                            > CandleStickUtils.upperWickSize(stockPriceHt);
+
+            LocalDate firstOfMonth =
+                    calendarService.nextTradingSession(miscUtil.previousMonthLastDay());
+
+            LocalDate firstOfWeek =
+                    calendarService.nextTradingSession(miscUtil.previousWeekLastDay());
+
+            LocalDate ohlcvFromTo = firstOfMonth;
+
+            if (timeframeHt == Timeframe.WEEKLY) {
+                ohlcvFromTo = firstOfWeek;
+            }
+
+            OHLCV ohlcv =
+                    monthlySupportResistanceService.supportAndResistance(
+                            stock.getNseSymbol(), ohlcvFromTo, ohlcvFromTo);
+
+            double entryPrice =
+                    this.calculateEntryPrice(ohlcv.getOpen(), ohlcv.getClose(), timeframeHt);
+
+            double stopLoss = ohlcv.getLow();
+
             double per =
                     formulaService.calculateChangePercentage(
-                            stockPrice.getPrev3Close(), stockPrice.getClose());
-            System.out.println(
-                    "Found: "
-                            + stock.getNseSymbol()
-                            + " with price: "
-                            + stockPrice.getPrev3Close()
-                            + " >= "
-                            + stockPriceHt.getClose()
-                            + " : "
-                            + stockPrice.getClose()
-                            + " : "
-                            + per
-                            + "%");
+                            entryPrice, stockPriceDaily.getClose());
+
+            double dynamicStopLoss =
+                    this.calculateDynamicStopLoss(
+                            per, stopLoss, stockPriceDaily, stockTechnicalsDaily, timeframeHt);
+
+            boolean isExitCandidate =
+                    this.isExitCandidate(dynamicStopLoss, stockPriceDaily, stockTechnicalsDaily);
+
+            double risk = ((entryPrice - stopLoss) / entryPrice) * 100.0;
+
+            double target = this.calculateTarget(entryPrice, timeframeHt);
+
+            if (risk < (timeframeHt == Timeframe.MONTHLY ? 5.0 : 3.0)) {
+                analyzed.add(
+                        new StockAnalysis(
+                                ResearchTechnical.Strategy.SIMPLE,
+                                stock,
+                                MarketCapCategory.classify(
+                                        fundamentalResearchService.marketCap(stock)),
+                                isHt4Incr,
+                                isHtAvgIncr,
+                                isHtVolIncr,
+                                isHtLowRejected,
+                                isHtLongLowerWick,
+                                ohlcv.getClose(),
+                                stockPriceDaily.getClose(),
+                                entryPrice,
+                                stopLoss,
+                                dynamicStopLoss,
+                                risk,
+                                target,
+                                per,
+                                isExitCandidate));
+            }
         }
-        System.out.println("counter " + counter);
-        for (Stock stock : weeklyResult) {
-            System.out.println("FoundWeekly: " + stock.getNseSymbol());
+        return analyzed;
+    }
+
+    private double calculateTarget(double entryPrice, Timeframe timeframe) {
+        return formulaService.applyPercentChange(
+                entryPrice, timeframe == Timeframe.MONTHLY ? 24.0 : 6.0);
+    }
+
+    private double calculateEntryPrice(double open, double close, Timeframe timeframe) {
+        double entryPrice = (open + close) / 2;
+
+        entryPrice =
+                formulaService.applyPercentChange(
+                        entryPrice, timeframe == Timeframe.MONTHLY ? 1.25 : 0.625);
+
+        double closePRic =
+                formulaService.applyPercentChange(
+                        close, timeframe == Timeframe.MONTHLY ? 0.50 : 0.25);
+
+        entryPrice = Math.max(entryPrice, closePRic);
+
+        return entryPrice;
+    }
+
+    private double calculateDynamicStopLoss(
+            double currentChg,
+            double initialStopLoss,
+            StockPrice stockPrice,
+            StockTechnicals stockTechnicals,
+            Timeframe timeframe) {
+
+        double dynamicStopLoss = initialStopLoss;
+
+        double minTarget = timeframe == Timeframe.WEEKLY ? 2.0 : 8.0;
+
+        if (currentChg > minTarget) {
+            dynamicStopLoss =
+                    Math.max(
+                            MovingAverageUtil.getMovingAverage5(
+                                    stockTechnicals.getTimeframe(), stockTechnicals),
+                            stockPrice.getLow());
+        }
+        return dynamicStopLoss;
+    }
+
+    private boolean isExitCandidate(
+            double dynamicStopLoss, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        boolean isExitCandidate = false;
+
+        if (!(CandleStickUtils.isLowerWickDominant(stockPrice))) {
+            isExitCandidate = stockPrice.getClose() < dynamicStopLoss;
+        }
+
+        if (!isExitCandidate) {
+            if (stockPrice.getClose() < stockTechnicals.getEma5()
+                    && CandleStickUtils.isRed(stockPrice)
+                    && CandleStickUtils.isPrevSessionRed(stockPrice)) {
+                if (stockTechnicals.getVolume() > stockTechnicals.getPrevVolume()
+                        && stockTechnicals.getVolumeAvg20()
+                                > stockTechnicals.getPrevVolumeAvg20()) {
+                    isExitCandidate = true;
+                }
+            }
+        }
+
+        if (!isExitCandidate) {
+
+            LocalDate lastSessionOfMonth =
+                    calendarService.previousTradingSession(
+                            miscUtil.currentMonthLastDay().plusDays(1));
+            LocalDate secondLastSessionOfMonth =
+                    calendarService.previousTradingSession(
+                            miscUtil.currentMonthLastDay().plusDays(1));
+
+            if (miscUtil.currentDate().isEqual(secondLastSessionOfMonth)
+                    || miscUtil.currentDate().isEqual(lastSessionOfMonth)) {
+                isExitCandidate = true;
+            }
+        }
+
+        return isExitCandidate;
+    }
+
+    private void sortAndPrint(List<StockAnalysis> analyzed) {
+        // Sort by criteria priority
+        analyzed.sort(
+                Comparator.comparing(StockAnalysis::getRisk)
+                        .reversed()
+                        .thenComparing(StockAnalysis::is4Incr)
+                        .reversed()
+                        .thenComparing(StockAnalysis::isLowRejected, Comparator.reverseOrder())
+                        .thenComparing(
+                                sa -> sa.isAvgIncr() && sa.isVolIncr(), Comparator.reverseOrder())
+                        .thenComparing(sa -> sa.isLongLowerWick(), Comparator.reverseOrder())
+                        .thenComparing(StockAnalysis::isAvgIncr, Comparator.reverseOrder()));
+
+        //  Print result
+        for (StockAnalysis sa : analyzed) {
+            /*
+            System.out.printf(
+                    "Found: %-10s | 4Incr=%-5s | Avg++=%-5s | Vol++=%-5s | LowRej=%-5s | LongLowerWick=%-5s |Close=%.2f |Entry=%.2f |SL=%.2f |Risk=%.2f%% |Change=%.2f%% %n",
+                    sa.getStock().getNseSymbol(),
+                    sa.is4Incr(),
+                    sa.isAvgIncr(),
+                    sa.isVolIncr(),
+                    sa.isLowRejected(),
+                    sa.isLongLowerWick(),
+                    sa.getClose(),
+                    sa.getEntryPrice(),
+                    sa.getStopLoss(),
+                    sa.getRisk(),
+                    sa.getChangePercent());*/
+            System.out.printf(
+                    "Found: %-10s |Strategy=%-10s |MArketCap=%-10s |Close=%.2f |CurrentClose=%.2f"
+                            + " |Entry=%.2f |SL=%.2f |DynamicSL=%.2f |Risk=%.2f |Target=%.2f"
+                            + " |Change=%.2f%% |isExitCandidate=%-5s%n",
+                    sa.getStock().getNseSymbol(),
+                    sa.getStrategy(),
+                    sa.getCapSize(),
+                    sa.getClose(),
+                    sa.getCurrentClose(),
+                    sa.getEntryPrice(),
+                    sa.getStopLoss(),
+                    sa.getDynamicStopLoss(),
+                    sa.getRisk(),
+                    sa.getTarget(),
+                    sa.getChangePercent(),
+                    sa.isExitCandidate());
         }
     }
 

@@ -33,8 +33,16 @@ public class EntryPriceService {
 
         if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.SIMPLE) {
             basePrice = (stockPrice.getOpen() + stockPrice.getClose()) / 2;
-            basePrice = formulaService.applyPercentChange(basePrice, 0.99);
-            return formulaService.ceilToNearestTick(basePrice, researchTechnical.getTickSize());
+            basePrice =
+                    formulaService.applyPercentChange(
+                            basePrice,
+                            researchTechnical.getEntrySubStrategy()
+                                            == ResearchTechnical.SubStrategy.MONTHLY_BREAKOUT
+                                    ? 1.25
+                                    : 0.625);
+            basePrice = Math.max(basePrice, stockPrice.getClose());
+            return formulaService.ceilToNearestTick(
+                    basePrice + researchTechnical.getTickSize(), researchTechnical.getTickSize());
         }
 
         // Fetch higher timeframe technicals

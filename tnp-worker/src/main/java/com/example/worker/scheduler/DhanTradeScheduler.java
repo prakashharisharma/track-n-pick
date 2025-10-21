@@ -194,16 +194,24 @@ public class DhanTradeScheduler {
                                     researchTechnicalService.getLatest(stock);
 
                             if (researchTechnicalOptional.isPresent()
-                                    && (researchTechnicalOptional.get().getVolumeScore() < 0.75
-                                            && researchTechnicalOptional.get().getScore() < 8.5)) {
-                                if (researchTechnicalOptional.get().getEntryStrategy()
-                                        != ResearchTechnical.Strategy.SIMPLE) {
+                                            && (researchTechnicalOptional.get().getVolumeScore()
+                                                            < 0.75
+                                                    && researchTechnicalOptional.get().getScore()
+                                                            < 8.5)
+                                    || (researchTechnicalOptional.get().getEntryStrategy()
+                                            == ResearchTechnical.Strategy.SIMPLE)) {
+
+                                if (!(researchTechnicalOptional.get().getEntryStrategy()
+                                                == ResearchTechnical.Strategy.SIMPLE
+                                        && researchTechnicalOptional.get().getEntrySubStrategy()
+                                                == ResearchTechnical.SubStrategy
+                                                        .MONTHLY_BREAKOUT)) {
                                     placeSellOrdersForStock(
                                             stock,
                                             aggregation,
                                             user,
                                             symbol,
-                                            researchTechnicalOptional.get().getTimeframe());
+                                            researchTechnicalOptional.get());
                                 }
                             }
 
@@ -221,14 +229,14 @@ public class DhanTradeScheduler {
             TradeAggregation aggregation,
             User user,
             String symbol,
-            Timeframe timeframe) {
+            ResearchTechnical researchTechnical) {
         log.info(
                 "Processing sell orders for stock {} with quantity {} and average price {}",
                 symbol,
                 aggregation.quantity,
                 aggregation.averagePrice);
 
-        OrderParameters params = createOrderParameters(stock, aggregation, timeframe);
+        OrderParameters params = createOrderParameters(stock, aggregation, researchTechnical);
 
         if (params.isSmallOrder()) {
             placeSmallOrder(user, stock, aggregation, params);
@@ -245,37 +253,51 @@ public class DhanTradeScheduler {
     }
 
     private OrderParameters createOrderParameters(
-            Stock stock, TradeAggregation aggregation, Timeframe timeframe) {
+            Stock stock, TradeAggregation aggregation, ResearchTechnical researchTechnical) {
         double tickSize = researchTechnicalService.getTickSize(stock);
         boolean isSmallOrder =
                 (aggregation.quantity <= 10
                                 && (aggregation.getQuantity() * aggregation.averagePrice)
                                         < 100000.0)
                         || (aggregation.getQuantity() * aggregation.averagePrice) < 50000.0;
-        double[] profitTargets = determineProfitTargets(stock, timeframe);
+        double[] profitTargets = determineProfitTargets(stock, researchTechnical);
 
         return new OrderParameters(tickSize, profitTargets, isSmallOrder);
     }
 
-    private double[] determineProfitTargets(Stock stock, Timeframe timeframe) {
+    private double[] determineProfitTargets(Stock stock, ResearchTechnical researchTechnical) {
 
         double[] profitTargetsDefault = {3.0, 4.75, 7.5, 10.25};
         double[] profitTargetsNotDaily = {5.0, 5.0, 5.0, 5.0};
         double[] profitTargetsPriceBand20 = {4.5, 7.5, 12.5, 17.5};
-        double[] profitTargetsPriceBand10 = {2.5, 3.75, 6.25, 8.75};
+        double[] profitTargetsPriceBand10 = {3.0, 4.5, 6.0, 7.5};
         double[] profitTargetsPriceBand5 = {2.0, 3.0, 3.5, 4.5};
 
         Optional<ResearchTechnical> researchTechnicalOptional =
                 researchTechnicalService.getLatest(stock);
 
         if (researchTechnicalOptional.isPresent()) {
+
             double priceBand = researchTechnicalOptional.get().getPriceBand();
-            if (priceBand == 20.0) return profitTargetsPriceBand20;
+
+            if (priceBand == 20.0) {
+
+                if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.SIMPLE
+                        && researchTechnical.getEntrySubStrategy()
+                                == ResearchTechnical.SubStrategy.WEEKLY_BREAKOUT) {
+                    return profitTargetsPriceBand10;
+                }
+
+                return profitTargetsPriceBand20;
+            }
+
             if (priceBand == 10.0) return profitTargetsPriceBand10;
             if (priceBand == 5.0) return profitTargetsPriceBand5;
         }
 
-        return timeframe != Timeframe.DAILY ? profitTargetsNotDaily : profitTargetsDefault;
+        return researchTechnical.getTimeframe() != Timeframe.DAILY
+                ? profitTargetsNotDaily
+                : profitTargetsDefault;
     }
 
     private void placeSmallOrder(
