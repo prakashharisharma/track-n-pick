@@ -1,13 +1,7 @@
 package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
-import com.example.data.transactional.entities.EvaluationLog;
-import com.example.data.transactional.entities.ResearchTechnical;
-import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockPrice;
-import com.example.data.transactional.entities.StockTechnicals;
-import com.example.data.transactional.entities.Trade;
-import com.example.data.transactional.entities.ValuationLedger;
+import com.example.data.transactional.entities.*;
 import com.example.dto.common.TradeSetup;
 import com.example.service.*;
 import com.example.service.ResearchTechnicalService;
@@ -183,11 +177,6 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
             LocalDate sessionDate) {
 
         log.info("{} Executing technical buy", stock.getNseSymbol());
-        /*
-        if (fundamentalResearchService.isPriceInRange(stock)
-                && fundamentalResearchService.isMcapInRange(stock)
-                && volumeIndicatorService.isTradingValueSufficient(
-                        timeframe, stockPrice, stockTechnicals)) {*/
 
         if (fundamentalResearchService.isPriceInRange(stock)
                 && fundamentalResearchService.isMcapInRange(stock)) {
@@ -196,74 +185,90 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                     || stock.getSeries().equalsIgnoreCase("BE")) {
                 log.info("{} Found EQ stock ", stock.getNseSymbol());
 
-                TradeSetup tradeSetup =
-                        simplePriceActionSignalEvaluator.evaluateEntry(
-                                timeframe, stock, stockPrice, stockTechnicals);
+                if (stock.getSector() == null || stock.getSector().getType() != Sector.Type.ETF) {
 
-                if (!tradeSetup.isActive()) {
-                    tradeSetup =
-                            basicPriceActionSignalEvaluator.evaluateEntry(
+                    if ((timeframe == Timeframe.WEEKLY || timeframe == Timeframe.DAILY)
+                            && !volumeIndicatorService.isTradingValueSufficient(
+                                    stockPrice.getTimeframe(), stockPrice, stockTechnicals)) {
+                        log.info("{} Trading vokume not sufficient.", stock.getNseSymbol());
+                        return;
+                    }
+
+                    TradeSetup tradeSetup =
+                            simplePriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
-                }
 
-                if (!tradeSetup.isActive()) {
-                    tradeSetup =
-                            megaPriceActionSignalEvaluator.evaluateEntry(
-                                    timeframe, stock, stockPrice, stockTechnicals);
-                }
+                    if (!tradeSetup.isActive()) {
+                        tradeSetup =
+                                basicPriceActionSignalEvaluator.evaluateEntry(
+                                        timeframe, stock, stockPrice, stockTechnicals);
+                    }
 
-                if (!tradeSetup.isActive()) {
-                    tradeSetup =
-                            priceActionService.evaluateEntry(
-                                    timeframe, stock, stockPrice, stockTechnicals);
-                }
-                /*
-                if (!tradeSetup.isActive()) {
-                    tradeSetup =
-                            flexiPriceActionSignalEvaluator.evaluateEntry(
-                                    timeframe, stock, stockPrice, stockTechnicals);
-                }*/
+                    if (!tradeSetup.isActive()) {
+                        tradeSetup =
+                                megaPriceActionSignalEvaluator.evaluateEntry(
+                                        timeframe, stock, stockPrice, stockTechnicals);
+                    }
 
-                if (!tradeSetup.isActive()) {
-                    tradeSetup =
-                            dynamicPriceActionSignalEvaluator.evaluateEntry(
-                                    timeframe, stock, stockPrice, stockTechnicals);
-                }
+                    if (!tradeSetup.isActive()) {
+                        tradeSetup =
+                                priceActionService.evaluateEntry(
+                                        timeframe, stock, stockPrice, stockTechnicals);
+                    }
+                    /*
+                    if (!tradeSetup.isActive()) {
+                        tradeSetup =
+                                flexiPriceActionSignalEvaluator.evaluateEntry(
+                                        timeframe, stock, stockPrice, stockTechnicals);
+                    }*/
 
-                if (!tradeSetup.isActive()) {
-                    tradeSetup =
-                            hybridPriceActionSignalEvaluator.evaluateEntry(
-                                    timeframe, stock, stockPrice, stockTechnicals);
-                }
+                    if (!tradeSetup.isActive()) {
+                        tradeSetup =
+                                dynamicPriceActionSignalEvaluator.evaluateEntry(
+                                        timeframe, stock, stockPrice, stockTechnicals);
+                    }
 
-                if (!tradeSetup.isActive()) {
-                    tradeSetup =
-                            investmentPriceActionSignalEvaluator.evaluateEntry(
-                                    timeframe, stock, stockPrice, stockTechnicals);
-                }
+                    if (!tradeSetup.isActive()) {
+                        tradeSetup =
+                                hybridPriceActionSignalEvaluator.evaluateEntry(
+                                        timeframe, stock, stockPrice, stockTechnicals);
+                    }
 
-                if (!tradeSetup.isActive()) {
-                    tradeSetup =
-                            bottomPriceActionSignalEvaluator.evaluateEntry(
-                                    timeframe, stock, stockPrice, stockTechnicals);
-                }
+                    if (!tradeSetup.isActive()) {
+                        tradeSetup =
+                                investmentPriceActionSignalEvaluator.evaluateEntry(
+                                        timeframe, stock, stockPrice, stockTechnicals);
+                    }
 
-                if (!tradeSetup.isActive()) {
-                    tradeSetup =
-                            candleStickPriceActionSignalEvaluator.evaluateEntry(
-                                    timeframe, stock, stockPrice, stockTechnicals);
-                }
+                    if (!tradeSetup.isActive()) {
+                        tradeSetup =
+                                bottomPriceActionSignalEvaluator.evaluateEntry(
+                                        timeframe, stock, stockPrice, stockTechnicals);
+                    }
 
-                if (tradeSetup.isActive()) {
-                    log.info(
-                            "{} Bullish Trade active timeframe: {}, strategy:{}, subStrategy:{} ",
-                            stock.getNseSymbol(),
-                            timeframe,
-                            tradeSetup.getStrategy(),
-                            tradeSetup.getSubStrategy());
+                    if (!tradeSetup.isActive()) {
+                        tradeSetup =
+                                candleStickPriceActionSignalEvaluator.evaluateEntry(
+                                        timeframe, stock, stockPrice, stockTechnicals);
+                    }
 
-                    researchTechnicalService.entry(
-                            stock, timeframe, tradeSetup, stockPrice, stockTechnicals, sessionDate);
+                    if (tradeSetup.isActive()) {
+                        log.info(
+                                "{} Bullish Trade active timeframe: {}, strategy:{}, subStrategy:{}"
+                                        + " ",
+                                stock.getNseSymbol(),
+                                timeframe,
+                                tradeSetup.getStrategy(),
+                                tradeSetup.getSubStrategy());
+
+                        researchTechnicalService.entry(
+                                stock,
+                                timeframe,
+                                tradeSetup,
+                                stockPrice,
+                                stockTechnicals,
+                                sessionDate);
+                    }
                 }
             }
         }

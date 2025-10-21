@@ -29,6 +29,16 @@ public class TargetService {
                         this.calculateRiskRewardRatio(
                                 stockPrice, stockTechnicals, researchTechnical));
 
+        if (researchTechnical.getEntryStrategy() == ResearchTechnical.Strategy.SIMPLE) {
+            if (researchTechnical.getEntrySubStrategy()
+                    == ResearchTechnical.SubStrategy.WEEKLY_BREAKOUT) {
+                target = formulaService.applyPercentChange(researchTechnical.getEntryPrice(), 6.0);
+            } else if (researchTechnical.getEntrySubStrategy()
+                    == ResearchTechnical.SubStrategy.MONTHLY_BREAKOUT) {
+                target = formulaService.applyPercentChange(researchTechnical.getEntryPrice(), 24.0);
+            }
+        }
+
         return formulaService.roundToNearestTick(target, researchTechnical.getTickSize());
     }
 
@@ -36,6 +46,7 @@ public class TargetService {
             StockPrice stockPrice,
             StockTechnicals stockTechnicals,
             ResearchTechnical researchTechnical) {
+
         double risk = researchTechnical.getRisk();
         double minRisk = RiskUtil.minRisk(stockPrice.getTimeframe()); // e.g., 6
         double maxRisk = RiskUtil.maxRisk(stockPrice.getTimeframe()); // e.g., 8

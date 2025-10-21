@@ -95,7 +95,7 @@ public class MiscUtil {
     }
 
     public LocalDate currentDate() {
-        //  return LocalDate.of(2025, 10, 05);
+        //  return LocalDate.of(2025, 10, 20);
         return LocalDate.now();
     }
 
@@ -214,6 +214,16 @@ public class MiscUtil {
 
     public LocalDate currentWeekFirstDay() {
         return LocalDate.now().with(DayOfWeek.MONDAY);
+    }
+
+    public LocalDate nextWeekFirstDay() {
+        // Go to next week's Monday
+        return LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY));
+    }
+
+    public LocalDate nextMonthFirstDay() {
+        // Go to next month's first day
+        return LocalDate.now().with(TemporalAdjusters.firstDayOfNextMonth());
     }
 
     public LocalDate currentMonthFirstDay() {

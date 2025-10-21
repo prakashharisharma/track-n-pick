@@ -73,6 +73,9 @@ public class DhanOrderSchedulerHelperService {
 
         StockPrice stockPriceDaily = stockPriceService.get(rt.getStock(), Timeframe.DAILY);
 
+        // boolean isLowerLowAndLowerHigh = CandleStickUtils.isLowerLow(stockPriceDaily) &&
+        // CandleStickUtils.isLowerHigh(stockPriceDaily);
+
         if (stockPriceDaily.getClose() < stockPrice.getLow() || stockPriceDaily.getClose() < ma5) {
             return false;
         }

@@ -232,7 +232,7 @@ public class CalendarService {
         return sessionDate.equals(lastDay);
     }
 
-    public LocalDate nextTradingDate(LocalDate sessionDate) {
+    public LocalDate nextTradingSession(LocalDate sessionDate) {
 
         LocalDate nextTradingDate = sessionDate;
 
@@ -245,7 +245,7 @@ public class CalendarService {
         }
 
         if (this.isHoliday(nextTradingDate)) {
-            return nextTradingDate(nextTradingDate);
+            return nextTradingSession(nextTradingDate);
         }
 
         return nextTradingDate;
