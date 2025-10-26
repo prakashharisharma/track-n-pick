@@ -71,8 +71,8 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
     private TradeSignalEvaluator hybridPriceActionSignalEvaluator;
 
     @Autowired
-    @Qualifier("simplePriceActionSignalEvaluator")
-    private TradeSignalEvaluator simplePriceActionSignalEvaluator;
+    @Qualifier("omegaPriceActionSignalEvaluator")
+    private TradeSignalEvaluator omegaPriceActionSignalEvaluator;
 
     @Autowired
     @Qualifier("flexiPriceActionSignalEvaluator")
@@ -194,6 +194,7 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                         return;
                     }
 
+                    /*
                     TradeSetup tradeSetup =
                             simplePriceActionSignalEvaluator.evaluateEntry(
                                     timeframe, stock, stockPrice, stockTechnicals);
@@ -202,8 +203,10 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
                         tradeSetup =
                                 basicPriceActionSignalEvaluator.evaluateEntry(
                                         timeframe, stock, stockPrice, stockTechnicals);
-                    }
-
+                    } */
+                    TradeSetup tradeSetup =
+                            basicPriceActionSignalEvaluator.evaluateEntry(
+                                    timeframe, stock, stockPrice, stockTechnicals);
                     if (!tradeSetup.isActive()) {
                         tradeSetup =
                                 megaPriceActionSignalEvaluator.evaluateEntry(
@@ -308,14 +311,8 @@ public class ResearchExecutorServiceImpl implements ResearchExecutorService {
         } else if (researchTechnical.getEntryPrice() < stockPrice.getClose()) {
 
             tradeSetup =
-                    simplePriceActionSignalEvaluator.evaluateExit(
+                    basicPriceActionSignalEvaluator.evaluateExit(
                             timeframe, stock, stockPrice, stockTechnicals);
-
-            if (!tradeSetup.isActive()) {
-                tradeSetup =
-                        basicPriceActionSignalEvaluator.evaluateExit(
-                                timeframe, stock, stockPrice, stockTechnicals);
-            }
 
             if (!tradeSetup.isActive()) {
                 tradeSetup =

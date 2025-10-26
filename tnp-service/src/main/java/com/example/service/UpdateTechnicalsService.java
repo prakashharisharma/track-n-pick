@@ -29,4 +29,7 @@ public interface UpdateTechnicalsService {
     public void updateTechnicals(Timeframe timeframe, Stock stock, StockTechnicals stockTechnicals);
 
     public StockTechnicals build(Timeframe timeframe, Stock stock, LocalDate sessionDate);
+
+    public com.example.data.transactional.entities.StockTechnicals buildBack(
+            Timeframe timeframe, Stock stock, LocalDate sessionDate);
 }

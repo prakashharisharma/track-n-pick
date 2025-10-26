@@ -3,6 +3,7 @@ package com.example.dto.io;
 import com.example.data.common.type.MarketCapCategory;
 import com.example.data.transactional.entities.ResearchTechnical;
 import com.example.data.transactional.entities.Stock;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,9 +14,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StockAnalysis {
+    private LocalDate scanDate;
+    private LocalDate currentCloseDate;
     private ResearchTechnical.Strategy strategy;
     private Stock stock;
-    private MarketCapCategory capSize;
+    private MarketCapCategory marketCap;
     private boolean is4Incr;
     private boolean isAvgIncr;
     private boolean isVolIncr;

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -21,6 +22,7 @@ public class OhlcvServiceImpl implements OhlcvService {
     @Autowired private PriceTemplate priceTemplate;
 
     @Override
+    @Cacheable(value = "ohlcvsFetch", key = "{#nseSymbol, #from, #to}")
     public List<OHLCV> fetch(String nseSymbol, LocalDate from, LocalDate to) {
 
         List<StockPrice> stockPrices = priceTemplate.get(nseSymbol, from, to);
@@ -33,6 +35,7 @@ public class OhlcvServiceImpl implements OhlcvService {
     }
 
     @Override
+    @Cacheable(value = "ohlcvsFetch", key = "{#timeframe, #nseSymbol, #from, #to}")
     public List<OHLCV> fetch(Timeframe timeframe, String nseSymbol, LocalDate from, LocalDate to) {
 
         List<StockPrice> stockPrices = priceTemplate.get(timeframe, nseSymbol, from, to);
