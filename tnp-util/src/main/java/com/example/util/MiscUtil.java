@@ -95,13 +95,32 @@ public class MiscUtil {
     }
 
     public LocalDate currentDate() {
-        //  return LocalDate.of(2025, 10, 20);
+
+        // return LocalDate.of(2025, 10, 1);
         return LocalDate.now();
+        // return LocalDate.now().minusMonths(1); //SEP 25
+        // return LocalDate.now().minusMonths(2); //AUG 25
+        //  return LocalDate.now().minusMonths(3); //JUL 25
+        // return LocalDate.now().minusMonths(4); //JUN 25
+        // return LocalDate.now().minusMonths(5); //MAY 25 --
+        // return LocalDate.now().minusMonths(6); //APR 25
+        // return LocalDate.now().minusMonths(7); //MAR 25
+        // return LocalDate.now().minusMonths(8); //FEB 25
+        // return LocalDate.now().minusMonths(9); //JAN 25
+        // return LocalDate.now().minusMonths(10); //DEC 24
+        // return LocalDate.now().minusMonths(11); //NOV 24
+        // return LocalDate.now().minusMonths(12); //OCT 24
+        // return LocalDate.now().minusMonths(13); //SEP 24
+        //  return LocalDate.now().minusMonths(14); //AUG 24
+        // return LocalDate.now().minusMonths(15); //JUL 24
+        //  return LocalDate.now().minusMonths(16); //JUN 24
+        // return LocalDate.now().minusMonths(17); //MAY 24
+        // return LocalDate.now().minusMonths(18); //APR 24
     }
 
     public LocalDate currentYearFirstDay() {
 
-        LocalDate yearFirstdate = LocalDate.now().with(TemporalAdjusters.firstDayOfYear());
+        LocalDate yearFirstdate = this.currentDate().with(TemporalAdjusters.firstDayOfYear());
 
         return yearFirstdate;
     }
@@ -109,7 +128,7 @@ public class MiscUtil {
     public LocalDate previousMonthLastDay() {
 
         LocalDate previousMonthLastDay =
-                LocalDate.now().minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
+                this.currentDate().minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
 
         return previousMonthLastDay;
     }
@@ -117,7 +136,7 @@ public class MiscUtil {
     public LocalDate previousMonthFirstDay() {
 
         LocalDate previousMonthFirstDay =
-                LocalDate.now().minusMonths(1).with(TemporalAdjusters.firstDayOfMonth());
+                this.currentDate().minusMonths(1).with(TemporalAdjusters.firstDayOfMonth());
 
         return previousMonthFirstDay;
     }
@@ -191,7 +210,7 @@ public class MiscUtil {
 
     public LocalDate currentYearLastDay() {
 
-        LocalDate yearLasttdate = LocalDate.now().with(TemporalAdjusters.lastDayOfYear());
+        LocalDate yearLasttdate = this.currentDate().with(TemporalAdjusters.lastDayOfYear());
 
         return yearLasttdate;
     }
@@ -199,7 +218,7 @@ public class MiscUtil {
     public LocalDate previousWeekLastDay() {
 
         LocalDate previousWeekLastDay =
-                LocalDate.now().with(nextOrSame(DayOfWeek.SUNDAY)).minusWeeks(1);
+                this.currentDate().with(nextOrSame(DayOfWeek.SUNDAY)).minusWeeks(1);
 
         return previousWeekLastDay;
     }
@@ -207,35 +226,35 @@ public class MiscUtil {
     public LocalDate previousWeekFirstDay() {
 
         LocalDate previousWeekFirstDay =
-                LocalDate.now().with(previousOrSame(DayOfWeek.MONDAY)).minusWeeks(1);
+                this.currentDate().with(previousOrSame(DayOfWeek.MONDAY)).minusWeeks(1);
 
         return previousWeekFirstDay;
     }
 
     public LocalDate currentWeekFirstDay() {
-        return LocalDate.now().with(DayOfWeek.MONDAY);
+        return this.currentDate().with(DayOfWeek.MONDAY);
     }
 
     public LocalDate nextWeekFirstDay() {
         // Go to next week's Monday
-        return LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY));
+        return this.currentDate().with(TemporalAdjusters.next(DayOfWeek.MONDAY));
     }
 
     public LocalDate nextMonthFirstDay() {
         // Go to next month's first day
-        return LocalDate.now().with(TemporalAdjusters.firstDayOfNextMonth());
+        return this.currentDate().with(TemporalAdjusters.firstDayOfNextMonth());
     }
 
     public LocalDate currentMonthFirstDay() {
 
-        LocalDate monthFirstDate = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate monthFirstDate = this.currentDate().with(TemporalAdjusters.firstDayOfMonth());
 
         return monthFirstDate;
     }
 
     public LocalDate currentMonthLastDay() {
 
-        LocalDate monthLastDate = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
+        LocalDate monthLastDate = this.currentDate().with(TemporalAdjusters.lastDayOfMonth());
 
         return monthLastDate;
     }

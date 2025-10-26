@@ -13,4 +13,7 @@ public interface UpdatePriceService {
     public StockPrice build(StockPriceIO stockPriceIO);
 
     public StockPrice build(Timeframe timeframe, Stock stock, LocalDate sessionDate);
+
+    public com.example.data.transactional.entities.StockPrice buildBack(
+            Timeframe timeframe, Stock stock, LocalDate sessionDate);
 }

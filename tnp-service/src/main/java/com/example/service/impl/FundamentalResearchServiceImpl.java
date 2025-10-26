@@ -43,6 +43,18 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
     }
 
     @Override
+    public boolean isPriceInRange(StockPrice stockPrice) {
+
+        if (stockPrice.getClose() > rules.getPricegt()
+                && stockPrice.getClose() < rules.getPricelt()) {
+
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
+
+    @Override
     public boolean isMcapInRange(Stock stock) {
 
         double marketCapInCr = this.marketCap(stock);
@@ -60,6 +72,22 @@ public class FundamentalResearchServiceImpl implements FundamentalResearchServic
 
         StockPrice stockPrice = stockPriceService.get(stock, Timeframe.DAILY);
         FinancialsSummary financialsSummary = stock.getFinancialsSummary();
+        if (financialsSummary != null && stockPrice != null) {
+            if (financialsSummary.getIssuedSize() >= 0) {
+                double marketCap = financialsSummary.getIssuedSize() * stockPrice.getClose();
+                double marketCapInCr = marketCap / 1_00_00_000.0;
+
+                // log.info("{} MarketCap: {} Cr.", stock.getNseSymbol(), marketCapInCr);
+                return miscUtil.roundToTwoDecimals(marketCapInCr);
+            }
+        }
+
+        return 0;
+    }
+
+    @Override
+    public double marketCap(StockPrice stockPrice) {
+        FinancialsSummary financialsSummary = stockPrice.getStock().getFinancialsSummary();
         if (financialsSummary != null && stockPrice != null) {
             if (financialsSummary.getIssuedSize() >= 0) {
                 double marketCap = financialsSummary.getIssuedSize() * stockPrice.getClose();

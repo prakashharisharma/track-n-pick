@@ -2,8 +2,7 @@ package com.example.service.impl;
 
 import com.example.data.common.type.Timeframe;
 import com.example.data.storage.repo.PriceTemplate;
-import com.example.data.transactional.entities.Stock;
-import com.example.data.transactional.entities.StockPrice;
+import com.example.data.transactional.entities.*;
 import com.example.dto.common.OHLCV;
 import com.example.dto.io.StockPriceIO;
 import com.example.service.*;
@@ -12,8 +11,11 @@ import com.example.service.UpdatePriceService;
 import com.example.util.MiscUtil;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAdjusters;
+import java.util.List;
+import java.util.function.BiFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ public class UpdatePriceServiceImpl implements UpdatePriceService {
     private final StockPriceService<StockPrice> stockPriceService;
     private final MiscUtil miscUtil;
     private final CalendarService calendarService;
+
+    private final OhlcvService ohlcvService;
 
     private final YearlySupportResistanceService yearlySupportResistanceService;
 
@@ -179,5 +183,149 @@ public class UpdatePriceServiceImpl implements UpdatePriceService {
 
         // throw new IllegalArgumentException(stock.getNseSymbol() + "OHLCV does not exist for"+
         // timeframe +" " + to);
+    }
+
+    @Override
+    // @Cacheable(value = "stockPrices", key = "{#stock.nseSymbol, #timeframe, #sessionDate}")
+    public StockPrice buildBack(Timeframe timeframe, Stock stock, LocalDate sessionDate) {
+
+        LocalDate from = null;
+        LocalDate to = sessionDate;
+        OHLCV ohlcv = null;
+        StockPrice stockPrice = null;
+        if (timeframe == Timeframe.MONTHLY) {
+            from = sessionDate.minusMonths(7).with(TemporalAdjusters.firstDayOfMonth());
+            stockPrice = new StockPriceMonthly();
+
+        } else if (timeframe == Timeframe.WEEKLY) {
+            from =
+                    sessionDate
+                            .minusWeeks(7)
+                            .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+            stockPrice = new StockPriceWeekly();
+        } else {
+            from = sessionDate.minusDays(10);
+            to = sessionDate;
+            stockPrice = new StockPriceDaily();
+        }
+
+        List<OHLCV> ohlcvList = ohlcvService.fetch(timeframe, stock.getNseSymbol(), from, to);
+
+        stockPrice.setStock(stock);
+        stockPrice.setTimeframe(timeframe);
+
+        if (ohlcvList == null || ohlcvList.isEmpty()) {
+            return stockPrice;
+        }
+
+        int size = ohlcvList.size();
+        OHLCV latest = ohlcvList.get(size - 1); // last = current day
+        stockPrice.setSessionDate(
+                latest.getBhavDate().atZone(ZoneId.systemDefault()).toLocalDate());
+        stockPrice.setOpen(latest.getOpen());
+        stockPrice.setHigh(latest.getHigh());
+        stockPrice.setLow(latest.getLow());
+        stockPrice.setClose(latest.getClose());
+
+        // Helper: safely get previous OHLCV by backtrack index
+        BiFunction<List<OHLCV>, Integer, OHLCV> getPrev =
+                (list, n) -> {
+                    int idx = size - 1 - n;
+                    return (idx >= 0) ? list.get(idx) : null;
+                };
+
+        // prev (n=1)
+        OHLCV p1 = getPrev.apply(ohlcvList, 1);
+        if (p1 != null) {
+
+            stockPrice.setPrevOpen(p1.getOpen());
+            stockPrice.setPrevHigh(p1.getHigh());
+            stockPrice.setPrevLow(p1.getLow());
+            stockPrice.setPrevClose(p1.getClose());
+        } else {
+            stockPrice.setPrevOpen(0.0);
+            stockPrice.setPrevHigh(0.0);
+            stockPrice.setPrevLow(0.0);
+            stockPrice.setPrevClose(0.0);
+        }
+
+        // prev2 (n=2)
+        OHLCV p2 = getPrev.apply(ohlcvList, 2);
+        if (p2 != null) {
+
+            stockPrice.setPrev2Open(p2.getOpen());
+            stockPrice.setPrev2High(p2.getHigh());
+            stockPrice.setPrev2Low(p2.getLow());
+            stockPrice.setPrev2Close(p2.getClose());
+        } else {
+            stockPrice.setPrev2Open(0.0);
+            stockPrice.setPrev2High(0.0);
+            stockPrice.setPrev2Low(0.0);
+            stockPrice.setPrev2Close(0.0);
+        }
+
+        // prev3 (n=3)
+        OHLCV p3 = getPrev.apply(ohlcvList, 3);
+        if (p3 != null) {
+
+            stockPrice.setPrev3Open(p3.getOpen());
+            stockPrice.setPrev3High(p3.getHigh());
+            stockPrice.setPrev3Low(p3.getLow());
+            stockPrice.setPrev3Close(p3.getClose());
+        } else {
+            stockPrice.setPrev3Open(0.0);
+            stockPrice.setPrev3High(0.0);
+            stockPrice.setPrev3Low(0.0);
+            stockPrice.setPrev3Close(0.0);
+        }
+
+        // prev4 (n=4)
+        OHLCV p4 = getPrev.apply(ohlcvList, 4);
+        if (p4 != null) {
+
+            stockPrice.setPrev4Open(p4.getOpen());
+            stockPrice.setPrev4High(p4.getHigh());
+            stockPrice.setPrev4Low(p4.getLow());
+            stockPrice.setPrev4Close(p4.getClose());
+        } else {
+            stockPrice.setPrev4Open(0.0);
+            stockPrice.setPrev4High(0.0);
+            stockPrice.setPrev4Low(0.0);
+            stockPrice.setPrev4Close(0.0);
+        }
+
+        // prev5 (n=5)
+        OHLCV p5 = getPrev.apply(ohlcvList, 5);
+        if (p5 != null) {
+
+            stockPrice.setPrev5Open(p5.getOpen());
+            stockPrice.setPrev5High(p5.getHigh());
+            stockPrice.setPrev5Low(p5.getLow());
+            stockPrice.setPrev5Close(p5.getClose());
+        } else {
+            stockPrice.setPrev5Open(0.0);
+            stockPrice.setPrev5High(0.0);
+            stockPrice.setPrev5Low(0.0);
+            stockPrice.setPrev5Close(0.0);
+        }
+
+        // prev6 (n=6)
+        OHLCV p6 = getPrev.apply(ohlcvList, 6);
+        if (p6 != null) {
+
+            stockPrice.setPrev6Open(p6.getOpen());
+            stockPrice.setPrev6High(p6.getHigh());
+            stockPrice.setPrev6Low(p6.getLow());
+            stockPrice.setPrev6Close(p6.getClose());
+        } else {
+            stockPrice.setPrev6Open(0.0);
+            stockPrice.setPrev6High(0.0);
+            stockPrice.setPrev6Low(0.0);
+            stockPrice.setPrev6Close(0.0);
+        }
+
+        System.out.println(stockPrice);
+
+        return stockPrice;
     }
 }

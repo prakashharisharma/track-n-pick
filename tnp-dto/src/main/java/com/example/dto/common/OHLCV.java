@@ -1,8 +1,9 @@
 package com.example.dto.common;
 
+import java.io.Serializable;
 import java.time.Instant;
 
-public class OHLCV {
+public class OHLCV implements Serializable {
 
     private Instant bhavDate = Instant.now();
     private Double open;

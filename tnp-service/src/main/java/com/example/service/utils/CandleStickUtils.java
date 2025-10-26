@@ -417,6 +417,36 @@ public class CandleStickUtils {
         return high < prevHigh;
     }
 
+    public static boolean isPrevLowerHigh(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        Double high = stockPrice.getPrevHigh();
+        Double prevHigh = stockPrice.getPrev2High();
+
+        if (high == null || prevHigh == null) {
+            return false;
+        }
+
+        return high < prevHigh;
+    }
+
+    public static boolean isPrev2LowerHigh(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        Double high = stockPrice.getPrev2High();
+        Double prevHigh = stockPrice.getPrev3High();
+
+        if (high == null || prevHigh == null) {
+            return false;
+        }
+
+        return high < prevHigh;
+    }
+
     public static boolean isLowerLow(StockPrice stockPrice) {
         if (stockPrice == null) {
             return false;
@@ -424,6 +454,21 @@ public class CandleStickUtils {
 
         Double low = stockPrice.getLow();
         Double prevLow = stockPrice.getPrevLow();
+
+        if (low == null || prevLow == null) {
+            return false;
+        }
+
+        return low < prevLow;
+    }
+
+    public static boolean isPrevLowerLow(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        Double low = stockPrice.getPrevLow();
+        Double prevLow = stockPrice.getPrev2Low();
 
         if (low == null || prevLow == null) {
             return false;
@@ -447,6 +492,21 @@ public class CandleStickUtils {
         return low > prevLow;
     }
 
+    public static boolean isPrevHigherLow(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        Double low = stockPrice.getPrevLow();
+        Double prevLow = stockPrice.getPrev2Low();
+
+        if (low == null || prevLow == null) {
+            return false;
+        }
+
+        return low > prevLow;
+    }
+
     public static boolean isLowerLow(double low, double prevLow) {
         return low < prevLow;
     }
@@ -462,6 +522,17 @@ public class CandleStickUtils {
 
         Double high = stockPrice.getHigh();
         Double prevHigh = stockPrice.getPrevHigh();
+
+        return (high != null && prevHigh != null) && high > prevHigh;
+    }
+
+    public static boolean isPrevHigherHigh(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        Double high = stockPrice.getPrevHigh();
+        Double prevHigh = stockPrice.getPrev2High();
 
         return (high != null && prevHigh != null) && high > prevHigh;
     }

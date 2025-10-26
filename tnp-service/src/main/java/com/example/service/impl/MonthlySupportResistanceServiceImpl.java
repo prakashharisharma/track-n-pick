@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -60,6 +61,7 @@ public class MonthlySupportResistanceServiceImpl implements MonthlySupportResist
     }
 
     @Override
+    @Cacheable(value = "ohlcvs", key = "{#nseSymbol, #from, #to}")
     public OHLCV supportAndResistance(String nseSymbol, LocalDate from, LocalDate to) {
 
         log.info("{} from {} to {}", nseSymbol, from, to);
