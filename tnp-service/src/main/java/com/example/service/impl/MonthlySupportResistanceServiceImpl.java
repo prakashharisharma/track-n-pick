@@ -7,13 +7,9 @@ import com.example.util.MiscUtil;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -24,6 +20,8 @@ public class MonthlySupportResistanceServiceImpl implements MonthlySupportResist
     private final OhlcvService ohlcvService;
 
     private final MiscUtil miscUtil;
+
+    private static Map<String, OHLCV> ohlcvMap = new HashMap();
 
     @Override
     public OHLCV supportAndResistance(Stock stock) {
@@ -61,56 +59,68 @@ public class MonthlySupportResistanceServiceImpl implements MonthlySupportResist
     }
 
     @Override
-    @Cacheable(value = "ohlcvs", key = "{#nseSymbol, #from, #to}")
+    // @Cacheable(value = "ohlcvs", key = "{#nseSymbol, #from, #to}")
     public OHLCV supportAndResistance(String nseSymbol, LocalDate from, LocalDate to) {
 
         log.info("{} from {} to {}", nseSymbol, from, to);
 
-        OHLCV result = new OHLCV();
-        result.setOpen(0.0);
-        result.setHigh(0.0);
-        result.setLow(0.0);
-        result.setClose(0.0);
-        result.setVolume(0l);
-        result.setBhavDate(to.atStartOfDay().atOffset(ZoneOffset.UTC).toInstant());
-        List<OHLCV> ohlcvList = new ArrayList<>();
-        try {
-            ohlcvList = ohlcvService.fetch(nseSymbol, from, to);
-        } catch (Exception e) {
-            log.error("{} An error occurred while fetching bhav", nseSymbol, e);
+        String key = nseSymbol + "-" + from + "-" + to;
+
+        OHLCV ohlcvfromMap = ohlcvMap.get(key);
+
+        if (ohlcvfromMap != null) {
+            return ohlcvfromMap;
+        } else {
+
+            OHLCV result = new OHLCV();
+            result.setOpen(0.0);
+            result.setHigh(0.0);
+            result.setLow(0.0);
+            result.setClose(0.0);
+            result.setVolume(0l);
+            result.setBhavDate(to.atStartOfDay().atOffset(ZoneOffset.UTC).toInstant());
+            List<OHLCV> ohlcvList = new ArrayList<>();
+            try {
+                ohlcvList = ohlcvService.fetch(nseSymbol, from, to);
+            } catch (Exception e) {
+                log.error("{} An error occurred while fetching bhav", nseSymbol, e);
+            }
+
+            if (!ohlcvList.isEmpty()) {
+                OHLCV monthlyOpen = ohlcvList.get(0);
+                OHLCV monthlyHigh =
+                        Collections.max(
+                                ohlcvList, Comparator.comparingDouble(ohlcv -> ohlcv.getHigh()));
+                OHLCV monthlyLow =
+                        Collections.min(
+                                ohlcvList, Comparator.comparingDouble(ohlcv -> ohlcv.getLow()));
+                OHLCV monthlyClose = ohlcvList.get(ohlcvList.size() - 1);
+                long monthlyVolume = ohlcvList.stream().mapToLong(OHLCV::getVolume).sum();
+                Instant bhavDate = ohlcvList.get(ohlcvList.size() - 1).getBhavDate();
+
+                if (bhavDate != null) {
+                    result.setBhavDate(bhavDate);
+                }
+
+                if (monthlyOpen.getOpen() != null) {
+                    result.setOpen(monthlyOpen.getOpen());
+                }
+                if (monthlyHigh.getHigh() != null) {
+                    result.setHigh(monthlyHigh.getHigh());
+                }
+                if (monthlyLow.getLow() != null) {
+                    result.setLow(monthlyLow.getLow());
+                }
+                if (monthlyClose.getClose() != null) {
+                    result.setClose(monthlyClose.getClose());
+                }
+
+                result.setVolume(monthlyVolume);
+            }
+
+            ohlcvMap.put(key, result);
+
+            return result;
         }
-
-        if (!ohlcvList.isEmpty()) {
-            OHLCV monthlyOpen = ohlcvList.get(0);
-            OHLCV monthlyHigh =
-                    Collections.max(
-                            ohlcvList, Comparator.comparingDouble(ohlcv -> ohlcv.getHigh()));
-            OHLCV monthlyLow =
-                    Collections.min(ohlcvList, Comparator.comparingDouble(ohlcv -> ohlcv.getLow()));
-            OHLCV monthlyClose = ohlcvList.get(ohlcvList.size() - 1);
-            long monthlyVolume = ohlcvList.stream().mapToLong(OHLCV::getVolume).sum();
-            Instant bhavDate = ohlcvList.get(ohlcvList.size() - 1).getBhavDate();
-
-            if (bhavDate != null) {
-                result.setBhavDate(bhavDate);
-            }
-
-            if (monthlyOpen.getOpen() != null) {
-                result.setOpen(monthlyOpen.getOpen());
-            }
-            if (monthlyHigh.getHigh() != null) {
-                result.setHigh(monthlyHigh.getHigh());
-            }
-            if (monthlyLow.getLow() != null) {
-                result.setLow(monthlyLow.getLow());
-            }
-            if (monthlyClose.getClose() != null) {
-                result.setClose(monthlyClose.getClose());
-            }
-
-            result.setVolume(monthlyVolume);
-        }
-
-        return result;
     }
 }

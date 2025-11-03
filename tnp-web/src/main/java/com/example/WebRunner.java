@@ -207,199 +207,15 @@ public class WebRunner implements CommandLineRunner {
         //  bhavProcessor.processTechnicals();
         // bhavProcessor.processResearch();
         //  this.allocatePositions();
+        this.scanMaster();
 
-        Stock stock = stockService.getStockByNseSymbol("HCLTECH");
+        // Stock stock = stockService.getStockByNseSymbol("HCLTECH");
 
         // StockPrice stockPrice = updatePriceService.buildBack(Timeframe.MONTHLY, stock,
         // miscUtil.currentDate());
 
         // StockTechnicals stockTechnicals  = updateTechnicalsService.buildBack(Timeframe.MONTHLY,
         // stock, miscUtil.currentDate());
-
-        List<StockAnalysis> monthlyAnalysis = new ArrayList<>();
-
-        monthlyAnalysis.addAll(this.scanAll());
-
-        System.out.println("MONTHLY Analyzed: ");
-        System.out.println(
-                "ScanDate,Symbol,Strategy,MarketCap,Close,CurrentClose,Entry,SL,DynamicSL,Risk,Target,Change%,isExitCandidate");
-
-        List<Allocation> allocateFunds = null;
-        /*
-         allocateFunds  = this.allocateFunds(this.sortAndPrint(monthlyAnalysis), 1800000.0, 0.095);
-
-        for (Allocation allocation : allocateFunds) {
-            System.out.println(
-                    allocation.getStock().getStock().getNseSymbol()
-                            + " : ₹ "
-                            + allocation.getAllocatedAmount());
-        }
-        */
-        System.out.println("Fixed Allocation: ");
-        System.out.println(
-                "ScanDate,CloseDate,Symbol,Strategy,MarketCap,Close,CurrentClose,Entry,SL,DynamicSL,Risk,Target,Change%,isExitCandidate");
-
-        allocateFunds =
-                this.allocateFundsFixed(this.sortAndPrint(monthlyAnalysis), 1800000.0, 0.095);
-
-        allocateFunds.sort(Comparator.comparing(a -> a.getStock().getScanDate()));
-
-        double totalInvested = 0;
-        double totalCurrentValue = 0;
-        System.out.println("\n=== ALLOCATION SUMMARY ===");
-
-        // For per-scanDate aggregation
-        Map<LocalDate, List<Allocation>> byScanDate =
-                allocateFunds.stream()
-                        .collect(
-                                Collectors.groupingBy(
-                                        a -> a.getStock().getScanDate(),
-                                        TreeMap::new, // ensures dates are sorted
-                                        Collectors.toList()));
-        // For per-strategy aggregation
-        Map<ResearchTechnical.Strategy, List<Allocation>> byStrategy =
-                allocateFunds.stream()
-                        .collect(
-                                Collectors.groupingBy(
-                                        a -> a.getStock().getStrategy(),
-                                        TreeMap::new, // ensures dates are sorted
-                                        Collectors.toList()));
-
-        for (Allocation allocation : allocateFunds) {
-            StockAnalysis stockAnalysis = allocation.getStock();
-            double allocatedAmount = allocation.getAllocatedAmount();
-            String symbol = stockAnalysis.getStock().getNseSymbol();
-            double entryPrice = stockAnalysis.getEntryPrice();
-            double currentPrice = stockAnalysis.getCurrentClose();
-            double stopLoss = stockAnalysis.getStopLoss();
-
-            totalInvested += allocatedAmount;
-            totalCurrentValue += allocatedAmount * (Math.max(stopLoss, currentPrice) / entryPrice);
-
-            double stockGainLossPercent =
-                    ((Math.max(stopLoss, currentPrice) / entryPrice) - 1) * 100;
-
-            System.out.println(
-                    stockAnalysis.getScanDate()
-                            + " | "
-                            + symbol
-                            + " | "
-                            + stockAnalysis.getMarketCap()
-                            + " | "
-                            + stockAnalysis.getStrategy()
-                            + " : ₹ "
-                            + String.format("%.2f", allocatedAmount)
-                            + " | Entry: ₹ "
-                            + String.format("%.2f", entryPrice)
-                            + " | Current: ₹ "
-                            + String.format("%.2f", currentPrice)
-                            + " | "
-                            + stockAnalysis.getCurrentCloseDate()
-                            + " | Gain/Loss: "
-                            + String.format("%.2f", stockGainLossPercent)
-                            + "%");
-        }
-
-        StringBuilder sbCSV = new StringBuilder();
-        // ===== TOTAL PORTFOLIO SUMMARY =====
-        double totalGainLoss = totalCurrentValue - totalInvested;
-        double totalGainLossPercent = (totalGainLoss / totalInvested) * 100;
-
-        sbCSV.append(String.format("%.2f", totalGainLossPercent) + "%");
-        sbCSV.append(", ");
-
-        System.out.println("\n=== PORTFOLIO SUMMARY ===");
-        System.out.println("Total Invested: ₹ " + String.format("%.2f", totalInvested));
-        System.out.println("Current Value: ₹ " + String.format("%.2f", totalCurrentValue));
-        System.out.println("Total Gain/Loss: ₹ " + String.format("%.2f", totalGainLoss));
-        System.out.println(
-                "Total Gain/Loss %: " + String.format("%.2f", totalGainLossPercent) + "%");
-
-        // ===== PER-SCANDATE SUMMARY =====
-        System.out.println("\n=== SCANDATE-WISE SUMMARY ===");
-
-        for (Map.Entry<LocalDate, List<Allocation>> entry : byScanDate.entrySet()) {
-            LocalDate scanDate = entry.getKey();
-            List<Allocation> allocations = entry.getValue();
-
-            double dateInvested = 0;
-            double dateCurrentValue = 0;
-
-            for (Allocation allocation : allocations) {
-                StockAnalysis sa = allocation.getStock();
-                double allocatedAmount = allocation.getAllocatedAmount();
-                double entryPrice = sa.getEntryPrice();
-                double currentPrice = sa.getCurrentClose();
-                double stopLoss = sa.getStopLoss();
-
-                dateInvested += allocatedAmount;
-                dateCurrentValue +=
-                        allocatedAmount * (Math.max(stopLoss, currentPrice) / entryPrice);
-            }
-
-            double dateGainLoss = dateCurrentValue - dateInvested;
-            double dateGainLossPercent = (dateGainLoss / dateInvested) * 100;
-
-            System.out.println(
-                    scanDate
-                            + " | Invested: ₹ "
-                            + String.format("%.2f", dateInvested)
-                            + " | Current: ₹ "
-                            + String.format("%.2f", dateCurrentValue)
-                            + " | Gain/Loss: ₹ "
-                            + String.format("%.2f", dateGainLoss)
-                            + " | "
-                            + String.format("%.2f", dateGainLossPercent)
-                            + "%");
-            sbCSV.append(String.format("%.2f", dateGainLossPercent) + "%");
-            sbCSV.append(", ");
-        }
-
-        // ===== PER-STRATEGY SUMMARY =====
-        System.out.println("\n=== STRATEGY-WISE SUMMARY ===");
-
-        for (Map.Entry<ResearchTechnical.Strategy, List<Allocation>> entry :
-                byStrategy.entrySet()) {
-            ResearchTechnical.Strategy strategy = entry.getKey();
-            List<Allocation> allocations = entry.getValue();
-
-            double strategyInvested = 0;
-            double strategyCurrentValue = 0;
-
-            for (Allocation allocation : allocations) {
-                StockAnalysis sa = allocation.getStock();
-                double allocatedAmount = allocation.getAllocatedAmount();
-                double entryPrice = sa.getEntryPrice();
-                double currentPrice = sa.getCurrentClose();
-                double stopLoss = sa.getStopLoss();
-
-                strategyInvested += allocatedAmount;
-                strategyCurrentValue +=
-                        allocatedAmount * (Math.max(stopLoss, currentPrice) / entryPrice);
-            }
-
-            double strategyGainLoss = strategyCurrentValue - strategyInvested;
-            double strategyGainLossPercent = (strategyGainLoss / strategyInvested) * 100;
-
-            System.out.println(
-                    strategy
-                            + " | Invested: ₹ "
-                            + String.format("%.2f", strategyInvested)
-                            + " | Current: ₹ "
-                            + String.format("%.2f", strategyCurrentValue)
-                            + " | Gain/Loss: ₹ "
-                            + String.format("%.2f", strategyGainLoss)
-                            + " | "
-                            + String.format("%.2f", strategyGainLossPercent)
-                            + "%");
-            sbCSV.append(String.format("%.2f", strategyGainLossPercent) + "%");
-            sbCSV.append(", ");
-        }
-
-        System.out.println(
-                miscUtil.currentDate().format(DateTimeFormatter.ofPattern("MMM-yyyy"))
-                        + ", "
-                        + sbCSV);
 
         /*
          int[] digits = totpService.generateToken("CQL4D7FZTBCH2JA7VITTCPHVG3C4YEJR");
@@ -566,6 +382,313 @@ public class WebRunner implements CommandLineRunner {
         // this.testResearch360();
         // this.updatePivotLevels();
         System.out.println("STARTED");
+    }
+
+    private void scanMaster() {
+        List<StockAnalysis> monthlyAnalysis = new ArrayList<>();
+
+        monthlyAnalysis.addAll(this.scanAll());
+
+        System.out.println("MONTHLY Analyzed: ");
+        System.out.println(
+                "ScanDate,Symbol,Strategy,MarketCap,Close,CurrentClose,Entry,SL,DynamicSL,Risk,Target,Change%,isExitCandidate");
+
+        List<Allocation> allocateFunds = null;
+        /*
+         allocateFunds  = this.allocateFunds(this.sortAndPrint(monthlyAnalysis), 1800000.0, 0.095);
+
+        for (Allocation allocation : allocateFunds) {
+            System.out.println(
+                    allocation.getStock().getStock().getNseSymbol()
+                            + " : ₹ "
+                            + allocation.getAllocatedAmount());
+        }
+        */
+        System.out.println("Fixed Allocation: ");
+        System.out.println(
+                "ScanDate,CloseDate,Symbol,Strategy,MarketCap,Close,CurrentClose,Entry,SL,DynamicSL,Risk,Target,Change%,isExitCandidate");
+
+        // allocateFunds = this.allocateFundsFixed(this.sortAndPrint(monthlyAnalysis), 1800000.0,
+        // 0.095);
+
+        allocateFunds =
+                this.allocateFundsByStrategyAndMarketCap(
+                        this.sortAndPrint(monthlyAnalysis), 2_50_000.0, 0.50);
+
+        allocateFunds.sort(Comparator.comparing(a -> a.getStock().getScanDate()));
+
+        double totalInvested = 0;
+        double totalCurrentValue = 0;
+        System.out.println("\n=== ALLOCATION SUMMARY ===");
+
+        // For per-scanDate aggregation
+        Map<LocalDate, List<Allocation>> byScanDate =
+                allocateFunds.stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        a -> a.getStock().getScanDate(),
+                                        TreeMap::new, // ensures dates are sorted
+                                        Collectors.toList()));
+        // For per-strategy aggregation
+        Map<ResearchTechnical.Strategy, List<Allocation>> byStrategy =
+                allocateFunds.stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        a -> a.getStock().getStrategy(),
+                                        TreeMap::new, // ensures dates are sorted
+                                        Collectors.toList()));
+
+        // For per-marketCap aggregation
+        Map<MarketCapCategory, List<Allocation>> byMarketCap =
+                allocateFunds.stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        a -> a.getStock().getMarketCap(),
+                                        TreeMap::new, // ensures dates are sorted
+                                        Collectors.toList()));
+
+        for (Allocation allocation : allocateFunds) {
+            StockAnalysis stockAnalysis = allocation.getStock();
+            double allocatedAmount = allocation.getAllocatedAmount();
+            String symbol = stockAnalysis.getStock().getNseSymbol();
+            double entryPrice = stockAnalysis.getEntryPrice();
+            double currentPrice = stockAnalysis.getCurrentClose();
+            double stopLoss = stockAnalysis.getStopLoss();
+
+            totalInvested += allocatedAmount;
+            totalCurrentValue += allocatedAmount * (Math.max(stopLoss, currentPrice) / entryPrice);
+
+            double stockGainLossPercent =
+                    ((Math.max(stopLoss, currentPrice) / entryPrice) - 1) * 100;
+
+            System.out.println(
+                    stockAnalysis.getScanDate()
+                            + " | "
+                            + symbol
+                            + " | "
+                            + stockAnalysis.getMarketCap()
+                            + " | "
+                            + stockAnalysis.getStrategy()
+                            + " : ₹ "
+                            + String.format("%.2f", allocatedAmount)
+                            + " | Entry: ₹ "
+                            + String.format("%.2f", entryPrice)
+                            + " | Risk: "
+                            + String.format("%.2f", stockAnalysis.getRisk())
+                            + "%"
+                            + " | Current: ₹ "
+                            + String.format("%.2f", currentPrice)
+                            + " | "
+                            + stockAnalysis.getCurrentCloseDate()
+                            + " | Gain/Loss: "
+                            + String.format("%.2f", stockGainLossPercent)
+                            + "%");
+        }
+
+        StringBuilder sbCSV = new StringBuilder();
+        // ===== TOTAL PORTFOLIO SUMMARY =====
+        double totalGainLoss = totalCurrentValue - totalInvested;
+        double totalGainLossPercent = (totalGainLoss / totalInvested) * 100;
+
+        sbCSV.append(String.format("%.2f", totalGainLossPercent) + "%");
+        sbCSV.append(", ");
+
+        System.out.println("\n=== PORTFOLIO SUMMARY ===");
+        System.out.println("Total Invested: ₹ " + String.format("%.2f", totalInvested));
+        System.out.println("Current Value: ₹ " + String.format("%.2f", totalCurrentValue));
+        System.out.println("Total Gain/Loss: ₹ " + String.format("%.2f", totalGainLoss));
+        System.out.println(
+                "Total Gain/Loss %: " + String.format("%.2f", totalGainLossPercent) + "%");
+
+        // ===== PER-STRATEGY SUMMARY =====
+        System.out.println("\n=== STRATEGY-WISE SUMMARY ===");
+
+        Map<ResearchTechnical.Strategy, String> strategyPerformanceMap = new HashMap<>();
+
+        strategyPerformanceMap.put(ResearchTechnical.Strategy.ALPHA, "0.00%");
+        strategyPerformanceMap.put(ResearchTechnical.Strategy.ULTIMA, "0.00%");
+        strategyPerformanceMap.put(ResearchTechnical.Strategy.OMEGA, "0.00%");
+        strategyPerformanceMap.put(ResearchTechnical.Strategy.GAMA, "0.00%");
+
+        for (Map.Entry<ResearchTechnical.Strategy, List<Allocation>> entry :
+                byStrategy.entrySet()) {
+            ResearchTechnical.Strategy strategy = entry.getKey();
+            List<Allocation> allocations = entry.getValue();
+
+            double strategyInvested = 0;
+            double strategyCurrentValue = 0;
+
+            for (Allocation allocation : allocations) {
+                StockAnalysis sa = allocation.getStock();
+                double allocatedAmount = allocation.getAllocatedAmount();
+                double entryPrice = sa.getEntryPrice();
+                double currentPrice = sa.getCurrentClose();
+                double stopLoss = sa.getStopLoss();
+
+                strategyInvested += allocatedAmount;
+                strategyCurrentValue +=
+                        allocatedAmount * (Math.max(stopLoss, currentPrice) / entryPrice);
+            }
+
+            double strategyGainLoss = strategyCurrentValue - strategyInvested;
+            double strategyGainLossPercent = (strategyGainLoss / strategyInvested) * 100;
+
+            System.out.println(
+                    strategy
+                            + " | Invested: ₹ "
+                            + String.format("%.2f", strategyInvested)
+                            + " | Current: ₹ "
+                            + String.format("%.2f", strategyCurrentValue)
+                            + " | Gain/Loss: ₹ "
+                            + String.format("%.2f", strategyGainLoss)
+                            + " | "
+                            + String.format("%.2f", strategyGainLossPercent)
+                            + "%");
+            strategyPerformanceMap.put(
+                    strategy, String.format("%.2f", strategyGainLossPercent) + "%");
+            // sbCSV.append(String.format("%.2f", strategyGainLossPercent) + "%");
+            // sbCSV.append(", ");
+        }
+        sbCSV.append(strategyPerformanceMap.get(ResearchTechnical.Strategy.ALPHA));
+        sbCSV.append(", ");
+        sbCSV.append(strategyPerformanceMap.get(ResearchTechnical.Strategy.ULTIMA));
+        sbCSV.append(", ");
+        sbCSV.append(strategyPerformanceMap.get(ResearchTechnical.Strategy.OMEGA));
+        sbCSV.append(", ");
+        sbCSV.append(strategyPerformanceMap.get(ResearchTechnical.Strategy.GAMA));
+        sbCSV.append(", ");
+
+        // ===== PER-MARKETCAP SUMMARY =====
+        System.out.println("\n=== MARKETCAP-WISE SUMMARY ===");
+
+        Map<MarketCapCategory, String> marketCapPerformanceMap = new HashMap<>();
+
+        marketCapPerformanceMap.put(MarketCapCategory.SMALLCAP, "0.00%");
+        marketCapPerformanceMap.put(MarketCapCategory.MIDCAP, "0.00%");
+        marketCapPerformanceMap.put(MarketCapCategory.LARGECAP, "0.00%");
+        marketCapPerformanceMap.put(MarketCapCategory.MEGACAP, "0.00%");
+
+        for (Map.Entry<MarketCapCategory, List<Allocation>> entry : byMarketCap.entrySet()) {
+            MarketCapCategory marketCap = entry.getKey();
+            List<Allocation> allocations = entry.getValue();
+
+            double marketCapInvested = 0;
+            double marketCapCurrentValue = 0;
+
+            for (Allocation allocation : allocations) {
+                StockAnalysis sa = allocation.getStock();
+                double allocatedAmount = allocation.getAllocatedAmount();
+                double entryPrice = sa.getEntryPrice();
+                double currentPrice = sa.getCurrentClose();
+                double stopLoss = sa.getStopLoss();
+
+                marketCapInvested += allocatedAmount;
+                marketCapCurrentValue +=
+                        allocatedAmount * (Math.max(stopLoss, currentPrice) / entryPrice);
+            }
+
+            double marketCapGainLoss = marketCapCurrentValue - marketCapInvested;
+            double marketCapGainLossPercent = (marketCapGainLoss / marketCapInvested) * 100;
+
+            System.out.println(
+                    marketCap
+                            + " | Invested: ₹ "
+                            + String.format("%.2f", marketCapInvested)
+                            + " | Current: ₹ "
+                            + String.format("%.2f", marketCapCurrentValue)
+                            + " | Gain/Loss: ₹ "
+                            + String.format("%.2f", marketCapGainLoss)
+                            + " | "
+                            + String.format("%.2f", marketCapGainLossPercent)
+                            + "%");
+
+            marketCapPerformanceMap.put(
+                    marketCap, String.format("%.2f", marketCapGainLossPercent) + "%");
+            // sbCSV.append(String.format("%.2f", marketCapGainLossPercent) + "%");
+            // sbCSV.append(", ");
+        }
+
+        sbCSV.append(marketCapPerformanceMap.get(MarketCapCategory.SMALLCAP));
+        sbCSV.append(", ");
+        sbCSV.append(marketCapPerformanceMap.get(MarketCapCategory.MIDCAP));
+        sbCSV.append(", ");
+        sbCSV.append(marketCapPerformanceMap.get(MarketCapCategory.LARGECAP));
+        sbCSV.append(", ");
+        sbCSV.append(marketCapPerformanceMap.get(MarketCapCategory.MEGACAP));
+        sbCSV.append(", ");
+        // ===== PER-SCANDATE SUMMARY =====
+        System.out.println("\n=== SCANDATE-WISE SUMMARY ===");
+
+        Map<String, String> portfolioPerformanceMap = new HashMap<>();
+
+        portfolioPerformanceMap.put("P1", "0.00%");
+        portfolioPerformanceMap.put("P2", "0.00%");
+        portfolioPerformanceMap.put("P3", "0.00%");
+
+        for (Map.Entry<LocalDate, List<Allocation>> entry : byScanDate.entrySet()) {
+            LocalDate scanDate = entry.getKey();
+            List<Allocation> allocations = entry.getValue();
+
+            double dateInvested = 0;
+            double dateCurrentValue = 0;
+
+            for (Allocation allocation : allocations) {
+                StockAnalysis sa = allocation.getStock();
+                double allocatedAmount = allocation.getAllocatedAmount();
+                double entryPrice = sa.getEntryPrice();
+                double currentPrice = sa.getCurrentClose();
+                double stopLoss = sa.getStopLoss();
+
+                dateInvested += allocatedAmount;
+                dateCurrentValue +=
+                        allocatedAmount * (Math.max(stopLoss, currentPrice) / entryPrice);
+            }
+
+            double dateGainLoss = dateCurrentValue - dateInvested;
+            double dateGainLossPercent = (dateGainLoss / dateInvested) * 100;
+
+            System.out.println(
+                    scanDate
+                            + " | Invested: ₹ "
+                            + String.format("%.2f", dateInvested)
+                            + " | Current: ₹ "
+                            + String.format("%.2f", dateCurrentValue)
+                            + " | Gain/Loss: ₹ "
+                            + String.format("%.2f", dateGainLoss)
+                            + " | "
+                            + String.format("%.2f", dateGainLossPercent)
+                            + "%");
+            // sbCSV.append(String.format("%.2f", dateGainLossPercent) + "%");
+            // sbCSV.append(", ");
+
+            LocalDate lastSession =
+                    calendarService.previousTradingSession(
+                            miscUtil.currentDate().withDayOfMonth(1));
+
+            LocalDate firstSession =
+                    calendarService.nextTradingSession(miscUtil.previousMonthLastDay());
+
+            LocalDate secondSession = calendarService.nextTradingSession(firstSession);
+
+            if (scanDate.isEqual(lastSession)) {
+                portfolioPerformanceMap.put("P1", String.format("%.2f", dateGainLossPercent) + "%");
+            } else if (scanDate.isEqual(firstSession)) {
+                portfolioPerformanceMap.put("P2", String.format("%.2f", dateGainLossPercent) + "%");
+            } else if (scanDate.isEqual(secondSession)) {
+                portfolioPerformanceMap.put("P3", String.format("%.2f", dateGainLossPercent) + "%");
+            }
+        }
+
+        sbCSV.append(portfolioPerformanceMap.get("P1"));
+        sbCSV.append(", ");
+        sbCSV.append(portfolioPerformanceMap.get("P2"));
+        sbCSV.append(", ");
+        sbCSV.append(portfolioPerformanceMap.get("P3"));
+
+        System.out.println(
+                miscUtil.currentDate().format(DateTimeFormatter.ofPattern("MMM-yyyy"))
+                        + ", "
+                        + sbCSV);
     }
 
     public void testSignalEvaluator() {
@@ -1110,10 +1233,11 @@ public class WebRunner implements CommandLineRunner {
     }*/
 
     private List<StockAnalysis> scanAll() {
-        ExecutorService executor = Executors.newFixedThreadPool(12);
+        ExecutorService executor = Executors.newFixedThreadPool(4);
 
         try {
             List<Stock> stocks = stockService.getActiveStocks();
+            // List<Stock> stocks = stockService.getForActivity();
             List<StockAnalysis> stockAnalysed = Collections.synchronizedList(new ArrayList<>());
 
             LocalDate sessionDate = calendarService.previousTradingSession(miscUtil.currentDate());
@@ -1154,20 +1278,33 @@ public class WebRunner implements CommandLineRunner {
             if (!this.isMonthlySatisfied(stockPrice, stockTechnicals)) return;
 
             // Execute all scanners in parallel
+            /*
+            List<CompletableFuture<List<StockAnalysis>>> scannerFutures =
+                    Arrays.asList(
+                            CompletableFuture.supplyAsync(
+                                    () -> gamaScannerLastDay(stockPrice, stockTechnicals)),
+                            CompletableFuture.supplyAsync(
+                                    () -> gamaScanner(stockPrice, stockTechnicals))
+                            );*/
+
             List<CompletableFuture<List<StockAnalysis>>> scannerFutures =
                     Arrays.asList(
                             CompletableFuture.supplyAsync(
                                     () -> alphaScannerLastDay(stockPrice, stockTechnicals)),
                             CompletableFuture.supplyAsync(
+                                    () -> ultimaScannerLastDay(stockPrice, stockTechnicals)),
+                            CompletableFuture.supplyAsync(
                                     () -> omegaScannerLastDay(stockPrice, stockTechnicals)),
                             CompletableFuture.supplyAsync(
-                                    () -> ultimaScannerLastDay(stockPrice, stockTechnicals)),
+                                    () -> gamaScannerLastDay(stockPrice, stockTechnicals)),
                             CompletableFuture.supplyAsync(
                                     () -> alphaScanner(stockPrice, stockTechnicals)),
                             CompletableFuture.supplyAsync(
+                                    () -> ultimaScanner(stockPrice, stockTechnicals)),
+                            CompletableFuture.supplyAsync(
                                     () -> omegaScanner(stockPrice, stockTechnicals)),
                             CompletableFuture.supplyAsync(
-                                    () -> ultimaScanner(stockPrice, stockTechnicals)));
+                                    () -> gamaScanner(stockPrice, stockTechnicals)));
 
             // Collect results as they complete
             CompletableFuture.allOf(scannerFutures.toArray(new CompletableFuture[0]))
@@ -1255,6 +1392,324 @@ public class WebRunner implements CommandLineRunner {
         return stockAnalysed;
     }
 
+    private List<StockAnalysis> gamaScannerLastDay(
+            StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
+        Stock stock = stockPrice.getStock();
+
+        List<StockAnalysis> stockAnalysed = new ArrayList<>();
+
+        LocalDate sessionDate =
+                calendarService.previousTradingSession(miscUtil.currentDate().withDayOfMonth(1));
+
+        if (calendarService.isLastTradingSessionOfMonth(miscUtil.currentDate())
+                && LocalTime.now().isAfter(LocalTime.of(15, 30, 00))) {
+            sessionDate = miscUtil.currentDate();
+        }
+
+        /**
+         * 1. close above prev high 1. Close above ema5 and ema20 3. volume above 12 months average
+         */
+        boolean isHigherLow = CandleStickUtils.isHigherLow(stockPrice);
+
+        boolean isLowerHigh = CandleStickUtils.isLowerHigh(stockPrice);
+        double close = stockPrice.getClose();
+        if (CandleStickUtils.isGreen(stockPrice)
+                && close < stockPrice.getPrevOpen()
+                && isHigherLow
+                && isLowerHigh) {
+
+            // System.out.println(" Here1 " + stock.getNseSymbol());
+
+            double ema5 = stockTechnicals.getEma5();
+            double ema20 = stockTechnicals.getEma20();
+            double ema50 = stockTechnicals.getEma50();
+            double ema100 =
+                    MovingAverageUtil.getMovingAverage100(
+                            stockTechnicals.getTimeframe(), stockTechnicals);
+            double ema200 =
+                    MovingAverageUtil.getMovingAverage200(
+                            stockTechnicals.getTimeframe(), stockTechnicals);
+            double prevEma5 = stockTechnicals.getPrevEma5();
+            double prevEma20 = stockTechnicals.getPrevEma20();
+            double prevEma50 = stockTechnicals.getPrevEma50();
+            double prevEma100 =
+                    MovingAverageUtil.getPrevMovingAverage100(
+                            stockTechnicals.getTimeframe(), stockTechnicals);
+            double prevEma200 =
+                    MovingAverageUtil.getPrevMovingAverage200(
+                            stockTechnicals.getTimeframe(), stockTechnicals);
+
+            double prevEma5Weighted = formulaService.applyPercentChange(prevEma5, 2.0);
+            double prevEma20Weighted = formulaService.applyPercentChange(prevEma20, 2.0);
+            double prevEma50Weighted = formulaService.applyPercentChange(prevEma50, 2.0);
+            double prevEma100Weighted = formulaService.applyPercentChange(prevEma100, 2.0);
+            double prevEma200Weighted = formulaService.applyPercentChange(prevEma200, 2.0);
+
+            double prevEma5WeightedNegative = formulaService.applyPercentChange(prevEma5, -2.0);
+            double prevEma20WeightedNegative = formulaService.applyPercentChange(prevEma20, -2.0);
+            double prevEma50WeightedNegative = formulaService.applyPercentChange(prevEma50, -2.0);
+            double prevEma100WeightedNegative = formulaService.applyPercentChange(prevEma100, -2.0);
+            double prevEma200WeightedNegative = formulaService.applyPercentChange(prevEma200, -2.0);
+
+            double prevOpen = stockPrice.getPrevOpen();
+            double prevLow = stockPrice.getPrevLow();
+            double prevClose = stockPrice.getPrevClose();
+
+            boolean isLowRejectedEma5 =
+                    (prevOpen > prevEma5
+                                    && prevLow <= prevEma5Weighted
+                                    && prevClose > prevEma5WeightedNegative)
+                            && CandleStickUtils.isPrevSessionRed(stockPrice)
+                            && close > ema5;
+
+            boolean isLowRejectedEma20 =
+                    (prevOpen > prevEma20
+                                    && prevLow <= prevEma20Weighted
+                                    && prevClose > prevEma20WeightedNegative)
+                            && CandleStickUtils.isPrevSessionRed(stockPrice)
+                            && close > ema20;
+
+            boolean isLowRejectedEma50 =
+                    (prevOpen > prevEma50
+                                    && prevLow <= prevEma50Weighted
+                                    && prevClose > prevEma50WeightedNegative)
+                            && CandleStickUtils.isPrevSessionRed(stockPrice)
+                            && close > ema50;
+
+            boolean isLowRejectedEma100 =
+                    (prevOpen > prevEma100
+                                    && prevLow <= prevEma100Weighted
+                                    && prevClose > prevEma100WeightedNegative)
+                            && CandleStickUtils.isPrevSessionRed(stockPrice)
+                            && close > ema100;
+
+            boolean isLowRejectedEma200 =
+                    (prevOpen > prevEma200
+                                    && prevLow <= prevEma200Weighted
+                                    && prevClose > prevEma200WeightedNegative)
+                            && CandleStickUtils.isPrevSessionRed(stockPrice)
+                            && close > ema200;
+
+            if (((isLowRejectedEma5 || isLowRejectedEma20 || isLowRejectedEma50)
+                            && (ema20 > prevEma20 && ema50 > prevEma50))
+                    || ((isLowRejectedEma100 || isLowRejectedEma200)
+                            && (ema50 > prevEma50 && ema200 > prevEma200))) {
+
+                boolean isDoji = CandleStickUtils.isVerySmallBody(stockPrice);
+                boolean isPrevDoji = CandleStickUtils.isPrevVerySmallBody(stockPrice);
+                // boolean isUpperWickDominant = CandleStickUtils.isUpperWickDominant(stockPrice);
+
+                if (!isDoji && !isPrevDoji) {
+                    // if(ema20 > prevEma20 && ema50 > prevEma50){
+
+                    // System.out.println(" Here2 " + stock.getNseSymbol());
+                    // if (ema20 != 0.0 && ema50 != 0.0 && ema20 > ema50) {
+                    //  if (close > ema20 && close > ema50) {
+                    // long volumeAvg = stockTechnicals.getVolumeAvg10();
+                    // long volume = stockTechnicals.getVolume();
+                    //  if (volume > volumeAvg * 1.5) {
+
+                    // Daily check
+
+                    StockPrice stockPriceDaily =
+                            getStockPriceFromMap(Timeframe.DAILY, stock, sessionDate);
+
+                    StockTechnicals stockTechnicalsDaily =
+                            getStockTechnicalsFromMap(Timeframe.DAILY, stock, sessionDate);
+
+                    Optional<StockAnalysis> stockAnalysisOptional =
+                            isDailyEntrySatisFied(
+                                    stockPrice,
+                                    stockPriceDaily,
+                                    stockTechnicalsDaily,
+                                    sessionDate,
+                                    ResearchTechnical.Strategy.GAMA);
+                    if (stockAnalysisOptional.isPresent()) {
+                        stockAnalysed.add(stockAnalysisOptional.get());
+                    }
+                }
+                //  }
+                // }
+                // }
+                // }
+            }
+        }
+
+        return stockAnalysed;
+    }
+
+    private List<StockAnalysis> gamaScanner(
+            StockPrice stockPrice, StockTechnicals stockTechnicals) {
+
+        Stock stock = stockPrice.getStock();
+
+        List<StockAnalysis> stockAnalysed = new ArrayList<>();
+
+        /**
+         * 1. close above prev high 1. Close above ema5 and ema20 3. volume above 12 months average
+         */
+        boolean isHigherLow = CandleStickUtils.isHigherLow(stockPrice);
+        boolean isLowerHigh = CandleStickUtils.isLowerHigh(stockPrice);
+        double close = stockPrice.getClose();
+        if (CandleStickUtils.isGreen(stockPrice)
+                && close < stockPrice.getPrevOpen()
+                && isHigherLow
+                && isLowerHigh) {
+
+            //  System.out.println(" Here1 " + stock.getNseSymbol());
+
+            double ema5 = stockTechnicals.getEma5();
+            double ema20 = stockTechnicals.getEma20();
+            double ema50 = stockTechnicals.getEma50();
+            double ema100 =
+                    MovingAverageUtil.getMovingAverage100(
+                            stockTechnicals.getTimeframe(), stockTechnicals);
+            double ema200 =
+                    MovingAverageUtil.getMovingAverage200(
+                            stockTechnicals.getTimeframe(), stockTechnicals);
+            double prevEma5 = stockTechnicals.getPrevEma5();
+            double prevEma20 = stockTechnicals.getPrevEma20();
+            double prevEma50 = stockTechnicals.getPrevEma50();
+            double prevEma100 =
+                    MovingAverageUtil.getPrevMovingAverage100(
+                            stockTechnicals.getTimeframe(), stockTechnicals);
+            double prevEma200 =
+                    MovingAverageUtil.getPrevMovingAverage200(
+                            stockTechnicals.getTimeframe(), stockTechnicals);
+
+            double prevEma5Weighted = formulaService.applyPercentChange(prevEma5, 2.0);
+            double prevEma20Weighted = formulaService.applyPercentChange(prevEma20, 2.0);
+            double prevEma50Weighted = formulaService.applyPercentChange(prevEma50, 2.0);
+            double prevEma100Weighted = formulaService.applyPercentChange(prevEma100, 2.0);
+            double prevEma200Weighted = formulaService.applyPercentChange(prevEma200, 2.0);
+
+            double prevEma5WeightedNegative = formulaService.applyPercentChange(prevEma5, -2.0);
+            double prevEma20WeightedNegative = formulaService.applyPercentChange(prevEma20, -2.0);
+            double prevEma50WeightedNegative = formulaService.applyPercentChange(prevEma50, -2.0);
+            double prevEma100WeightedNegative = formulaService.applyPercentChange(prevEma100, -2.0);
+            double prevEma200WeightedNegative = formulaService.applyPercentChange(prevEma200, -2.0);
+
+            double prevOpen = stockPrice.getPrevOpen();
+            double prevLow = stockPrice.getPrevLow();
+            double prevClose = stockPrice.getPrevClose();
+
+            boolean isLowRejectedEma5 =
+                    (prevOpen > prevEma5
+                                    && prevLow <= prevEma5Weighted
+                                    && prevClose > prevEma5WeightedNegative)
+                            && CandleStickUtils.isPrevSessionRed(stockPrice)
+                            && close > ema5;
+
+            boolean isLowRejectedEma20 =
+                    (prevOpen > prevEma20
+                                    && prevLow <= prevEma20Weighted
+                                    && prevClose > prevEma20WeightedNegative)
+                            && CandleStickUtils.isPrevSessionRed(stockPrice)
+                            && close > ema20;
+
+            boolean isLowRejectedEma50 =
+                    (prevOpen > prevEma50
+                                    && prevLow <= prevEma50Weighted
+                                    && prevClose > prevEma50WeightedNegative)
+                            && CandleStickUtils.isPrevSessionRed(stockPrice)
+                            && close > ema50;
+
+            boolean isLowRejectedEma100 =
+                    (prevOpen > prevEma100
+                                    && prevLow <= prevEma100Weighted
+                                    && prevClose > prevEma100WeightedNegative)
+                            && CandleStickUtils.isPrevSessionRed(stockPrice)
+                            && close > ema100;
+
+            boolean isLowRejectedEma200 =
+                    (prevOpen > prevEma200
+                                    && prevLow <= prevEma200Weighted
+                                    && prevClose > prevEma200WeightedNegative)
+                            && CandleStickUtils.isPrevSessionRed(stockPrice)
+                            && close > ema200;
+
+            if (((isLowRejectedEma5 || isLowRejectedEma20 || isLowRejectedEma50)
+                            && (ema20 > prevEma20 && ema50 > prevEma50))
+                    || ((isLowRejectedEma100 || isLowRejectedEma200)
+                            && (ema50 > prevEma50 && ema200 > prevEma200))) {
+
+                boolean isDoji = CandleStickUtils.isVerySmallBody(stockPrice);
+                boolean isPrevDoji = CandleStickUtils.isPrevVerySmallBody(stockPrice);
+
+                // boolean isUpperWickDominant = CandleStickUtils.isUpperWickDominant(stockPrice);
+                // boolean isUpperWickDominant = false;
+                if (!isDoji && !isPrevDoji) {
+                    // System.out.println(" Here2 " + stock.getNseSymbol());
+
+                    // if(ema20 > prevEma20 && ema50 > prevEma50) {
+
+                    // if (ema20 != 0.0 && ema50 != 0.0 && ema20 > ema50) {
+                    //  if (close > ema20 && close > ema50) {
+                    long volumeAvg = stockTechnicals.getVolumeAvg10();
+                    long volume = stockTechnicals.getVolume();
+                    //  if (volume > volumeAvg * 1.5) {
+
+                    // Daily check
+                    LocalDate currentMonthFirstSession =
+                            calendarService.nextTradingSession(miscUtil.previousMonthLastDay());
+
+                    LocalDate currentMonthSecondSession =
+                            calendarService.nextTradingSession(currentMonthFirstSession);
+
+                    LocalDate currentMonthThirdSession =
+                            calendarService.nextTradingSession(currentMonthSecondSession);
+                    LocalDate sessionDate = currentMonthFirstSession;
+                    LocalDate sessionDateTill = currentMonthThirdSession;
+                    LocalDate ohlcvFrom = currentMonthFirstSession;
+
+                    while (sessionDate.isBefore(sessionDateTill)) {
+
+                        OHLCV curentMonthOlcv =
+                                monthlySupportResistanceService.supportAndResistance(
+                                        stock.getNseSymbol(), ohlcvFrom, sessionDate);
+
+                        boolean interactsWithHigherTimeframe =
+                                (stockPrice.getClose() >= curentMonthOlcv.getOpen())
+                                        || (stockPrice.getClose() >= curentMonthOlcv.getLow())
+                                        || (curentMonthOlcv.getLow() >= stockPrice.getLow());
+
+                        if (interactsWithHigherTimeframe) {
+
+                            StockPrice stockPriceDaily =
+                                    getStockPriceFromMap(Timeframe.DAILY, stock, sessionDate);
+
+                            if (stockPriceDaily.getClose() > stockPrice.getClose()) {
+
+                                StockTechnicals stockTechnicalsDaily =
+                                        getStockTechnicalsFromMap(
+                                                Timeframe.DAILY, stock, sessionDate);
+
+                                Optional<StockAnalysis> stockAnalysisOptional =
+                                        isDailyEntrySatisFied(
+                                                stockPrice,
+                                                stockPriceDaily,
+                                                stockTechnicalsDaily,
+                                                sessionDate,
+                                                ResearchTechnical.Strategy.GAMA);
+
+                                if (stockAnalysisOptional.isPresent()) {
+                                    stockAnalysed.add(stockAnalysisOptional.get());
+                                    break;
+                                }
+                            }
+                        }
+
+                        sessionDate = calendarService.nextTradingSession(sessionDate);
+                    }
+                }
+                // }
+            }
+        }
+
+        return stockAnalysed;
+    }
+
     private List<StockAnalysis> alphaScanner(
             StockPrice stockPrice, StockTechnicals stockTechnicals) {
 
@@ -1319,17 +1774,6 @@ public class WebRunner implements CommandLineRunner {
                                             getStockPriceFromMap(
                                                     Timeframe.DAILY, stock, sessionDate);
 
-                                    /*
-                                    if(currentMonthSecondSession.equals(sessionDate)){
-                                        MarketCapCategory marketCapCategory =
-                                                MarketCapCategory.classify(
-                                                        fundamentalResearchService.marketCap(stockPriceDaily));
-
-                                        if(marketCapCategory == MarketCapCategory.MEGACAP || marketCapCategory == MarketCapCategory.SMALLCAP){
-                                            break;
-                                        }
-                                    }*/
-
                                     if (stockPriceDaily.getClose() > stockPrice.getClose()) {
 
                                         StockTechnicals stockTechnicalsDaily =
@@ -1378,49 +1822,74 @@ public class WebRunner implements CommandLineRunner {
         }
         double open = stockPrice.getOpen();
         double low = stockPrice.getLow();
-
+        double ema5 = stockTechnicals.getEma5();
         double ema20 = stockTechnicals.getEma20();
-
         double ema50 = stockTechnicals.getEma50();
+        double ema200 =
+                MovingAverageUtil.getMovingAverage200(
+                        stockTechnicals.getTimeframe(), stockTechnicals);
+        double prevEma5 = stockTechnicals.getPrevEma5();
+        double prevEma20 = stockTechnicals.getPrevEma20();
+        double prevEma50 = stockTechnicals.getPrevEma50();
+        double prevEma200 =
+                MovingAverageUtil.getPrevMovingAverage200(
+                        stockTechnicals.getTimeframe(), stockTechnicals);
         double close = stockPrice.getClose();
-        double ema20Weighted = formulaService.applyPercentChange(ema20, 2.0);
 
-        boolean isLowRejected =
-                (open > ema20 && low <= ema20Weighted && close > ema20)
+        double ema5Weighted = formulaService.applyPercentChange(ema5, 2.0);
+        double ema5WeightedNegative = formulaService.applyPercentChange(ema5, -2.0);
+
+        double ema20Weighted = formulaService.applyPercentChange(ema20, 2.0);
+        double ema20WeightedNegative = formulaService.applyPercentChange(ema20, -2.0);
+
+        double ema50Weighted = formulaService.applyPercentChange(ema50, 2.0);
+        double ema50WeightedNegative = formulaService.applyPercentChange(ema50, -2.0);
+
+        boolean isLowRejectedEma5 =
+                (open > ema5 && low <= ema5Weighted && close > ema5WeightedNegative)
                         && CandleStickUtils.isRed(stockPrice);
 
+        boolean isLowRejectedEma20 =
+                (open > ema20 && low <= ema20Weighted && close > ema20WeightedNegative)
+                        && CandleStickUtils.isRed(stockPrice);
+
+        boolean isLowRejectedEma50 =
+                (open > ema50 && low <= ema50Weighted && close > ema50WeightedNegative)
+                        && CandleStickUtils.isRed(stockPrice);
+        boolean isEma5Above20 = ema5 > ema20;
+        boolean isEma20Above50 = ema20 > ema50;
+        boolean isEma50Above200 = ema50 > ema200;
+        boolean isEma20And50Increasing = ema20 > prevEma20 && ema50 > prevEma50;
+        boolean isEma5And20Increasing = ema5 > prevEma5 && ema20 > prevEma20;
+        boolean isEma50And200Increasing = ema50 > prevEma50 && ema200 > prevEma200;
         // Monthly Align Bullish
-        if (isLowRejected) {
+        if ((isLowRejectedEma5 && isEma5Above20 && isEma5And20Increasing)
+                || (isLowRejectedEma20 && isEma20Above50 && isEma20And50Increasing)
+                || (isLowRejectedEma50 && isEma50Above200 && isEma50And200Increasing)) {
 
-            // Monthly closed above ema5
-            if (ema20 > ema50) {
+            if (stockTechnicals.getVolume() < stockTechnicals.getVolumeAvg20()) {
+                // Daily check
 
-                if (ema20 > stockTechnicals.getPrevEma20()) {
-                    if (ema50 > stockTechnicals.getPrevEma50()) {
+                StockPrice stockPriceDaily =
+                        getStockPriceFromMap(Timeframe.DAILY, stock, sessionDate);
 
-                        if (stockTechnicals.getVolume() < stockTechnicals.getVolumeAvg20()) {
-                            // Daily check
+                StockTechnicals stockTechnicalsDaily =
+                        getStockTechnicalsFromMap(Timeframe.DAILY, stock, sessionDate);
 
-                            StockPrice stockPriceDaily =
-                                    getStockPriceFromMap(Timeframe.DAILY, stock, sessionDate);
-
-                            StockTechnicals stockTechnicalsDaily =
-                                    getStockTechnicalsFromMap(Timeframe.DAILY, stock, sessionDate);
-
-                            Optional<StockAnalysis> stockAnalysisOptional =
-                                    isDailyEntrySatisFied(
-                                            stockPrice,
-                                            stockPriceDaily,
-                                            stockTechnicalsDaily,
-                                            sessionDate,
-                                            ResearchTechnical.Strategy.ULTIMA);
-                            if (stockAnalysisOptional.isPresent()) {
-                                stockAnalysed.add(stockAnalysisOptional.get());
-                            }
-                        }
-                    }
+                Optional<StockAnalysis> stockAnalysisOptional =
+                        isDailyEntrySatisFied(
+                                stockPrice,
+                                stockPriceDaily,
+                                stockTechnicalsDaily,
+                                sessionDate,
+                                ResearchTechnical.Strategy.ULTIMA);
+                if (stockAnalysisOptional.isPresent()) {
+                    stockAnalysed.add(stockAnalysisOptional.get());
                 }
             }
+            //       }
+            // }
+            // }
         }
 
         return stockAnalysed;
@@ -1457,7 +1926,7 @@ public class WebRunner implements CommandLineRunner {
         if (isPrevHigherHighAndHigherLow && CandleStickUtils.isRed(stockPrice)) {
 
             // Monthly closed above ema5
-            if (close > ema20) {
+            if (close > ema20 && ema5 > ema20) {
 
                 // Monthly REd and prev Green
                 if (isLowRejected
@@ -1554,17 +2023,6 @@ public class WebRunner implements CommandLineRunner {
                                 StockPrice stockPriceDaily =
                                         getStockPriceFromMap(Timeframe.DAILY, stock, sessionDate);
 
-                                /*
-                                if(currentMonthSecondSession.equals(sessionDate)){
-                                    MarketCapCategory marketCapCategory =
-                                            MarketCapCategory.classify(
-                                                    fundamentalResearchService.marketCap(stockPriceDaily));
-
-                                    if(marketCapCategory == MarketCapCategory.MEGACAP){
-                                        break;
-                                    }
-                                }*/
-
                                 if (stockPriceDaily.getClose() > stockPrice.getClose()) {
 
                                     StockTechnicals stockTechnicalsDaily =
@@ -1611,72 +2069,103 @@ public class WebRunner implements CommandLineRunner {
 
         double open = stockPrice.getOpen();
         double low = stockPrice.getLow();
+        double ema5 = stockTechnicals.getEma5();
         double ema20 = stockTechnicals.getEma20();
-
         double ema50 = stockTechnicals.getEma50();
+        double ema200 =
+                MovingAverageUtil.getMovingAverage200(
+                        stockTechnicals.getTimeframe(), stockTechnicals);
+        double prevEma5 = stockTechnicals.getPrevEma5();
+        double prevEma20 = stockTechnicals.getPrevEma20();
+        double prevEma50 = stockTechnicals.getPrevEma50();
+        double prevEma200 =
+                MovingAverageUtil.getPrevMovingAverage200(
+                        stockTechnicals.getTimeframe(), stockTechnicals);
         double close = stockPrice.getClose();
-        double ema20Weighted = formulaService.applyPercentChange(ema20, 2.0);
 
-        boolean isLowRejected =
-                (open > ema20 && low <= ema20Weighted && close > ema20)
+        double ema5Weighted = formulaService.applyPercentChange(ema5, 2.0);
+        double ema5WeightedNegative = formulaService.applyPercentChange(ema5, -2.0);
+
+        double ema20Weighted = formulaService.applyPercentChange(ema20, 2.0);
+        double ema20WeightedNegative = formulaService.applyPercentChange(ema20, -2.0);
+
+        double ema50Weighted = formulaService.applyPercentChange(ema50, 2.0);
+        double ema50WeightedNegative = formulaService.applyPercentChange(ema50, -2.0);
+
+        boolean isLowRejectedEma5 =
+                (open > ema5 && low <= ema5Weighted && close > ema5WeightedNegative)
                         && CandleStickUtils.isRed(stockPrice);
 
-        if (isLowRejected) {
+        boolean isLowRejectedEma20 =
+                (open > ema20 && low <= ema20Weighted && close > ema20WeightedNegative)
+                        && CandleStickUtils.isRed(stockPrice);
+
+        boolean isLowRejectedEma50 =
+                (open > ema50 && low <= ema50Weighted && close > ema50WeightedNegative)
+                        && CandleStickUtils.isRed(stockPrice);
+        boolean isEma5Above20 = ema5 > ema20;
+        boolean isEma20Above50 = ema20 > ema50;
+        boolean isEma50Above200 = ema50 > ema200;
+        boolean isEma20And50Increasing = ema20 > prevEma20 && ema50 > prevEma50;
+        boolean isEma5And20Increasing = ema5 > prevEma5 && ema20 > prevEma20;
+        boolean isEma50And200Increasing = ema50 > prevEma50 && ema200 > prevEma200;
+        // Monthly Align Bullish
+        if ((isLowRejectedEma5 && isEma5Above20 && isEma5And20Increasing)
+                || (isLowRejectedEma20 && isEma20Above50 && isEma20And50Increasing)
+                || (isLowRejectedEma50 && isEma50Above200 && isEma50And200Increasing)) {
 
             // Monthly closed above ema5
-            if (ema20 > ema50) {
+            // if (ema20 > ema50) {
 
-                if (ema20 > stockTechnicals.getPrevEma20()) {
-                    if (ema50 > stockTechnicals.getPrevEma50()) {
+            //   if (ema20 > stockTechnicals.getPrevEma20()) {
+            //     if (ema50 > stockTechnicals.getPrevEma50()) {
 
-                        if (stockTechnicals.getVolume() < stockTechnicals.getVolumeAvg20()) {
+            if (stockTechnicals.getVolume() < stockTechnicals.getVolumeAvg20()) {
 
-                            LocalDate currentMonthFirstSession =
-                                    calendarService.nextTradingSession(
-                                            miscUtil.previousMonthLastDay());
+                LocalDate currentMonthFirstSession =
+                        calendarService.nextTradingSession(miscUtil.previousMonthLastDay());
 
-                            LocalDate currentMonthSecondSession =
-                                    calendarService.nextTradingSession(currentMonthFirstSession);
+                LocalDate currentMonthSecondSession =
+                        calendarService.nextTradingSession(currentMonthFirstSession);
 
-                            LocalDate currentMonthThirdSession =
-                                    calendarService.nextTradingSession(currentMonthSecondSession);
-                            LocalDate sessionDate = currentMonthFirstSession;
-                            LocalDate sessionDateTill = currentMonthThirdSession;
+                LocalDate currentMonthThirdSession =
+                        calendarService.nextTradingSession(currentMonthSecondSession);
+                LocalDate sessionDate = currentMonthFirstSession;
+                LocalDate sessionDateTill = currentMonthThirdSession;
 
-                            while (sessionDate.isBefore(sessionDateTill)) {
+                while (sessionDate.isBefore(sessionDateTill)) {
 
-                                StockPrice stockPriceDaily =
-                                        getStockPriceFromMap(Timeframe.DAILY, stock, sessionDate);
+                    StockPrice stockPriceDaily =
+                            getStockPriceFromMap(Timeframe.DAILY, stock, sessionDate);
 
-                                if (CandleStickUtils.isHigherHigh(stockPriceDaily)
-                                        && CandleStickUtils.isHigherLow(stockPriceDaily)) {
+                    if (CandleStickUtils.isHigherHigh(stockPriceDaily)
+                            && CandleStickUtils.isHigherLow(stockPriceDaily)) {
 
-                                    if (stockPriceDaily.getClose() > stockPrice.getClose()) {
+                        if (stockPriceDaily.getClose() > stockPrice.getClose()) {
 
-                                        StockTechnicals stockTechnicalsDaily =
-                                                getStockTechnicalsFromMap(
-                                                        Timeframe.DAILY, stock, sessionDate);
+                            StockTechnicals stockTechnicalsDaily =
+                                    getStockTechnicalsFromMap(Timeframe.DAILY, stock, sessionDate);
 
-                                        Optional<StockAnalysis> stockAnalysisOptional =
-                                                isDailyEntrySatisFied(
-                                                        stockPrice,
-                                                        stockPriceDaily,
-                                                        stockTechnicalsDaily,
-                                                        sessionDate,
-                                                        ResearchTechnical.Strategy.ULTIMA);
+                            Optional<StockAnalysis> stockAnalysisOptional =
+                                    isDailyEntrySatisFied(
+                                            stockPrice,
+                                            stockPriceDaily,
+                                            stockTechnicalsDaily,
+                                            sessionDate,
+                                            ResearchTechnical.Strategy.ULTIMA);
 
-                                        if (stockAnalysisOptional.isPresent()) {
-                                            stockAnalysed.add(stockAnalysisOptional.get());
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                sessionDate = calendarService.nextTradingSession(sessionDate);
+                            if (stockAnalysisOptional.isPresent()) {
+                                stockAnalysed.add(stockAnalysisOptional.get());
+                                break;
                             }
                         }
                     }
+
+                    sessionDate = calendarService.nextTradingSession(sessionDate);
                 }
+                //      }
+                //    }
+                //  }
             }
         }
 
@@ -1736,8 +2225,40 @@ public class WebRunner implements CommandLineRunner {
                         CandleStickUtils.isPrevUpperWickDominant(stockPrice)
                                 && stockPrice.getPrevOpen() > prevEma5
                                 && stockPrice.getPrevClose() > prevEma5;
+                boolean isAllMaAlignedBullish =
+                        MovingAverageUtil.isAllMaAlignedBullish(
+                                stockPrice.getTimeframe(), stockTechnicals);
+                boolean isHangingMan =
+                        stockPrice.getClose() > ema5
+                                && CandleStickUtils.isLowerWickDominant(stockPrice)
+                                && isAllMaAlignedBullish;
+                // if (!isHangingMan) {
+                boolean isEngulfing =
+                        stockPrice.getOpen() >= stockPrice.getPrevClose()
+                                && stockPrice.getClose() < stockPrice.getPrevOpen()
+                                && CandleStickUtils.isRed(stockPrice)
+                                && CandleStickUtils.isPrevSessionGreen(stockPrice)
+                                && isAllMaAlignedBullish;
+                // if (!isEngulfing) {
                 if (!isPrevUpperWickDominant) {
+
+                    boolean isHighAndPrevHighEqual =
+                            Math.floor(stockPrice.getHigh())
+                                    == Math.floor(stockPrice.getPrevHigh());
+
+                    // if (!isHighAndPrevHighEqual) {
+
+                    boolean isHigherHighRed =
+                            (CandleStickUtils.isHigherHigh(stockPrice)
+                                            || stockPrice.getOpen() > stockPrice.getPrevClose())
+                                    && CandleStickUtils.isRed(stockPrice);
+                    //  if (!isHigherHighRed) {
+
                     return true;
+                    //   }
+                    //  }
+                    //  }
+                    //  }
                 }
             }
         }
@@ -1745,13 +2266,13 @@ public class WebRunner implements CommandLineRunner {
     }
 
     private Optional<StockAnalysis> isDailyEntrySatisFied(
-            StockPrice stockPriceHt,
+            StockPrice stockPriceMonthly,
             StockPrice stockPriceDaily,
             StockTechnicals stockTechnicalsDaily,
             LocalDate sessionDate,
             ResearchTechnical.Strategy strategy) {
 
-        Stock stock = stockPriceHt.getStock();
+        Stock stock = stockPriceDaily.getStock();
 
         boolean isGreen = CandleStickUtils.isGreen(stockPriceDaily);
 
@@ -1790,15 +2311,20 @@ public class WebRunner implements CommandLineRunner {
                         && CandleStickUtils.isUpperWickLongerThanLowerWick(stockPriceDaily);
 
         double ema5 = stockTechnicalsDaily.getEma5();
+        double ema20 = stockTechnicalsDaily.getEma20();
+        double ema50 = stockTechnicalsDaily.getEma50();
+
+        double prevEma5 = stockTechnicalsDaily.getPrevEma5();
+        double prevEma20 = stockTechnicalsDaily.getPrevEma20();
+        double prevEma50 = stockTechnicalsDaily.getPrevEma50();
+
+        double prev2Ema5 = stockTechnicalsDaily.getPrev2Ema5();
 
         boolean isOpenAndCloseAboveEma5 =
                 stockPriceDaily.getOpen() > ema5
                         && stockPriceDaily.getClose() > ema5
                         && MovingAverageUtil.isAllMaAlignedBullish(
                                 stockTechnicalsDaily.getTimeframe(), stockTechnicalsDaily);
-
-        boolean isDailyExtendedVariation =
-                isOpenAndCloseAboveEma5 && isUpperWickLongerThanLowerWick && dailyVariation >= 10.0;
 
         double bodyVariation =
                 formulaService.calculateAbsChangePercentage(
@@ -1807,12 +2333,32 @@ public class WebRunner implements CommandLineRunner {
         // boolean isDailyBodyExtended = isUpperWickLongerThanLowerWick && bodyVariation >=7.0;
         boolean isDailyBodyExtended = false;
         // boolean isDailyExtendedVariation =  false;
-
         // System.out.println("dailyVariation "+ stock.getNseSymbol()+" " +
         // stockPriceDaily.getOpen()+" "+ stockPriceDaily.getHigh() + " " + dailyVariation);
 
-        if (!this.isDead(stockPriceDaily)) {
-            if (!isDailyExtendedVariation && !isDailyBodyExtended) {
+        boolean isEma5OnTop = (ema5 > ema20 && ema20 > ema50);
+
+        if (!this.isDead(stockPriceDaily) && CandleStickUtils.isGreen(stockPriceDaily)) {
+            boolean isDailyExtendedVariation =
+                    isOpenAndCloseAboveEma5
+                            && isUpperWickLongerThanLowerWick
+                            && dailyVariation >= 10.0;
+            boolean isExtendedGap = isEma5OnTop && CandleStickUtils.isRisingWindow(stockPriceDaily);
+            boolean isExtendedFromEma5 =
+                    isEma5OnTop
+                            && formulaService.calculateChangePercentage(
+                                            ema5, stockPriceDaily.getClose())
+                                    > 5.0;
+            boolean isPrevExtendedFromEma5 =
+                    isEma5OnTop
+                            && formulaService.calculateChangePercentage(
+                                            prevEma5, stockPriceDaily.getPrevClose())
+                                    > 5.0;
+
+            if (!isDailyExtendedVariation
+                    && !isExtendedFromEma5
+                    && !isExtendedGap
+                    && !isPrevExtendedFromEma5) {
 
                 long avgVol = stockTechnicalsDaily.getVolumeAvg20();
 
@@ -1822,19 +2368,26 @@ public class WebRunner implements CommandLineRunner {
                 if (isAvgVolumeSufficient) {
 
                     if (isGreen || isLowRejected) {
-
+                        // System.out.println(" Here3 " + stock.getNseSymbol());
                         boolean isPRevREdORLowerHighLowerLow =
                                 CandleStickUtils.isPrevSessionRed(stockPriceDaily)
                                         || CandleStickUtils.isPrevLowerHigh(stockPriceDaily)
                                                 && CandleStickUtils.isPrevLowerLow(stockPriceDaily);
 
-                        if (isPRevREdORLowerHighLowerLow) {
+                        boolean isPRevGreenAndHigherLow =
+                                CandleStickUtils.isPrevSessionGreen(stockPriceDaily)
+                                        && CandleStickUtils.isPrev2SessionRed(stockPriceDaily)
+                                        && CandleStickUtils.isPrevHigherLow(stockPriceDaily)
+                                        && stockPriceDaily.getPrevClose()
+                                                > stockPriceDaily.getPrev2Open();
+
+                        if (isPRevREdORLowerHighLowerLow || isPRevGreenAndHigherLow) {
                             boolean isVolOrAvgIncr =
                                     stockTechnicalsDaily.getVolume()
                                                     > stockTechnicalsDaily.getPrevVolume()
                                             || stockTechnicalsDaily.getVolumeAvg20()
                                                     > stockTechnicalsDaily.getPrevVolumeAvg20();
-
+                            //     System.out.println(" Here4 " + stock.getNseSymbol());
                             MarketCapCategory marketCapCategory =
                                     MarketCapCategory.classify(
                                             fundamentalResearchService.marketCap(stockPriceDaily));
@@ -1852,6 +2405,9 @@ public class WebRunner implements CommandLineRunner {
                                 if (marketCapCategory == MarketCapCategory.SMALLCAP) {
                                     volThreshold = 2.0;
                                 }
+                                if (marketCapCategory == MarketCapCategory.MICROCAP) {
+                                    volThreshold = 2.5;
+                                }
 
                                 boolean isVolumeAboveAverage =
                                         (marketCapCategory == MarketCapCategory.MEGACAP)
@@ -1861,18 +2417,49 @@ public class WebRunner implements CommandLineRunner {
                                                         > stockTechnicalsDaily.getVolumeAvg20()
                                                                 * volThreshold;
 
-                                if (isVolumeAboveAverage) {
+                                boolean isVolumeIncr =
+                                        stockTechnicalsDaily.getVolume()
+                                                        > stockTechnicalsDaily.getVolumeAvg20()
+                                                && stockTechnicalsDaily.getVolume()
+                                                        > 1.40
+                                                                * stockTechnicalsDaily
+                                                                        .getPrevVolume();
+
+                                // System.out.println(" Here5 " + stock.getNseSymbol() + "
+                                // "+volThreshold);
+                                if (isVolumeAboveAverage || isVolumeIncr) {
+                                    //  System.out.println(" Here6 " + stock.getNseSymbol() );
+
+                                    boolean isEma5Lowest = ema5 < ema20 && ema20 < ema50;
+                                    boolean isPrevEma5Lowest =
+                                            prevEma5 < prevEma20 && prevEma20 < prevEma50;
 
                                     boolean isUpperWickDominant =
-                                            CandleStickUtils.isUpperWickDominant(stockPriceDaily)
+                                            (stockPriceDaily.getClose() > ema5 && !isEma5Lowest)
+                                                    && CandleStickUtils.isStrongRange(
+                                                            stockPriceDaily.getTimeframe(),
+                                                            stockPriceDaily,
+                                                            stockTechnicalsDaily)
+                                                    && CandleStickUtils.isUpperWickDominant(
+                                                            stockPriceDaily)
                                                     && ((closeDaily > stockTechnicalsDaily.getEma5()
                                                                     && closeDaily
                                                                             > stockTechnicalsDaily
                                                                                     .getEma20())
-                                                            || CandleStickUtils
-                                                                    .isPrevUpperWickDominant(
-                                                                            stockPriceDaily));
+                                                            || (stockPriceDaily.getPrevClose()
+                                                                                    > prevEma5
+                                                                            && !isPrevEma5Lowest)
+                                                                    && CandleStickUtils
+                                                                            .isPrevStrongRange(
+                                                                                    stockPriceDaily
+                                                                                            .getTimeframe(),
+                                                                                    stockPriceDaily,
+                                                                                    stockTechnicalsDaily)
+                                                                    && CandleStickUtils
+                                                                            .isPrevUpperWickDominant(
+                                                                                    stockPriceDaily));
                                     if (!isUpperWickDominant) {
+                                        //  System.out.println(" Here7 " + stock.getNseSymbol() );
                                         boolean isLowerHighAndLowerLow =
                                                 CandleStickUtils.isRed(stockPriceDaily)
                                                         && CandleStickUtils.isLowerHigh(
@@ -1880,6 +2467,8 @@ public class WebRunner implements CommandLineRunner {
                                                         && CandleStickUtils.isLowerLow(
                                                                 stockPriceDaily);
                                         if (!isLowerHighAndLowerLow) {
+                                            // System.out.println(" Here8 " + stock.getNseSymbol()
+                                            // );
                                             boolean isHarami =
                                                     CandleStickUtils.isRed(stockPriceDaily)
                                                             && CandleStickUtils.isPrevSessionGreen(
@@ -1891,165 +2480,397 @@ public class WebRunner implements CommandLineRunner {
                                             boolean isDoji =
                                                     CandleStickUtils.isVerySmallBody(
                                                             stockPriceDaily);
-                                            if (!isHarami && !isDoji) {
 
-                                                double entryPrice =
-                                                        Math.min(
-                                                                formulaService.applyPercentChange(
-                                                                        stockPriceHt.getClose(),
-                                                                        strategy
-                                                                                        == ResearchTechnical
-                                                                                                .Strategy
-                                                                                                .OMEGA
-                                                                                ? 2.0
-                                                                                : 1.5),
-                                                                stockPriceDaily.getHigh());
+                                            boolean isHaningMan =
+                                                    MovingAverageUtil.isAllMaAlignedBullish(
+                                                                    stockPriceDaily.getTimeframe(),
+                                                                    stockTechnicalsDaily)
+                                                            && CandleStickUtils
+                                                                    .isLowerWickLongerThanUpperWick(
+                                                                            stockPriceDaily)
+                                                            && stockPriceDaily.getOpen() > ema5
+                                                            && stockPriceDaily.getClose() > ema5;
+                                            if (!isHarami && !isDoji && !isHaningMan) {
 
-                                                entryPrice =
-                                                        Math.max(
-                                                                entryPrice,
-                                                                stockPriceDaily.getClose());
+                                                boolean isRsiInRange =
+                                                        stockTechnicalsDaily.getRsi() < 65.0;
 
-                                                double target =
-                                                        this.calculateTarget(
-                                                                entryPrice, Timeframe.MONTHLY);
+                                                if (isRsiInRange) {
+                                                    boolean isBreakOutEma5 =
+                                                            stockPriceDaily.getClose() > ema5
+                                                                    && stockPriceDaily
+                                                                                    .getPrevClose()
+                                                                            < prevEma5;
+                                                    boolean isPrevBreakOutEma5 =
+                                                            stockPriceDaily.getPrevClose()
+                                                                            > prevEma5
+                                                                    && stockPriceDaily
+                                                                                    .getPrev2Close()
+                                                                            < prev2Ema5;
 
-                                                LocalDate currentCloseDate =
-                                                        miscUtil.currentMonthLastDay();
+                                                    if (isBreakOutEma5 || isPrevBreakOutEma5) {
+                                                        double entryPrice =
+                                                                Math.min(
+                                                                        formulaService
+                                                                                .applyPercentChange(
+                                                                                        Math.min(
+                                                                                                stockPriceMonthly
+                                                                                                        .getClose(),
+                                                                                                stockPriceDaily
+                                                                                                        .getPrevClose()),
+                                                                                        strategy
+                                                                                                        == ResearchTechnical
+                                                                                                                .Strategy
+                                                                                                                .OMEGA
+                                                                                                ? 2.0
+                                                                                                : 1.5),
+                                                                        stockPriceDaily.getHigh());
 
-                                                if (calendarService.isLastTradingSessionOfMonth(
-                                                        sessionDate)) {
-                                                    currentCloseDate =
-                                                            calendarService.previousTradingSession(
-                                                                    YearMonth.from(
-                                                                                    sessionDate
-                                                                                            .plusMonths(
-                                                                                                    1))
-                                                                            .atEndOfMonth());
-                                                }
-
-                                                StockPrice stockPriceCurrent =
-                                                        updatePriceService.buildBack(
-                                                                Timeframe.DAILY,
-                                                                stock,
-                                                                currentCloseDate);
-                                                StockTechnicals stockTechnicalsCurrent =
-                                                        updateTechnicalsService.buildBack(
-                                                                Timeframe.DAILY,
-                                                                stock,
-                                                                currentCloseDate);
-
-                                                double stopLoss = stockPriceDaily.getLow();
-
-                                                double currentClose = stockPriceCurrent.getClose();
-
-                                                double dynamicStopLoss =
-                                                        this.calculateDynamicStopLoss(
-                                                                stopLoss,
-                                                                stockPriceCurrent,
-                                                                stockTechnicalsCurrent,
-                                                                Timeframe.MONTHLY);
-
-                                                boolean isExitCandidate =
-                                                        this.isExitCandidate(
-                                                                dynamicStopLoss,
-                                                                stockPriceCurrent,
-                                                                stockTechnicalsCurrent);
-
-                                                double risk =
-                                                        ((entryPrice - stopLoss) / entryPrice)
-                                                                * 100.0;
-                                                // System.out.println("risk " + risk);
-
-                                                double riskThreshold = 1.0;
-
-                                                if (marketCapCategory
-                                                        == MarketCapCategory.MEGACAP) {
-                                                    riskThreshold = 3.0;
-                                                } else if (marketCapCategory
-                                                        == MarketCapCategory.LARGECAP) {
-                                                    riskThreshold = 2.5;
-                                                } else if (marketCapCategory
-                                                        == MarketCapCategory.MIDCAP) {
-                                                    riskThreshold = 2.0;
-                                                } else {
-                                                    riskThreshold = 1.5;
-                                                }
-
-                                                if (risk > riskThreshold
-                                                        && risk < riskThreshold * 3) {
-                                                    // System.out.println("risk recalculated " +
-                                                    // risk);
-                                                    entryPrice =
-                                                            formulaService.applyPercentChange(
-                                                                    entryPrice,
-                                                                    -1 * (risk - riskThreshold));
-                                                    risk =
-                                                            ((entryPrice - stopLoss) / entryPrice)
-                                                                    * 100.0;
-                                                    if (marketCapCategory
-                                                                    == MarketCapCategory.MEGACAP
-                                                            || marketCapCategory
-                                                                    == MarketCapCategory.LARGECAP) {
                                                         entryPrice =
-                                                                formulaService.applyPercentChange(
-                                                                        entryPrice, 1.0);
-                                                    } else if (marketCapCategory
-                                                            == MarketCapCategory.MIDCAP) {
+                                                                Math.max(
+                                                                        entryPrice,
+                                                                        stockPriceDaily.getClose());
+
+                                                        double target =
+                                                                this.calculateTarget(
+                                                                        entryPrice,
+                                                                        Timeframe.MONTHLY);
+
+                                                        LocalDate currentCloseDate =
+                                                                miscUtil.currentMonthLastDay();
+
+                                                        if (calendarService
+                                                                .isLastTradingSessionOfMonth(
+                                                                        sessionDate)) {
+                                                            currentCloseDate =
+                                                                    calendarService
+                                                                            .previousTradingSession(
+                                                                                    YearMonth.from(
+                                                                                                    sessionDate
+                                                                                                            .plusMonths(
+                                                                                                                    1))
+                                                                                            .atEndOfMonth());
+                                                        }
+
+                                                        StockPrice stockPriceCurrent =
+                                                                updatePriceService.buildBack(
+                                                                        Timeframe.DAILY,
+                                                                        stock,
+                                                                        currentCloseDate);
+                                                        StockTechnicals stockTechnicalsCurrent =
+                                                                updateTechnicalsService.buildBack(
+                                                                        Timeframe.DAILY,
+                                                                        stock,
+                                                                        currentCloseDate);
+
+                                                        double stopLoss = stockPriceDaily.getLow();
+
+                                                        double currentClose =
+                                                                stockPriceCurrent.getClose();
+
+                                                        double dynamicStopLoss =
+                                                                this.calculateDynamicStopLoss(
+                                                                        stopLoss,
+                                                                        stockPriceCurrent,
+                                                                        stockTechnicalsCurrent,
+                                                                        Timeframe.MONTHLY);
+
+                                                        boolean isExitCandidate =
+                                                                this.isExitCandidate(
+                                                                        dynamicStopLoss,
+                                                                        stockPriceCurrent,
+                                                                        stockTechnicalsCurrent);
+
+                                                        double risk =
+                                                                ((entryPrice - stopLoss)
+                                                                                / entryPrice)
+                                                                        * 100.0;
+                                                        // System.out.println("risk " + risk);
+
+                                                        double riskThreshold = 1.0;
+
+                                                        if (marketCapCategory
+                                                                == MarketCapCategory.MEGACAP) {
+                                                            riskThreshold = 2.5;
+                                                        } else if (marketCapCategory
+                                                                == MarketCapCategory.LARGECAP) {
+                                                            riskThreshold = 2.0;
+                                                        } else if (marketCapCategory
+                                                                == MarketCapCategory.MIDCAP) {
+                                                            riskThreshold = 3.5;
+                                                        } else if (marketCapCategory
+                                                                == MarketCapCategory.SMALLCAP) {
+                                                            riskThreshold = 2.5;
+                                                        } else {
+                                                            riskThreshold = 2.0;
+                                                        }
+
+                                                        boolean isUpperWickSizeConfirmed =
+                                                                candleStickConfirmationService
+                                                                        .isUpperWickSizeConfirmed(
+                                                                                Timeframe.DAILY,
+                                                                                stockPriceDaily,
+                                                                                stockTechnicalsDaily);
+                                                        boolean isInvertedHammer =
+                                                                CandleStickUtils
+                                                                                .isUpperWickDominant(
+                                                                                        stockPriceDaily)
+                                                                        && closeDaily < ema50
+                                                                        && closeDaily
+                                                                                < MovingAverageUtil
+                                                                                        .getMovingAverage200(
+                                                                                                Timeframe
+                                                                                                        .DAILY,
+                                                                                                stockTechnicalsDaily);
+                                                        if ((CandleStickUtils.isStrongRange(
+                                                                                Timeframe.DAILY,
+                                                                                stockPriceDaily,
+                                                                                stockTechnicalsDaily)
+                                                                        && isUpperWickSizeConfirmed)
+                                                                || isInvertedHammer) {
+                                                            double candleRisk =
+                                                                    ((stockPriceDaily.getHigh()
+                                                                                            - stockPriceDaily
+                                                                                                    .getLow())
+                                                                                    / stockPriceDaily
+                                                                                            .getHigh())
+                                                                            * 100.0;
+                                                            System.out.println(
+                                                                    "Here1 "
+                                                                            + stock.getNseSymbol()
+                                                                            + " risk "
+                                                                            + risk
+                                                                            + " riskThreshold "
+                                                                            + riskThreshold);
+                                                            if (candleRisk < riskThreshold * 2
+                                                                    && candleRisk <= 5.0) {
+                                                                riskThreshold = candleRisk;
+                                                            }
+                                                        }
+
+                                                        // riskWeitagr = 1.5;
+                                                        // riskThreshold = riskThreshold +
+                                                        // riskWeitagr;
+                                                        // SMALLCAP = 2.5,LARGECAP = 2.0, MIDCAP =
+                                                        // 3.5,
+                                                        // MEGACAP = 2.5
+                                                        System.out.println(
+                                                                "Here2 "
+                                                                        + stock.getNseSymbol()
+                                                                        + " risk "
+                                                                        + risk
+                                                                        + " riskThreshold "
+                                                                        + riskThreshold);
+                                                        if (risk > riskThreshold
+                                                                && risk < riskThreshold * 3
+                                                                && Math.floor(risk)
+                                                                        <= riskThreshold + 1.0) {
+
+                                                            // System.out.println("risk recalculated
+                                                            // " +
+                                                            // risk);
+
+                                                            entryPrice =
+                                                                    formulaService
+                                                                            .applyPercentChange(
+                                                                                    entryPrice,
+                                                                                    -1
+                                                                                            * (risk
+                                                                                                    - riskThreshold));
+
+                                                            if (marketCapCategory
+                                                                            == MarketCapCategory
+                                                                                    .MEGACAP
+                                                                    || marketCapCategory
+                                                                            == MarketCapCategory
+                                                                                    .LARGECAP) {
+                                                                entryPrice =
+                                                                        formulaService
+                                                                                .applyPercentChange(
+                                                                                        entryPrice,
+                                                                                        1.0);
+                                                            } else if (marketCapCategory
+                                                                    == MarketCapCategory.MIDCAP) {
+                                                                entryPrice =
+                                                                        formulaService
+                                                                                .applyPercentChange(
+                                                                                        entryPrice,
+                                                                                        0.8);
+                                                            } else {
+                                                                entryPrice =
+                                                                        formulaService
+                                                                                .applyPercentChange(
+                                                                                        entryPrice,
+                                                                                        0.50);
+                                                            }
+                                                        }
+
+                                                        if (entryPrice
+                                                                < stockPriceDaily.getClose()) {
+                                                            entryPrice =
+                                                                    formulaService
+                                                                            .applyPercentChange(
+                                                                                    stockPriceDaily
+                                                                                            .getClose(),
+                                                                                    1.0);
+                                                        }
+
                                                         entryPrice =
+                                                                Math.min(
+                                                                        entryPrice,
+                                                                        stockPriceDaily.getHigh());
+
+                                                        double sellPrice =
                                                                 formulaService.applyPercentChange(
-                                                                        entryPrice, 0.8);
-                                                    } else {
-                                                        entryPrice =
+                                                                        currentClose, -1 * 0.5);
+
+                                                        double realizedStopLoss =
                                                                 formulaService.applyPercentChange(
-                                                                        entryPrice, 0.50);
+                                                                        stopLoss, -1 * 0.5);
+                                                        double per =
+                                                                formulaService
+                                                                        .calculateChangePercentage(
+                                                                                entryPrice,
+                                                                                Math.max(
+                                                                                        realizedStopLoss,
+                                                                                        sellPrice));
+                                                        risk =
+                                                                ((entryPrice - stopLoss)
+                                                                                / entryPrice)
+                                                                        * 100.0;
+                                                        System.out.println(
+                                                                "Here3 "
+                                                                        + stock.getNseSymbol()
+                                                                        + " risk "
+                                                                        + risk
+                                                                        + " riskThreshold "
+                                                                        + riskThreshold);
+                                                        // if (Math.floor(risk) <= riskThreshold) {
+                                                        if (Math.floor(risk)
+                                                                <= riskThreshold + 2.0) {
+
+                                                            if (risk <= riskThreshold + 0.5) {
+                                                                System.out.println(
+                                                                        "Here4 "
+                                                                                + stock
+                                                                                        .getNseSymbol()
+                                                                                + " risk "
+                                                                                + risk
+                                                                                + " riskThreshold "
+                                                                                + riskThreshold);
+                                                                riskThreshold = riskThreshold + 0.5;
+                                                            }
+
+                                                            if (risk > riskThreshold) {
+                                                                System.out.println(
+                                                                        "Here5 "
+                                                                                + stock
+                                                                                        .getNseSymbol()
+                                                                                + " risk "
+                                                                                + risk
+                                                                                + " riskThreshold "
+                                                                                + riskThreshold);
+                                                                entryPrice =
+                                                                        formulaService
+                                                                                .applyPercentChange(
+                                                                                        entryPrice,
+                                                                                        -1
+                                                                                                * (risk
+                                                                                                        - riskThreshold));
+                                                                risk =
+                                                                        ((entryPrice - stopLoss)
+                                                                                        / entryPrice)
+                                                                                * 100.0;
+                                                                per =
+                                                                        formulaService
+                                                                                .calculateChangePercentage(
+                                                                                        entryPrice,
+                                                                                        Math.max(
+                                                                                                realizedStopLoss,
+                                                                                                sellPrice));
+                                                            }
+
+                                                            StockPrice stockPriceNextDay =
+                                                                    getStockPriceFromMap(
+                                                                            Timeframe.DAILY,
+                                                                            stock,
+                                                                            calendarService
+                                                                                    .nextTradingSession(
+                                                                                            sessionDate));
+
+                                                            System.out.println(
+                                                                    "Here6 "
+                                                                            + stock.getNseSymbol()
+                                                                            + " risk "
+                                                                            + risk
+                                                                            + " riskThreshold "
+                                                                            + riskThreshold);
+                                                            if (Math.floor(risk)
+                                                                    <= Math.floor(riskThreshold)) {
+                                                                System.out.println(
+                                                                        "Here7 "
+                                                                                + stock
+                                                                                        .getNseSymbol()
+                                                                                + " risk "
+                                                                                + risk
+                                                                                + " riskThreshold "
+                                                                                + riskThreshold);
+
+                                                                entryPrice =
+                                                                        formulaService
+                                                                                .applyPercentChange(
+                                                                                        entryPrice,
+                                                                                        1.50);
+                                                                entryPrice =
+                                                                        Math.min(
+                                                                                entryPrice,
+                                                                                stockPriceDaily
+                                                                                        .getHigh());
+
+                                                                double entryPriceClose =
+                                                                        formulaService
+                                                                                .applyPercentChange(
+                                                                                        stockPriceDaily
+                                                                                                .getClose(),
+                                                                                        0.75);
+                                                                entryPrice =
+                                                                        Math.max(
+                                                                                entryPriceClose,
+                                                                                entryPrice);
+                                                                if (!miscUtil.isBackTest()
+                                                                        || entryPrice
+                                                                                > stockPriceNextDay
+                                                                                        .getLow()) {
+                                                                    StockAnalysis stockAnalysis =
+                                                                            new StockAnalysis(
+                                                                                    sessionDate,
+                                                                                    currentCloseDate,
+                                                                                    strategy,
+                                                                                    stock,
+                                                                                    marketCapCategory,
+                                                                                    true,
+                                                                                    true,
+                                                                                    true,
+                                                                                    true,
+                                                                                    true,
+                                                                                    stockPriceMonthly
+                                                                                            .getClose(),
+                                                                                    currentClose,
+                                                                                    formulaService
+                                                                                            .ceilToNearestTen(
+                                                                                                    entryPrice),
+                                                                                    stopLoss,
+                                                                                    dynamicStopLoss,
+                                                                                    risk,
+                                                                                    target,
+                                                                                    per,
+                                                                                    isExitCandidate);
+                                                                    return Optional.of(
+                                                                            stockAnalysis);
+                                                                }
+                                                            }
+                                                        }
                                                     }
-                                                }
-
-                                                if (entryPrice < stockPriceDaily.getClose()) {
-                                                    entryPrice =
-                                                            formulaService.applyPercentChange(
-                                                                    stockPriceDaily.getClose(),
-                                                                    1.0);
-                                                }
-
-                                                entryPrice =
-                                                        Math.min(
-                                                                entryPrice,
-                                                                stockPriceDaily.getHigh());
-
-                                                double per =
-                                                        formulaService.calculateChangePercentage(
-                                                                entryPrice,
-                                                                Math.max(stopLoss, currentClose));
-
-                                                System.out.println(
-                                                        stock.getNseSymbol() + " risk " + risk);
-
-                                                if (Math.floor(risk) <= riskThreshold) {
-                                                    StockAnalysis stockAnalysis =
-                                                            new StockAnalysis(
-                                                                    sessionDate,
-                                                                    currentCloseDate,
-                                                                    strategy,
-                                                                    stock,
-                                                                    marketCapCategory,
-                                                                    true,
-                                                                    true,
-                                                                    true,
-                                                                    true,
-                                                                    true,
-                                                                    stockPriceHt.getClose(),
-                                                                    currentClose,
-                                                                    formulaService.ceilToNearestTen(
-                                                                            entryPrice),
-                                                                    stopLoss,
-                                                                    dynamicStopLoss,
-                                                                    risk,
-                                                                    target,
-                                                                    per,
-                                                                    isExitCandidate);
-                                                    return Optional.of(stockAnalysis);
                                                 }
                                             }
                                         }
@@ -2103,9 +2924,7 @@ public class WebRunner implements CommandLineRunner {
 
         Stock stock = stockPrice.getStock();
 
-        boolean isEqOrBE =
-                stock.getSeries().equalsIgnoreCase("EQ")
-                        || stock.getSeries().equalsIgnoreCase("BE");
+        boolean isEqOrBE = stock.getSeries().equalsIgnoreCase("EQ");
 
         if (!isEqOrBE) {
             return false;
@@ -2306,7 +3125,7 @@ public class WebRunner implements CommandLineRunner {
             // StockPrice stockPriceDaily = stockPriceService.get(stock, Timeframe.DAILY);
             // StockTechnicals stockTechnicalsDaily = stockTechnicalsService.get(stock,
             // Timeframe.DAILY);
-            System.out.println("Here1 " + stock.getNseSymbol());
+            // System.out.println("Here1 " + stock.getNseSymbol());
             StockPrice stockPriceDaily =
                     updatePriceService.buildBack(
                             Timeframe.DAILY, stock, miscUtil.currentMonthLastDay());
@@ -2416,10 +3235,10 @@ public class WebRunner implements CommandLineRunner {
 
             double target = this.calculateTarget(entryPrice, timeframeHt);
 
-            System.out.println("Reached here " + stock.getNseSymbol());
+            // System.out.println("Reached here " + stock.getNseSymbol());
 
             if (risk < (timeframeHt == Timeframe.MONTHLY ? 5.0 : 3.0)) {
-                System.out.println("Here5 " + stock.getNseSymbol());
+                // System.out.println("Here5 " + stock.getNseSymbol());
                 analyzed.add(
                         new StockAnalysis(
                                 miscUtil.currentDate(),
@@ -2556,29 +3375,41 @@ public class WebRunner implements CommandLineRunner {
         analyzed =
                 analyzed.stream()
                         .filter(sa -> sa.getMarketCap() != MarketCapCategory.MICROCAP)
+                        .filter(
+                                sa -> {
+                                    if (sa.getMarketCap() == MarketCapCategory.MEGACAP) {
+                                        return sa.getRisk()
+                                                < 3.0; // Stricter risk filter for MEGACAP
+                                    } else if (sa.getMarketCap() == MarketCapCategory.LARGECAP) {
+                                        return sa.getRisk()
+                                                < 2.5; // Stricter risk filter for MEGACAP
+                                    } else if (sa.getMarketCap() == MarketCapCategory.MIDCAP) {
+                                        return sa.getRisk()
+                                                < 3.5; // Stricter risk filter for MEGACAP
+                                    } else if (sa.getMarketCap() == MarketCapCategory.SMALLCAP) {
+                                        return sa.getRisk()
+                                                < 3.0; // Stricter risk filter for MEGACAP
+                                    }
+                                    return sa.getRisk() <= 1.5; // Normal risk filter for others
+                                })
                         .collect(
                                 Collectors.collectingAndThen(
                                         Collectors.toMap(
-                                                sa ->
-                                                        sa.getStock().getNseSymbol()
-                                                                + "_"
-                                                                + sa.getScanDate(), // unique key
+                                                sa -> sa.getStock().getNseSymbol(),
                                                 sa -> sa,
-                                                (sa1, sa2) ->
-                                                        sa1 // keep first or use custom merge logic
-                                                ),
+                                                (sa1, sa2) -> sa1),
                                         map -> new ArrayList<>(map.values())));
 
         // Step 2: sort by your existing multi-criteria comparator
         analyzed.sort(
                 Comparator.comparing(StockAnalysis::getScanDate)
-                        .thenComparing(StockAnalysis::getRisk, Comparator.reverseOrder())
-                        .thenComparing(StockAnalysis::is4Incr, Comparator.reverseOrder())
-                        .thenComparing(StockAnalysis::isLowRejected, Comparator.reverseOrder())
-                        .thenComparing(
-                                sa -> sa.isAvgIncr() && sa.isVolIncr(), Comparator.reverseOrder())
-                        .thenComparing(sa -> sa.isLongLowerWick(), Comparator.reverseOrder())
-                        .thenComparing(StockAnalysis::isAvgIncr, Comparator.reverseOrder()));
+                        .thenComparing(StockAnalysis::getStrategy)
+                        .thenComparing(StockAnalysis::getRisk, Comparator.reverseOrder()));
+        // .thenComparing(StockAnalysis::isLowRejected, Comparator.reverseOrder())
+        // .thenComparing(sa -> sa.isAvgIncr() && sa.isVolIncr(),
+        // Comparator.reverseOrder())
+        // .thenComparing(sa -> sa.isLongLowerWick(), Comparator.reverseOrder())
+        // .thenComparing(StockAnalysis::isAvgIncr, Comparator.reverseOrder()));
 
         // Step 3: print results
         for (StockAnalysis sa : analyzed) {
@@ -2601,6 +3432,165 @@ public class WebRunner implements CommandLineRunner {
                     sa.isExitCandidate());
         }
         return analyzed;
+    }
+
+    public List<Allocation> allocateFundsByStrategyAndMarketCap(
+            List<StockAnalysis> stocks, double totalFund, double maxCapPer) {
+
+        List<Allocation> allAllocations = new ArrayList<>();
+
+        // 1️⃣ Group by scanDate
+        Map<LocalDate, List<StockAnalysis>> byDate =
+                stocks.stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        StockAnalysis::getScanDate,
+                                        LinkedHashMap::new,
+                                        Collectors.toList()));
+
+        for (Map.Entry<LocalDate, List<StockAnalysis>> dateEntry : byDate.entrySet()) {
+            LocalDate date = dateEntry.getKey();
+            List<StockAnalysis> dateStocks = dateEntry.getValue();
+            if (dateStocks.isEmpty()) continue;
+
+            // --- Define weights ---
+            Map<ResearchTechnical.Strategy, Double> strategyWeights =
+                    Map.of(
+                            ResearchTechnical.Strategy.ALPHA, 0.60,
+                            ResearchTechnical.Strategy.ULTIMA, 0.20,
+                            ResearchTechnical.Strategy.OMEGA, 0.10,
+                            ResearchTechnical.Strategy.GAMA, 0.10);
+
+            Map<MarketCapCategory, Double> marketCapWeights =
+                    Map.of(
+                            MarketCapCategory.SMALLCAP, 0.45,
+                            MarketCapCategory.MIDCAP, 0.30,
+                            MarketCapCategory.LARGECAP, 0.10,
+                            MarketCapCategory.MEGACAP, 0.15);
+
+            // 2️⃣ Prepare mutable allocation holders
+            class MutableAlloc {
+                StockAnalysis stock;
+                double allocated = 0.0;
+                boolean capped = false;
+
+                MutableAlloc(StockAnalysis s) {
+                    this.stock = s;
+                }
+            }
+            List<MutableAlloc> mutList =
+                    dateStocks.stream().map(MutableAlloc::new).collect(Collectors.toList());
+            double maxAmountPerStock = totalFund * maxCapPer;
+
+            // 3️⃣ Build 2D matrix [Strategy × MarketCap] for available combinations
+            Map<ResearchTechnical.Strategy, Map<MarketCapCategory, List<MutableAlloc>>>
+                    byStrategyCap = new LinkedHashMap<>();
+            for (MutableAlloc m : mutList) {
+                ResearchTechnical.Strategy strategy = m.stock.getStrategy();
+                MarketCapCategory cap = m.stock.getMarketCap();
+                byStrategyCap
+                        .computeIfAbsent(strategy, k -> new LinkedHashMap<>())
+                        .computeIfAbsent(cap, k -> new ArrayList<>())
+                        .add(m);
+            }
+
+            // 4️⃣ Compute normalization (only for existing combos)
+            double totalWeightAvailable =
+                    byStrategyCap.entrySet().stream()
+                            .flatMap(
+                                    s ->
+                                            s.getValue().keySet().stream()
+                                                    .map(
+                                                            c ->
+                                                                    strategyWeights.getOrDefault(
+                                                                                    s.getKey(), 0.0)
+                                                                            * marketCapWeights
+                                                                                    .getOrDefault(
+                                                                                            c,
+                                                                                            0.0)))
+                            .mapToDouble(Double::doubleValue)
+                            .sum();
+
+            // 5️⃣ Allocate funds proportionally
+            for (var stratEntry : byStrategyCap.entrySet()) {
+                ResearchTechnical.Strategy strategy = stratEntry.getKey();
+                for (var capEntry : stratEntry.getValue().entrySet()) {
+                    MarketCapCategory cap = capEntry.getKey();
+                    List<MutableAlloc> stocksInBucket = capEntry.getValue();
+
+                    double comboWeight =
+                            strategyWeights.getOrDefault(strategy, 0.0)
+                                    * marketCapWeights.getOrDefault(cap, 0.0);
+
+                    double comboFund = (comboWeight / totalWeightAvailable) * totalFund;
+                    double perStock = comboFund / stocksInBucket.size();
+
+                    for (MutableAlloc m : stocksInBucket) {
+                        double allocation = Math.min(perStock, maxAmountPerStock);
+                        m.allocated = allocation;
+                        m.capped = (allocation >= maxAmountPerStock - 1e-6);
+                    }
+                }
+            }
+
+            // 6️⃣ Redistribute leftover (from capping) - FIXED SECTION
+            double totalAllocated = mutList.stream().mapToDouble(m -> m.allocated).sum();
+            double leftover = totalFund - totalAllocated;
+
+            if (leftover > 1e-6) {
+                // Use ArrayList instead of immutable list from .toList()
+                List<MutableAlloc> uncapped =
+                        mutList.stream()
+                                .filter(m -> !m.capped)
+                                .collect(
+                                        Collectors.toCollection(
+                                                ArrayList::new)); // FIX: Use mutable ArrayList
+
+                int iter = 0;
+                while (leftover > 1e-6 && !uncapped.isEmpty() && iter < 100) {
+                    double perAdd = leftover / uncapped.size();
+
+                    // Use ListIterator for safe removal or track items to remove
+                    List<MutableAlloc> toRemove = new ArrayList<>();
+                    for (MutableAlloc m : uncapped) {
+                        double available = maxAmountPerStock - m.allocated;
+                        if (available > 1e-6) {
+                            double add = Math.min(perAdd, available);
+                            m.allocated += add;
+                            leftover -= add;
+                            if (Math.abs(m.allocated - maxAmountPerStock) < 1e-6) {
+                                toRemove.add(m);
+                            }
+                        }
+                    }
+                    // Remove capped stocks from uncapped list
+                    uncapped.removeAll(toRemove);
+                    iter++;
+                }
+            }
+
+            // 7️⃣ Final rounding + summary
+            double finalTotal = 0.0;
+            for (MutableAlloc m : mutList) {
+                double rounded = Math.round(m.allocated * 100.0) / 100.0;
+                allAllocations.add(new Allocation(m.stock, rounded));
+                finalTotal += rounded;
+            }
+
+            System.out.printf("=== DATE %s ===%n", date);
+            System.out.printf("Total Fund: ₹%.2f | Allocated: ₹%.2f%n", totalFund, finalTotal);
+            for (MutableAlloc m : mutList) {
+                System.out.printf(
+                        "  %-12s | %-8s | %-8s : ₹%.2f%n",
+                        m.stock.getStock().getNseSymbol(),
+                        m.stock.getStrategy(),
+                        m.stock.getMarketCap(),
+                        m.allocated);
+            }
+            System.out.println();
+        }
+
+        return allAllocations;
     }
 
     /**

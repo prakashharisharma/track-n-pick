@@ -324,7 +324,7 @@ public class UpdatePriceServiceImpl implements UpdatePriceService {
             stockPrice.setPrev6Close(0.0);
         }
 
-        System.out.println(stockPrice);
+        // System.out.println(stockPrice);
 
         return stockPrice;
     }

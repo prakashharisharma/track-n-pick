@@ -371,10 +371,11 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
                         stockTechnicalsPreviousSession.getVolume(),
                         tradingDays);
 
+        /*
         OnBalanceVolume onBalanceVolume =
                 this.build(
                         nseSymbol, ohlcvList, stockTechnicalsPreviousSession.getObv(), tradingDays);
-
+        */
         SimpleMovingAverage sma =
                 this.buildBK(
                         nseSymbol, ohlcvList, stockTechnicalsPreviousSession.getSma(), tradingDays);
@@ -382,24 +383,32 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
         ExponentialMovingAverage ema =
                 this.buildBK(
                         nseSymbol, ohlcvList, stockTechnicalsPreviousSession.getEma(), tradingDays);
-
+        /*
         AverageDirectionalIndex adx =
                 this.build(
                         nseSymbol, ohlcvList, stockTechnicalsPreviousSession.getAdx(), tradingDays);
-
+         */
         RelativeStrengthIndex rsi =
                 this.build(
                         nseSymbol, ohlcvList, stockTechnicalsPreviousSession.getRsi(), tradingDays);
-
+        /*
         MovingAverageConvergenceDivergence macd =
                 this.build(
                         nseSymbol,
                         ohlcvList,
                         stockTechnicalsPreviousSession.getMacd(),
-                        tradingDays);
+                        tradingDays);*/
 
         return new StockTechnicals(
-                nseSymbol, bhavDate, volume, onBalanceVolume, sma, ema, adx, rsi, macd);
+                nseSymbol,
+                bhavDate,
+                volume,
+                new OnBalanceVolume(0l, 0l),
+                sma,
+                ema,
+                new AverageDirectionalIndex(),
+                rsi,
+                new MovingAverageConvergenceDivergence());
     }
 
     @Override
@@ -498,17 +507,44 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
         st.setSessionDate(sessionDate);
         st.setTimeframe(timeframe);
         st.setStock(stock);
-        st.setEma5(stockTechnicals.getEma().getAvg5());
-        st.setPrevEma5(stockTechnicals.getEma().getPrevAvg5());
-        st.setPrev2Ema5(stockTechnicals.getEma().getPrev2Avg5());
+        st.setEma5(
+                stockTechnicals.getEma().getAvg5() != null
+                        ? stockTechnicals.getEma().getAvg5()
+                        : 0.00);
+        st.setPrevEma5(
+                stockTechnicals.getEma().getPrevAvg5() != null
+                        ? stockTechnicals.getEma().getPrevAvg5()
+                        : 0.00);
+        st.setPrev2Ema5(
+                stockTechnicals.getEma().getPrev2Avg5() != null
+                        ? stockTechnicals.getEma().getPrev2Avg5()
+                        : 0.00);
 
-        st.setEma20(stockTechnicals.getEma().getAvg20());
-        st.setPrevEma20(stockTechnicals.getEma().getPrevAvg20());
-        st.setPrev2Ema20(stockTechnicals.getEma().getPrev2Avg20());
+        st.setEma20(
+                stockTechnicals.getEma().getAvg20() != null
+                        ? stockTechnicals.getEma().getAvg20()
+                        : 0.00);
+        st.setPrevEma20(
+                stockTechnicals.getEma().getPrevAvg20() != null
+                        ? stockTechnicals.getEma().getPrevAvg20()
+                        : 0.00);
+        st.setPrev2Ema20(
+                stockTechnicals.getEma().getPrev2Avg20() != null
+                        ? stockTechnicals.getEma().getPrev2Avg20()
+                        : 0.00);
 
-        st.setEma50(stockTechnicals.getEma().getAvg50());
-        st.setPrevEma50(stockTechnicals.getEma().getPrevAvg50());
-        st.setPrev2Ema50(stockTechnicals.getEma().getPrev2Avg50());
+        st.setEma50(
+                stockTechnicals.getEma().getAvg50() != null
+                        ? stockTechnicals.getEma().getAvg50()
+                        : 0.00);
+        st.setPrevEma50(
+                stockTechnicals.getEma().getPrevAvg50() != null
+                        ? stockTechnicals.getEma().getPrevAvg50()
+                        : 0.00);
+        st.setPrev2Ema50(
+                stockTechnicals.getEma().getPrev2Avg50() != null
+                        ? stockTechnicals.getEma().getPrev2Avg50()
+                        : 0.00);
 
         st.setEma100(stockTechnicals.getEma().getAvg100());
         st.setPrevEma100(stockTechnicals.getEma().getPrevAvg100());
@@ -526,7 +562,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
         st.setPrevVolumeAvg20(stockTechnicals.getVolume().getPrevAvg20());
         st.setPrev2VolumeAvg20(stockTechnicals.getVolume().getPrev2Avg20());
 
-        System.out.println(st);
+        // System.out.println(st);
         return st;
     }
 

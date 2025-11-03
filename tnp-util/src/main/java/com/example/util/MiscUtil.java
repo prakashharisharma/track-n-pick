@@ -94,28 +94,45 @@ public class MiscUtil {
         return false;
     }
 
+    public boolean isBackTest() {
+        // return LocalDate.now().isAfter(this.currentDate());
+        return true;
+    }
+
     public LocalDate currentDate() {
 
-        // return LocalDate.of(2025, 10, 1);
-        return LocalDate.now();
-        // return LocalDate.now().minusMonths(1); //SEP 25
-        // return LocalDate.now().minusMonths(2); //AUG 25
-        //  return LocalDate.now().minusMonths(3); //JUL 25
-        // return LocalDate.now().minusMonths(4); //JUN 25
-        // return LocalDate.now().minusMonths(5); //MAY 25 --
-        // return LocalDate.now().minusMonths(6); //APR 25
-        // return LocalDate.now().minusMonths(7); //MAR 25
-        // return LocalDate.now().minusMonths(8); //FEB 25
-        // return LocalDate.now().minusMonths(9); //JAN 25
-        // return LocalDate.now().minusMonths(10); //DEC 24
-        // return LocalDate.now().minusMonths(11); //NOV 24
-        // return LocalDate.now().minusMonths(12); //OCT 24
-        // return LocalDate.now().minusMonths(13); //SEP 24
-        //  return LocalDate.now().minusMonths(14); //AUG 24
-        // return LocalDate.now().minusMonths(15); //JUL 24
-        //  return LocalDate.now().minusMonths(16); //JUN 24
-        // return LocalDate.now().minusMonths(17); //MAY 24
-        // return LocalDate.now().minusMonths(18); //APR 24
+        // return LocalDate.of(2025, 11, 01);
+        // return LocalDate.now();
+        return LocalDate.now().minusMonths(1); // OCT 25
+        // return LocalDate.now().minusMonths(2); //SEP 25
+        //  return LocalDate.now().minusMonths(3); //AUG 25
+        //  return LocalDate.now().minusMonths(4); //JUL 25
+        //   return LocalDate.now().minusMonths(5); //JUM 25 --
+        // return LocalDate.now().minusMonths(6); //MAY 25
+        // return LocalDate.now().minusMonths(7); //APR 25
+        // return LocalDate.now().minusMonths(8); //MAR 25
+        //  return LocalDate.now().minusMonths(9); //FEB 25
+        // return LocalDate.now().minusMonths(10); //JAN 24
+        // return LocalDate.now().minusMonths(11); //DEC 24
+        //  return LocalDate.now().minusMonths(12); //NOV 24
+        //  return LocalDate.now().minusMonths(13); //OCT 24
+        //  return LocalDate.now().minusMonths(14); //SEP 24
+        // return LocalDate.now().minusMonths(15); //AUG 24
+        // return LocalDate.now().minusMonths(16); //JUL 24
+        // return LocalDate.now().minusMonths(17); //JUN 24
+        //  return LocalDate.now().minusMonths(18); //MAY 24
+        // return LocalDate.now().minusMonths(19); // APR 24
+        //  return LocalDate.now().minusMonths(20); //MAR 24
+        // return LocalDate.now().minusMonths(21); //FEB 24
+        //  return LocalDate.now().minusMonths(22); //JAN 23
+        //  return LocalDate.now().minusMonths(23); //DEC 23
+        // return LocalDate.now().minusMonths(24); //NOV 23
+        //   return LocalDate.now().minusMonths(25); //OCT 23
+        // return LocalDate.now().minusMonths(26); //SEP 23
+        // return LocalDate.now().minusMonths(27); //AUG 23
+        //   return LocalDate.now().minusMonths(28); //JUL 23
+        //  return LocalDate.now().minusMonths(29); //JUN 23
+        // return LocalDate.now().minusMonths(30); //MAY 23
     }
 
     public LocalDate currentYearFirstDay() {
