@@ -143,6 +143,46 @@ public class CandleStickUtils {
         return isAbsoluteStrong || isRelativeStrong;
     }
 
+    public static boolean isPrevStrongRange(
+            Timeframe timeframe, StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        if (stockPrice == null || stockTechnicals == null) return false;
+
+        double range = prevSessionRange(stockPrice);
+        double prevRange = prev2SessionRange(stockPrice);
+        if (range == 0 || prevRange == 0) return false; // avoid div by zero
+
+        // --- absolute threshold check ---
+        // double price = stockPrice.getClose(); // could also use midpoint (high+low)/2
+        double price =
+                (stockPrice.getPrevHigh() + stockPrice.getPrevLow())
+                        / 2; // could also use midpoint (high+low)/2
+        double minPercentRange = 0.05; // Fibonacci 3.82% or 0.05 (5%)
+
+        boolean isAbsoluteStrong = (range >= minPercentRange * price);
+
+        // --- relative multiplier check ---
+        double minRangeMultiplier;
+        switch (timeframe) {
+            case DAILY:
+                minRangeMultiplier = 1.25;
+                break;
+            case WEEKLY:
+                minRangeMultiplier = 1.5;
+                break;
+            case MONTHLY:
+                minRangeMultiplier = 1.75;
+                break;
+            default:
+                minRangeMultiplier = 2.0;
+                break;
+        }
+
+        boolean isRelativeStrong = (range >= minRangeMultiplier * prevRange);
+
+        // --- hybrid rule ---
+        return isAbsoluteStrong || isRelativeStrong;
+    }
+
     public static boolean isGreen(StockPrice stockPrice) {
         return stockPrice != null && stockPrice.getClose() > stockPrice.getOpen();
     }
@@ -650,6 +690,13 @@ public class CandleStickUtils {
             return false;
         }
         return stockPrice.getLow() > stockPrice.getPrevHigh();
+    }
+
+    public static boolean isPrevRisingWindow(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+        return stockPrice.getPrevLow() > stockPrice.getPrev2High();
     }
 
     public static boolean isFallingWindow(StockPrice stockPrice) {

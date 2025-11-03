@@ -486,7 +486,7 @@ public class BhavProcessorImpl implements BhavProcessor {
                         try {
                             processResearchBatch(stock);
                         } catch (Exception e) {
-                            log.error("{} Error processing technicals", stock.getNseSymbol(), e);
+                            log.error("{} Error processing research", stock.getNseSymbol(), e);
                         }
                     });
         }
