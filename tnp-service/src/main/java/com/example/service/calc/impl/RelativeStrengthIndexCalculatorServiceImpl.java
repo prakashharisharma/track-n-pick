@@ -102,7 +102,7 @@ public class RelativeStrengthIndexCalculatorServiceImpl
 
         long endTime = System.currentTimeMillis();
 
-        log.info("Time took to calculate {}ms", (endTime - startTime));
+        // log.info("Time took to calculate {}ms", (endTime - startTime));
 
         // int resultIndex= ohlcvList.size()-1;
         return this.mapResult(avgUps, avgDowns, rsList, rsiList);

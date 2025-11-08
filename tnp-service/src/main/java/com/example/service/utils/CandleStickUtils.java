@@ -1007,4 +1007,87 @@ public class CandleStickUtils {
 
         return upperWickSize < lowerWickSize && lowerWickSize >= 0.25 * bodySize;
     }
+
+    public static boolean isUpperWickWithinLimit(StockPrice stockPrice) {
+
+        // Check if within 20%
+        return isUpperWickWithinLimit(stockPrice, 24.5);
+    }
+
+    public static boolean isUpperWickWithinLimit(StockPrice stockPrice, double threshold) {
+
+        // Check if within 20%
+        if (stockPrice == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getClose() == null
+                || stockPrice.getHigh() == null) {
+            return false;
+        }
+
+        double open = stockPrice.getOpen();
+        double close = stockPrice.getClose();
+        double high = stockPrice.getHigh();
+
+        // Body size
+        double body = Math.abs(close - open);
+        if (body == 0) return false; // avoid division by zero
+
+        // Determine top of the body
+        double topOfBody = Math.max(open, close);
+
+        // Upper wick size
+        double upperWick = high - topOfBody;
+
+        // Upper wick % of body
+        double upperWickPercent = (upperWick / body) * 100.0;
+
+        // Check if within 20%
+        return upperWickPercent < threshold;
+    }
+
+    public static boolean isBearishEngulfing(
+            StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        if (isStrongBody(stockPrice.getTimeframe(), stockPrice, stockTechnicals)) {
+
+            if (isRed(stockPrice)) {
+                if (stockPrice.getOpen() > stockPrice.getPrevClose()) {
+                    if (stockPrice.getClose() < stockPrice.getPrevOpen()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean isDarkCloudCover(StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        if (isStrongBody(stockPrice.getTimeframe(), stockPrice, stockTechnicals)) {
+
+            if (isRed(stockPrice)) {
+                // For Dark Cloud Cover, the current candle should open above previous close (gap
+                // up)
+                // and close below the midpoint of the previous bullish candle's body
+                if (stockPrice.getOpen() > stockPrice.getPrevClose()) {
+                    double prevBodyMidpoint =
+                            (stockPrice.getPrevOpen() + stockPrice.getPrevClose()) / 2.0;
+                    if (stockPrice.getClose() < prevBodyMidpoint) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean isTweezerTop(StockPrice stockPrice, StockTechnicals stockTechnicals) {
+        if (isPrevSessionStrongBody(stockPrice.getTimeframe(), stockPrice, stockTechnicals)) {
+
+            if (isRed(stockPrice)) {
+                if (stockPrice.getOpen() == stockPrice.getPrevClose()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
