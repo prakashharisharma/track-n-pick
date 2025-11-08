@@ -26,11 +26,14 @@ public class StockAnalysis {
     private boolean isLongLowerWick;
     private double close;
     private double currentClose;
+    private double currentHigh;
     private double entryPrice;
     private double stopLoss;
-    private double dynamicStopLoss;
+    private double breakdownLevel;
+    private double hardStopLoss;
     private double risk;
     private double target;
     private double changePercent;
     private boolean isExitCandidate;
+    private boolean isReEntry;
 }
