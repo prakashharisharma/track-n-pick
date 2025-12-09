@@ -24,6 +24,7 @@ import com.example.service.dhan.DhanConsentLoginService;
 import com.example.service.dhan.DhanOrchestratorService;
 import com.example.service.dhan.DhanOrderExecutorService;
 import com.example.service.impl.FundamentalResearchService;
+import com.example.service.scanner.TestScanner;
 import com.example.service.strategy.*;
 import com.example.service.utils.*;
 import com.example.util.FormulaService;
@@ -175,6 +176,8 @@ public class WebRunner implements CommandLineRunner {
     @Autowired private ResearchTechnicalRepository researchTechnicalRepository;
     @Autowired private BillingService billingService;
 
+    @Autowired private TestScanner testScanner;
+
     @Autowired
     @Qualifier("investmentPriceActionSignalEvaluator")
     private InvestmentPriceActionSignalEvaluator investmentPriceActionSignalEvaluator;
@@ -252,7 +255,10 @@ public class WebRunner implements CommandLineRunner {
             }
         }*/
 
-        this.scanMaster();
+        // this.scanMaster();
+
+        testScanner.dynamicScanner();
+        // testScanner.dynamicScanner1();
 
         // Stock stock = stockService.getStockByNseSymbol("HCLTECH");
 
@@ -369,9 +375,9 @@ public class WebRunner implements CommandLineRunner {
 
         // this.updateFinaicials();
         // this.testScore();
-        // this.updatePriceHistory();
+        //  this.updatePriceHistory();
         // this.updateTechnicals();
-        //  this.processPriceUpdate(false);
+        // this.processPriceUpdate(true);
         // this.processTechnicalsUpdate();
 
         // this.updateSectorsActivity();
@@ -5274,11 +5280,11 @@ public class WebRunner implements CommandLineRunner {
 
         AtomicInteger countTotal = new AtomicInteger(stockList.size());
 
-        int yearsBack = 9;
-        int quartersBack = 9;
-        int monthsBack = 9;
-        int weeksBack = 9;
-        int daysBack = 9;
+        int yearsBack = 22;
+        int quartersBack = 22;
+        int monthsBack = 22;
+        int weeksBack = 22;
+        int daysBack = 22;
 
         if (updateHistory) {
             yearsBack = 30;

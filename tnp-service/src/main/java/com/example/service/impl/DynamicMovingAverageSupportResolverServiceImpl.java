@@ -7,7 +7,6 @@ import com.example.data.transactional.entities.StockTechnicals;
 import com.example.service.*;
 import com.example.service.utils.CandleStickUtils;
 import com.example.service.utils.MovingAverageUtil;
-import com.example.service.utils.TrendDirectionUtil;
 import com.example.util.FormulaService;
 import java.util.Comparator;
 import java.util.List;
@@ -229,12 +228,18 @@ public class DynamicMovingAverageSupportResolverServiceImpl
         double low = stockPrice.getLow();
         double high = stockPrice.getHigh();
 
-        boolean checkSupport =
-                TrendDirectionUtil.findDirection(stockPrice) == Trend.Direction.DOWN
-                        || TrendDirectionUtil.findDirection(
-                                        stockPriceService.buildPrevSessionStockPrice(stockPrice))
-                                == Trend.Direction.DOWN;
+        // boolean checkSupport = TrendDirectionUtil.findDirection(stockPrice) ==
+        // Trend.Direction.DOWN;
 
+        boolean checkSupport =
+                CandleStickUtils.isLowerHigh(stockPrice) || CandleStickUtils.isLowerLow(stockPrice);
+
+        // Previous downtrend
+        // boolean checkSupport = stockPrice.getPrevClose() < stockPrice.getPrev2Close() &&
+        // stockPrice.getPrev2Close() < stockPrice.getPrev3Close();
+
+        // System.out.println(stockPrice.getStock().getNseSymbol() +" checkSupport: " +
+        // checkSupport);
         List<MAServiceEntry> sorted = getSortedMAEntries(timeframe, stockTechnicals, sortByValue);
 
         MovingAverageLength[] lengths = MovingAverageLength.values(); // HIGHEST to LOWEST
@@ -291,6 +296,8 @@ public class DynamicMovingAverageSupportResolverServiceImpl
                                 }
 
                             } else {
+                                // System.out.println(stockPrice.getStock().getNseSymbol() + ":" + "
+                                // Else");
                                 // trend UP -> check resistance & breakout
                                 breakout =
                                         service.isBreakout(
@@ -324,8 +331,10 @@ public class DynamicMovingAverageSupportResolverServiceImpl
 
         List<MAEvaluationResult> results =
                 evaluateInteractions(timeframe, stockPrice, stockTechnicals, sortByValue);
+
         List<MAEvaluationResult> breakouts =
                 results.stream().filter(MAEvaluationResult::isBreakout).toList();
+
         List<MAEvaluationResult> breakdowns =
                 results.stream().filter(MAEvaluationResult::isBreakdown).toList();
         List<MAEvaluationResult> supports =

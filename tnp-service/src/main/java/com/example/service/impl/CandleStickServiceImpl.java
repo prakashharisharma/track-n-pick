@@ -749,78 +749,53 @@ public class CandleStickServiceImpl implements CandleStickService {
     @Override
     public boolean isDoji(StockPrice stockPrice) {
         if (stockPrice == null) {
-            log.warn("StockPrice is null, returning false");
             return false;
         }
 
-        boolean isOpenCloseEqual =
-                formulaService.isEpsilonEqual(
-                        stockPrice.getOpen(), stockPrice.getClose(), FibonacciRatio.RATIO_261_8);
+        // Calculate candlestick components
+        double open = stockPrice.getOpen();
+        double high = stockPrice.getHigh();
+        double low = stockPrice.getLow();
+        double close = stockPrice.getClose();
 
-        if (!isOpenCloseEqual) return false;
+        double realBody = Math.abs(close - open);
+        double totalRange = high - low;
 
-        double upperWick = this.upperWickSize(stockPrice);
-        double lowerWick = this.lowerWickSize(stockPrice);
-        double body = this.currentBodySize(stockPrice);
-
-        boolean isUpperWickReasonable = upperWick <= lowerWick * 3;
-        boolean isLowerWickReasonable = lowerWick <= upperWick * 3;
-        boolean isUpperWickSignificant = upperWick >= body * 2;
-        boolean isLowerWickSignificant = lowerWick >= body * 2;
-
-        if (isUpperWickReasonable
-                && isLowerWickReasonable
-                && isUpperWickSignificant
-                && isLowerWickSignificant) {
-            log.info("Doji candle detected.");
-            return true;
+        // Avoid division by zero
+        if (totalRange == 0) {
+            return false;
         }
 
-        return false;
+        // Doji criteria: Very small real body (typically less than 5-10% of total range)
+        boolean hasVerySmallBody = realBody < totalRange * 0.1; // Body less than 10% of total range
+
+        return hasVerySmallBody;
     }
 
     @Override
     public boolean isPrevDoji(StockPrice stockPrice) {
         if (stockPrice == null) {
-            log.warn("StockPrice is null, returning false");
             return false;
         }
 
-        boolean isPrevOpenCloseEqual =
-                formulaService.isEpsilonEqual(
-                        stockPrice.getPrevOpen(),
-                        stockPrice.getPrevClose(),
-                        FibonacciRatio.RATIO_261_8);
+        // Calculate candlestick components
+        double open = stockPrice.getPrevOpen();
+        double high = stockPrice.getPrevHigh();
+        double low = stockPrice.getPrevLow();
+        double close = stockPrice.getPrevClose();
 
-        if (!isPrevOpenCloseEqual) return false;
+        double realBody = Math.abs(close - open);
+        double totalRange = high - low;
 
-        double prevUpperWick =
-                Math.abs(
-                        formulaService.calculateChangePercentage(
-                                stockPrice.getPrevClose(), stockPrice.getPrevHigh()));
-        double prevLowerWick =
-                Math.abs(
-                        formulaService.calculateChangePercentage(
-                                stockPrice.getPrevOpen(), stockPrice.getPrevLow()));
-        double prevBody =
-                Math.abs(
-                        formulaService.calculateChangePercentage(
-                                stockPrice.getPrevOpen(), stockPrice.getPrevClose()));
-
-        boolean isPrevUpperWickReasonable = prevUpperWick <= prevLowerWick * 3;
-        boolean isPrevLowerWickReasonable = prevLowerWick <= prevUpperWick * 3;
-        boolean isPrevUpperWickSignificant = prevUpperWick >= prevBody * 2;
-        boolean isPrevLowerWickSignificant = prevLowerWick >= prevBody * 2;
-
-        if (isPrevUpperWickReasonable
-                && isPrevLowerWickReasonable
-                && isPrevUpperWickSignificant
-                && isPrevLowerWickSignificant) {
-            log.info("Previous session is a Doji candle.");
-            return true;
+        // Avoid division by zero
+        if (totalRange == 0) {
+            return false;
         }
 
-        return false;
+        // Doji criteria: Very small real body (typically less than 5-10% of total range)
+        boolean hasVerySmallBody = realBody < totalRange * 0.1; // Body less than 10% of total range
+
+        return hasVerySmallBody;
     }
 
     @Override
@@ -920,57 +895,81 @@ public class CandleStickServiceImpl implements CandleStickService {
     @Override
     public boolean isSpinningTop(StockPrice stockPrice) {
         if (stockPrice == null) {
-            log.warn("StockPrice is null, returning false");
             return false;
         }
 
-        double bodySize = this.currentBodySize(stockPrice);
-        if (bodySize <= FibonacciRatio.RATIO_261_8 || bodySize > MIN_BODY_SIZE) {
+        // Calculate candlestick components
+        double open = stockPrice.getOpen();
+        double high = stockPrice.getHigh();
+        double low = stockPrice.getLow();
+        double close = stockPrice.getClose();
+
+        double realBody = Math.abs(close - open);
+        double upperShadow = high - Math.max(open, close);
+        double lowerShadow = Math.min(open, close) - low;
+        double totalRange = high - low;
+
+        if (totalRange == 0) {
             return false;
         }
 
-        double upperWick = this.upperWickSize(stockPrice);
-        double lowerWick = this.lowerWickSize(stockPrice);
+        // Spinning Top criteria:
+        // 1. Small real body (larger than Doji but still small - typically 10-30% of total range)
+        boolean hasSmallBody = realBody > totalRange * 0.1 && realBody < totalRange * 0.3;
 
-        boolean isWickBalanced = (upperWick <= lowerWick * 3) && (lowerWick <= upperWick * 3);
-        boolean isWickSizeSignificant = (upperWick >= bodySize * 2) && (lowerWick >= bodySize * 2);
+        // 2. Relatively equal shadows on both sides (neither shadow dominates)
+        double shadowRatio =
+                Math.min(upperShadow, lowerShadow) / Math.max(upperShadow, lowerShadow);
+        boolean hasBalancedShadows = shadowRatio >= 0.5; // Shadows within 50% of each other
 
-        if (isWickBalanced && isWickSizeSignificant) {
-            log.info("Spinning Top detected.");
-            return true;
-        }
+        // 3. Both shadows should be significant (at least 20% of total range each)
+        boolean hasSignificantUpperShadow = upperShadow >= totalRange * 0.2;
+        boolean hasSignificantLowerShadow = lowerShadow >= totalRange * 0.2;
 
-        return false;
+        return hasSmallBody
+                && hasBalancedShadows
+                && hasSignificantUpperShadow
+                && hasSignificantLowerShadow;
     }
 
     @Override
     public boolean isPrevSpinningTop(StockPrice stockPrice) {
         if (stockPrice == null) {
-            log.warn("StockPrice is null, returning false");
             return false;
         }
 
-        double bodySize = Math.abs(stockPrice.getPrevOpen() - stockPrice.getPrevClose());
-        if (bodySize <= FibonacciRatio.RATIO_261_8 || bodySize > MIN_BODY_SIZE) {
+        // Calculate candlestick components
+        double open = stockPrice.getPrevOpen();
+        double high = stockPrice.getPrevHigh();
+        double low = stockPrice.getPrevLow();
+        double close = stockPrice.getPrevClose();
+
+        double realBody = Math.abs(close - open);
+        double upperShadow = high - Math.max(open, close);
+        double lowerShadow = Math.min(open, close) - low;
+        double totalRange = high - low;
+
+        if (totalRange == 0) {
             return false;
         }
 
-        double upperWick =
-                stockPrice.getPrevHigh()
-                        - Math.max(stockPrice.getPrevOpen(), stockPrice.getPrevClose());
-        double lowerWick =
-                Math.min(stockPrice.getPrevOpen(), stockPrice.getPrevClose())
-                        - stockPrice.getPrevLow();
+        // Spinning Top criteria:
+        // 1. Small real body (larger than Doji but still small - typically 10-30% of total range)
+        boolean hasSmallBody = realBody > totalRange * 0.1 && realBody < totalRange * 0.3;
 
-        boolean isWickBalanced = (upperWick <= lowerWick * 3) && (lowerWick <= upperWick * 3);
-        boolean isWickSizeSignificant = (upperWick >= bodySize * 2) && (lowerWick >= bodySize * 2);
+        // 2. Relatively equal shadows on both sides (neither shadow dominates)
+        double shadowRatio =
+                Math.min(upperShadow, lowerShadow) / Math.max(upperShadow, lowerShadow);
+        boolean hasBalancedShadows = shadowRatio >= 0.5; // Shadows within 50% of each other
 
-        if (isWickBalanced && isWickSizeSignificant) {
-            log.info("Previous session was a Spinning Top.");
-            return true;
-        }
+        // 3. Both shadows should be significant (at least 20% of total range each)
+        boolean hasSignificantUpperShadow = upperShadow >= totalRange * 0.2;
+        boolean hasSignificantLowerShadow = lowerShadow >= totalRange * 0.2;
 
-        return false;
+        return hasSmallBody
+                && hasBalancedShadows
+                && hasSignificantUpperShadow
+                && hasSignificantLowerShadow;
     }
 
     @Override
@@ -1063,47 +1062,197 @@ public class CandleStickServiceImpl implements CandleStickService {
 
     @Override
     public boolean isHammer(StockPrice stockPrice) {
-        return this.isHangingMan(stockPrice);
+        if (stockPrice == null) {
+            return false;
+        }
+
+        // Calculate candlestick components
+        double open = stockPrice.getOpen();
+        double high = stockPrice.getHigh();
+        double low = stockPrice.getLow();
+        double close = stockPrice.getClose();
+
+        // Calculate real body and shadows
+        double realBody = Math.abs(close - open);
+        double upperShadow = high - Math.max(open, close);
+        double lowerShadow = Math.min(open, close) - low;
+
+        // Hammer criteria:
+        // 1. Small real body (body should be relatively small compared to the total range)
+        double totalRange = high - low;
+        boolean hasSmallBody = realBody < totalRange * 0.3; // Body less than 30% of total range
+
+        // 2. Long lower shadow (at least twice the height of real body)
+        boolean hasLongLowerShadow = lowerShadow >= realBody * 3;
+
+        // 3. Little or no upper shadow (less than 20% of real body)
+        boolean hasSmallUpperShadow = (upperShadow / realBody) < 0.6;
+
+        // 4. Additional validation: lower shadow should be significant (at least 1/3 of total
+        // range)
+        boolean hasSignificantLowerShadow = lowerShadow >= totalRange * 0.33;
+
+        return hasSmallBody
+                && hasLongLowerShadow
+                && hasSmallUpperShadow
+                && hasSignificantLowerShadow;
+    }
+
+    @Override
+    public boolean isPrevHammer(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        // Calculate candlestick components
+        double open = stockPrice.getPrevOpen();
+        double high = stockPrice.getPrevHigh();
+        double low = stockPrice.getPrevLow();
+        double close = stockPrice.getPrevClose();
+
+        // Calculate real body and shadows
+        double realBody = Math.abs(close - open);
+        double upperShadow = high - Math.max(open, close);
+        double lowerShadow = Math.min(open, close) - low;
+
+        // Hammer criteria:
+        // 1. Small real body (body should be relatively small compared to the total range)
+        double totalRange = high - low;
+        boolean hasSmallBody = realBody < totalRange * 0.3; // Body less than 30% of total range
+
+        // 2. Long lower shadow (at least twice the height of real body)
+        boolean hasLongLowerShadow = lowerShadow >= realBody * 3;
+
+        // 3. Little or no upper shadow (less than 20% of real body)
+        boolean hasSmallUpperShadow = (upperShadow / realBody) < 0.6;
+
+        // 4. Additional validation: lower shadow should be significant (at least 1/3 of total
+        // range)
+        boolean hasSignificantLowerShadow = lowerShadow >= totalRange * 0.33;
+
+        return hasSmallBody
+                && hasLongLowerShadow
+                && hasSmallUpperShadow
+                && hasSignificantLowerShadow;
     }
 
     @Override
     public boolean isShootingStar(StockPrice stockPrice) {
-
-        double bodySize = this.currentBodySize(stockPrice);
-        double upperWick = this.upperWickSize(stockPrice);
-        double lowerWick = this.lowerWickSize(stockPrice);
-
-        if (upperWick > bodySize * 3
-                && lowerWick < bodySize
-                && bodySize > FibonacciRatio.RATIO_261_8) {
-            if (this.isRed(stockPrice)
-                    || (this.isGreen(stockPrice) && bodySize <= FibonacciRatio.RATIO_100_0 * 10)) {
-                log.info("Shooting Star / Inverted Hammer candle active");
-                return Boolean.TRUE;
-            }
+        if (stockPrice == null) {
+            return false;
         }
 
-        return Boolean.FALSE;
+        // Calculate candlestick components
+        double open = stockPrice.getOpen();
+        double high = stockPrice.getHigh();
+        double low = stockPrice.getLow();
+        double close = stockPrice.getClose();
+
+        // Calculate real body and shadows
+        double realBody = Math.abs(close - open);
+        double upperShadow = high - Math.max(open, close);
+        double lowerShadow = Math.min(open, close) - low;
+        double totalRange = high - low;
+
+        // Avoid division by zero
+        if (realBody == 0) {
+            return false;
+        }
+
+        // Shooting Star criteria (mirror image of Hammer):
+        // 1. Small real body (body should be relatively small compared to the total range)
+        boolean hasSmallBody = realBody < totalRange * 0.3; // Body less than 30% of total range
+
+        // 2. Long upper shadow (at least three times the height of real body)
+        boolean hasLongUpperShadow = upperShadow >= realBody * 3;
+
+        // 3. Little or no lower shadow (less than 60% of real body)
+        boolean hasSmallLowerShadow = (lowerShadow / realBody) < 0.6;
+
+        // 4. Additional validation: upper shadow should be significant (at least 1/3 of total
+        // range)
+        boolean hasSignificantUpperShadow = upperShadow >= totalRange * 0.33;
+
+        return hasSmallBody
+                && hasLongUpperShadow
+                && hasSmallLowerShadow
+                && hasSignificantUpperShadow;
     }
 
     @Override
     public boolean isInvertedHammer(StockPrice stockPrice) {
-
-        double bodySize = this.currentBodySize(stockPrice);
-        double upperWick = this.upperWickSize(stockPrice);
-        double lowerWick = this.lowerWickSize(stockPrice);
-
-        if (upperWick > bodySize * 3
-                && lowerWick < bodySize
-                && bodySize > FibonacciRatio.RATIO_261_8) {
-            if (this.isGreen(stockPrice)
-                    || (this.isRed(stockPrice) && bodySize <= FibonacciRatio.RATIO_100_0 * 10)) {
-                log.info("Inverted Hammer candle active");
-                return Boolean.TRUE;
-            }
+        if (stockPrice == null) {
+            return false;
         }
 
-        return Boolean.FALSE;
+        // Calculate candlestick components
+        double open = stockPrice.getOpen();
+        double high = stockPrice.getHigh();
+        double low = stockPrice.getLow();
+        double close = stockPrice.getClose();
+
+        // Calculate real body and shadows
+        double realBody = Math.abs(close - open);
+        double upperShadow = high - Math.max(open, close);
+        double lowerShadow = Math.min(open, close) - low;
+
+        // Inverted Hammer criteria:
+        // 1. Small real body (body should be relatively small compared to the total range)
+        double totalRange = high - low;
+        boolean hasSmallBody = realBody < totalRange * 0.3; // Body less than 30% of total range
+
+        // 2. Long upper shadow (at least twice the height of real body)
+        boolean hasLongUpperShadow = upperShadow >= realBody * 3;
+
+        // 3. Little or no lower shadow (less than 20% of real body)
+        boolean hasSmallLowerShadow = (lowerShadow / realBody) < 0.6;
+
+        // 4. Additional validation: upper shadow should be significant (at least 1/3 of total
+        // range)
+        boolean hasSignificantUpperShadow = upperShadow >= totalRange * 0.33;
+
+        return hasSmallBody
+                && hasLongUpperShadow
+                && hasSmallLowerShadow
+                && hasSignificantUpperShadow;
+    }
+
+    @Override
+    public boolean isPrevInvertedHammer(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        // Calculate candlestick components
+        double open = stockPrice.getPrevOpen();
+        double high = stockPrice.getPrevHigh();
+        double low = stockPrice.getPrevLow();
+        double close = stockPrice.getPrevClose();
+
+        // Calculate real body and shadows
+        double realBody = Math.abs(close - open);
+        double upperShadow = high - Math.max(open, close);
+        double lowerShadow = Math.min(open, close) - low;
+
+        // Inverted Hammer criteria:
+        // 1. Small real body (body should be relatively small compared to the total range)
+        double totalRange = high - low;
+        boolean hasSmallBody = realBody < totalRange * 0.3; // Body less than 30% of total range
+
+        // 2. Long upper shadow (at least twice the height of real body)
+        boolean hasLongUpperShadow = upperShadow >= realBody * 3;
+
+        // 3. Little or no lower shadow (less than 20% of real body)
+        boolean hasSmallLowerShadow = (lowerShadow / realBody) < 0.6;
+
+        // 4. Additional validation: upper shadow should be significant (at least 1/3 of total
+        // range)
+        boolean hasSignificantUpperShadow = upperShadow >= totalRange * 0.33;
+
+        return hasSmallBody
+                && hasLongUpperShadow
+                && hasSmallLowerShadow
+                && hasSignificantUpperShadow;
     }
 
     @Override
@@ -1178,25 +1327,39 @@ public class CandleStickServiceImpl implements CandleStickService {
 
     @Override
     public boolean isBullishEngulfing(StockPrice stockPrice) {
-        if (!isGreen(stockPrice) || !isPreviousSessionRed(stockPrice)) {
-            return false;
-        }
 
-        double currentBody = currentBodySize(stockPrice);
-        double prevBody = prevBodySize(stockPrice);
+        if (stockPrice == null) return false;
 
-        boolean isBullishPattern =
-                currentBody > prevBody
-                        && currentBody >= MIN_BODY_SIZE
-                        && isOpenBelowPrevClose(stockPrice)
-                        && isCloseAbovePrevOpen(stockPrice);
+        double prevOpen = stockPrice.getPrevOpen();
+        double prevClose = stockPrice.getPrevClose();
+        double prevHigh = stockPrice.getPrevHigh();
+        double prevLow = stockPrice.getPrevLow();
 
-        if (isBullishPattern) {
-            log.info("Bullish engulfing candle detected");
-            return true;
-        }
+        double currOpen = stockPrice.getOpen();
+        double currClose = stockPrice.getClose();
+        double currHigh = stockPrice.getHigh();
+        double currLow = stockPrice.getLow();
 
-        return false;
+        // 1. Previous candle bearish
+        boolean firstBearish = prevClose < prevOpen;
+
+        // 2. Current candle bullish
+        boolean secondBullish = currClose > currOpen;
+
+        // 3. Current real body engulfs previous real body
+        boolean bodyEngulf = currOpen <= prevClose && currClose >= prevOpen;
+
+        // 4. Avoid dojis
+        double prevBody = Math.abs(prevOpen - prevClose);
+        double currBody = Math.abs(currOpen - currClose);
+
+        double prevRange = prevHigh - prevLow;
+        double currRange = currHigh - currLow;
+
+        boolean prevBodyOk = prevBody >= prevRange * 0.2; // min 20% of range
+        boolean currBodyOk = currBody >= currRange * 0.5; // strong bullish body
+
+        return firstBearish && secondBullish && bodyEngulf && prevBodyOk && currBodyOk;
     }
 
     public boolean isPrevBullishEngulfing(StockPrice stockPrice) {
@@ -1355,48 +1518,72 @@ public class CandleStickServiceImpl implements CandleStickService {
 
     @Override
     public boolean isTweezerBottom(StockPrice stockPrice) {
-        if (!isGreen(stockPrice) || !isPreviousSessionRed(stockPrice)) {
-            return false; // Ensure second candle is green and first is red
+        if (stockPrice == null) {
+            return false;
         }
 
-        if (!isOpenAtPrevClose(stockPrice) && !isOpenAtPrevOpen(stockPrice)) {
-            return false; // Second candle should open at previous close or open
-        }
+        // Tweezer Bottom criteria:
+        // 1. Both candles should have similar lows (within 0.05%)
+        double currentLow = stockPrice.getLow();
+        double previousLow = stockPrice.getPrevLow();
+        double lowDifference = Math.abs(currentLow - previousLow) / previousLow;
+        boolean haveSimilarLows = lowDifference <= 0.001; // 0.1%
 
-        if (currentBodySize(stockPrice) < MIN_BODY_SIZE
-                || prevBodySize(stockPrice) < MIN_BODY_SIZE) {
-            return false; // Ensure both candles have significant bodies
-        }
+        // 2. First candle is typically bearish, second candle shows reversal
+        boolean firstCandleBearish = stockPrice.getPrevClose() < stockPrice.getPrevOpen();
+        boolean secondCandleBullish = stockPrice.getClose() > stockPrice.getOpen();
 
-        log.info("Tweezer Bottom candle detected");
-        return true;
+        // 3. The lows form a support level (almost equal lows)
+        boolean formSupportLevel = haveSimilarLows;
+
+        // 4. Additional: Current session should show buying pressure
+        boolean showsBuyingPressure =
+                stockPrice.getClose() > stockPrice.getOpen()
+                        || (stockPrice.getClose() > stockPrice.getPrevClose());
+
+        return formSupportLevel && showsBuyingPressure && firstCandleBearish && secondCandleBullish;
     }
 
     @Override
     public boolean isDoubleBottom(StockPrice stockPrice) {
-        if (!isGreen(stockPrice) || !isPreviousSessionRed(stockPrice)) {
-            return false; // Ensure second candle is green and first is red
-        }
-
-        // Check if the second low is nearly equal to the first low (support level)
-        if (!formulaService.isEpsilonEqual(
-                stockPrice.getLow(), stockPrice.getPrevLow(), FibonacciRatio.RATIO_161_8)) {
+        if (stockPrice == null) {
             return false;
         }
 
-        // Ensure a significant range (avoid weak candles)
-        if (range(stockPrice) < MIN_RANGE || prevRange(stockPrice) < MIN_RANGE) {
-            return false;
-        }
+        // Tweezer Bottom criteria:
+        // 1. Both candles should have similar lows (within 0.05%)
+        double currentOpen = stockPrice.getOpen();
+        double previousClose = stockPrice.getPrevClose();
+        double bottomDifference = Math.abs(currentOpen - previousClose) / previousClose;
+        boolean haveSimilarBottom = bottomDifference <= 0.001; // 0.1%
 
-        // Confirmation: The close should be above the midpoint of the range
-        double neckline = (stockPrice.getPrevHigh() + stockPrice.getPrevLow()) / 2;
-        if (stockPrice.getClose() < neckline) {
-            return false; // No strong breakout yet
-        }
+        // 2. First candle is typically bearish, second candle shows reversal
+        boolean firstCandleBearish = stockPrice.getPrevClose() < stockPrice.getPrevOpen();
+        boolean secondCandleBullish = stockPrice.getClose() > stockPrice.getOpen();
 
-        log.info("Double Low (Double Bottom) pattern detected");
-        return true;
+        // 3. The lows form a support level (almost equal lows)
+        boolean formSupportLevel = haveSimilarBottom;
+
+        // 4. Additional: Current session should show buying pressure
+        boolean showsBuyingPressure =
+                stockPrice.getClose() > stockPrice.getOpen()
+                        || (stockPrice.getClose() > stockPrice.getPrevClose());
+
+        // 6. NEW: First candle should have a substantial body (not a doji or small body)
+        double firstCandleBody = Math.abs(stockPrice.getPrevClose() - stockPrice.getPrevOpen());
+        double firstCandleRange = stockPrice.getPrevHigh() - stockPrice.getPrevLow();
+        boolean firstCandleSubstantialBody =
+                firstCandleBody > firstCandleRange * 0.4; // At least 40% of range
+
+        // 6. NEW: First candle should have a substantial body (not a doji or small body)
+        double secondCandleBody = Math.abs(stockPrice.getClose() - stockPrice.getOpen());
+        double secondCandleRange = stockPrice.getHigh() - stockPrice.getLow();
+        boolean secondCandleSubstantialBody =
+                secondCandleBody > secondCandleRange * 0.3; // At least 50% of range
+
+        // boolean isHigherLow = CandleStickUtils.isHigherLow(stockPrice);
+
+        return formSupportLevel && showsBuyingPressure && firstCandleBearish && secondCandleBullish;
     }
 
     @Override
@@ -1431,60 +1618,100 @@ public class CandleStickServiceImpl implements CandleStickService {
 
     @Override
     public boolean isPiercingPattern(StockPrice stockPrice) {
-        // Ensure the first candle is bearish (red) and the second is bullish (green)
-        if (!isGreen(stockPrice) || !isPreviousSessionRed(stockPrice)) {
+        if (stockPrice == null) {
             return false;
         }
 
-        // Calculate the midpoint of the previous candle’s body
-        double prevMid = (stockPrice.getPrevOpen() + stockPrice.getPrevClose()) / 2;
+        // Calculate components for both candles
+        double prevOpen = stockPrice.getPrevOpen();
+        double prevClose = stockPrice.getPrevClose();
+        double prevHigh = stockPrice.getPrevHigh();
+        double prevLow = stockPrice.getPrevLow();
 
-        // Ensure the second candle opens below the previous close (gap down)
-        if (stockPrice.getOpen() >= stockPrice.getPrevClose()) {
-            return false;
-        }
+        double currOpen = stockPrice.getOpen();
+        double currClose = stockPrice.getClose();
+        double currHigh = stockPrice.getHigh();
+        double currLow = stockPrice.getLow();
 
-        // The second candle should close above the midpoint of the first candle
-        if (stockPrice.getClose() < prevMid) {
-            return false;
-        }
+        // Piercing Pattern criteria:
 
-        // Ensure both candles have a significant body size
-        if (prevBodySize(stockPrice) < MIN_BODY_SIZE
-                || currentBodySize(stockPrice) < MIN_BODY_SIZE) {
-            return false;
-        }
+        // 1. First candle must be bearish (close < open)
+        boolean firstCandleBearish = prevClose < prevOpen;
 
-        // Ensure the close is below the previous open but not necessarily lower than the previous
-        // high
-        if (stockPrice.getClose() >= stockPrice.getPrevOpen()) {
-            return false;
-        }
+        // 2. Second candle must be bullish (close > open)
+        boolean secondCandleBullish = currClose > currOpen;
 
-        log.info("Piercing Pattern detected");
-        return true;
+        // 3. Second candle opens below first candle's close
+        boolean opensBelowPreviousClose = currOpen < prevClose;
+
+        // 4. Second candle closes above the midpoint of first candle's real body
+        double firstCandleMidpoint = prevOpen + (prevClose - prevOpen) / 2;
+        boolean closesAboveMidpoint = currClose > firstCandleMidpoint;
+
+        // 5. Second candle closes below first candle's open (doesn't completely engulf)
+        boolean closesBelowPreviousOpen = currClose < prevOpen;
+
+        // 6. NEW: First candle should have a substantial body (not a doji or small body)
+        double firstCandleBody = Math.abs(prevClose - prevOpen);
+        double firstCandleRange = prevHigh - prevLow;
+        boolean firstCandleSubstantialBody =
+                firstCandleBody > firstCandleRange * 0.6; // At least 50% of range
+
+        return firstCandleBearish
+                && secondCandleBullish
+                && opensBelowPreviousClose
+                && closesAboveMidpoint
+                && closesBelowPreviousOpen
+                && firstCandleSubstantialBody;
     }
+
+    // Helper method to check downtrend context
 
     @Override
     public boolean isBullishKicker(StockPrice stockPrice) {
-        // First candle must be red (bearish), second must be green (bullish)
-        if (!isGreen(stockPrice) || !isPreviousSessionRed(stockPrice)) {
+        if (stockPrice == null) {
             return false;
         }
 
-        // Ensure a strong gap up with no overlap
-        if (!isGapUp(stockPrice) || stockPrice.getOpen() <= stockPrice.getPrevClose()) {
-            return false;
-        }
+        // Calculate components for both candles
+        double prevOpen = stockPrice.getPrevOpen();
+        double prevClose = stockPrice.getPrevClose();
+        double prevHigh = stockPrice.getPrevHigh();
+        double prevLow = stockPrice.getPrevLow();
 
-        // Ensure both candles have a strong body size
-        if (prevBodySize(stockPrice) < MIN_BODY_SIZE
-                || currentBodySize(stockPrice) < MIN_BODY_SIZE) {
-            return false;
-        }
+        double currOpen = stockPrice.getOpen();
+        double currClose = stockPrice.getClose();
+        double currHigh = stockPrice.getHigh();
+        double currLow = stockPrice.getLow();
 
-        log.info("Bullish Kicker candle active");
-        return true;
+        // Bullish Kicker Pattern criteria:
+
+        // 1. First candle can be any type (but often bearish in context)
+        // 2. Second candle opens with a gap UP from first candle's body
+        boolean hasGapUp = currOpen > prevHigh; // Opens above previous high
+
+        // 3. Second candle is strongly bullish (large body)
+        double currBody = Math.abs(currClose - currOpen);
+        double currRange = currHigh - currLow;
+        boolean isStrongBullishCandle = currBody > currRange * 0.6; // At least 60% body
+
+        // 4. Second candle closes near its high (small or no upper shadow)
+        double upperShadow = currHigh - currClose;
+        boolean smallUpperShadow = upperShadow < currBody * 0.1; // Less than 10% of body
+
+        // 5. The gap remains unfilled (current low > previous high)
+        boolean gapRemainsUnfilled = currLow > prevHigh;
+
+        // 6. Significant price move (avoid very small kicks)
+        double gapSize = currOpen - prevHigh;
+        double relativeGapSize = gapSize / prevHigh;
+        boolean significantGap = relativeGapSize > 0.005; // At least 0.5% gap
+
+        return hasGapUp
+                && isStrongBullishCandle
+                && smallUpperShadow
+                && gapRemainsUnfilled
+                && significantGap;
     }
 
     @Override
@@ -1565,23 +1792,52 @@ public class CandleStickServiceImpl implements CandleStickService {
 
     @Override
     public boolean isBullishSeparatingLine(StockPrice stockPrice) {
-        // First candle must be red (bearish), second must be green (bullish)
-        if (!isGreen(stockPrice) || !isPreviousSessionRed(stockPrice)) {
+        if (stockPrice == null) {
             return false;
         }
 
-        // Second candle must open exactly at the previous open price (no gap)
-        if (!isOpenAtPrevOpen(stockPrice)) {
-            return false;
-        }
+        // Calculate components for both candles
+        double prevOpen = stockPrice.getPrevOpen();
+        double prevClose = stockPrice.getPrevClose();
+        double prevHigh = stockPrice.getPrevHigh();
+        double prevLow = stockPrice.getPrevLow();
 
-        // The second candle must have a strong body size
-        if (currentBodySize(stockPrice) < MIN_BODY_SIZE) {
-            return false;
-        }
+        double currOpen = stockPrice.getOpen();
+        double currClose = stockPrice.getClose();
+        double currHigh = stockPrice.getHigh();
+        double currLow = stockPrice.getLow();
 
-        log.info("Bullish Separating Line candle active");
-        return true;
+        // Bullish Separating Line Pattern criteria:
+
+        // 1. First candle is bearish (close < open)
+        boolean firstCandleBearish = prevClose < prevOpen;
+
+        // 2. Second candle is bullish (close > open)
+        boolean secondCandleBullish = currClose > currOpen;
+
+        // 3. Both candles have approximately the SAME OPENING price
+        double openDifference = Math.abs(currOpen - prevOpen);
+        double openTolerance = prevOpen * 0.001; // 0.1% tolerance
+        boolean sameOpeningPrice = openDifference <= openTolerance;
+
+        // 4. Second candle closes above first candle's close
+        boolean closesAbovePreviousClose = currClose > prevClose;
+
+        // 5. Both candles should have substantial bodies (not dojis)
+        double prevBody = Math.abs(prevClose - prevOpen);
+        double prevRange = prevHigh - prevLow;
+        boolean prevSubstantialBody = prevBody > prevRange * 0.3;
+
+        double currBody = Math.abs(currClose - currOpen);
+        double currRange = currHigh - currLow;
+        boolean currSubstantialBody = currBody > currRange * 0.3;
+
+        return firstCandleBearish
+                && secondCandleBullish
+                && sameOpeningPrice
+                && closesAbovePreviousClose
+                && prevSubstantialBody
+                && currSubstantialBody;
     }
 
     @Override
@@ -1628,43 +1884,97 @@ public class CandleStickServiceImpl implements CandleStickService {
 
     @Override
     public boolean isBullishHarami(StockPrice stockPrice) {
-        // First candle must be red (bearish), second must be green (bullish)
-        if (!isGreen(stockPrice) || !isPreviousSessionRed(stockPrice)) {
+        if (stockPrice == null) {
             return false;
         }
 
-        // First candle must have a larger body size than the second
-        if (prevBodySize(stockPrice) <= currentBodySize(stockPrice)) {
-            return false;
-        }
+        // Calculate components for both candles
+        double prevOpen = stockPrice.getPrevOpen();
+        double prevClose = stockPrice.getPrevClose();
+        double prevHigh = stockPrice.getPrevHigh();
+        double prevLow = stockPrice.getPrevLow();
 
-        // Second candle's open and close must be inside the previous candle's body
-        if (!isOpenInsidePrevBody(stockPrice) || !isCloseInsidePrevBody(stockPrice)) {
-            return false;
-        }
+        double currOpen = stockPrice.getOpen();
+        double currClose = stockPrice.getClose();
+        double currHigh = stockPrice.getHigh();
+        double currLow = stockPrice.getLow();
 
-        log.info("Bullish Harami candle active");
-        return true;
+        // Bullish Harami Pattern criteria:
+
+        // 1. First candle is bearish (close < open) and has large body
+        boolean firstCandleBearish = prevClose < prevOpen;
+        double prevBody = Math.abs(prevClose - prevOpen);
+        double prevRange = prevHigh - prevLow;
+        boolean firstCandleLargeBody = prevBody > prevRange * 0.5; // At least 50% of range
+
+        // 2. Second candle is bullish (close > open) and has small body
+        boolean secondCandleBullish = currClose > currOpen;
+        double currBody = Math.abs(currClose - currOpen);
+        double currRange = currHigh - currLow;
+        boolean secondCandleSmallBody =
+                currBody > currRange * 0.1 && currBody < currRange * 0.4; // Less than 40% of range
+
+        // 3. Second candle is completely inside first candle's range (high and low)
+        boolean insideHigh = currHigh < prevHigh;
+        boolean insideLow = currLow > prevLow;
+        boolean completelyInside = insideHigh && insideLow;
+
+        // 4. Second candle's body is inside first candle's body
+        boolean bodyInside = currOpen > prevClose && currClose < prevOpen;
+
+        return firstCandleBearish
+                && secondCandleBullish
+                && firstCandleLargeBody
+                && secondCandleSmallBody
+                && completelyInside
+                && bodyInside;
     }
 
     public boolean isPrevBullishHarami(StockPrice stockPrice) {
-        // First candle must be red (bearish), second must be green (bullish)
-        if (!isPreviousSessionGreen(stockPrice) || !isPrevious2SessionRed(stockPrice)) {
+        if (stockPrice == null) {
             return false;
         }
 
-        // First candle must have a larger body size than the second
-        if (prev2BodySize(stockPrice) <= prevBodySize(stockPrice)) {
-            return false;
-        }
+        // Calculate components for both candles
+        double prevOpen = stockPrice.getPrev2Open();
+        double prevClose = stockPrice.getPrev2Close();
+        double prevHigh = stockPrice.getPrev2High();
+        double prevLow = stockPrice.getPrev2Low();
 
-        // Second candle's open and close must be inside the previous candle's body
-        if (!isPrevOpenInsidePrev2Body(stockPrice) || !isPrevCloseInsidePrev2Body(stockPrice)) {
-            return false;
-        }
+        double currOpen = stockPrice.getPrevOpen();
+        double currClose = stockPrice.getPrevClose();
+        double currHigh = stockPrice.getPrevHigh();
+        double currLow = stockPrice.getPrevLow();
 
-        log.info("Bullish Harami candle active");
-        return true;
+        // Bullish Harami Pattern criteria:
+
+        // 1. First candle is bearish (close < open) and has large body
+        boolean firstCandleBearish = prevClose < prevOpen;
+        double prevBody = Math.abs(prevClose - prevOpen);
+        double prevRange = prevHigh - prevLow;
+        boolean firstCandleLargeBody = prevBody > prevRange * 0.5; // At least 50% of range
+
+        // 2. Second candle is bullish (close > open) and has small body
+        boolean secondCandleBullish = currClose > currOpen;
+        double currBody = Math.abs(currClose - currOpen);
+        double currRange = currHigh - currLow;
+        boolean secondCandleSmallBody =
+                currBody > currRange * 0.1 && currBody < currRange * 0.4; // Less than 40% of range
+
+        // 3. Second candle is completely inside first candle's range (high and low)
+        boolean insideHigh = currHigh < prevHigh;
+        boolean insideLow = currLow > prevLow;
+        boolean completelyInside = insideHigh && insideLow;
+
+        // 4. Second candle's body is inside first candle's body
+        boolean bodyInside = currOpen > prevClose && currClose < prevOpen;
+
+        return firstCandleBearish
+                && secondCandleBullish
+                && firstCandleLargeBody
+                && secondCandleSmallBody
+                && completelyInside
+                && bodyInside;
     }
 
     @Override

@@ -161,6 +161,8 @@ public interface CandleStickService {
 
     public boolean isHammer(StockPrice stockPrice);
 
+    public boolean isPrevHammer(StockPrice stockPrice);
+
     public boolean isShootingStar(StockPrice stockPrice);
 
     /**
@@ -170,6 +172,8 @@ public interface CandleStickService {
      * @return
      */
     public boolean isInvertedHammer(StockPrice stockPrice);
+
+    public boolean isPrevInvertedHammer(StockPrice stockPrice);
 
     public boolean isOpenHigh(StockPrice stockPrice);
 
@@ -227,6 +231,7 @@ public interface CandleStickService {
      */
     public boolean isBullishHarami(StockPrice stockPrice);
 
+    public boolean isPrevBullishHarami(StockPrice stockPrice);
     /**
      * Need confirmation
      *

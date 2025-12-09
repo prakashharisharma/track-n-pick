@@ -383,11 +383,11 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
         ExponentialMovingAverage ema =
                 this.buildBK(
                         nseSymbol, ohlcvList, stockTechnicalsPreviousSession.getEma(), tradingDays);
-        /*
+
         AverageDirectionalIndex adx =
-                this.build(
+                this.buildBK(
                         nseSymbol, ohlcvList, stockTechnicalsPreviousSession.getAdx(), tradingDays);
-         */
+
         RelativeStrengthIndex rsi =
                 this.build(
                         nseSymbol, ohlcvList, stockTechnicalsPreviousSession.getRsi(), tradingDays);
@@ -406,7 +406,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
                 new OnBalanceVolume(0l, 0l),
                 sma,
                 ema,
-                new AverageDirectionalIndex(),
+                adx,
                 rsi,
                 new MovingAverageConvergenceDivergence());
     }
@@ -520,6 +520,19 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
                         ? stockTechnicals.getEma().getPrev2Avg5()
                         : 0.00);
 
+        st.setEma10(
+                stockTechnicals.getEma().getAvg10() != null
+                        ? stockTechnicals.getEma().getAvg10()
+                        : 0.00);
+        st.setPrevEma10(
+                stockTechnicals.getEma().getPrevAvg10() != null
+                        ? stockTechnicals.getEma().getPrevAvg10()
+                        : 0.00);
+        st.setPrev2Ema10(
+                stockTechnicals.getEma().getPrev2Avg10() != null
+                        ? stockTechnicals.getEma().getPrev2Avg10()
+                        : 0.00);
+
         st.setEma20(
                 stockTechnicals.getEma().getAvg20() != null
                         ? stockTechnicals.getEma().getAvg20()
@@ -554,13 +567,34 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
         st.setPrevEma200(stockTechnicals.getEma().getPrevAvg200());
         st.setPrev2Ema200(stockTechnicals.getEma().getPrev2Avg200());
 
+        st.setSma100(stockTechnicals.getSma().getAvg100());
+        st.setPrevSma100(stockTechnicals.getSma().getPrevAvg100());
+        st.setPrev2Sma100(stockTechnicals.getSma().getPrev2Avg100());
+
+        st.setSma200(stockTechnicals.getSma().getAvg200());
+        st.setPrevSma200(stockTechnicals.getSma().getPrevAvg200());
+        st.setPrev2Sma200(stockTechnicals.getSma().getPrev2Avg200());
+
         st.setVolume(stockTechnicals.getVolume().getVolume());
         st.setPrevVolume(stockTechnicals.getVolume().getPrevVolume());
         st.setPrev2Volume(stockTechnicals.getVolume().getPrev2Volume());
 
+        st.setVolumeAvg5(stockTechnicals.getVolume().getAvg5());
+        st.setPrevVolumeAvg5(stockTechnicals.getVolume().getPrevAvg5());
+        st.setPrev2VolumeAvg5(stockTechnicals.getVolume().getPrev2Avg5());
+
+        st.setVolumeAvg10(stockTechnicals.getVolume().getAvg10());
+        st.setPrevVolumeAvg10(stockTechnicals.getVolume().getPrevAvg10());
+        st.setPrev2VolumeAvg10(stockTechnicals.getVolume().getPrev2Avg10());
+
         st.setVolumeAvg20(stockTechnicals.getVolume().getAvg20());
         st.setPrevVolumeAvg20(stockTechnicals.getVolume().getPrevAvg20());
         st.setPrev2VolumeAvg20(stockTechnicals.getVolume().getPrev2Avg20());
+
+        st.setRsi(stockTechnicals.getRsi().getRsi());
+
+        st.setAdx(stockTechnicals.getAdx().getAdx());
+        st.setPrevAdx(stockTechnicals.getAdx().getPrevAdx());
 
         // System.out.println(st);
         return st;
@@ -633,7 +667,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
             from = to.minusYears(17);
         }
 
-        log.info("{} fetching OHLCV from {} to {}", nseSymbol, from, to);
+        log.info("{} fetching {} OHLCV from {} to {}", nseSymbol, timeFrame, from, to);
 
         return ohlcvService.fetch(timeFrame, nseSymbol, from, to);
     }
@@ -659,34 +693,35 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
         int resultIndex = ohlcvList.size() - 1;
 
         OHLCV ohlcv = ohlcvList.get(resultIndex);
+        List<Long> avg5List = volumeAverageCalculatorService.calculate(ohlcvList, 5);
         List<Long> avg10List = volumeAverageCalculatorService.calculate(ohlcvList, 12);
         List<Long> avg20List = volumeAverageCalculatorService.calculate(ohlcvList, 20);
 
-        // long avgVolume5 = volumeAverageCalculatorService.calculate(ohlcvList,
-        // 5).get(resultIndex);
-        // long avgVolume10 = volumeAverageCalculatorService.calculate(ohlcvList,
-        // 10).get(resultIndex);
+        long avgVolume5 = avg5List.get(resultIndex);
         long avgVolume10 = avg10List.get(resultIndex);
         long avgVolume20 = avg20List.get(resultIndex);
-        // long avgVolume50 = volumeAverageCalculatorService.calculate(ohlcvList,
-        // 50).get(resultIndex);
-        Volume volume = new Volume(ohlcv.getVolume(), 0l, avgVolume10, avgVolume20, 0l);
+
+        Volume volume = new Volume(ohlcv.getVolume(), avgVolume5, avgVolume10, avgVolume20, 0l);
 
         // --- Previous day volumes (prev) ---
         long prevVolume = 0l,
                 prevVolume5 = 0L,
                 prevVolume10 = 0L,
+                prevAvg5 = 0l,
                 prevAvg10 = 0l,
                 prevAvg20 = 0L,
                 prevVolume50 = 0L;
         if (resultIndex >= 1) {
+            prevAvg5 = avg5List.get(resultIndex - 1);
             prevAvg10 = avg10List.get(resultIndex - 1);
             prevAvg20 = avg20List.get(resultIndex - 1);
             ohlcv = ohlcvList.get(resultIndex - 1);
             prevVolume = ohlcv.getVolume();
         }
+        // System.out.println(nseSymbol +" prevAvg10 " +prevAvg10 +" prevAvg20" +prevAvg20);
         volume.setPrevVolume(prevVolume);
         volume.setPrevAvg10(prevAvg10);
+        volume.setPrevAvg5(prevAvg5);
         volume.setPrevAvg20(prevAvg20);
 
         // --- Day-before-previous volumes (prev2) ---
@@ -697,6 +732,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
                 prev2Avg20 = 0L,
                 prev2Volume50 = 0L;
         if (resultIndex >= 2) {
+            prev2Volume5 = avg5List.get(resultIndex - 2);
             prev2Avg10 = avg10List.get(resultIndex - 2);
             prev2Avg20 = avg20List.get(resultIndex - 2);
             ohlcv = ohlcvList.get(resultIndex - 2);
@@ -705,6 +741,7 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
         volume.setPrev2Volume(prev2Volume);
         volume.setPrev2Avg20(prev2Avg20);
         volume.setPrev2Avg10(prev2Avg10);
+        volume.setPrev2Avg5(prev2Volume5);
 
         return volume;
     }
@@ -925,6 +962,20 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
             long tradingDays) {
 
         return averageDirectionalIndexService.calculate(ohlcvList).get(ohlcvList.size() - 1);
+    }
+
+    private AverageDirectionalIndex buildBK(
+            String nseSymbol,
+            List<OHLCV> ohlcvList,
+            AverageDirectionalIndex prevAverageDirectionalIndex,
+            long tradingDays) {
+
+        AverageDirectionalIndex averageDirectionalIndex =
+                averageDirectionalIndexService.calculate(ohlcvList).get(ohlcvList.size() - 1);
+        prevAverageDirectionalIndex =
+                averageDirectionalIndexService.calculate(ohlcvList).get(ohlcvList.size() - 2);
+        averageDirectionalIndex.setPrevAdx(prevAverageDirectionalIndex.getAdx());
+        return averageDirectionalIndex;
     }
 
     private RelativeStrengthIndex build(
