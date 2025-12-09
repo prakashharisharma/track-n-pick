@@ -193,7 +193,11 @@ public class UpdatePriceServiceImpl implements UpdatePriceService {
         LocalDate to = sessionDate;
         OHLCV ohlcv = null;
         StockPrice stockPrice = null;
-        if (timeframe == Timeframe.MONTHLY) {
+        if (timeframe == Timeframe.YEARLY) {
+            from = sessionDate.minusYears(7).with(TemporalAdjusters.firstDayOfYear());
+            stockPrice = new StockPriceMonthly();
+
+        } else if (timeframe == Timeframe.MONTHLY) {
             from = sessionDate.minusMonths(7).with(TemporalAdjusters.firstDayOfMonth());
             stockPrice = new StockPriceMonthly();
 

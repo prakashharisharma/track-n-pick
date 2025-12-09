@@ -9,6 +9,9 @@ public class TrendDirectionUtil {
         // Step 1: Check for gap up/down first
         if (CandleStickUtils.isFallingWindow(stockPrice)) return Trend.Direction.DOWN;
         if (CandleStickUtils.isRisingWindow(stockPrice)) return Trend.Direction.UP;
+        if (CandleStickUtils.isGreen(stockPrice)
+                && CandleStickUtils.isPrevSessionRed(stockPrice)
+                && stockPrice.getClose() > stockPrice.getOpen()) return Trend.Direction.UP;
 
         // Step 2: Score previous 5 sessions
         double[] highs = {

@@ -27,10 +27,6 @@ public class DynamicTrendServiceImpl implements DynamicTrendService {
             StockPrice stockPrice,
             MovingAverageResult movingAverageResult) {
 
-        // MovingAverageResult  movingAverageResult =
-        // MovingAverageUtil.getMovingAverage(MovingAverageLength.SHORTEST, timeframe,
-        // stockTechnicals, true);
-
         double avg = movingAverageResult.getValue();
         double prevAvg = movingAverageResult.getPrevValue();
 

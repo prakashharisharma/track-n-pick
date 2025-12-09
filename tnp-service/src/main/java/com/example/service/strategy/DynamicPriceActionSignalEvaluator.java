@@ -124,7 +124,7 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             MAEvaluationResult evaluationResult) {
 
         log.debug("Confirming breakout for stock={} timeframe={}", stock.getNseSymbol(), timeframe);
-
+        /*
         if (timeframe == Timeframe.DAILY
                 && evaluationResult.getLength() == MovingAverageLength.MEDIUM) {
             if (!CandleStickUtils.isPrevSessionRed(stockPrice)) {
@@ -226,7 +226,7 @@ public class DynamicPriceActionSignalEvaluator implements TradeSignalEvaluator {
             if (!adxIndicatorService.isBullishIncr(stockTechnicals)) {
                 return Optional.empty();
             }
-        }
+        }*/
 
         boolean isLowestAndHighestMovingAverageDiffValid =
                 signalEvaluatorHelperService.isLowestAndHighestMovingAverageDiffValid(
