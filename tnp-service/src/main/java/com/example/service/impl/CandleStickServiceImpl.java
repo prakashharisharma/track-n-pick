@@ -799,6 +799,32 @@ public class CandleStickServiceImpl implements CandleStickService {
     }
 
     @Override
+    public boolean isPrev2Doji(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        // Calculate candlestick components
+        double open = stockPrice.getPrev2Open();
+        double high = stockPrice.getPrev2High();
+        double low = stockPrice.getPrev2Low();
+        double close = stockPrice.getPrev2Close();
+
+        double realBody = Math.abs(close - open);
+        double totalRange = high - low;
+
+        // Avoid division by zero
+        if (totalRange == 0) {
+            return false;
+        }
+
+        // Doji criteria: Very small real body (typically less than 5-10% of total range)
+        boolean hasVerySmallBody = realBody < totalRange * 0.1; // Body less than 10% of total range
+
+        return hasVerySmallBody;
+    }
+
+    @Override
     public boolean isGravestoneDoji(StockPrice stockPrice) {
         if (stockPrice == null) {
             log.warn("StockPrice is null, returning false");
@@ -1357,7 +1383,7 @@ public class CandleStickServiceImpl implements CandleStickService {
         double currRange = currHigh - currLow;
 
         boolean prevBodyOk = prevBody >= prevRange * 0.2; // min 20% of range
-        boolean currBodyOk = currBody >= currRange * 0.5; // strong bullish body
+        boolean currBodyOk = currBody >= currRange * 0.4; // strong bullish body
 
         return firstBearish && secondBullish && bodyEngulf && prevBodyOk && currBodyOk;
     }
@@ -1905,7 +1931,7 @@ public class CandleStickServiceImpl implements CandleStickService {
         boolean firstCandleBearish = prevClose < prevOpen;
         double prevBody = Math.abs(prevClose - prevOpen);
         double prevRange = prevHigh - prevLow;
-        boolean firstCandleLargeBody = prevBody > prevRange * 0.5; // At least 50% of range
+        boolean firstCandleLargeBody = prevBody > prevRange * 0.4; // At least 50% of range
 
         // 2. Second candle is bullish (close > open) and has small body
         boolean secondCandleBullish = currClose > currOpen;
@@ -1926,7 +1952,7 @@ public class CandleStickServiceImpl implements CandleStickService {
                 && secondCandleBullish
                 && firstCandleLargeBody
                 && secondCandleSmallBody
-                && completelyInside
+                && insideHigh
                 && bodyInside;
     }
 

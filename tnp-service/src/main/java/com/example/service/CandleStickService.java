@@ -124,6 +124,8 @@ public interface CandleStickService {
     public boolean isDoji(StockPrice stockPrice);
 
     public boolean isPrevDoji(StockPrice stockPrice);
+
+    public boolean isPrev2Doji(StockPrice stockPrice);
     /**
      * The following conditions enhance the probability Stock must be in overbaught / oversold
      * condition Volume above avg Gap up or gap down next day

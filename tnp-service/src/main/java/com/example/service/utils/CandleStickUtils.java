@@ -990,7 +990,7 @@ public class CandleStickUtils {
         double lowerWickSize = lowerWickSize(stockPrice);
         double upperWickSize = upperWickSize(stockPrice);
 
-        return upperWickSize > lowerWickSize && upperWickSize > 3 * bodySize;
+        return upperWickSize > lowerWickSize && upperWickSize > 2 * bodySize;
     }
 
     public static boolean isPrevUpperWickDominant(StockPrice stockPrice) {
@@ -1007,7 +1007,7 @@ public class CandleStickUtils {
         double lowerWickSize = lowerWickSize(stockPrice);
         double upperWickSize = upperWickSize(stockPrice);
 
-        return lowerWickSize > upperWickSize && lowerWickSize > 3 * bodySize;
+        return lowerWickSize > upperWickSize && lowerWickSize > 2 * bodySize;
     }
 
     public static boolean isPrevLowerWickDominant(StockPrice stockPrice) {
