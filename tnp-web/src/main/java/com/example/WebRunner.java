@@ -256,9 +256,13 @@ public class WebRunner implements CommandLineRunner {
         }*/
 
         // this.scanMaster();
-
+        // testScanner.newScanner();
+        //  testScanner.newScanner2();
         testScanner.dynamicScanner();
-        // testScanner.dynamicScanner1();
+        //   testScanner.dynamicScanner1();
+        // testScanner.dynamicScanner3();
+        // testScanner.dynamicScanner4();
+        //  testScanner.dynamicScanner5();
 
         // Stock stock = stockService.getStockByNseSymbol("HCLTECH");
 
@@ -835,16 +839,6 @@ public class WebRunner implements CommandLineRunner {
                 PivotPointUtils.PivotLevels pivotLevels =
                         PivotPointUtils.calculate(
                                 stockPrice.getHigh(), stockPrice.getLow(), stockPrice.getClose());
-
-                stockPrice.setPivot(pivotLevels.getPivot());
-
-                stockPrice.setResistance1(pivotLevels.getResistance1());
-                stockPrice.setResistance2(pivotLevels.getResistance2());
-                stockPrice.setResistance3(pivotLevels.getResistance3());
-
-                stockPrice.setSupport1(pivotLevels.getSupport1());
-                stockPrice.setSupport2(pivotLevels.getSupport2());
-                stockPrice.setSupport3(pivotLevels.getSupport3());
 
                 stockPriceRepository.save(stockPrice);
             }

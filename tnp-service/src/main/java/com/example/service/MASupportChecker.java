@@ -378,6 +378,19 @@ public class MASupportChecker {
         return false;
     }
 
+    public static boolean checkCondition2d(
+            double prevClose,
+            double currentOpen,
+            double currentLow,
+            double currentClose,
+            double currentEMA) {
+        if (currentLow < currentEMA && currentClose > currentEMA && prevClose > currentOpen) {
+            double minPrice = currentEMA * (1 + (SUPPORT_BOUNCE_THRESHOLD / 100));
+            return currentClose > minPrice;
+        }
+        return false;
+    }
+
     // NEW METHOD: Check if EMA is rising (current >= previous)
     public static boolean isEMARising(MovingAverageLength length, StockTechnicals stockTechnicals) {
         if (!length.isEMA()) {
@@ -423,11 +436,14 @@ public class MASupportChecker {
         double prevOpen = stockPrice.getPrevOpen();
         double prevLow = stockPrice.getPrevLow();
         double prevClose = stockPrice.getPrevClose();
+        double currentOpen = stockPrice.getOpen();
+        double currentLow = stockPrice.getLow();
         double currentClose = stockPrice.getClose();
 
         return checkCondition2a(prevLow, prevClose, currentClose, prevEMA, currentEMA)
                 || checkCondition2b(length, prevClose, currentClose, prevEMA)
-                || checkCondition2c(prevClose, prevOpen, currentClose, prevEMA, currentEMA);
+                || checkCondition2c(prevClose, prevOpen, currentClose, prevEMA, currentEMA)
+                || checkCondition2d(prevClose, currentOpen, currentLow, currentClose, currentEMA);
     }
 
     // ========== HELPER METHODS ==========

@@ -231,8 +231,7 @@ public class DynamicMovingAverageSupportResolverServiceImpl
         // boolean checkSupport = TrendDirectionUtil.findDirection(stockPrice) ==
         // Trend.Direction.DOWN;
 
-        boolean checkSupport =
-                CandleStickUtils.isLowerHigh(stockPrice) || CandleStickUtils.isLowerLow(stockPrice);
+        boolean checkSupport = this.isDowntrend(stockPrice);
 
         // Previous downtrend
         // boolean checkSupport = stockPrice.getPrevClose() < stockPrice.getPrev2Close() &&
@@ -258,6 +257,16 @@ public class DynamicMovingAverageSupportResolverServiceImpl
                             return MAInteraction.of(length, value, checkSupport);
                         })
                 .toList();
+    }
+
+    public boolean isDowntrend(StockPrice stockPrice) {
+        double prevClose = stockPrice.getClose();
+        double prev2Close = stockPrice.getPrevClose();
+        double prev3Close = stockPrice.getPrev2Close();
+        return prevClose < prev2Close
+                && prev2Close < prev3Close
+                && CandleStickUtils.isRed(stockPrice)
+                && CandleStickUtils.isPrevSessionRed(stockPrice);
     }
 
     public List<MAEvaluationResult> evaluateInteractions(
