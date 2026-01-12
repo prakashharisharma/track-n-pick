@@ -215,6 +215,14 @@ public class CandleStickUtils {
         return stockPrice != null && stockPrice.getPrev3Close() < stockPrice.getPrev3Open();
     }
 
+    public static boolean isPrev4SessionRed(StockPrice stockPrice) {
+        return stockPrice != null && stockPrice.getPrev4Close() < stockPrice.getPrev4Open();
+    }
+
+    public static boolean isPrev5SessionRed(StockPrice stockPrice) {
+        return stockPrice != null && stockPrice.getPrev5Close() < stockPrice.getPrev5Open();
+    }
+
     public static double bodySize(StockPrice stockPrice) {
         if (stockPrice == null || stockPrice.getClose() == null || stockPrice.getOpen() == null) {
             return 0.0;
@@ -284,6 +292,17 @@ public class CandleStickUtils {
         }
         return stockPrice.getPrevHigh()
                 - Math.max(stockPrice.getPrevOpen(), stockPrice.getPrevClose());
+    }
+
+    public static double prev2UpperWickSize(StockPrice stockPrice) {
+        if (stockPrice == null
+                || stockPrice.getHigh() == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getClose() == null) {
+            return 0.0;
+        }
+        return stockPrice.getPrev2High()
+                - Math.max(stockPrice.getPrev2Open(), stockPrice.getPrev2Close());
     }
 
     public static double lowerWickSize(StockPrice stockPrice) {
@@ -567,6 +586,21 @@ public class CandleStickUtils {
         return low > prevLow;
     }
 
+    public static boolean isPrev2HigherLow(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        Double low = stockPrice.getPrev2Low();
+        Double prevLow = stockPrice.getPrev3Low();
+
+        if (low == null || prevLow == null) {
+            return false;
+        }
+
+        return low > prevLow;
+    }
+
     public static boolean isLowerLow(double low, double prevLow) {
         return low < prevLow;
     }
@@ -593,6 +627,17 @@ public class CandleStickUtils {
 
         Double high = stockPrice.getPrevHigh();
         Double prevHigh = stockPrice.getPrev2High();
+
+        return (high != null && prevHigh != null) && high > prevHigh;
+    }
+
+    public static boolean isPrev2HigherHigh(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        Double high = stockPrice.getPrev2High();
+        Double prevHigh = stockPrice.getPrev3High();
 
         return (high != null && prevHigh != null) && high > prevHigh;
     }
@@ -1002,6 +1047,15 @@ public class CandleStickUtils {
         return upperWickSize > lowerWickSize && upperWickSize > 3 * bodySize;
     }
 
+    public static boolean isPrev2UpperWickDominant(StockPrice stockPrice) {
+
+        double bodySize = prev2SessionBodySize(stockPrice);
+        double lowerWickSize = prev2LowerWickSize(stockPrice);
+        double upperWickSize = prev2UpperWickSize(stockPrice);
+
+        return upperWickSize > lowerWickSize && upperWickSize > 3 * bodySize;
+    }
+
     public static boolean isLowerWickDominant(StockPrice stockPrice) {
         double bodySize = bodySize(stockPrice);
         double lowerWickSize = lowerWickSize(stockPrice);
@@ -1024,7 +1078,7 @@ public class CandleStickUtils {
         double lowerWickSize = lowerWickSize(stockPrice);
         double upperWickSize = upperWickSize(stockPrice);
 
-        return upperWickSize > lowerWickSize && upperWickSize >= 0.25 * bodySize;
+        return upperWickSize > lowerWickSize && upperWickSize >= 2 * bodySize;
     }
 
     public static boolean isLowerWickLongerThanUpperWick(StockPrice stockPrice) {
@@ -1054,6 +1108,68 @@ public class CandleStickUtils {
         double open = stockPrice.getOpen();
         double close = stockPrice.getClose();
         double high = stockPrice.getHigh();
+
+        // Body size
+        double body = Math.abs(close - open);
+        if (body == 0) return false; // avoid division by zero
+
+        // Determine top of the body
+        double topOfBody = Math.max(open, close);
+
+        // Upper wick size
+        double upperWick = high - topOfBody;
+
+        // Upper wick % of body
+        double upperWickPercent = (upperWick / body) * 100.0;
+
+        // Check if within 20%
+        return upperWickPercent < threshold;
+    }
+
+    public static boolean isPrevUpperWickWithinLimit(StockPrice stockPrice, double threshold) {
+
+        // Check if within 20%
+        if (stockPrice == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getClose() == null
+                || stockPrice.getHigh() == null) {
+            return false;
+        }
+
+        double open = stockPrice.getPrevOpen();
+        double close = stockPrice.getPrevClose();
+        double high = stockPrice.getPrevHigh();
+
+        // Body size
+        double body = Math.abs(close - open);
+        if (body == 0) return false; // avoid division by zero
+
+        // Determine top of the body
+        double topOfBody = Math.max(open, close);
+
+        // Upper wick size
+        double upperWick = high - topOfBody;
+
+        // Upper wick % of body
+        double upperWickPercent = (upperWick / body) * 100.0;
+
+        // Check if within 20%
+        return upperWickPercent < threshold;
+    }
+
+    public static boolean isPrev2UpperWickWithinLimit(StockPrice stockPrice, double threshold) {
+
+        // Check if within 20%
+        if (stockPrice == null
+                || stockPrice.getOpen() == null
+                || stockPrice.getClose() == null
+                || stockPrice.getHigh() == null) {
+            return false;
+        }
+
+        double open = stockPrice.getPrev2Open();
+        double close = stockPrice.getPrev2Close();
+        double high = stockPrice.getPrev2High();
 
         // Body size
         double body = Math.abs(close - open);

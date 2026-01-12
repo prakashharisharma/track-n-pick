@@ -1206,6 +1206,49 @@ public class CandleStickServiceImpl implements CandleStickService {
     }
 
     @Override
+    public boolean isPrevShootingStar(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        // Calculate candlestick components
+        double open = stockPrice.getPrevOpen();
+        double high = stockPrice.getPrevHigh();
+        double low = stockPrice.getPrevLow();
+        double close = stockPrice.getPrevClose();
+
+        // Calculate real body and shadows
+        double realBody = Math.abs(close - open);
+        double upperShadow = high - Math.max(open, close);
+        double lowerShadow = Math.min(open, close) - low;
+        double totalRange = high - low;
+
+        // Avoid division by zero
+        if (realBody == 0) {
+            return false;
+        }
+
+        // Shooting Star criteria (mirror image of Hammer):
+        // 1. Small real body (body should be relatively small compared to the total range)
+        boolean hasSmallBody = realBody < totalRange * 0.3; // Body less than 30% of total range
+
+        // 2. Long upper shadow (at least three times the height of real body)
+        boolean hasLongUpperShadow = upperShadow >= realBody * 3;
+
+        // 3. Little or no lower shadow (less than 60% of real body)
+        boolean hasSmallLowerShadow = (lowerShadow / realBody) < 0.6;
+
+        // 4. Additional validation: upper shadow should be significant (at least 1/3 of total
+        // range)
+        boolean hasSignificantUpperShadow = upperShadow >= totalRange * 0.33;
+
+        return hasSmallBody
+                && hasLongUpperShadow
+                && hasSmallLowerShadow
+                && hasSignificantUpperShadow;
+    }
+
+    @Override
     public boolean isInvertedHammer(StockPrice stockPrice) {
         if (stockPrice == null) {
             return false;

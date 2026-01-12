@@ -326,10 +326,20 @@ public class MASupportChecker {
         double prevClose = stockPrice.getPrevClose();
         double prev2Close = stockPrice.getPrev2Close();
         double prev3Close = stockPrice.getPrev3Close();
-        return prevClose < prev2Close
-                && prev2Close < prev3Close
-                && CandleStickUtils.isPrevSessionRed(stockPrice)
-                && CandleStickUtils.isPrev2SessionRed(stockPrice);
+
+        boolean closeStrcuture =
+                prevClose < prev2Close
+                        && prev2Close < prev3Close
+                        && CandleStickUtils.isPrevSessionRed(stockPrice)
+                        && CandleStickUtils.isPrev2SessionRed(stockPrice);
+
+        boolean lhllStructure =
+                CandleStickUtils.isPrevLowerHigh(stockPrice)
+                        && CandleStickUtils.isPrevLowerLow(stockPrice)
+                        && CandleStickUtils.isPrev2LowerHigh(stockPrice)
+                        && CandleStickUtils.isPrev2LowerLow(stockPrice);
+
+        return closeStrcuture || lhllStructure;
     }
 
     public static boolean checkCondition2a(
