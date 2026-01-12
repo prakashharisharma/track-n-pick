@@ -167,6 +167,7 @@ public interface CandleStickService {
 
     public boolean isShootingStar(StockPrice stockPrice);
 
+    public boolean isPrevShootingStar(StockPrice stockPrice);
     /**
      * Need confirmation
      *

@@ -520,6 +520,42 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
                         ? stockTechnicals.getEma().getPrev2Avg5()
                         : 0.00);
 
+        st.setPrev3Ema5(
+                stockTechnicals.getEma().getPrev3Avg5() != null
+                        ? stockTechnicals.getEma().getPrev3Avg5()
+                        : 0.00);
+        st.setPrev4Ema5(
+                stockTechnicals.getEma().getPrev4Avg5() != null
+                        ? stockTechnicals.getEma().getPrev4Avg5()
+                        : 0.00);
+        st.setPrev5Ema5(
+                stockTechnicals.getEma().getPrev5Avg5() != null
+                        ? stockTechnicals.getEma().getPrev5Avg5()
+                        : 0.00);
+        st.setPrev6Ema5(
+                stockTechnicals.getEma().getPrev6Avg5() != null
+                        ? stockTechnicals.getEma().getPrev6Avg5()
+                        : 0.00);
+        st.setPrev7Ema5(
+                stockTechnicals.getEma().getPrev7Avg5() != null
+                        ? stockTechnicals.getEma().getPrev7Avg5()
+                        : 0.00);
+        st.setPrev8Ema5(
+                stockTechnicals.getEma().getPrev8Avg5() != null
+                        ? stockTechnicals.getEma().getPrev8Avg5()
+                        : 0.00);
+        st.setPrev9Ema5(
+                stockTechnicals.getEma().getPrev9Avg5() != null
+                        ? stockTechnicals.getEma().getPrev9Avg5()
+                        : 0.00);
+        st.setPrev10Ema5(
+                stockTechnicals.getEma().getPrev10Avg5() != null
+                        ? stockTechnicals.getEma().getPrev10Avg5()
+                        : 0.00);
+        st.setPrev11Ema5(
+                stockTechnicals.getEma().getPrev11Avg5() != null
+                        ? stockTechnicals.getEma().getPrev11Avg5()
+                        : 0.00);
         st.setEma10(
                 stockTechnicals.getEma().getAvg10() != null
                         ? stockTechnicals.getEma().getAvg10()
@@ -952,6 +988,52 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
         exponentialMovingAverage.setPrev2Avg100(prev2Ema100);
         exponentialMovingAverage.setPrev2Avg200(prev2Ema200);
 
+        double prev3Ema5 = 0.0;
+        if (resultIndex >= 3) {
+            prev3Ema5 = ema5List.get(resultIndex - 3);
+        }
+        exponentialMovingAverage.setPrev3Avg5(prev3Ema5);
+        double prev4Ema5 = 0.0;
+        if (resultIndex >= 4) {
+            prev4Ema5 = ema5List.get(resultIndex - 4);
+        }
+        exponentialMovingAverage.setPrev4Avg5(prev4Ema5);
+        double prev5Ema5 = 0.0;
+        if (resultIndex >= 5) {
+            prev5Ema5 = ema5List.get(resultIndex - 5);
+        }
+        exponentialMovingAverage.setPrev5Avg5(prev5Ema5);
+        double prev6Ema5 = 0.0;
+        if (resultIndex >= 6) {
+            prev6Ema5 = ema5List.get(resultIndex - 6);
+        }
+        exponentialMovingAverage.setPrev6Avg5(prev6Ema5);
+        double prev7Ema5 = 0.0;
+        if (resultIndex >= 7) {
+            prev7Ema5 = ema5List.get(resultIndex - 7);
+        }
+        exponentialMovingAverage.setPrev7Avg5(prev7Ema5);
+        double prev8Ema5 = 0.0;
+        if (resultIndex >= 8) {
+            prev8Ema5 = ema5List.get(resultIndex - 8);
+        }
+        exponentialMovingAverage.setPrev8Avg5(prev8Ema5);
+        double prev9Ema5 = 0.0;
+        if (resultIndex >= 9) {
+            prev9Ema5 = ema5List.get(resultIndex - 9);
+        }
+        exponentialMovingAverage.setPrev9Avg5(prev9Ema5);
+        double prev10Ema5 = 0.0;
+        if (resultIndex >= 10) {
+            prev10Ema5 = ema5List.get(resultIndex - 10);
+        }
+        exponentialMovingAverage.setPrev10Avg5(prev10Ema5);
+
+        double prev11Ema5 = 0.0;
+        if (resultIndex >= 11) {
+            prev11Ema5 = ema5List.get(resultIndex - 11);
+        }
+        exponentialMovingAverage.setPrev11Avg5(prev11Ema5);
         return exponentialMovingAverage;
     }
 
