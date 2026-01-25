@@ -195,7 +195,7 @@ public class UpdatePriceServiceImpl implements UpdatePriceService {
         StockPrice stockPrice = null;
         if (timeframe == Timeframe.YEARLY) {
             from = sessionDate.minusYears(7).with(TemporalAdjusters.firstDayOfYear());
-            stockPrice = new StockPriceMonthly();
+            stockPrice = new StockPriceYearly();
 
         } else if (timeframe == Timeframe.MONTHLY) {
             from = sessionDate.minusMonths(20).with(TemporalAdjusters.firstDayOfMonth());
@@ -214,6 +214,19 @@ public class UpdatePriceServiceImpl implements UpdatePriceService {
         }
 
         List<OHLCV> ohlcvList = ohlcvService.fetch(timeframe, stock.getNseSymbol(), from, to);
+        if (timeframe == Timeframe.MONTHLY
+                && !sessionDate.isEqual(
+                        calendarService.previousTradingSession(
+                                sessionDate
+                                        .plusMonths(1)
+                                        .with(TemporalAdjusters.firstDayOfMonth())))) {
+            OHLCV ohlcvCurrent =
+                    monthlySupportResistanceService.supportAndResistance(
+                            stock.getNseSymbol(),
+                            sessionDate.with(TemporalAdjusters.firstDayOfMonth()),
+                            sessionDate);
+            ohlcvList.add(ohlcvCurrent);
+        }
 
         stockPrice.setStock(stock);
         stockPrice.setTimeframe(timeframe);

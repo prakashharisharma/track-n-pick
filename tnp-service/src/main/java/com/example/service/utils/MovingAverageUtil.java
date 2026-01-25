@@ -434,15 +434,15 @@ public class MovingAverageUtil {
         int count = 0;
 
         if (getMovingAverage5(timeframe, stockTechnicals)
-                < getPrevMovingAverage5(timeframe, stockTechnicals)) count++;
+                <= getPrevMovingAverage5(timeframe, stockTechnicals)) count++;
         if (getMovingAverage20(timeframe, stockTechnicals)
-                < getPrevMovingAverage20(timeframe, stockTechnicals)) count++;
+                <= getPrevMovingAverage20(timeframe, stockTechnicals)) count++;
         if (getMovingAverage50(timeframe, stockTechnicals)
-                < getPrevMovingAverage50(timeframe, stockTechnicals)) count++;
+                <= getPrevMovingAverage50(timeframe, stockTechnicals)) count++;
         if (getMovingAverage100(timeframe, stockTechnicals)
-                < getPrevMovingAverage100(timeframe, stockTechnicals)) count++;
+                <= getPrevMovingAverage100(timeframe, stockTechnicals)) count++;
         if (getMovingAverage200(timeframe, stockTechnicals)
-                < getPrevMovingAverage200(timeframe, stockTechnicals)) count++;
+                <= getPrevMovingAverage200(timeframe, stockTechnicals)) count++;
 
         return count >= 5;
     }
