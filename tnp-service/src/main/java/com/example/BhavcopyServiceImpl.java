@@ -8,7 +8,9 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import lombok.RequiredArgsConstructor;
@@ -71,14 +73,26 @@ public class BhavcopyServiceImpl implements BhavcopyService {
 
     private List<StockPriceIN> parseCsv(String csvContent) throws IOException {
         log.info("Parsing CSV content...");
-        try (Reader reader = new StringReader(csvContent)) {
+
+        // Filter out empty lines before parsing
+        String filteredContent = filterEmptyLines(csvContent);
+
+        try (Reader reader = new StringReader(filteredContent)) {
             CsvToBean<StockPriceIN> csvToBean =
                     new CsvToBeanBuilder<StockPriceIN>(reader)
                             .withType(StockPriceIN.class)
                             .withIgnoreLeadingWhiteSpace(true)
                             .withSeparator(',')
+                            .withThrowExceptions(false)
                             .build();
+
             return csvToBean.parse();
         }
+    }
+
+    private String filterEmptyLines(String csvContent) {
+        return Arrays.stream(csvContent.split("\\r?\\n"))
+                .filter(line -> !line.trim().isEmpty())
+                .collect(Collectors.joining(System.lineSeparator()));
     }
 }

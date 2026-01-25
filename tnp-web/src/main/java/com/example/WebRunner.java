@@ -258,7 +258,8 @@ public class WebRunner implements CommandLineRunner {
         // this.scanMaster();
         // testScanner.newScanner();
         //  testScanner.newScanner2();
-        testScanner.dynamicScannerEnhanced();
+        // testScanner.dynamicScannerEnhanced();
+        testScanner.dynamicScannerEnhanced1();
         // testScanner.monthlyScanner();
         //  testScanner.monthlyScanner2();
         //   testScanner.dynamicScanner1Enhanced();
@@ -382,9 +383,11 @@ public class WebRunner implements CommandLineRunner {
 
         // this.updateFinaicials();
         // this.testScore();
+
         //  this.updatePriceHistory();
         // this.updateTechnicals();
-        // this.processPriceUpdate(true);
+        //   this.processBhavFromApi();
+        //  this.processPriceUpdate(true);
         // this.processTechnicalsUpdate();
 
         // this.updateSectorsActivity();
@@ -4984,6 +4987,113 @@ public class WebRunner implements CommandLineRunner {
         special = calendarService.isLastTradingSessionOfQuarter(tradingDate);
 
         System.out.println(tradingDate + " is " + special);
+    }
+
+    private void processBhavFromApi() {
+        List<Stock> stockList = stockRepository.findByActivityCompleted(false);
+
+        int countTotal = stockList.size();
+
+        for (Stock stock : stockList) {
+            long startTime = System.currentTimeMillis();
+            System.out.println("Starting activity for " + stock.getNseSymbol());
+
+            com.example.data.transactional.entities.StockPrice stockPriceDaily =
+                    stockPriceService.get(stock, Timeframe.DAILY);
+
+            /*
+            double changePErcentage =
+                    Math.abs(
+                            formulaService.calculateChangePercentage(
+                                    stockPriceDaily.getPrevClose(), stockPriceDaily.getClose()));
+
+            if (changePErcentage <= 20) {
+                System.out.println("Price is already up to date" + stock.getNseSymbol());
+                continue;
+            }*/
+
+            System.out.println("Going to fetch updated bhav from MC " + stock.getNseSymbol());
+
+            try {
+                List<OHLCV> ohlcvList = mcService.getMCOHLP(stock.getNseSymbol(), 30, 7350);
+
+                if (ohlcvList != null && !ohlcvList.isEmpty()) {
+                    System.out.println("Deleting existing bhav " + stock.getNseSymbol());
+                    long count = priceTemplate.delete(stock.getNseSymbol());
+                    miscUtil.delay(25);
+                    System.out.println(
+                            "Deleted existing bhav " + count + " " + stock.getNseSymbol());
+                }
+
+                List<com.example.data.storage.documents.StockPrice> stockPriceList =
+                        new ArrayList<>();
+                com.example.data.storage.documents.StockPrice stockPrice = null;
+
+                for (OHLCV ohlcv : ohlcvList) {
+                    if (ohlcv != null && ohlcv.getOpen() != 0.0 && ohlcv.getClose() != 0.0) {
+
+                        StockPriceIO stockPriceIO =
+                                new StockPriceIO(
+                                        "NSE",
+                                        stock.getCompanyName(),
+                                        stock.getNseSymbol(),
+                                        "EQ",
+                                        ohlcv.getOpen(),
+                                        ohlcv.getHigh(),
+                                        ohlcv.getLow(),
+                                        ohlcv.getClose(),
+                                        ohlcv.getClose(),
+                                        ohlcv.getOpen(),
+                                        ohlcv.getVolume(),
+                                        0.00,
+                                        ohlcv.getBhavDate()
+                                                .atOffset(ZoneOffset.UTC)
+                                                .toLocalDate()
+                                                .format(DateTimeFormatter.ofPattern("dd/MM/yy")),
+                                        1,
+                                        stock.getIsinCode(),
+                                        stock.getInstrument());
+                        // System.out.println("Debug1 " + stock.getNseSymbol());
+                        stockPriceIO.setBhavDate(ohlcv.getBhavDate());
+                        // System.out.println("Debug2 " + stock.getNseSymbol());
+                        stockPriceIO.setTimestamp(
+                                ohlcv.getBhavDate().atOffset(ZoneOffset.UTC).toLocalDate());
+                        // System.out.println("Debug3 " + stock.getNseSymbol());
+                        stockPrice =
+                                new com.example.data.storage.documents.StockPrice(
+                                        stockPriceIO.getNseSymbol(),
+                                        stockPriceIO.getBhavDate(),
+                                        stockPriceIO.getOpen(),
+                                        stockPriceIO.getHigh(),
+                                        stockPriceIO.getLow(),
+                                        stockPriceIO.getClose(),
+                                        stockPriceIO.getTottrdqty());
+                        // System.out.println("Debug4 " + stock.getNseSymbol());
+                        stockPriceList.add(stockPrice);
+                    }
+                }
+                // System.out.println("Debug5 " + stock.getNseSymbol());
+                priceTemplate.create(stockPriceList);
+                // System.out.println("Debug6 " + stock.getNseSymbol());
+                // stock.setActivityCompleted(true);
+                // System.out.println("Debug7 " + stock.getNseSymbol());
+                // stockRepository.save(stock);
+                // System.out.println("Debug8 " + stock.getNseSymbol());
+                --countTotal;
+                long endTime = System.currentTimeMillis();
+
+                System.out.println(
+                        "Completed activity for "
+                                + stock.getNseSymbol()
+                                + " took "
+                                + (endTime - startTime)
+                                + "ms");
+                System.out.println("Remaining " + countTotal);
+                miscUtil.delay();
+            } catch (Exception e) {
+                System.out.println("An error occured while getting data " + stock.getNseSymbol());
+            }
+        }
     }
 
     private void updatePriceHistory() {

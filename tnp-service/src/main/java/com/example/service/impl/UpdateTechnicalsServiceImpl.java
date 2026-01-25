@@ -22,6 +22,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -705,7 +706,19 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
         log.info("{} fetching {} OHLCV from {} to {}", nseSymbol, timeFrame, from, to);
 
-        return ohlcvService.fetch(timeFrame, nseSymbol, from, to);
+        List<OHLCV> ohlcvList = ohlcvService.fetch(timeFrame, nseSymbol, from, to);
+
+        if (timeFrame == Timeframe.MONTHLY
+                && !to.isEqual(
+                        calendarService.previousTradingSession(
+                                to.plusMonths(1).with(TemporalAdjusters.firstDayOfMonth())))) {
+            OHLCV ohlcvCurrent =
+                    monthlySupportResistanceService.supportAndResistance(
+                            nseSymbol, to.with(TemporalAdjusters.firstDayOfMonth()), to);
+            ohlcvList.add(ohlcvCurrent);
+        }
+
+        return ohlcvList;
     }
 
     private Volume build(
