@@ -9,10 +9,7 @@ import com.example.service.*;
 import com.example.service.StockPriceService;
 import com.example.service.UpdatePriceService;
 import com.example.util.MiscUtil;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -194,8 +191,16 @@ public class UpdatePriceServiceImpl implements UpdatePriceService {
         OHLCV ohlcv = null;
         StockPrice stockPrice = null;
         if (timeframe == Timeframe.YEARLY) {
-            from = sessionDate.minusYears(7).with(TemporalAdjusters.firstDayOfYear());
+            from = sessionDate.minusYears(10).with(TemporalAdjusters.firstDayOfYear());
             stockPrice = new StockPriceYearly();
+
+        } else if (timeframe == Timeframe.QUARTERLY) {
+            from =
+                    sessionDate
+                            .minusMonths(20)
+                            .with(sessionDate.getMonth().firstMonthOfQuarter())
+                            .withDayOfMonth(1);
+            stockPrice = new StockPriceQuarterly();
 
         } else if (timeframe == Timeframe.MONTHLY) {
             from = sessionDate.minusMonths(20).with(TemporalAdjusters.firstDayOfMonth());
@@ -215,11 +220,7 @@ public class UpdatePriceServiceImpl implements UpdatePriceService {
 
         List<OHLCV> ohlcvList = ohlcvService.fetch(timeframe, stock.getNseSymbol(), from, to);
         if (timeframe == Timeframe.MONTHLY
-                && !sessionDate.isEqual(
-                        calendarService.previousTradingSession(
-                                sessionDate
-                                        .plusMonths(1)
-                                        .with(TemporalAdjusters.firstDayOfMonth())))) {
+                && !(sessionDate.getDayOfMonth() == YearMonth.from(sessionDate).lengthOfMonth())) {
             OHLCV ohlcvCurrent =
                     monthlySupportResistanceService.supportAndResistance(
                             stock.getNseSymbol(),
