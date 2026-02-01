@@ -7,6 +7,7 @@ import com.example.data.storage.repo.TechnicalsTemplate;
 import com.example.data.transactional.entities.Stock;
 import com.example.data.transactional.entities.StockTechnicalsDaily;
 import com.example.data.transactional.entities.StockTechnicalsMonthly;
+import com.example.data.transactional.entities.StockTechnicalsQuarterly;
 import com.example.dto.assembler.StockPriceOHLCVAssembler;
 import com.example.dto.common.OHLCV;
 import com.example.dto.io.StockPriceIO;
@@ -497,7 +498,9 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
         StockTechnicals stockTechnicals = this.buildBK(timeframe, stock, sessionDate);
 
         com.example.data.transactional.entities.StockTechnicals st = null;
-        if (timeframe == Timeframe.MONTHLY) {
+        if (timeframe == Timeframe.QUARTERLY) {
+            st = new StockTechnicalsQuarterly();
+        } else if (timeframe == Timeframe.MONTHLY) {
             st = new StockTechnicalsMonthly();
         } else if (timeframe == Timeframe.WEEKLY) {
             st = new StockTechnicalsMonthly();
@@ -615,6 +618,24 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
         st.setVolume(stockTechnicals.getVolume().getVolume());
         st.setPrevVolume(stockTechnicals.getVolume().getPrevVolume());
         st.setPrev2Volume(stockTechnicals.getVolume().getPrev2Volume());
+        // Set prev3 through prev11 values
+        st.setPrev3Volume(stockTechnicals.getVolume().getPrev3Volume());
+
+        st.setPrev4Volume(stockTechnicals.getVolume().getPrev4Volume());
+
+        st.setPrev5Volume(stockTechnicals.getVolume().getPrev5Volume());
+
+        st.setPrev6Volume(stockTechnicals.getVolume().getPrev6Volume());
+
+        st.setPrev7Volume(stockTechnicals.getVolume().getPrev7Volume());
+
+        st.setPrev8Volume(stockTechnicals.getVolume().getPrev8Volume());
+
+        st.setPrev9Volume(stockTechnicals.getVolume().getPrev9Volume());
+
+        st.setPrev10Volume(stockTechnicals.getVolume().getPrev10Volume());
+
+        st.setPrev11Volume(stockTechnicals.getVolume().getPrev11Volume());
 
         st.setVolumeAvg5(stockTechnicals.getVolume().getAvg5());
         st.setPrevVolumeAvg5(stockTechnicals.getVolume().getPrevAvg5());
@@ -627,6 +648,15 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
         st.setVolumeAvg20(stockTechnicals.getVolume().getAvg20());
         st.setPrevVolumeAvg20(stockTechnicals.getVolume().getPrevAvg20());
         st.setPrev2VolumeAvg20(stockTechnicals.getVolume().getPrev2Avg20());
+        st.setPrev3VolumeAvg20(stockTechnicals.getVolume().getPrev3Avg20());
+        st.setPrev4VolumeAvg20(stockTechnicals.getVolume().getPrev4Avg20());
+        st.setPrev5VolumeAvg20(stockTechnicals.getVolume().getPrev5Avg20());
+        st.setPrev6VolumeAvg20(stockTechnicals.getVolume().getPrev6Avg20());
+        st.setPrev7VolumeAvg20(stockTechnicals.getVolume().getPrev7Avg20());
+        st.setPrev8VolumeAvg20(stockTechnicals.getVolume().getPrev8Avg20());
+        st.setPrev9VolumeAvg20(stockTechnicals.getVolume().getPrev9Avg20());
+        st.setPrev10VolumeAvg20(stockTechnicals.getVolume().getPrev10Avg20());
+        st.setPrev11VolumeAvg20(stockTechnicals.getVolume().getPrev11Avg20());
 
         st.setRsi(stockTechnicals.getRsi().getRsi());
 
@@ -702,6 +732,13 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
 
         if (timeFrame == Timeframe.MONTHLY) {
             from = to.minusYears(17);
+        }
+
+        if (timeFrame == Timeframe.QUARTERLY) {
+            from = to.minusYears(10);
+        }
+        if (timeFrame == Timeframe.YEARLY) {
+            from = to.minusYears(10);
         }
 
         log.info("{} fetching {} OHLCV from {} to {}", nseSymbol, timeFrame, from, to);
@@ -787,10 +824,92 @@ public class UpdateTechnicalsServiceImpl implements UpdateTechnicalsService {
             ohlcv = ohlcvList.get(resultIndex - 2);
             prev2Volume = ohlcv.getVolume();
         }
+
         volume.setPrev2Volume(prev2Volume);
         volume.setPrev2Avg20(prev2Avg20);
         volume.setPrev2Avg10(prev2Avg10);
         volume.setPrev2Avg5(prev2Volume5);
+
+        // prev3
+        long prev3Volume = 0L, prev3Avg20 = 0L;
+        if (resultIndex >= 3) {
+            prev3Avg20 = avg20List.get(resultIndex - 3);
+            prev3Volume = ohlcv.getVolume();
+        }
+        volume.setPrev3Volume(prev3Volume);
+        volume.setPrev3Avg20(prev3Avg20);
+
+        // prev4
+        long prev4Volume = 0L, prev4Avg20 = 0L;
+        if (resultIndex >= 4) {
+            prev4Avg20 = avg20List.get(resultIndex - 4);
+            prev4Volume = ohlcv.getVolume();
+        }
+        volume.setPrev4Volume(prev4Volume);
+        volume.setPrev4Avg20(prev4Avg20);
+
+        // prev5
+        long prev5Volume = 0L, prev5Avg20 = 0L;
+        if (resultIndex >= 5) {
+            prev5Avg20 = avg20List.get(resultIndex - 5);
+            prev5Volume = ohlcv.getVolume();
+        }
+        volume.setPrev5Volume(prev5Volume);
+        volume.setPrev5Avg20(prev5Avg20);
+
+        // prev6
+        long prev6Volume = 0L, prev6Avg20 = 0L;
+        if (resultIndex >= 6) {
+            prev6Avg20 = avg20List.get(resultIndex - 6);
+            prev6Volume = ohlcv.getVolume();
+        }
+        volume.setPrev6Volume(prev6Volume);
+        volume.setPrev6Avg20(prev6Avg20);
+
+        // prev7
+        long prev7Volume = 0L, prev7Avg20 = 0L;
+        if (resultIndex >= 7) {
+            prev7Avg20 = avg20List.get(resultIndex - 7);
+            prev7Volume = ohlcv.getVolume();
+        }
+        volume.setPrev7Volume(prev7Volume);
+        volume.setPrev7Avg20(prev7Avg20);
+
+        // prev8
+        long prev8Volume = 0L, prev8Avg20 = 0L;
+        if (resultIndex >= 8) {
+            prev8Avg20 = avg20List.get(resultIndex - 8);
+            prev8Volume = ohlcv.getVolume();
+        }
+        volume.setPrev8Volume(prev8Volume);
+        volume.setPrev8Avg20(prev8Avg20);
+
+        // prev9
+        long prev9Volume = 0L, prev9Avg20 = 0L;
+        if (resultIndex >= 9) {
+            prev9Avg20 = avg20List.get(resultIndex - 9);
+            prev9Volume = ohlcv.getVolume();
+        }
+        volume.setPrev9Volume(prev9Volume);
+        volume.setPrev9Avg20(prev9Avg20);
+
+        // prev10
+        long prev10Volume = 0L, prev10Avg20 = 0L;
+        if (resultIndex >= 10) {
+            prev10Avg20 = avg20List.get(resultIndex - 10);
+            prev10Volume = ohlcv.getVolume();
+        }
+        volume.setPrev10Volume(prev10Volume);
+        volume.setPrev10Avg20(prev10Avg20);
+
+        // prev11
+        long prev11Volume = 0L, prev11Avg20 = 0L;
+        if (resultIndex >= 11) {
+            prev11Avg20 = avg20List.get(resultIndex - 11);
+            prev11Volume = ohlcv.getVolume();
+        }
+        volume.setPrev11Volume(prev11Volume);
+        volume.setPrev11Avg20(prev11Avg20);
 
         return volume;
     }

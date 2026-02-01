@@ -13,3 +13,7 @@ public class WebApplication {
         SpringApplication.run(WebApplication.class, args);
     }
 }
+/*
+GR - LOW, PREVLOW, CLOSE
+RG / GG - MID, LOW, PREV_HIGH, OPEN+LOW/2
+*/

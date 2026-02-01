@@ -116,23 +116,37 @@ public class CalendarService {
             return false;
         }
 
-        // If today is Friday, check if Saturday or Sunday has a special trading session
-        if (sessionDate.getDayOfWeek() == DayOfWeek.FRIDAY) {
-            LocalDate saturday = sessionDate.with(DayOfWeek.SATURDAY);
-            LocalDate sunday = sessionDate.with(DayOfWeek.SUNDAY);
-            return !(isSpecialTradingSession(saturday) || isSpecialTradingSession(sunday));
-            // If either Sat or Sun has a special session, Friday is NOT last trading session
-        }
+        DayOfWeek dayOfWeek = sessionDate.getDayOfWeek();
 
-        // If today is Thursday, check if Friday is a holiday (Then Thursday is the last session)
-        if (sessionDate.getDayOfWeek() == DayOfWeek.THURSDAY) {
-            LocalDate friday = sessionDate.plusDays(1);
-            if (isHoliday(friday)) {
-                return true; // If Friday is a holiday, Thursday is the last session
+        // For weekend days: only trading if special session
+        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+            if (!isSpecialTradingSession(sessionDate)) {
+                return false; // Not a trading day at all
             }
         }
 
-        return false;
+        // Check all remaining days in the week
+        LocalDate checkDate = sessionDate.plusDays(1);
+
+        while (checkDate.getDayOfWeek() != DayOfWeek.MONDAY) {
+            // Skip if holiday
+            if (!isHoliday(checkDate)) {
+                DayOfWeek checkDayOfWeek = checkDate.getDayOfWeek();
+
+                // Check if it's a trading day
+                if (checkDayOfWeek != DayOfWeek.SATURDAY && checkDayOfWeek != DayOfWeek.SUNDAY) {
+                    // Weekday - always a trading day if not holiday
+                    return false; // Found a later trading day
+                } else if (isSpecialTradingSession(checkDate)) {
+                    // Weekend day that's a special session
+                    return false; // Found a later trading day
+                }
+            }
+            checkDate = checkDate.plusDays(1);
+        }
+
+        // No trading days found after this date
+        return true;
     }
 
     public boolean isLastTradingSessionOfMonth(LocalDate sessionDate) {
@@ -233,17 +247,39 @@ public class CalendarService {
     }
 
     public LocalDate nextTradingSession(LocalDate sessionDate) {
-
         LocalDate nextTradingDate = sessionDate;
 
+        // First, handle special trading session logic
         if (DayOfWeek.FRIDAY == sessionDate.getDayOfWeek()) {
-            nextTradingDate = sessionDate.plusDays(3);
+            LocalDate saturday = sessionDate.plusDays(1);
+            LocalDate sunday = sessionDate.plusDays(2);
+
+            // Check weekend days only (Saturday, Sunday)
+            if (isSpecialTradingSession(saturday) && !this.isHoliday(saturday)) {
+                return saturday;
+            } else if (isSpecialTradingSession(sunday) && !this.isHoliday(sunday)) {
+                return sunday;
+            }
+            nextTradingDate = sessionDate.plusDays(3); // Monday
+
         } else if (DayOfWeek.SATURDAY == sessionDate.getDayOfWeek()) {
-            nextTradingDate = sessionDate.plusDays(2);
+
+            LocalDate sunday = sessionDate.plusDays(1);
+            if (isSpecialTradingSession(sunday) && !this.isHoliday(sunday)) {
+                return sunday;
+            }
+            nextTradingDate = sessionDate.plusDays(2); // Monday
+
         } else {
-            nextTradingDate = sessionDate.plusDays(1);
+            // Monday through Thursday - check next day
+            LocalDate nextDay = sessionDate.plusDays(1);
+            if (isSpecialTradingSession(nextDay) && !this.isHoliday(nextDay)) {
+                return nextDay;
+            }
+            nextTradingDate = nextDay;
         }
 
+        // Check for holidays and recursively find the next trading session
         if (this.isHoliday(nextTradingDate)) {
             return nextTradingSession(nextTradingDate);
         }
@@ -252,17 +288,39 @@ public class CalendarService {
     }
 
     public LocalDate previousTradingSession(LocalDate sessionDate) {
-
         LocalDate previousSessionDate = sessionDate;
 
+        // First, handle special trading session logic
         if (DayOfWeek.MONDAY == sessionDate.getDayOfWeek()) {
+            LocalDate sunday = sessionDate.minusDays(1);
+            LocalDate saturday = sessionDate.minusDays(2);
+
+            if (isSpecialTradingSession(sunday) && !this.isHoliday(sunday)) {
+                return sunday;
+            } else if (isSpecialTradingSession(saturday) && !this.isHoliday(saturday)) {
+                return saturday;
+            }
             previousSessionDate = sessionDate.minusDays(3);
+
         } else if (DayOfWeek.SUNDAY == sessionDate.getDayOfWeek()) {
+
+            LocalDate saturday = sessionDate.minusDays(1);
+            if (isSpecialTradingSession(saturday) && !this.isHoliday(saturday)) {
+                return saturday;
+            }
             previousSessionDate = sessionDate.minusDays(2);
+
         } else {
-            previousSessionDate = sessionDate.minusDays(1);
+            // Tuesday through Friday
+            // Check previous day for special sessions
+            LocalDate previousDay = sessionDate.minusDays(1);
+            if (isSpecialTradingSession(previousDay) && !this.isHoliday(previousDay)) {
+                return previousDay;
+            }
+            previousSessionDate = previousDay;
         }
 
+        // Check for holidays and recursively find the previous trading session
         if (this.isHoliday(previousSessionDate)) {
             return previousTradingSession(previousSessionDate);
         }

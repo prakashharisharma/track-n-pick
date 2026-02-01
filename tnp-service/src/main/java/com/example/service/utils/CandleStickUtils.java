@@ -511,6 +511,21 @@ public class CandleStickUtils {
         return high < prevHigh;
     }
 
+    public static boolean isPrev3LowerHigh(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        Double high = stockPrice.getPrev3High();
+        Double prevHigh = stockPrice.getPrev4High();
+
+        if (high == null || prevHigh == null) {
+            return false;
+        }
+
+        return high < prevHigh;
+    }
+
     public static boolean isLowerLow(StockPrice stockPrice) {
         if (stockPrice == null) {
             return false;
@@ -548,6 +563,21 @@ public class CandleStickUtils {
 
         Double low = stockPrice.getPrev2Low();
         Double prevLow = stockPrice.getPrev3Low();
+
+        if (low == null || prevLow == null) {
+            return false;
+        }
+
+        return low < prevLow;
+    }
+
+    public static boolean isPrev3LowerLow(StockPrice stockPrice) {
+        if (stockPrice == null) {
+            return false;
+        }
+
+        Double low = stockPrice.getPrev3Low();
+        Double prevLow = stockPrice.getPrev4Low();
 
         if (low == null || prevLow == null) {
             return false;
