@@ -1,0 +1,20 @@
+package com.example.service.scanner;
+
+public enum LevelType {
+    YEARLY_HIGH,
+    YEARLY_LOW,
+    YEARLY_CLOSE,
+    YEARLY_MID,
+    QUARTERLY_HIGH,
+    QUARTERLY_LOW,
+    QUARTERLY_CLOSE,
+    QUARTERLY_MID,
+    MONTHLY_HIGH,
+    MONTHLY_LOW,
+    MONTHLY_CLOSE,
+    MONTHLY_MID,
+    WEEKLY_HIGH,
+    WEEKLY_LOW,
+    WEEKLY_CLOSE,
+    WEEKLY_MID
+}
