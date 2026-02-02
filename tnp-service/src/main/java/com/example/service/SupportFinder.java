@@ -23,7 +23,7 @@ public class SupportFinder {
 
         Candle mostRecent = candles.get(0);
 
-        for (int i = 1; i < n; i++) {
+        for (int i = 2; i < n; i++) {
             Candle candidate = candles.get(i);
 
             // Candidate must be below or near recent price

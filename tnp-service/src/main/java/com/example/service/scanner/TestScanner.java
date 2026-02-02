@@ -33,6 +33,8 @@ public class TestScanner {
     private final UpdatePriceService updatePriceService;
     private final UpdateTechnicalsService updateTechnicalsService;
 
+    private final WeeklyLevelScannerService scannerService;
+
     private final MiscUtil miscUtil;
 
     private final StockPriceService stockPriceService;
@@ -2336,6 +2338,197 @@ public class TestScanner {
         results.forEach(System.out::println);
     }
 
+    public void dynamicScannerEnhanced2Monthly() {
+        //  List<Stock> stocks = stockService.getActiveStocks();
+        List<Stock> stocks = stockService.getForActivity();
+        List<String> results = new ArrayList<>();
+
+        List<Double> levels = new ArrayList<>();
+        int year = 2025;
+        List<LocalDate> sessionDates = new ArrayList<>();
+        sessionDates.add(YearMonth.of(year, Month.JANUARY).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.FEBRUARY).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.MARCH).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.APRIL).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.MAY).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.JUNE).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.JULY).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.AUGUST).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.SEPTEMBER).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.OCTOBER).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.NOVEMBER).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.DECEMBER).atEndOfMonth());
+
+        Map<String, String> hh = new HashMap<>();
+
+        for (Stock stock : stocks) {
+
+            if (!this.isInititalValidated(stock)) {
+                continue;
+            }
+            StockPrice stockPriceYearly =
+                    updatePriceService.buildBack(
+                            YEARLY, stock, YearMonth.of(year - 1, Month.DECEMBER).atEndOfMonth());
+
+            StockTechnicals stockTechnicalsYearly =
+                    updateTechnicalsService.buildBack(
+                            YEARLY, stock, YearMonth.of(year - 1, Month.DECEMBER).atEndOfMonth());
+
+            for (LocalDate sessionDate : sessionDates) {
+
+                if (sessionDate.isAfter(LocalDate.now())) {
+                    continue;
+                }
+
+                StockPrice stockPriceMonthly =
+                        updatePriceService.buildBack(MONTHLY, stock, sessionDate);
+
+                StockTechnicals stockTechnicalsMonthly =
+                        updateTechnicalsService.buildBack(MONTHLY, stock, sessionDate);
+
+                double range =
+                        formulaService.calculateChangePercentage(
+                                stockPriceMonthly.getLow(), stockPriceMonthly.getHigh());
+                double body =
+                        formulaService.calculateChangePercentage(
+                                Math.min(stockPriceMonthly.getOpen(), stockPriceMonthly.getClose()),
+                                Math.max(
+                                        stockPriceMonthly.getOpen(), stockPriceMonthly.getClose()));
+
+                if (range < 10.0 || body > 10.0) {
+                    continue;
+                }
+
+                double mcap = fundamentalResearchService.marketCap(stockPriceMonthly);
+
+                if (mcap < 750 || mcap > 50_000) {
+                    continue;
+                }
+
+                if (stockTechnicalsMonthly.getVolume() > stockTechnicalsMonthly.getVolumeAvg20()) {
+                    //   continue;
+                }
+
+                boolean isLowRejectedEma5 =
+                        stockPriceMonthly.getLow() <= stockTechnicalsMonthly.getEma5()
+                                && stockPriceMonthly.getClose() > stockTechnicalsMonthly.getEma5();
+
+                if (!isLowRejectedEma5) {
+                    continue;
+                }
+
+                boolean isEitherGreenOrHhHL =
+                        CandleStickUtils.isGreen(stockPriceMonthly)
+                                || CandleStickUtils.isHigherHighAndHigherLow(stockPriceMonthly);
+
+                if (!(isEitherGreenOrHhHL)) {
+                    continue;
+                }
+
+                if (!this.isValidSetup(stockPriceMonthly, stockTechnicalsMonthly)) {
+                    continue;
+                }
+
+                boolean isMAAlignBullish =
+                        (stockTechnicalsMonthly.getEma50() != 0
+                                        && stockTechnicalsMonthly.getEma20()
+                                                > stockTechnicalsMonthly.getEma50())
+                                || (stockTechnicalsMonthly.getEma20() != 0
+                                        && stockTechnicalsMonthly.getEma5()
+                                                > stockTechnicalsMonthly.getEma20());
+
+                if (!isMAAlignBullish) {
+                    continue;
+                }
+
+                this.addLevels(stockPriceMonthly, levels);
+                // Get first day of next month
+                LocalDate firstDayOfNextMonth =
+                        sessionDate.with(TemporalAdjusters.firstDayOfNextMonth());
+
+                // Find the first Monday in that month
+                LocalDate sessionDateStart =
+                        firstDayOfNextMonth.with(TemporalAdjusters.firstInMonth(DayOfWeek.MONDAY));
+
+                // Get last day of next month
+                LocalDate lastDayOfNextMonth =
+                        firstDayOfNextMonth.with(TemporalAdjusters.lastDayOfMonth());
+
+                // Find the last Friday in that month
+                LocalDate sessionDateEnd =
+                        lastDayOfNextMonth.with(TemporalAdjusters.previous(DayOfWeek.FRIDAY));
+
+                for (LocalDate sessionDateMonday = sessionDateStart;
+                        !sessionDateMonday.isAfter(sessionDateEnd);
+                        sessionDateMonday = sessionDateMonday.plusWeeks(1)) {
+                    // Get last session date of previous week
+                    LocalDate sessionDateWeekly =
+                            calendarService.previousTradingSession(sessionDateMonday);
+
+                    // Get last session date of next week
+                    LocalDate sessionDateNextWeekly =
+                            calendarService.previousTradingSession(sessionDateMonday.plusWeeks(1));
+
+                    StockPrice stockPriceWeekly =
+                            updatePriceService.buildBack(WEEKLY, stock, sessionDateWeekly);
+
+                    StockTechnicals stockTechnicalsWeekly =
+                            updateTechnicalsService.buildBack(WEEKLY, stock, sessionDateWeekly);
+
+                    double closeWeekly = stockPriceWeekly.getClose();
+                    double lowWeekly = stockPriceWeekly.getLow();
+
+                    List<Double> levelsToCheck =
+                            this.removeLevelsGreaterThanClose(levels, stockPriceWeekly.getClose());
+
+                    levelsToCheck =
+                            this.removeLevelsLessThanClose(
+                                    levelsToCheck,
+                                    Math.min(
+                                            stockPriceWeekly.getPrevLow(),
+                                            stockPriceWeekly.getLow()));
+
+                    for (double level : levelsToCheck) {
+
+                        boolean isLevelRejected =
+                                stockPriceWeekly.getLow() <= level
+                                        && stockPriceWeekly.getClose() > level;
+
+                        if (isLevelRejected) {
+                            StockPrice stockPriceNextWeek =
+                                    updatePriceService.buildBack(
+                                            DAILY, stock, sessionDateNextWeekly);
+
+                            double gain =
+                                    formulaService.calculateChangePercentage(
+                                            stockPriceWeekly.getClose(),
+                                            stockPriceNextWeek.getClose());
+
+                            if (CandleStickUtils.isGreen(stockPriceWeekly)) {
+                                String result =
+                                        sessionDate
+                                                + ", "
+                                                + stock.getNseSymbol()
+                                                + ", "
+                                                + sessionDateWeekly
+                                                + ", "
+                                                + sessionDateNextWeekly
+                                                + ", "
+                                                + level
+                                                + ", "
+                                                + miscUtil.formatDouble(gain);
+                                results.add(result);
+                                System.out.println("Found it1 " + result);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        System.out.println("-----results-----");
+        results.forEach(System.out::println);
+    }
+
     public void dynamicScannerEnhanced1Quarterly() {
         //  List<Stock> stocks = stockService.getActiveStocks();
         List<Stock> stocks = stockService.getForActivity();
@@ -2483,6 +2676,238 @@ public class TestScanner {
         }
         System.out.println("-----results-----");
         results.forEach(System.out::println);
+    }
+
+    public void dynamicScannerEnhanced1FindWeekly() {
+        //   List<Stock> stocks = stockService.getActiveStocks();
+        //  List<Stock> stocks = stockService.getForActivity();
+
+        List<Stock> stocks = new ArrayList<>();
+
+        Stock testStock = stockService.getStockByNseSymbol("CUPID");
+        stocks.add(testStock);
+        testStock = stockService.getStockByNseSymbol("KRISHANA");
+        stocks.add(testStock);
+
+        List<String> results = new ArrayList<>();
+
+        List<Double> levels = new ArrayList<>();
+        int year = 2025;
+        List<LocalDate> sessionDates = new ArrayList<>();
+        sessionDates.add(YearMonth.of(year, Month.JANUARY).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.FEBRUARY).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.MARCH).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.APRIL).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.MAY).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.JUNE).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.JULY).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.AUGUST).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.SEPTEMBER).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.OCTOBER).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.NOVEMBER).atEndOfMonth());
+        sessionDates.add(YearMonth.of(year, Month.DECEMBER).atEndOfMonth());
+
+        Map<String, String> hh = new HashMap<>();
+
+        for (Stock stock : stocks) {
+
+            if (!this.isInititalValidated(stock)) {
+                continue;
+            }
+
+            for (LocalDate sessionDate : sessionDates) {
+                // Get first day of next month
+                LocalDate firstDayOfNextMonth =
+                        sessionDate.with(TemporalAdjusters.firstDayOfNextMonth());
+
+                // Find the first Monday in that month
+                LocalDate sessionDateStart =
+                        firstDayOfNextMonth.with(TemporalAdjusters.firstInMonth(DayOfWeek.MONDAY));
+
+                // Get last day of next month
+                LocalDate lastDayOfNextMonth =
+                        firstDayOfNextMonth.with(TemporalAdjusters.lastDayOfMonth());
+
+                // Find the last Friday in that month
+                LocalDate sessionDateEnd =
+                        lastDayOfNextMonth.with(TemporalAdjusters.previous(DayOfWeek.FRIDAY));
+
+                for (LocalDate sessionDateMonday = sessionDateStart;
+                        !sessionDateMonday.isAfter(sessionDateEnd)
+                                && !sessionDateMonday.isAfter(LocalDate.now());
+                        sessionDateMonday = sessionDateMonday.plusWeeks(1)) {
+                    // Get last session date of previous week
+                    LocalDate sessionDateWeekly =
+                            calendarService.previousTradingSession(sessionDateMonday);
+
+                    // Get last session date of next week
+                    LocalDate sessionDateNextWeekly =
+                            calendarService.previousTradingSession(sessionDateMonday.plusWeeks(1));
+
+                    StockPrice stockPriceWeekly =
+                            updatePriceService.buildBack(WEEKLY, stock, sessionDateWeekly);
+
+                    StockTechnicals stockTechnicalWeekly =
+                            updateTechnicalsService.buildBack(WEEKLY, stock, sessionDateWeekly);
+
+                    StockPrice stockPriceMonthly =
+                            updatePriceService.buildBack(
+                                    MONTHLY,
+                                    stock,
+                                    sessionDateWeekly
+                                            .with(TemporalAdjusters.firstDayOfMonth())
+                                            .minusDays(1));
+
+                    StockTechnicals stockTechnicalMonthly =
+                            updateTechnicalsService.buildBack(
+                                    MONTHLY,
+                                    stock,
+                                    sessionDateWeekly
+                                            .with(TemporalAdjusters.firstDayOfMonth())
+                                            .minusDays(1));
+
+                    StockPrice stockPriceQuarterly =
+                            updatePriceService.buildBack(
+                                    MONTHLY,
+                                    stock,
+                                    sessionDateWeekly
+                                            .with(
+                                                    sessionDateWeekly
+                                                            .getMonth()
+                                                            .firstMonthOfQuarter())
+                                            .with(TemporalAdjusters.firstDayOfMonth())
+                                            .minusDays(1));
+
+                    StockTechnicals stockTechnicalQuarterly =
+                            updateTechnicalsService.buildBack(
+                                    MONTHLY,
+                                    stock,
+                                    sessionDateWeekly
+                                            .with(
+                                                    sessionDateWeekly
+                                                            .getMonth()
+                                                            .firstMonthOfQuarter())
+                                            .with(TemporalAdjusters.firstDayOfMonth())
+                                            .minusDays(1));
+
+                    StockPrice stockPriceYearly =
+                            updatePriceService.buildBack(
+                                    MONTHLY,
+                                    stock,
+                                    sessionDateWeekly
+                                            .with(TemporalAdjusters.firstDayOfYear())
+                                            .minusDays(1));
+
+                    StockTechnicals stockTechnicalYearly =
+                            updateTechnicalsService.buildBack(
+                                    MONTHLY,
+                                    stock,
+                                    sessionDateWeekly
+                                            .with(TemporalAdjusters.firstDayOfYear())
+                                            .minusDays(1));
+
+                    double mcap = fundamentalResearchService.marketCap(stockPriceWeekly);
+
+                    if (mcap < 750 || mcap > 50_000) {
+                        continue;
+                    }
+
+                    if (!this.isValidSetup(stockPriceWeekly, stockTechnicalWeekly)) {
+                        continue;
+                    }
+
+                    double support = SupportFinder.findSupport(stockPriceWeekly, 11);
+
+                    if (support > 0.0) {
+
+                        //  if (CandleStickUtils.isGreen(stockPriceWeekly) ||
+                        // candleStickService.isHammer(stockPriceWeekly)  ) {
+
+                        double lowWeekly = stockPriceWeekly.getLow();
+                        double closeWeekly = stockPriceWeekly.getClose();
+                        double supportMonthly = SupportFinder.findSupport(stockPriceMonthly, 11);
+                        boolean isSupportMonthly =
+                                lowWeekly <= supportMonthly && closeWeekly > supportMonthly;
+                        double supportQuarterly = SupportFinder.findSupport(stockPriceQuarterly, 8);
+                        boolean isSupportQuarterly =
+                                lowWeekly <= supportQuarterly && closeWeekly > supportQuarterly;
+                        double supportYearly = SupportFinder.findSupport(stockPriceQuarterly, 3);
+                        boolean isSupportYearly =
+                                lowWeekly <= supportYearly && closeWeekly > supportYearly;
+                        String result =
+                                sessionDate
+                                        + ", "
+                                        + sessionDateWeekly
+                                        + ", "
+                                        + stock.getNseSymbol()
+                                        + ", "
+                                        + support
+                                        + ", "
+                                        + (supportMonthly > 0.0)
+                                        + ", "
+                                        + isSupportMonthly
+                                        + ", "
+                                        + (supportQuarterly > 0.0)
+                                        + ", "
+                                        + isSupportQuarterly
+                                        + ", "
+                                        + (supportYearly > 0.0)
+                                        + ", "
+                                        + isSupportYearly;
+                        System.out.println("Found it " + result);
+                        results.add(result);
+                        // }
+                    }
+                }
+            }
+        }
+        System.out.println("-----results-----");
+        results.forEach(System.out::println);
+    }
+
+    private void printAnalysisResult(WeeklyAnalysisResult result) {
+        System.out.println("\n" + "=".repeat(60));
+        System.out.println("WEEKLY ANALYSIS REPORT");
+        System.out.println("=".repeat(60));
+
+        StockPrice weekly = result.getWeeklyCandle();
+        System.out.printf("Symbol: %s\n", weekly.getStock().getNseSymbol());
+        System.out.printf("Date: %s\n", weekly.getSessionDate());
+        System.out.printf(
+                "Close: %.2f | High: %.2f | Low: %.2f\n",
+                weekly.getClose(), weekly.getHigh(), weekly.getLow());
+
+        System.out.println("\n" + "-".repeat(60));
+        System.out.println(result.getSummary());
+
+        System.out.println("\n" + "-".repeat(60));
+        System.out.println("STRONG INTERACTIONS:");
+        for (LevelInteraction interaction : result.getStrongInteractions()) {
+            System.out.printf(
+                    "  %s @ %.2f (Strength: %.1f/5)\n",
+                    interaction.getLevel().getLevelType(),
+                    interaction.getLevel().getPrice(),
+                    interaction.getStrength());
+        }
+
+        System.out.println("\n" + "-".repeat(60));
+        System.out.println("TOP SUPPORT LEVELS:");
+        result.getSupportLevels().stream()
+                .limit(3)
+                .forEach(
+                        level ->
+                                System.out.printf(
+                                        "  %.2f (%s)\n", level.getPrice(), level.getLevelType()));
+
+        System.out.println("\nTOP RESISTANCE LEVELS:");
+        result.getResistanceLevels().stream()
+                .limit(3)
+                .forEach(
+                        level ->
+                                System.out.printf(
+                                        "  %.2f (%s)\n", level.getPrice(), level.getLevelType()));
+
+        System.out.println("=".repeat(60));
     }
 
     public double correctionFromSwingHigh(StockPrice stockPrice, double yearHigh) {
@@ -3677,19 +4102,13 @@ public class TestScanner {
         levels.clear();
 
         boolean isGreen = CandleStickUtils.isGreen(stockPrice);
-        boolean isPrevGreen = CandleStickUtils.isPrevSessionGreen(stockPrice);
 
         double close = stockPrice.getClose();
         levels.add(close);
 
-        double low = stockPrice.getLow();
-        levels.add(low);
-
         if (isGreen) {
             double mid = (stockPrice.getOpen() + stockPrice.getClose()) / 2;
             levels.add(mid);
-            double high = stockPrice.getHigh();
-            levels.add(high);
         }
 
         Collections.sort(levels);

@@ -260,8 +260,10 @@ public class WebRunner implements CommandLineRunner {
         //  testScanner.newScanner2();
         //  testScanner.dynamicScannerEnhanced();
         // testScanner.dynamicScannerEnhanced1Weekly();
-        // testScanner.dynamicScannerEnhanced1Monthly();
-        testScanner.dynamicScannerEnhanced1Quarterly();
+        //  testScanner.dynamicScannerEnhanced1Monthly();
+        // testScanner.dynamicScannerEnhanced2Monthly();
+        // testScanner.dynamicScannerEnhanced1Quarterly();
+        testScanner.dynamicScannerEnhanced1FindWeekly();
 
         //  testScanner.monthlyScanner();
         //  testScanner.monthlyScanner2();
